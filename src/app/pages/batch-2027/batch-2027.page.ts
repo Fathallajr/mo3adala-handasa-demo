@@ -101,6 +101,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	joinDescription = 'سيب بياناتك واحجز أولوية التواصل قبل بداية الدفعة الجديدة.';
 	submitLabel = 'احصل على الخصم الآن';
 	isPageVisible = true;
+	wheelVisible = true;
 	offerContactConsent = false;
 	offerSubmitting = false;
 	offerSubmitted = false;
@@ -371,6 +372,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		const state = raw as any;
 		if (!state) return;
 		this.isPageVisible = state.visible !== false;
+		this.wheelVisible = state.wheelVisible !== false;
 		this.heroEyebrow = state.eyebrow || this.heroEyebrow;
 		this.heroTitle = state.title || this.heroTitle;
 		this.heroHighlight = state.highlight || this.heroHighlight;

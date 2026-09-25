@@ -162,6 +162,7 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 	'subscription-computers-en': monthlyContentDefaults['subscription-ab-reviews'],
 	'batch-2027': {
 		visible: true,
+		wheelVisible: true,
 		eyebrow: 'مشوارك يبدأ من هنا',
 		title: 'كلية هندسة',
 		highlight: 'أقرب مما تتخيل',
