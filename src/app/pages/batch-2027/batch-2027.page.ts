@@ -106,7 +106,6 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	offerSubmitted = false;
 	offerError = '';
 	private readonly launchOfferEndpoint = '/api/launch-offer';
-	private readonly staticLaunchOfferEndpoint = 'https://script.google.com/macros/s/AKfycbzOMDZcgaUgRacnKnqgngxO_97N5iUU9AVoH1bA5HHEFg0LKS3Lju8ku6yl0nYgrLdQ/exec';
 	private readonly giftWhatsAppNumber = '201080681865';
 
 	constructor(
@@ -405,12 +404,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.offerError = '';
 		const lead = { name: this.lead.name.trim(), whatsapp: this.lead.whatsapp.trim(), school: this.lead.school.trim(), studentType: this.lead.studentType, program: this.lead.program, source: this.lead.source, consent: this.offerContactConsent ? 'نعم' : 'لا' };
 		try {
-			let payload: { success?: boolean; alreadyRegistered?: boolean; message?: string };
-			try {
-				payload = await this.postLead(lead);
-			} catch {
-				payload = await this.postLeadToStaticAppsScript(lead);
-			}
+			const payload = await this.postLead(lead);
 			if (payload.alreadyRegistered) {
 				this.offerError = 'رقم الواتساب ده مسجل بالفعل.';
 				return;
@@ -425,16 +419,4 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	private async postLeadToStaticAppsScript(data: Record<string, string>): Promise<{ success?: boolean; alreadyRegistered?: boolean; message?: string }> {
-		const endpoint = typeof window !== 'undefined'
-			? window.NG_LAUNCH_OFFER_ENDPOINT || this.staticLaunchOfferEndpoint
-			: this.staticLaunchOfferEndpoint;
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			body: new URLSearchParams(data)
-		});
-		const payload = await response.json();
-		if (!response.ok) throw new Error(payload.message || 'request-failed');
-		return payload;
-	}
 }
