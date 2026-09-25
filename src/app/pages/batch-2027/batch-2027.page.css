@@ -853,3 +853,8 @@
 .batch-gift-wheel__label { width: 82px; margin-left: -41px; font-size: 12px; white-space: nowrap; text-align: center; }
 .batch-gift-wheel__label { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
 .batch-gift-wheel__label:nth-child(3) { color: #172452; text-shadow: 0 1px 2px rgba(255,255,255,.35); }
+
+/* Rebuilt wheel state: one fixed transition, no competing pending animation. */
+.batch-gift-wheel__disc { transition: transform 5.2s cubic-bezier(.12,.76,.16,1) !important; }
+.batch-gift-wheel.is-spinning .batch-gift-wheel__disc { animation: none !important; }
+.batch-wheel-pending { margin: -8px auto 18px; color: #687697; font-size: 15px; font-weight: 700; }

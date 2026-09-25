@@ -41,13 +41,14 @@
 		<div class="batch-gift-wheel-wrap">
 			<span class="batch-kicker"><span></span> جرّب حظك</span>
 			<h2>لف العجلة واختار هديتك</h2>
-			<div class="batch-gift-wheel" [class.is-spinning]="giftWheelSpinning" [class.is-awaiting-result]="wheelAwaitingResult">
+			<div class="batch-gift-wheel" [class.is-spinning]="giftWheelSpinning">
 				<span class="batch-gift-wheel__pointer" aria-hidden="true"></span>
 				<div class="batch-gift-wheel__disc" [style.transform]="'rotate(' + wheelRotation + 'deg)'" [style.transition-duration.ms]="wheelTransitionDuration">
 					<span *ngFor="let gift of giftOptions; let i = index" class="batch-gift-wheel__label" [style.transform]="'rotate(' + (i * 40 + 20) + 'deg) translateY(-118px) rotate(-' + (i * 40 + 20 + wheelRotation) + 'deg)'">{{ gift.emoji }}</span>
 				</div>
-				<button type="button" class="batch-gift-wheel__spin" [attr.aria-label]="giftWheelSpinning ? 'العجلة تدور' : 'لف العجلة'" [disabled]="giftWheelSpinning || wheelUsed || wheelLocked" (click)="startGiftWheel()"><span class="batch-gift-wheel__center-box"><b>عجلة الحظ</b></span></button>
+				<button type="button" class="batch-gift-wheel__spin" [attr.aria-label]="giftWheelSpinning ? 'العجلة تدور' : 'لف العجلة'" [disabled]="giftWheelSpinning || wheelUsed || wheelLocked" (click)="startGiftWheel()"><span class="batch-gift-wheel__center-box"><b>{{ giftWheelSpinning ? 'جاري اللف' : 'عجلة الحظ' }}</b></span></button>
 			</div>
+			<p *ngIf="wheelAwaitingResult" class="batch-wheel-pending" aria-live="polite">بنجهز نتيجتك... استنى لحد ما العجلة تقف</p>
 			<form *ngIf="wheelResult?.available && !wheelClaimComplete && !wheelAlreadyUsed" class="wheel-claim-card" novalidate (ngSubmit)="submitWheelClaim()">
 				<div class="wheel-claim-card__heading">
 					<small>هديتك</small>

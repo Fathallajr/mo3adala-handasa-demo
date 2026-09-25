@@ -9,14 +9,12 @@ import { MonthlyContentService } from '../../core/services/monthly-content.servi
 import { cmsPageDefaults } from '../../core/cms-page.registry';
 
 const PHONE_PATTERN = /^01\d{9}$/;
-const WHEEL_SPIN_DURATION_MS = 7500;
+const WHEEL_SPIN_DURATION_MS = 5200;
 const WHEEL_REQUEST_TIMEOUT_MS = 15000;
-const WHEEL_APPS_SCRIPT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyrF6S-pyZys6aKo75ExPWxXCm9F-zIRKr_t-IvV7gyeCGKIBJ-nnISHMlyaRSNk4_r/exec';
 
 declare global {
 	interface Window {
 		NG_LAUNCH_OFFER_ENDPOINT?: string;
-		NG_WHEEL_APPS_SCRIPT_ENDPOINT?: string;
 	}
 }
 
@@ -136,9 +134,9 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 
 	private async spinGiftWheel(): Promise<void> {
 		if (this.giftWheelSpinning) return;
+		if (this.wheelTimer) clearTimeout(this.wheelTimer);
 		this.giftWheelSpinning = true;
 		this.wheelAwaitingResult = true;
-		const spinStartedAt = performance.now();
 		this.wheelResult = null;
 		this.selectedGift = '';
 		this.wheelAlreadyUsed = false;
@@ -148,18 +146,11 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		const controller = new AbortController();
 		const timeout = window.setTimeout(() => controller.abort(), WHEEL_REQUEST_TIMEOUT_MS);
 		try {
-		let payload: any;
-		try {
-			payload = await this.requestWheelSpinFromServer(controller.signal);
-		} catch (serverError) {
-			// Keep a static-site fallback, but never bypass the local API when it
-			// is available on the deployed Node server.
-			if (this.isLocalBrowser()) throw serverError;
-			payload = await this.requestWheelSpin();
-		}
+		const payload = await this.requestWheelSpinFromServer(controller.signal);
 		if (payload?.success === false || !payload?.token || !payload?.gift?.id) {
 			this.wheelAttempts -= 1;
 			this.giftWheelSpinning = false;
+			this.wheelAwaitingResult = false;
 			this.wheelClaimError = payload?.message || 'تعذر تشغيل العجلة. حاول تاني.';
 			return;
 		}
@@ -168,12 +159,13 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		if (resultIndex < 0) {
 			this.wheelAttempts -= 1;
 			this.giftWheelSpinning = false;
+			this.wheelAwaitingResult = false;
 			this.wheelClaimError = 'تعذر قراءة نتيجة العجلة. حاول تاني.';
 			return;
 		}
-		const remainingSpinDuration = Math.max(1200, WHEEL_SPIN_DURATION_MS - (performance.now() - spinStartedAt));
-		this.wheelTransitionDuration = remainingSpinDuration;
-		this.wheelAwaitingResult = false;
+		// The API decides the prize first. Only then do we start one fixed,
+		// visible animation and reveal the result after that animation ends.
+		this.wheelTransitionDuration = WHEEL_SPIN_DURATION_MS;
 		window.requestAnimationFrame(() => {
 			this.wheelRotation += 1440 + (360 - (resultIndex * 40 + 20));
 		});
@@ -184,13 +176,14 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 			this.wheelUsed = Boolean(this.wheelResult.available || exhausted);
 			this.wheelLocked = this.wheelUsed;
 			this.giftWheelSpinning = false;
+			this.wheelAwaitingResult = false;
 			this.wheelTransitionDuration = WHEEL_SPIN_DURATION_MS;
-		}, remainingSpinDuration);
-		} catch {
+		}, WHEEL_SPIN_DURATION_MS);
+		} catch (error) {
 			this.wheelAttempts -= 1;
 			this.wheelAwaitingResult = false;
 			this.giftWheelSpinning = false;
-			this.wheelClaimError = 'تعذر تشغيل العجلة. حاول تاني.';
+			this.wheelClaimError = error instanceof Error ? error.message : 'تعذر تشغيل العجلة. حاول تاني.';
 		} finally {
 			window.clearTimeout(timeout);
 		}
@@ -213,38 +206,6 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 			return crypto.randomUUID();
 		}
 		return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-	}
-
-	private requestWheelSpin(): Promise<any> {
-		return new Promise((resolve, reject) => {
-			const callbackName = `__wheelSpin_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-			const script = document.createElement('script');
-			const timer = window.setTimeout(() => {
-				cleanup();
-				reject(new Error('خدمة العجلة اتأخرت. حاول تاني.'));
-			}, WHEEL_REQUEST_TIMEOUT_MS);
-			const cleanup = () => {
-				window.clearTimeout(timer);
-				delete (window as any)[callbackName];
-				script.remove();
-			};
-			(window as any)[callbackName] = (payload: any) => {
-				cleanup();
-				resolve(payload || { success: false, message: 'تعذر قراءة رد العجلة.' });
-			};
-			script.onerror = () => {
-				cleanup();
-				reject(new Error('تعذر الاتصال بخدمة العجلة.'));
-			};
-			const query = new URLSearchParams({
-				action: 'spin',
-				sessionId: this.wheelSessionId,
-				callback: callbackName,
-				t: String(Date.now())
-			});
-			script.src = `${this.wheelAppsScriptEndpoint()}?${query.toString()}`;
-			document.body.appendChild(script);
-		});
 	}
 
 	updateWheelPhone(value: string): void {
@@ -295,14 +256,14 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				wheelToken: this.wheelToken,
 				sessionId: this.wheelSessionId
 			});
-			try {
-				const response = await fetch(this.resolveWheelEndpoint('claim'), {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-					body: claimBody,
-					signal: controller.signal
-				});
-				const payload = await response.json() as { success?: boolean; alreadyRegistered?: boolean; message?: string; gift?: string };
+			const response = await fetch(this.resolveWheelEndpoint('claim'), {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+				body: claimBody,
+				signal: controller.signal
+			});
+			const payload = await response.json() as { success?: boolean; alreadyRegistered?: boolean; message?: string; gift?: string };
+			if (!response.ok) throw new Error(payload.message || 'تعذر تسجيل هدية العجلة.');
 				if (payload.alreadyRegistered) {
 					this.wheelClaimError = payload.message || 'تم تسجيل هذا الرقم من قبل.';
 					this.wheelAlreadyUsed = true;
@@ -315,21 +276,6 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				this.selectedGift = payload.gift || this.wheelResult.label;
 				this.wheelUsed = true;
 				return;
-			} catch (serverError) {
-				if (this.isLocalBrowser()) throw serverError;
-				const payload = await this.requestWheelClaim(claimBody);
-				if (payload.alreadyRegistered) {
-					this.wheelClaimError = payload.message || 'تم استلام هدية العجلة بهذا الرقم من قبل.';
-					this.wheelAlreadyUsed = true;
-					this.wheelExistingGift = payload.gift || '';
-					this.wheelUsed = true;
-					return;
-				}
-				if (!payload.success) throw new Error(payload.message || 'تعذر تسجيل هدية العجلة.');
-				this.wheelClaimComplete = true;
-				this.selectedGift = payload.gift || this.wheelResult.label;
-				this.wheelUsed = true;
-			}
 		} catch (error) {
 			this.wheelClaimError = error instanceof DOMException && error.name === 'AbortError'
 				? 'خدمة تسجيل العجلة اتأخرت. من فضلك ما تضغطش مرة تانية.'
@@ -341,80 +287,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	}
 
 	private resolveWheelEndpoint(action: 'spin' | 'claim'): string {
-		// The deployed Node app owns the wheel state. Apps Script is used only
-		// as a fallback when a genuinely static build has no local API.
+		// The Node API is the single source of truth for spins and claims.
 		return `/api/wheel/${action}`;
-	}
-
-	private isStaticDeployment(): boolean {
-		return typeof window !== 'undefined' && !this.isLocalBrowser();
-	}
-
-	private isLocalBrowser(): boolean {
-		return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-	}
-
-	private wheelAppsScriptEndpoint(): string {
-		if (typeof window !== 'undefined') {
-			return window.NG_WHEEL_APPS_SCRIPT_ENDPOINT || WHEEL_APPS_SCRIPT_ENDPOINT;
-		}
-		return WHEEL_APPS_SCRIPT_ENDPOINT;
-	}
-
-	private requestWheelPhoneCheck(whatsapp: string): Promise<boolean | null> {
-		return new Promise((resolve, reject) => {
-			const callbackName = `__wheelCheck_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-			const script = document.createElement('script');
-			const timer = window.setTimeout(() => {
-				cleanup();
-					resolve(null);
-			}, 2500);
-			const cleanup = () => {
-				window.clearTimeout(timer);
-				delete (window as any)[callbackName];
-				script.remove();
-			};
-			(window as any)[callbackName] = (payload: any) => {
-				cleanup();
-				if (!payload?.success) resolve(null);
-				else resolve(Boolean(payload.exists));
-			};
-			script.onerror = () => {
-				cleanup();
-				resolve(null);
-			};
-			script.src = `${this.wheelAppsScriptEndpoint()}?action=check&whatsapp=${encodeURIComponent(whatsapp)}&callback=${encodeURIComponent(callbackName)}&t=${Date.now()}`;
-			document.body.appendChild(script);
-		});
-	}
-
-	private requestWheelClaim(body: URLSearchParams): Promise<{ success?: boolean; alreadyRegistered?: boolean; message?: string; gift?: string }> {
-		return new Promise((resolve, reject) => {
-			const callbackName = `__wheelClaim_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-			const script = document.createElement('script');
-			const timer = window.setTimeout(() => {
-				cleanup();
-				reject(new Error('خدمة التسجيل اتأخرت. حاول تاني.'));
-			}, 60000);
-			const cleanup = () => {
-				window.clearTimeout(timer);
-				delete (window as any)[callbackName];
-				script.remove();
-			};
-			(window as any)[callbackName] = (payload: any) => {
-				cleanup();
-				resolve(payload || { success: false, message: 'تعذر قراءة رد التسجيل.' });
-			};
-			script.onerror = () => {
-				cleanup();
-				reject(new Error('تعذر الاتصال بخدمة التسجيل.'));
-			};
-			const query = new URLSearchParams(body.toString());
-			query.set('callback', callbackName);
-			query.set('t', String(Date.now()));
-			script.src = `${this.wheelAppsScriptEndpoint()}?${query.toString()}`;
-			document.body.appendChild(script);
-		});
 	}
 
 	closeGiftResult(): void {
@@ -457,8 +331,9 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 
 	ngOnInit(): void {
 		if (typeof window === 'undefined') return;
-		this.wheelSessionId = sessionStorage.getItem('batch-2027-wheel-session') || this.createClientToken();
-		sessionStorage.setItem('batch-2027-wheel-session', this.wheelSessionId);
+		const wheelSessionKey = 'batch-2027-wheel-session-v2';
+		this.wheelSessionId = sessionStorage.getItem(wheelSessionKey) || this.createClientToken();
+		sessionStorage.setItem(wheelSessionKey, this.wheelSessionId);
 
 		const siteUrl = (window as any)['NG_SITE_URL'] || 'https://www.appmo3adla.com';
 		const title = 'دفعة 2027 | ابدأ صح مع أبلكيشن معادلة كلية هندسة';
