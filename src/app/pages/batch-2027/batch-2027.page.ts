@@ -180,8 +180,9 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.wheelTimer = window.setTimeout(() => {
 			this.wheelResult = this.giftOptions[resultIndex];
 			this.selectedGift = '';
-			this.wheelUsed = !this.wheelResult.available;
-			this.wheelLocked = true;
+			const exhausted = Boolean(payload.exhausted) || Number(payload.remainingAttempts) === 0;
+			this.wheelUsed = Boolean(this.wheelResult.available || exhausted);
+			this.wheelLocked = this.wheelUsed;
 			this.giftWheelSpinning = false;
 			this.wheelTransitionDuration = WHEEL_SPIN_DURATION_MS;
 		}, remainingSpinDuration);

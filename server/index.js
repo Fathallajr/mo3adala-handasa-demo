@@ -52,6 +52,7 @@ const WHEEL_STATE_FILE = path.join(DATA_DIR, 'wheel-state.json');
 const WHEEL_SECRET_FILE = path.join(DATA_DIR, 'wheel-secret.txt');
 const WHEEL_APPS_SCRIPT_SECRET = process.env.WHEEL_APPS_SCRIPT_SECRET || readLocalWheelSecret();
 const WHEEL_TTL_MS = 30 * 60 * 1000;
+const MAX_WHEEL_ATTEMPTS = 3;
 const WHEEL_OPTIONS = [
 	{ id: 'cash-50', label: '50 جنيه', weight: 30, available: true },
 	{ id: 'lucky-chance', label: 'حظ سعيد', weight: 60, available: false },
@@ -364,19 +365,20 @@ app.post('/api/wheel/spin', rateLimit({ name: 'wheel-spin', windowMs: 15 * 60 * 
 		delete state.spins[existing.token];
 		existing = undefined;
 	}
-	if (existing) return res.json({ token: existing.token, gift: existing.gift });
+	if (existing?.gift?.available) return res.json({ token: existing.token, gift: existing.gift, attempts: existing.attempts, remainingAttempts: Math.max(MAX_WHEEL_ATTEMPTS - existing.attempts, 0) });
+	if (existing && existing.attempts >= MAX_WHEEL_ATTEMPTS) {
+		return res.json({ token: existing.token, gift: existing.gift, attempts: existing.attempts, remainingAttempts: 0, exhausted: true });
+	}
+	const previousAttempts = existing?.attempts || 0;
+	if (existing) delete state.spins[existing.token];
 
 	const totalWeight = WHEEL_OPTIONS.reduce((sum, gift) => sum + gift.weight, 0);
 	let pick = crypto.randomInt(totalWeight);
 	const gift = WHEEL_OPTIONS.find(option => (pick -= option.weight) < 0) || WHEEL_OPTIONS[0];
 	const token = `server-${crypto.randomBytes(24).toString('hex')}`;
-	state.spins[token] = { token, sessionId, gift, attempts: existing ? 2 : 1, createdAt: now, claimed: false };
-	if (existing) {
-		delete state.spins[existing.token];
-		state.spins[token].attempts = 2;
-	}
+	state.spins[token] = { token, sessionId, gift, attempts: previousAttempts + 1, createdAt: now, claimed: false };
 	saveWheelState(state);
-	return res.json({ token, gift });
+	return res.json({ token, gift, attempts: previousAttempts + 1, remainingAttempts: Math.max(MAX_WHEEL_ATTEMPTS - previousAttempts - 1, 0) });
 });
 
 app.get('/api/wheel/options', (_req, res) => {
