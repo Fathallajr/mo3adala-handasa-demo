@@ -172,6 +172,11 @@
 						[content]="currentContent">
 					</app-requirements-form>
 
+					<app-schools-form
+						*ngSwitchCase="'schools'"
+						[content]="currentContent">
+					</app-schools-form>
+
 					<app-json-content-form *ngSwitchDefault [content]="currentContent"></app-json-content-form>
 
 				</ng-container>

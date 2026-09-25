@@ -480,7 +480,11 @@ export class SchoolsPageComponent {
 
     this.monthlyContent.loadPageState('schools', { visible: true, title: 'المدارس والمعاهد', items: this.allSchools }).subscribe((state: any) => {
       if (state?.visible === false) return;
-      if (Array.isArray(state?.items) && state.items.length) this.allSchools = state.items;
+      if (Array.isArray(state?.items) && state.items.length) {
+        const existingNames = new Set(this.allSchools.map(school => school.name.trim()));
+        const addedSchools = state.items.filter((school: any) => school && typeof school.name === 'string' && !existingNames.has(school.name.trim()));
+        this.allSchools = [...this.allSchools, ...addedSchools];
+      }
     });
   }
 
