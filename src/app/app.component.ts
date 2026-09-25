@@ -45,7 +45,7 @@ export class AppComponent implements OnInit, OnDestroy {
 		'معادلة حاسبات إنجليزي'
 	];
 	offerStudentType = '';
-	offerStudentTypeOptions = ['المعاهد الفنية', 'مدارس الثانوية الصناعية نظام 3 سنوات', 'مدارس الثانوية الصناعية نظام 5 سنوات', 'مدارس تكنولوجيا تطبيقية نظام 3 سنوات', 'مدارس تكنولوجيا تطبيقية نظام 5 سنوات'];
+	offerStudentTypeOptions = ['المعاهد الفنية', 'الثانوية الصناعية نظام 3 سنوات', 'الثانوية الصناعية نظام 5 سنوات', 'تكنولوجيا تطبيقية نظام 3 سنوات', 'تكنولوجيا تطبيقية نظام 5 سنوات'];
 	offerContactConsent = false;
 	showStudentTypeMenu = false;
 	showOfferSourceMenu = false;

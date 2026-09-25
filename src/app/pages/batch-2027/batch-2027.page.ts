@@ -90,7 +90,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	lead = {
 		name: '', whatsapp: '', school: '', studentType: '', program: '', source: ''
 	};
-	offerStudentTypeOptions: string[] = ['المعاهد الفنية', 'مدارس الثانوية الصناعية نظام 3 سنوات', 'مدارس الثانوية الصناعية نظام 5 سنوات', 'مدارس تكنولوجيا تطبيقية نظام 3 سنوات', 'مدارس تكنولوجيا تطبيقية نظام 5 سنوات'];
+	offerStudentTypeOptions: string[] = ['المعاهد الفنية', 'الثانوية الصناعية نظام 3 سنوات', 'الثانوية الصناعية نظام 5 سنوات', 'تكنولوجيا تطبيقية نظام 3 سنوات', 'تكنولوجيا تطبيقية نظام 5 سنوات'];
 	offerSourceOptions: string[] = ['فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
 	heroEyebrow = 'مشوارك يبدأ من هنا';
 	heroTitle = 'كلية هندسة';
@@ -398,7 +398,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.heroHighlight = state.highlight || this.heroHighlight;
 		if (Array.isArray(state.features) && state.features.length) this.heroFeatures = state.features;
 		if (Array.isArray(state.programOptions) && state.programOptions.length) this.programOptions = state.programOptions;
-		if (Array.isArray(state.studentTypeOptions) && state.studentTypeOptions.length) this.offerStudentTypeOptions = state.studentTypeOptions;
+		if (Array.isArray(state.studentTypeOptions) && state.studentTypeOptions.length) this.offerStudentTypeOptions = state.studentTypeOptions.map((option: string) => option.replace(/^مدارس\s+/, ''));
 		if (Array.isArray(state.sourceOptions) && state.sourceOptions.length) this.offerSourceOptions = state.sourceOptions;
 		this.joinEyebrow = state.joinEyebrow || this.joinEyebrow;
 		this.joinTitle = state.joinTitle || this.joinTitle;
