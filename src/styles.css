@@ -420,6 +420,7 @@ main.app-page-shell {
   width: 100%;
   max-width: 100%;
   overflow-x: clip;
+  overflow-y: visible;
   background-color: transparent;
   background-image:
     linear-gradient(var(--site-grid-line) 1px, transparent 1px),
