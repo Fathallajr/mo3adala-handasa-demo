@@ -16,6 +16,7 @@ import { MonthlyContentService } from '../../core/services/monthly-content.servi
 export class NewsDetailPageComponent implements OnInit {
 	newsItem: any = null;
 	newsId: string = '';
+	notFound = false;
 
 	isEquationNews(): boolean {
 		const category = this.newsItem?.category;
@@ -1157,6 +1158,7 @@ export class NewsDetailPageComponent implements OnInit {
 	ngOnInit(): void {
 		this.route.params.subscribe(params => {
 			this.newsId = params['id'];
+			this.notFound = false;
 			// Try direct lookup by slug/key
 			this.newsItem = this.newsData[this.newsId];
 			// Fallback: try match by item's internal id property
@@ -1170,10 +1172,14 @@ export class NewsDetailPageComponent implements OnInit {
 				this.updatePageTitle();
 			}
 
-			this.monthlyContent.loadPageState('news-equation', { items: [] }).subscribe((state: any) => {
+			this.monthlyContent.loadPageState('news-equation', { items: [] }).subscribe({
+				next: (state: any) => {
 				const items = Array.isArray(state?.items) ? state.items : [];
 				const dynamic = items.find((item: any, index: number) => this.getDynamicSlug(item, index) === this.newsId);
-				if (!dynamic) return;
+				if (!dynamic) {
+					if (!this.newsItem) this.notFound = true;
+					return;
+				}
 				this.newsItem = {
 					...dynamic,
 					id: this.newsId,
@@ -1183,6 +1189,10 @@ export class NewsDetailPageComponent implements OnInit {
 					author: dynamic.author || 'فريق المعادلة'
 				};
 				this.updatePageTitle();
+			},
+			error: () => {
+				if (!this.newsItem) this.notFound = true;
+			}
 			});
 		});
 	}
