@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { adminFormStyles } from './admin-form-styles';
 
 interface BatchContent { visible: boolean; eyebrow: string; title: string; highlight: string; features: string[]; programOptions: string[]; studentTypeOptions: string[]; sourceOptions: string[]; joinEyebrow: string; joinTitle: string; joinHighlight: string; joinDescription: string; submitLabel: string; }
 
@@ -26,7 +27,7 @@ interface BatchContent { visible: boolean; eyebrow: string; title: string; highl
 			</div>
 		</div>
 	`,
-	styles: [`.cms-form{display:flex;flex-direction:column;gap:1.25rem}.cms-section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:1.25rem}.cms-section-title{font-weight:800;margin-bottom:1rem}.cms-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}.cms-field{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.75rem}.cms-label{font-size:.83rem;font-weight:700;color:#475569}.cms-input,.cms-textarea{width:100%;box-sizing:border-box;padding:.7rem .85rem;border:1px solid #cbd5e1;border-radius:10px;background:#fff;font:inherit}.cms-textarea{resize:vertical}`]
+	styles: [adminFormStyles]
 })
 export class Batch2027FormComponent implements OnChanges {
 	@Input() content: unknown;

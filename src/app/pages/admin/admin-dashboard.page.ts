@@ -61,6 +61,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadsPages = 1;
 	leadsTotal = 0;
 	leadStatuses = ['new', 'contacted', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
+	readonly leadStatusLabels: Record<string, string> = { new: 'جديد', contacted: 'تم التواصل', interested: 'مهتم', registered: 'مسجل', not_interested: 'غير مهتم', follow_up: 'متابعة', closed: 'مغلق', converted: 'تم التحويل' };
 	programDraft: Partial<Program> = { name: '', slug: '', category: '', language: 'ar', price: 0, enrollmentStatus: 'open', isActive: true };
 	editingProgramId: string | null = null;
 	pageOptions: PageOption[] = cmsPageOptions;
@@ -210,6 +211,10 @@ export class AdminDashboardPageComponent implements OnInit {
 	formatUpdatedAt(value?: string): string {
 		if (!value) return 'لم يتم الحفظ بعد';
 		return new Date(value).toLocaleString('ar-EG');
+	}
+
+	formatLeadStatus(status?: string): string {
+		return this.leadStatusLabels[status || ''] || status || 'غير محدد';
 	}
 
 	openPreview(): void {

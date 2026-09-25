@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { adminFormStyles } from './admin-form-styles';
 
 interface RequirementStep { title: string; description: string; }
 interface RequirementsContent { visible: boolean; title: string; description: string; engineeringConditions: string[]; computersConditions: string[]; documents: string[]; steps: RequirementStep[]; }
@@ -8,7 +9,7 @@ interface RequirementsContent { visible: boolean; title: string; description: st
 @Component({
 	selector: 'app-requirements-form', standalone: true, imports: [CommonModule, FormsModule],
 	template: `<div class="cms-form" *ngIf="data"><div class="cms-section"><div class="cms-section-title">صفحة شروط المعادلة</div><label class="cms-label">إظهار الصفحة <input type="checkbox" [(ngModel)]="data.visible"></label><div class="cms-field"><label class="cms-label">العنوان</label><input class="cms-input" [(ngModel)]="data.title"></div><div class="cms-field"><label class="cms-label">الوصف</label><textarea class="cms-textarea" [(ngModel)]="data.description" rows="2"></textarea></div></div><div class="cms-section"><div class="cms-section-title">الشروط — كل سطر شرط</div><div class="cms-field"><label class="cms-label">هندسة</label><textarea class="cms-textarea" [ngModel]="engineeringText" (ngModelChange)="setList('engineeringConditions',$event)" rows="6"></textarea></div><div class="cms-field"><label class="cms-label">حاسبات</label><textarea class="cms-textarea" [ngModel]="computersText" (ngModelChange)="setList('computersConditions',$event)" rows="6"></textarea></div></div><div class="cms-section"><div class="cms-section-title">المستندات</div><textarea class="cms-textarea" [ngModel]="documentsText" (ngModelChange)="setList('documents',$event)" rows="5"></textarea></div><div class="cms-section"><div class="cms-section-title">خطوات التقديم</div><div class="cms-array-list"><div class="cms-array-item" *ngFor="let step of data.steps; let i=index"><b>{{ i + 1 }}</b><div><input class="cms-input" [(ngModel)]="step.title" placeholder="عنوان الخطوة"><textarea class="cms-textarea" [(ngModel)]="step.description" rows="2" placeholder="وصف الخطوة"></textarea></div></div></div></div></div>`,
-	styles: [`.cms-form{display:flex;flex-direction:column;gap:1.25rem}.cms-section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:1.25rem}.cms-section-title{font-weight:800;margin-bottom:1rem}.cms-field{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.75rem}.cms-label{font-size:.83rem;font-weight:700;color:#475569}.cms-input,.cms-textarea{width:100%;box-sizing:border-box;padding:.7rem .85rem;border:1px solid #cbd5e1;border-radius:10px;background:#fff;font:inherit}.cms-textarea{resize:vertical}.cms-array-list{display:grid;gap:.6rem}.cms-array-item{display:grid;grid-template-columns:30px 1fr;gap:.6rem;align-items:start;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:.75rem}.cms-array-item .cms-textarea{margin-top:.5rem}`]
+	styles: [adminFormStyles]
 })
 export class RequirementsFormComponent implements OnChanges {
 	@Input() content: unknown; data: RequirementsContent | null = null; engineeringText = ''; computersText = ''; documentsText = '';

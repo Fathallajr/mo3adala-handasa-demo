@@ -2,6 +2,7 @@ import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { successStories, SuccessStory } from '../../success-stories/success-stories.data';
+import { adminFormStyles } from './admin-form-styles';
 
 interface SuccessStoriesContent { visible: boolean; eyebrow: string; title: string; highlight: string; description: string; stories: SuccessStory[]; }
 
@@ -31,7 +32,7 @@ interface SuccessStoriesContent { visible: boolean; eyebrow: string; title: stri
 			</div>
 		</div>
 	`,
-	styles: [`.cms-form{display:flex;flex-direction:column;gap:1.25rem}.cms-section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:1.25rem}.cms-section-title{font-weight:800;margin-bottom:1rem}.cms-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}.cms-field{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.75rem}.cms-label{font-size:.83rem;font-weight:700;color:#475569}.cms-input,.cms-textarea,.cms-select{width:100%;box-sizing:border-box;padding:.7rem .85rem;border:1px solid #cbd5e1;border-radius:10px;background:#fff;font:inherit}.cms-textarea{resize:vertical}.cms-array-list{display:flex;flex-direction:column;gap:.6rem}.cms-array-item{display:grid;grid-template-columns:1fr auto;gap:.7rem;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:.85rem}.cms-array-item__num{font-weight:700;color:#64748b;margin-bottom:.5rem}.cms-array-item__del{height:32px;border:0;border-radius:8px;background:#fee2e2;color:#b91c1c;cursor:pointer}.cms-add-btn{width:100%;padding:.7rem;border:1px dashed #8b5cf6;background:#ede9fe;color:#6d28d9;border-radius:10px;cursor:pointer;font:inherit;font-weight:700}`]
+	styles: [adminFormStyles]
 })
 export class SuccessStoriesFormComponent implements OnChanges {
 	@Input() content: unknown;

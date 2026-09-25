@@ -19,3 +19,34 @@
 @media (max-width:1100px) { .admin-body { grid-template-columns:1fr; }.admin-sidebar { position:static; max-height:none; }.page-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:700px) { .admin-dashboard-shell { padding:10px; }.admin-topbar { align-items:flex-start; flex-direction:column; padding:17px; }.topbar-actions { width:100%; justify-content:space-between; }.system-status { margin-left:auto; }.admin-editor { padding:16px; }.metric-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.page-list { grid-template-columns:1fr; }.editor-actions { width:100%; }.editor-actions button { flex:1; } }
 @media (max-width:430px) { .admin-title { font-size:20px; }.system-status { display:none; }.metric-grid { gap:8px; }.metric-card { padding:12px; }.metric-card strong { font-size:24px; } }
+
+/* Shared admin polish: keep data views and CMS forms in one visual language. */
+.admin-dashboard-shell { --purple-deep:#5540c9; --surface-soft:#fbfcff; background:radial-gradient(circle at 100% 0%,#eeebff 0,#f6f7fb 28rem); }
+.admin-topbar { position:relative; overflow:hidden; }
+.admin-topbar::before { content:''; position:absolute; inset:0 auto 0 0; width:180px; background:linear-gradient(90deg,#6d4aff12,transparent); pointer-events:none; }
+.admin-editor { min-height:calc(100vh - 120px); }
+.admin-nav button,.page-item,.primary-btn,.secondary-btn,.site-link,.admin-logout-btn { min-height:40px; }
+.admin-nav button:focus-visible,.page-item:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:3px solid #6d4aff35; outline-offset:2px; }
+.editor-title { letter-spacing:-.3px; }
+.editor-toolbar { position:relative; }
+.editor-toolbar::after { content:''; position:absolute; right:0; bottom:-1px; width:72px; height:3px; border-radius:99px; background:linear-gradient(90deg,#6d4aff,#a96cff); }
+.metric-card { transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease; }
+.metric-card:hover { transform:translateY(-3px); border-color:#d6d0ff; box-shadow:0 12px 25px rgba(64,50,145,.08); }
+.data-panel { background:var(--surface-soft); }
+.data-panel h3 { display:flex; align-items:center; gap:8px; }
+.data-panel h3::before { content:''; width:7px; height:7px; border-radius:50%; background:#6d4aff; box-shadow:0 0 0 4px #6d4aff18; }
+tbody tr { transition:background .15s ease; }
+tbody tr:hover { background:#faf9ff; }
+.filters input,.filters select,.program-editor input,.program-editor select { min-width:150px; }
+.program-editor { background:linear-gradient(135deg,#fbfaff,#f8f9fd); border-style:solid; }
+.program-editor label { display:flex; align-items:center; gap:7px; min-height:40px; padding:0 4px; }
+.program-editor label input { min-width:0; accent-color:#6d4aff; }
+.table-wrap td[colspan] { padding:34px 15px; color:#8993a8; text-align:center; }
+.status-badge { display:inline-flex; align-items:center; min-height:26px; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:900; }
+.status-badge--new { color:#345ca8; background:#edf4ff; }
+.status-badge--contacted,.status-badge--follow_up { color:#8a5c12; background:#fff6df; }
+.status-badge--interested { color:#5540c9; background:#f0edff; }
+.status-badge--registered,.status-badge--converted { color:#147653; background:#effbf6; }
+.status-badge--not_interested,.status-badge--closed { color:#a43a50; background:#fff1f3; }
+.cms-loading { justify-content:center; min-height:180px; background:#fbfcff; border:1px dashed var(--line); border-radius:16px; }
+@media (max-width:700px) { .admin-dashboard-shell { background:#f6f7fb; } .data-panel { padding:13px; } .filters input { min-width:100%; } .filters select,.filters .primary-btn { flex:1; } }

@@ -1,12 +1,13 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { adminFormStyles } from './admin-form-styles';
 
 @Component({
 	selector: 'app-json-content-form',
 	standalone: true,
 	imports: [CommonModule, FormsModule],
-	styles: [`.cms-form{padding-bottom:2rem}.cms-section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:1.25rem}.cms-section-title{font-weight:800;margin-bottom:1rem}.cms-help{color:#64748b;line-height:1.7}.json-editor{width:100%;box-sizing:border-box;font-family:Consolas,monospace;border:1px solid #cbd5e1;border-radius:10px;padding:1rem}.cms-error{color:#b91c1c;font-weight:700}`],
+	styles: [adminFormStyles + `.cms-help{color:#718096;line-height:1.75}.json-editor{width:100%;box-sizing:border-box;font-family:Consolas,monospace;border:1px solid #dfe4ed;border-radius:10px;padding:1rem}.cms-error{color:#a43a50;font-weight:800}`],
 	template: `
 		<div class="cms-form" *ngIf="content">
 			<div class="cms-section">
