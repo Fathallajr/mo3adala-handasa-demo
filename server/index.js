@@ -48,7 +48,7 @@ const LEAD_STATUSES = ['new', 'contacted', 'interested', 'registered', 'not_inte
 // Keep the admin session active for a practical working period. The token is
 // persisted in the server data store, so a normal API restart does not log the
 // administrator out before this period ends.
-const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000;
 const DATA_DIR = path.join(__dirname, 'data');
 const TOKENS_FILE = path.join(DATA_DIR, 'tokens.json');
 const WHEEL_STATE_FILE = path.join(DATA_DIR, 'wheel-state.json');
