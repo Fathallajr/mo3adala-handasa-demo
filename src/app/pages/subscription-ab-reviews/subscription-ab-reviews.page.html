@@ -1,0 +1,310 @@
+<main class="review-page" [class.review-page--computers]="isComputersSubscription">
+	<section *ngIf="!isComputersSubscription" class="review-hero">
+		<div class="review-hero__noise"></div>
+		<div class="review-hero__frame" aria-hidden="true"></div>
+		<div class="review-hero__word" aria-hidden="true">START</div>
+		<div class="review-hero__meta" aria-hidden="true"><b>LIVE</b><span>NEW START / 2027</span></div>
+		<div class="review-shell review-hero__layout">
+			<div class="review-hero__copy">
+				<div class="review-eyebrow"><span></span> {{ heroProgramLabel }}</div>
+				<h1>{{ heroProgramLabel }}<br><span>{{ heroMonthLabel }}</span></h1>
+				<section class="review-countdown" aria-labelledby="countdown-title" aria-live="polite">
+					<div class="review-countdown__headline"><span>REGISTRATION CLOSES IN</span><h2 id="countdown-title">{{ isEnglishSubscription ? 'Registration closes on' : 'الإغلاق هيتم بتاريخ' }} <b>{{ heroClosingDateLabel }}</b> {{ isEnglishSubscription ? 'at' : 'الساعة' }} <b>{{ isEnglishSubscription ? '10 PM' : '10 مساءً' }}</b></h2></div>
+					<div class="review-countdown__clock" dir="ltr"><div><strong>{{ closingDays | number:'2.0-0' }}</strong><span>{{ isEnglishSubscription ? 'Days' : 'يوم' }}</span></div><i>:</i><div><strong>{{ closingHours | number:'2.0-0' }}</strong><span>{{ isEnglishSubscription ? 'Hours' : 'ساعة' }}</span></div><i>:</i><div><strong>{{ closingMinutes | number:'2.0-0' }}</strong><span>{{ isEnglishSubscription ? 'Minutes' : 'دقيقة' }}</span></div><i>:</i><div><strong>{{ closingSeconds | number:'2.0-0' }}</strong><span>{{ isEnglishSubscription ? 'Seconds' : 'ثانية' }}</span></div></div>
+				</section>
+			</div>
+			<aside class="review-hero__mascot" aria-hidden="true"><img src="assets/subscription-engineering-mascot.png" alt=""></aside>
+		</div>
+	</section>
+
+	<section *ngIf="isComputersSubscription" class="computer-hero" aria-labelledby="computer-hero-title">
+		<video class="computer-hero__video" autoplay muted loop playsinline aria-hidden="true"><source src="assets/computer-code-background.webm" type="video/webm"></video>
+		<div class="computer-hero__veil" aria-hidden="true"></div>
+		<div class="computer-hero__grid" aria-hidden="true"></div>
+		<div class="computer-hero__status"><span></span> COMPUTER SCIENCE <b>/</b> OCTOBER 2027 <strong>LIVE</strong></div>
+		<div class="review-shell computer-hero__layout">
+			<div class="computer-hero__content">
+				<div class="computer-hero__eyebrow"><span>01</span> {{ heroProgramLabel }}</div>
+				<h1 id="computer-hero-title">{{ heroProgramLabel }} <em>{{ heroMonthLabel }}</em></h1>
+				<section class="computer-hero__countdown" aria-labelledby="computer-countdown-title" aria-live="polite"><div><small>REGISTRATION CLOSES IN</small><h2 id="computer-countdown-title">{{ isEnglishSubscription ? 'Registration closes on' : 'الإغلاق هيتم بتاريخ' }} <b>{{ heroClosingDateLabel }}</b> {{ isEnglishSubscription ? 'at' : 'الساعة' }} <b>{{ isEnglishSubscription ? '10 PM' : '10 مساءً' }}</b></h2></div><div class="computer-hero__clock" dir="ltr"><span><b>{{ closingDays | number:'2.0-0' }}</b><small>{{ isEnglishSubscription ? 'Days' : 'يوم' }}</small></span><i>:</i><span><b>{{ closingHours | number:'2.0-0' }}</b><small>{{ isEnglishSubscription ? 'Hours' : 'ساعة' }}</small></span><i>:</i><span><b>{{ closingMinutes | number:'2.0-0' }}</b><small>{{ isEnglishSubscription ? 'Minutes' : 'دقيقة' }}</small></span><i>:</i><span><b>{{ closingSeconds | number:'2.0-0' }}</b><small>{{ isEnglishSubscription ? 'Seconds' : 'ثانية' }}</small></span></div></section>
+			</div>
+			<aside class="computer-hero__mascot" aria-hidden="true"><img src="assets/subscription-computers-mascot.png" alt=""></aside>
+		</div>
+	</section>
+
+	<section *ngIf="isEnrollmentClosed" class="review-closed" role="status" aria-live="polite">
+		<strong>تم غلق باب المراجعات مؤقتًا</strong>
+		<p>تابعنا على المنصة والسوشيال ميديا علشان تعرف معاد فتح المراجعات.</p>
+		<span>{{ enrollmentReopenMessage }}</span>
+	</section>
+
+	<div class="review-shell review-content">
+		<section class="review-notice">
+			<header class="review-section-head review-section-head--inline">
+				<div class="review-section-icon"><i class="bi bi-shield-check"></i></div>
+				<div>
+					<span>قبل ما تبدأ</span>
+					<h2>مهم قبل الاشتراك</h2>
+					<p>اقرأ شروط الصلاحية والاسترداد قبل تحويل المبلغ</p>
+				</div>
+				<b class="review-notice__badge">اقرأ قبل الدفع</b>
+			</header>
+			<div class="review-notice__grid">
+				<article class="review-rule review-rule--amber">
+					<h3>{{ subscriptionDetails.subscriptionWarnings.validity.title }}</h3>
+					<ul>
+						<li *ngFor="let point of subscriptionDetails.subscriptionWarnings.validity.points">{{ point }}</li>
+					</ul>
+				</article>
+				<article class="review-rule review-rule--red">
+					<h3>{{ subscriptionDetails.subscriptionWarnings.refund.title }}</h3>
+					<ul>
+						<li *ngFor="let point of subscriptionDetails.subscriptionWarnings.refund.points">{{ point }}</li>
+					</ul>
+				</article>
+			</div>
+		</section>
+
+		<header class="review-chapter">
+			<span><i class="bi bi-diagram-3-fill"></i> HOW IT WORKS</span>
+			<h2>رحلة اشتراك واضحة من البداية للنهاية</h2>
+			<p>أربع خطوات بسيطة، وكل خطوة موضحة بالتفصيل</p>
+		</header>
+
+		<section class="review-flow">
+			<article class="review-step review-step--price">
+				<header class="review-step__head">
+					<b>01</b>
+					<div><h2>سعر الاشتراك</h2><p>اشتراك واحد يشمل كل المحتوى</p></div>
+				</header>
+				<div class="review-plan">
+					<div><span>{{ getReviewName() }}</span><small>اشتراك كامل</small></div>
+					<strong>{{ getPrice() }} <small>ج</small></strong>
+				</div>
+			</article>
+
+			<article class="review-step review-step--payment" id="step-payment">
+				<header class="review-step__head">
+					<b>02</b>
+					<div><h2>حوّل المبلغ</h2><p>اختار أي رقم فودافون كاش واضغط عليه للنسخ</p></div>
+					<span class="review-step__amount">المطلوب <strong>{{ getPrice() }} ج</strong></span>
+				</header>
+
+				<div class="review-payment">
+					<div class="review-payment__brand">
+						<img src="assets/vodafone.png" alt="Vodafone Cash">
+						<div><strong>فودافون كاش</strong><span>تحويل آمن وسريع</span></div>
+					</div>
+
+					<div class="review-wallets">
+						<ng-container *ngFor="let wallet of getFilteredVodafoneNumbers(); let i = index">
+							<button type="button"
+								class="review-wallet"
+								(click)="onNumberCardClick(wallet.number)"
+								[class.is-disabled]="isEnrollmentClosed"
+								[attr.aria-disabled]="isEnrollmentClosed ? 'true' : null">
+								<span class="review-wallet__index">{{ (i + 1).toString().padStart(2, '0') }}</span>
+								<strong>{{ wallet.number }}</strong>
+								<small>{{ wallet.owner }}</small>
+								<span class="review-wallet__copy">اضغط للنسخ <i class="bi bi-copy"></i></span>
+
+								<span *ngIf="copiedNumber === wallet.number" class="review-wallet__copied">
+									<i class="bi bi-check2"></i> تم النسخ
+								</span>
+								<span *ngIf="isEnrollmentClosed" class="review-wallet__locked">
+									سيتم إظهار الرقم عند فتح المراجعات
+								</span>
+							</button>
+						</ng-container>
+					</div>
+
+					<div class="review-transfer-data">
+						<header>
+							<span class="review-transfer-data__icon"><i class="bi bi-clipboard-check"></i></span>
+							<div><h3>بيانات التحويل المطلوبة</h3><p>جهّز البيانات دي علشان نأكد اشتراكك بسرعة</p></div>
+						</header>
+						<div>
+							<span *ngFor="let info of subscriptionDetails.requiredInfo; let i = index">
+								<b>{{ (i + 1).toString().padStart(2, '0') }}</b>{{ info }}
+							</span>
+						</div>
+					</div>
+				</div>
+			</article>
+
+			<div class="review-flow__split">
+				<article class="review-step review-step--form">
+					<header class="review-step__head">
+						<b>03</b>
+						<div><h2>سجّل الفورم</h2><p>آخر خطوة مطلوبة منك</p></div>
+					</header>
+
+					<div class="review-form" *ngIf="getForm() as form">
+						<div class="review-form__title">
+							<span><i class="bi bi-file-earmark-text"></i></span>
+							<div><strong>فورم {{ form.label }}</strong><small>{{ form.description }}</small></div>
+							<b [class.is-closed]="form.isClosed || isEnrollmentClosed">
+								{{ (form.isClosed || isEnrollmentClosed) ? 'مغلق مؤقتًا' : 'متاح الآن' }}
+							</b>
+						</div>
+						<ul>
+							<li><i>1</i> اكتب بياناتك ورقم واتساب بشكل صحيح</li>
+							<li><i>2</i> ارفع صورة واضحة لإيصال التحويل</li>
+						</ul>
+						<button
+							(click)="openGoogleForm()"
+							class="review-primary-button"
+							[class.is-disabled]="isEnrollmentClosed || (form.isClosed && !form.allowOpenWhenClosed)"
+							[attr.disabled]="(isEnrollmentClosed || (form.isClosed && !form.allowOpenWhenClosed)) ? '' : null">
+							{{ form.buttonText }} <i class="bi bi-arrow-up-left"></i>
+						</button>
+					</div>
+				</article>
+
+				<article class="review-step review-step--delivery">
+					<header class="review-step__head">
+						<b>04</b>
+						<div><h2>استلم الكود</h2><p>الكود هيوصلك على واتساب</p></div>
+					</header>
+					<div class="review-delivery">
+						<div class="review-delivery__icon"><i class="bi bi-whatsapp"></i></div>
+						<span><i></i> الإرسال عبر واتساب</span>
+						<h3>جاهز تبدأ الرحلة</h3>
+						<p>بعد مراجعة بيانات التحويل، هنبعتلك كود تفعيل المنصة على نفس الرقم المسجل في الفورم.</p>
+						<small>تأكد إن رقم الواتساب مكتوب صح</small>
+					</div>
+				</article>
+			</div>
+		</section>
+
+		<section *ngIf="false" class="review-video">
+			<header class="review-section-head review-section-head--dark">
+				<div class="review-section-icon"><i class="bi bi-play-fill"></i></div>
+				<div><span>WATCH & START</span><h2>شوف تفاصيل الاشتراك</h2><p>شرح سريع لكل محتوى الاشتراك قبل ما تبدأ</p></div>
+			</header>
+			<div class="review-video__frame">
+				<button type="button" class="review-video__cover" *ngIf="!isVideoLoaded" (click)="loadVideo()">
+					<img [src]="getVideoThumbnail()" alt="شاهد فيديو تفاصيل الشهر الأول" loading="lazy">
+					<span><i class="bi bi-play-fill"></i></span>
+					<small>اضغط لمشاهدة الفيديو</small>
+				</button>
+				<iframe
+					*ngIf="isVideoLoaded"
+					[src]="getVideoEmbedUrl()"
+					title="فيديو توضيحي - اشتراك الشهر الأول"
+					frameborder="0"
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+					allowfullscreen>
+				</iframe>
+			</div>
+		</section>
+
+		<section class="computer-media-roadmap review-media-roadmap">
+			<div class="computer-media-roadmap__video review-video">
+				<header class="review-section-head review-section-head--dark">
+					<div class="review-section-icon"><i class="bi bi-play-fill"></i></div>
+					<div><span>WATCH & START</span><h2>شوف تفاصيل الاشتراك</h2><p>شرح سريع لكل محتوى الاشتراك قبل ما تبدأ</p></div>
+				</header>
+				<div class="review-video__frame">
+					<button type="button" class="review-video__cover" *ngIf="!isVideoLoaded" (click)="loadVideo()">
+						<img [src]="getVideoThumbnail()" alt="شاهد فيديو تفاصيل الشهر الأول" loading="lazy">
+						<span><i class="bi bi-play-fill"></i></span>
+						<small>اضغط لمشاهدة الفيديو</small>
+					</button>
+					<iframe *ngIf="isVideoLoaded" [src]="getVideoEmbedUrl()" title="فيديو توضيحي - اشتراك الشهر الأول" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+				</div>
+			</div>
+			<div class="computer-media-roadmap__schedule review-schedule" *ngIf="getSelectedSchedules().length">
+				<header class="review-section-head">
+					<div class="review-section-icon"><i class="bi bi-calendar3"></i></div>
+					<div><h2>جدول شهر أكتوبر {{ isComputersSubscription ? 'حاسبات' : 'هندسة' }} {{ isEnglishSubscription ? 'انجليزي' : 'عربي' }}</h2></div>
+				</header>
+				<div class="review-schedule__grid">
+					<article *ngFor="let schedule of getSelectedSchedules()">
+						<button type="button" class="review-schedule__image" (click)="openImageModal(schedule)"><img [src]="schedule.src" [alt]="schedule.alt" loading="lazy"><span><i class="bi bi-arrows-fullscreen"></i> اضغط للتكبير</span></button>
+						<a [href]="schedule.src" download><i class="bi bi-download"></i> تحميل الجدول</a>
+					</article>
+				</div>
+			</div>
+		</section>
+
+		<section class="review-benefits">
+			<header class="review-chapter">
+				<span><i class="bi bi-stars"></i> WHAT YOU GET</span>
+				<h2>كل اللي محتاجه تبدأ صح في مكان واحد</h2>
+				<p>محتوى منظم يبني أساسك ويتابع تقدمك من أول أسبوع</p>
+			</header>
+			<div class="review-benefits__grid">
+				<article *ngFor="let feature of subscriptionDetails.features; let i = index">
+					<span>{{ (i + 1).toString().padStart(2, '0') }}</span>
+					<ng-container [ngSwitch]="i">
+						<i *ngSwitchCase="0" class="bi bi-book-half" aria-hidden="true"></i>
+						<i *ngSwitchCase="1" class="bi bi-file-earmark-text" aria-hidden="true"></i>
+						<i *ngSwitchCase="2" class="bi bi-pencil-square" aria-hidden="true"></i>
+						<i *ngSwitchCase="3" class="bi bi-ui-checks-grid" aria-hidden="true"></i>
+						<i *ngSwitchCase="4" class="bi bi-person-check-fill" aria-hidden="true"></i>
+						<i *ngSwitchDefault class="bi bi-bar-chart-line-fill" aria-hidden="true"></i>
+					</ng-container>
+					<strong>{{ feature }}</strong>
+				</article>
+			</div>
+		</section>
+
+		<section class="review-schedule" *ngIf="false">
+			<header class="review-section-head">
+				<div class="review-section-icon"><i class="bi bi-calendar3"></i></div>
+				<div><span>YOUR ROADMAP</span><h2>جدول مراجعات الشهر</h2><p>الجدول الخاص بـ {{ getReviewName() }}</p></div>
+			</header>
+			<div class="review-schedule__grid">
+				<article *ngFor="let schedule of getSelectedSchedules()">
+					<h3>{{ schedule.group }}</h3>
+					<button type="button" class="review-schedule__image" (click)="openImageModal(schedule)">
+						<img [src]="schedule.src" [alt]="schedule.alt" loading="lazy">
+						<span><i class="bi bi-arrows-fullscreen"></i> اضغط للتكبير</span>
+					</button>
+					<a [href]="schedule.src" download><i class="bi bi-download"></i> تحميل الجدول</a>
+				</article>
+			</div>
+		</section>
+
+		<div class="review-modal" *ngIf="isImageModalOpen && activeScheduleImage as modalImage" (click)="closeImageModal()">
+			<div (click)="$event.stopPropagation()">
+				<button type="button" (click)="closeImageModal()" aria-label="إغلاق"><i class="bi bi-x-lg"></i></button>
+				<img [src]="modalImage.src" [alt]="modalImage.alt || 'جدول المراجعة - مكبر'">
+			</div>
+		</div>
+
+		<section class="review-farewell" aria-labelledby="farewell-title">
+			<div class="review-farewell__year">2027</div>
+			<div>
+				<span>{{ isComputersSubscription ? 'إلى طلاب معادلة حاسبات' : 'إلى دفعة 2027' }}</span>
+				<i>“</i>
+				<h2 id="farewell-title">{{ isComputersSubscription ? 'طريقك لمعادلة حاسبات يبدأ من هنا' : 'دي أول خطوة… والبداية الصح بتفرق' }}</h2>
+				<p>{{ isComputersSubscription ? 'هنساعدك تبني أساس قوي وتذاكر بنظام، خطوة بخطوة لحد ما توصل لهدفك في معادلة حاسبات.' : 'من أول شهر هنأسس معاكم كل حاجة بهدوء ونظام، ونمشي خطوة بخطوة لحد ما توصلوا لهدفكم بثقة.' }}</p>
+				<strong>{{ isComputersSubscription ? 'معادلة حاسبات أسهل مع خطة واضحة ودعم مستمر من أول يوم 🧡' : 'رحلتكم لهندسة بدأت… وإحنا معاكم من أول يوم 🧡' }}</strong>
+				<small>{{ isComputersSubscription ? 'فريق أبلكيشن معادلة — بداية قوية لطلاب حاسبات' : 'فريق أبلكيشن معادلة — بداية قوية لدفعة 2027' }}</small>
+			</div>
+		</section>
+
+		<section class="review-actions">
+			<article class="review-account">
+				<span class="review-actions__icon"><i class="bi bi-person"></i></span>
+				<h2>لديك حساب في المنصة؟</h2>
+				<p>اختار الإجراء المناسب وابدأ مذاكرتك دلوقتي</p>
+				<div>
+					<a href="https://app-mo3adlet-handsa.com/student/index.php" target="_blank">تسجيل دخول <i class="bi bi-box-arrow-in-left"></i></a>
+					<a href="https://app-mo3adlet-handsa.com/register.php" target="_blank">إنشاء حساب جديد <i class="bi bi-person-plus"></i></a>
+				</div>
+			</article>
+			<article class="review-support">
+				<span class="review-actions__icon"><i class="bi bi-headset"></i></span>
+				<h2>محتاج مساعدة؟</h2>
+				<p>فريقنا معاك لحل أي مشكلة في التسجيل أو التحويل</p>
+				<a href="https://api.whatsapp.com/send/?phone=201554843745&text=السلام عليكم، أواجه مشكلة في تسجيل فورم اشتراك الشهر الأول أو التحويل وأحتاج مساعدة&type=phone_number&app_absent=0" target="_blank">
+					<i class="bi bi-whatsapp"></i> تواصل معنا الآن
+				</a>
+				<small><i></i> متاح لحل جميع المشاكل</small>
+			</article>
+		</section>
+	</div>
+</main>

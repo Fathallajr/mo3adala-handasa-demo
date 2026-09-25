@@ -1,0 +1,48 @@
+<main class="schools-page" dir="rtl" [@subPageTransition] (click)="closeFilterMenu()">
+  <div class="schools-shell">
+    <section class="schools-hero" @fadeInUp>
+      <div class="schools-hero__copy">
+        <span class="schools-eyebrow"><i></i> دليل الطلاب</span>
+        <h1>اعرف مؤسستك قبل ما تبدأ</h1>
+        <p>قائمة المدارس والمعاهد المؤهلة للتقديم في معادلة كلية الهندسة، مرتبة وسهلة البحث.</p>
+        <div class="schools-hero__stats"><span><b>{{ allSchools.length }}</b> مؤسسة تعليمية</span><span><b>5</b> تصنيفات</span><span><b>24/7</b> دليل متاح</span></div>
+      </div>
+      <div class="schools-hero__mark" aria-hidden="true"><span>⌖</span><b>FIND<br>YOUR SCHOOL</b></div>
+    </section>
+
+    <section class="schools-filters" @fadeInUp>
+      <div class="schools-filters__heading"><div><span>ابحث في الدليل</span><h2>إيه مؤسستك؟</h2></div><span class="schools-result-count">{{ totalFilteredCount }} نتيجة</span></div>
+      <div class="schools-filter-grid">
+        <label class="schools-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg><input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" placeholder="ابحث باسم المدرسة أو المعهد" aria-label="ابحث باسم المدرسة أو المعهد"><span *ngIf="searchTerm" class="schools-search__clear" (click)="searchTerm = ''; onSearchChange()">×</span></label>
+        <div class="schools-select" [class.schools-select--open]="isFilterMenuOpen">
+          <span>فلترة حسب النوع</span>
+          <button type="button" class="schools-select__trigger" (click)="$event.stopPropagation(); toggleFilterMenu()" [attr.aria-expanded]="isFilterMenuOpen" aria-haspopup="listbox"><strong>{{ selectedFilter }}</strong><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg></button>
+          <div *ngIf="isFilterMenuOpen" class="schools-dropdown" role="listbox" [attr.aria-label]="'فلترة حسب النوع'">
+            <button *ngFor="let filter of filterOptions" type="button" class="schools-dropdown__option" role="option" [attr.aria-selected]="selectedFilter === filter" [class.schools-dropdown__option--active]="selectedFilter === filter" (click)="$event.stopPropagation(); selectFilter(filter)"><span>{{ filter }}</span><i *ngIf="selectedFilter === filter">✓</i></button>
+          </div>
+        </div>
+        <button type="button" class="schools-clear" (click)="clearFilters()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.6m15.4 2a8 8 0 0 0-15.4-2m15.4 11v-5h-.6m-15.4-2a8 8 0 0 0 15.4 2"/></svg>مسح الفلاتر</button>
+      </div>
+      <div class="schools-category-stats"><button type="button" (click)="onFilterChange('المعاهد الفنية')"><b>{{ getCountByCategory('المعاهد الفنية') }}</b><span>معاهد فنية</span></button><button type="button" (click)="onFilterChange('مدارس الثانوية الصناعية نظام 3 سنوات')"><b>{{ getCountByCategory('مدارس الثانوية الصناعية نظام 3 سنوات') }}</b><span>صناعي 3 سنوات</span></button><button type="button" (click)="onFilterChange('مدارس الثانوية الصناعية نظام 5 سنوات')"><b>{{ getCountByCategory('مدارس الثانوية الصناعية نظام 5 سنوات') }}</b><span>صناعي 5 سنوات</span></button><button type="button" (click)="onFilterChange('مدارس تكنولوجية نظام 3 سنوات')"><b>{{ getCountByCategory('مدارس تكنولوجية نظام 3 سنوات') }}</b><span>تكنولوجية 3 سنوات</span></button><button type="button" (click)="onFilterChange('مدارس تكنولوجية نظام 5 سنوات')"><b>{{ getCountByCategory('مدارس تكنولوجية نظام 5 سنوات') }}</b><span>تكنولوجية 5 سنوات</span></button></div>
+    </section>
+
+    <section *ngIf="schools.length > 0" class="schools-results" @staggerList>
+      <div class="schools-results__heading"><div><span>النتائج المتاحة</span><h2>المؤسسات المؤهلة</h2></div><p>اضغط على نوع المؤسسة من الأعلى لتصفية القائمة.</p></div>
+      <div class="schools-grid">
+        <article *ngFor="let school of schools" class="school-card" [@cardAnimation]>
+          <div class="school-card__top"><span class="school-card__type">{{ school.type }}</span><span class="school-card__index">#{{ school.id.toString().padStart(2, '0') }}</span></div>
+          <div class="school-card__logo"><img [src]="school.logo" [alt]="school.name" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"></div>
+          <h3>{{ school.name }}</h3>
+          <p>{{ school.category }}</p>
+          <div class="school-card__line"></div>
+          <span class="school-card__status"><i></i> مؤهل للمعادلة</span>
+        </article>
+      </div>
+    </section>
+
+    <section *ngIf="schools.length === 0" class="schools-empty"><span>⌕</span><h2>مش لاقيين المؤسسة دي</h2><p>جرّب اسم مختلف أو امسح الفلاتر لعرض كل النتائج.</p><button type="button" (click)="clearFilters()">عرض كل المؤسسات</button></section>
+    <div *ngIf="canLoadMore" class="schools-load-more"><button type="button" (click)="loadMore()">عرض المزيد <b>↓</b></button><span>{{ schools.length }} من {{ totalFilteredCount }}</span></div>
+
+    <section class="schools-cta" @fadeInUp><div><span>لسه عندك سؤال؟</span><h2>ابدأ طريقك وأنت مطمّن</h2><p>راجع شروط المعادلة أو تواصل معنا لو محتاج مساعدة.</p></div><div><a routerLink="/requirements">شروط المعادلة <b>←</b></a><a routerLink="/faq">الأسئلة الشائعة</a></div></section>
+  </div>
+</main>

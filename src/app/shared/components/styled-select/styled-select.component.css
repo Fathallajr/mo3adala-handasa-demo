@@ -1,0 +1,16 @@
+:host { display: block; width: 100%; }
+.styled-select { position: relative; width: 100%; z-index: 1; }
+.styled-select.is-open { z-index: 30; }
+.styled-select__trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #dce4ef; border-radius: 10px; color: #102a43; background: #fff; font: inherit; font-size: .91rem; text-align: right; cursor: pointer; transition: border-color .2s, box-shadow .2s, background .2s; }
+.styled-select__trigger:hover, .styled-select.is-open .styled-select__trigger { border-color: #ff7917; box-shadow: 0 0 0 3px rgba(255,121,23,.12); background: #fffaf5; }
+.styled-select__trigger .is-placeholder { color: #687697; }
+.styled-select__chevron { display: grid; width: 1.5rem; height: 1.5rem; flex: 0 0 auto; place-items: center; border: 1px solid rgba(237,107,34,.2); border-radius: 50%; color: #ed6b22; background: #fff8f2; transition: transform .25s ease, background .2s, border-color .2s; }
+.styled-select__chevron svg { width: .78rem; height: .78rem; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.2; }
+.styled-select.is-open .styled-select__chevron { transform: rotate(180deg); }
+.styled-select__trigger:hover .styled-select__chevron, .styled-select.is-open .styled-select__chevron { border-color: rgba(237,107,34,.45); background: #ffeddc; }
+.styled-select__menu { position: absolute; top: calc(100% + 8px); right: 0; left: 0; z-index: 40; overflow: hidden; padding: 6px; border: 1px solid #fed7aa; border-radius: 14px; background: rgba(255,255,255,.98); box-shadow: 0 18px 35px rgba(22,40,76,.18); animation: styled-select-pop .16s ease-out; }
+.styled-select__menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 9px 11px; border: 0; border-radius: 9px; color: #172452; background: transparent; font: inherit; font-size: .85rem; text-align: right; cursor: pointer; transition: background .15s, color .15s; }
+.styled-select__menu button:hover, .styled-select__menu button.is-selected { color: #c2410c; background: #fff1e6; }
+.styled-select__menu button b { color: #ed6b22; font-weight: 900; }
+.styled-select.is-disabled .styled-select__trigger { opacity: .6; cursor: not-allowed; }
+@keyframes styled-select-pop { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }

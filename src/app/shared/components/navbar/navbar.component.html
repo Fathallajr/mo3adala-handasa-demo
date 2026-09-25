@@ -1,0 +1,424 @@
+<nav class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 transition-shadow" [class.shadow-sm]="scrolled" [class.navbar-hidden]="navbarHidden" style="font-family: 'TheYearofHandicrafts', sans-serif !important; --font-family: 'TheYearofHandicrafts', sans-serif !important;">
+		<div class="navbar-shell mx-auto max-w-7xl px-3 xl:px-4 py-3 flex items-center justify-between gap-2" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+		<!-- Logo -->
+		<a routerLink="/" (click)="scrollToTop()" class="navbar-brand flex items-center gap-2 font-extrabold text-lg text-slate-900 btn-hover ripple" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+			<img src="assets/logo.png" 
+				 class="h-8 w-8 sm:h-10 sm:w-10 object-contain transition-transform duration-300 hover:scale-110 image-hover" 
+				 alt="ابلكيشن معادلة كلية هندسة" 
+				 loading="lazy"
+				 decoding="async"
+				 style="max-width: 100%; height: auto;" />
+			<span class="hidden sm:inline" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">ابلكيشن معادلة هندسة</span>
+			<span class="sm:hidden text-sm" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">ابلكيشن معادلة هندسة</span>
+		</a>
+
+		<!-- Mobile/Tablet Menu Button -->
+		<button 
+			*ngIf="isMobile"
+			class="p-2 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-300 btn-hover ripple"
+			(click)="toggleMobileMenu()"
+			[attr.aria-expanded]="isMobileMenuOpen"
+			aria-label="فتح القائمة">
+			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path *ngIf="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+				<path *ngIf="isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+			</svg>
+		</button>
+
+		<!-- Desktop Menu -->
+		<ul *ngIf="!isMobile" class="nav-main-menu flex gap-1.5 xl:gap-2 text-sm items-center flex-nowrap" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+			<li class="relative group flex items-center">
+				<a routerLink="/news/equation"
+				   [class.text-orange-600]="isActiveRoute('/news/equation')"
+				   class="relative px-1.5 xl:px-2 py-1 text-gray-700 hover:text-orange-600 flex items-center btn-hover ripple whitespace-nowrap"
+				   style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					أخبار المعادلة
+				</a>
+				
+			</li>
+			<li class="relative group flex items-center">
+				<button 
+					class="relative px-1.5 xl:px-2 py-1 text-gray-700 flex items-center gap-1 whitespace-nowrap"
+					(click)="toggleRequirementsDropdown()"
+					[class.text-orange-600]="isRequirementsDropdownOpen"
+					style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					<span style="font-family: 'TheYearofHandicrafts', sans-serif !important;">شروط المعادلة</span>
+					<svg class="w-3 h-3 transition-transform duration-200" [class.rotate-180]="isRequirementsDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+					</svg>
+				</button>
+				
+				<!-- Dropdown Menu -->
+				<div class="absolute top-full left-0 mt-1 w-72 xl:w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200" 
+					 [class.opacity-100]="isRequirementsDropdownOpen"
+					 [class.visible]="isRequirementsDropdownOpen"
+					 style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					<div class="py-2">
+						<!-- شروط المعادلة -->
+						<a routerLink="/requirements" 
+						   (click)="closeRequirementsDropdown()"
+						   class="block px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+							<div class="flex items-center gap-3">
+								<div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+									<svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+									</svg>
+								</div>
+								<div>
+									<div class="font-semibold">شروط المعادلة</div>
+									<div class="text-xs text-gray-500">المتطلبات والشروط اللازمة للتقديم للمعادلة</div>
+								</div>
+							</div>
+						</a>
+						
+						<!-- المدارس -->
+						<a routerLink="/schools" 
+						   (click)="closeRequirementsDropdown()"
+						   class="block px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors border-t border-gray-100" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+							<div class="flex items-center gap-3">
+								<div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+									<svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+									</svg>
+								</div>
+								<div>
+									<div class="font-semibold">المدارس والمعاهد</div>
+									<div class="text-xs text-gray-500">المؤسسات المؤهلة لعمل معادلة كلية الهندسة</div>
+								</div>
+							</div>
+						</a>
+					</div>
+				</div>
+			</li>
+			<li class="relative group flex items-center">
+				<button 
+					class="relative px-1.5 xl:px-2 py-1 text-gray-700 flex items-center gap-1 whitespace-nowrap"
+					(click)="togglePlatformDropdown()"
+					[class.text-orange-600]="isPlatformDropdownOpen"
+					style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					<span style="font-family: 'TheYearofHandicrafts', sans-serif !important;">المنصة</span>
+					<svg class="w-3 h-3 transition-transform duration-200" [class.rotate-180]="isPlatformDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+					</svg>
+				</button>
+				
+				<!-- Dropdown Menu -->
+				<div class="absolute top-full left-0 mt-1 w-72 xl:w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200" 
+					 [class.opacity-100]="isPlatformDropdownOpen"
+					 [class.visible]="isPlatformDropdownOpen"
+					 style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					<div class="py-2">
+						<!-- تسجيل دخول -->
+						<a href="https://app-mo3adlet-handsa.com/student/index.php" 
+						   target="_blank"
+						   (click)="closePlatformDropdown()"
+						   class="block px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+							<div class="flex items-center gap-3">
+								<div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+									<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+									</svg>
+								</div>
+								<div>
+									<div class="font-semibold">تسجيل دخول</div>
+									<div class="text-xs text-gray-500">ادخل إلى حسابك في المنصة التعليمية</div>
+								</div>
+							</div>
+						</a>
+						
+						<!-- إنشاء حساب جديد -->
+						<a href="https://app-mo3adlet-handsa.com/register.php" 
+						   target="_blank"
+						   (click)="closePlatformDropdown()"
+						   class="block px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors border-t border-gray-100" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+							<div class="flex items-center gap-3">
+								<div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+									<svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+									</svg>
+								</div>
+								<div>
+									<div class="font-semibold">إنشاء حساب جديد</div>
+									<div class="text-xs text-gray-500">سجل الآن كطالب جديد في المنصة</div>
+								</div>
+							</div>
+						</a>
+
+						<!-- سيستم المتابعة -->
+						<a href="https://www.appmo3adla-follow-up.com/" 
+						   target="_blank"
+						   (click)="closePlatformDropdown()"
+						   class="block px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors border-t border-gray-100" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+							<div class="flex items-center gap-3">
+								<div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
+									<svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2"></path>
+									</svg>
+								</div>
+								<div>
+									<div class="font-semibold">سيستم المتابعة</div>
+									<div class="text-xs text-gray-500">تابع تقدمك ومذاكرتك باستمرار</div>
+								</div>
+							</div>
+						</a>
+					</div>
+				</div>
+			</li>
+			<li>
+			<a routerLink="/faq" 
+			   (click)="scrollToTop()"
+			   [class]="isActiveRoute('/faq') ? 'nav-link active' : 'nav-link'"
+			   class="relative px-1.5 xl:px-2 py-1 text-gray-700 link-hover whitespace-nowrap" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					<span style="font-family: 'TheYearofHandicrafts', sans-serif !important;">الأسئلة الشائعة</span>
+				</a>
+			</li>
+			<li class="relative group">
+				<button type="button" (click)="toggleEngineersDropdown()" [class.text-orange-600]="isEngineersDropdownOpen || isActiveRoute('/engineers')" class="relative px-1.5 xl:px-2 py-1 text-gray-700 flex items-center gap-1 btn-hover ripple whitespace-nowrap" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					<span>المهندسين</span>
+					<svg class="w-3 h-3 transition-transform duration-200" [class.rotate-180]="isEngineersDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+				</button>
+				<div *ngIf="isEngineersDropdownOpen" class="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 z-50" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					<div class="py-2">
+						<a routerLink="/engineers-ar" (click)="closeEngineersDropdown()" class="block px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors">
+							<div class="font-semibold">مهندسين المعادلة عربي</div>
+						</a>
+						<a routerLink="/engineers-en" (click)="closeEngineersDropdown()" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors border-t border-gray-100">
+							<div class="font-semibold">مهندسين المعادلة انجليزي</div>
+						</a>
+					</div>
+				</div>
+			</li>
+			<li>
+			<a routerLink="/success-story" 
+			   (click)="scrollToTop()"
+			   [class]="isActiveRoute('/success-story') ? 'nav-link active' : 'nav-link'"
+			   class="relative px-1.5 xl:px-2 py-1 text-gray-700 link-hover whitespace-nowrap" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					<span style="font-family: 'TheYearofHandicrafts', sans-serif !important;">تابعنا</span>
+			</a>
+			</li>
+			<li>
+			<a routerLink="/batch-2027"
+			   (click)="scrollToTop()"
+			   [class]="isActiveRoute('/batch-2027') ? 'batch-nav-link active' : 'batch-nav-link'"
+			   class="relative px-1.5 xl:px-2 py-1 rounded-md font-bold whitespace-nowrap batch-nav-link"
+			   style="background-color: transparent !important; color: #2563eb !important;">
+				<span>دفعة 2027</span>
+			</a>
+			</li>
+		<li class="relative group flex items-center">
+			<button type="button"
+				(click)="toggleSubscriptionDropdown()"
+				[class.text-orange-600]="isSubscriptionDropdownOpen"
+				class="relative px-1.5 xl:px-2 py-1 text-gray-700 flex items-center gap-1 btn-hover ripple whitespace-nowrap"
+				style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+				<span class="hidden xl:inline" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">تفاصيل الإشتراك</span>
+				<span class="xl:hidden" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">الإشتراك</span>
+				<svg class="w-3 h-3 transition-transform duration-200" [class.rotate-180]="isSubscriptionDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+				</svg>
+			</button>
+
+			<!-- Subscription Dropdown Menu -->
+			<div *ngIf="isSubscriptionDropdownOpen" class="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 z-50"
+				 style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+				<div class="py-1">
+					<a *ngFor="let plan of [
+						{ path: '/subscription-engineering-ar', name: 'معادلة هندسة عربي' },
+						{ path: '/subscription-computers-ar', name: 'معادلة حاسبات عربي' },
+						{ path: '/subscription-engineering-en', name: 'معادلة هندسة انجليزي' },
+						{ path: '/subscription-computers-en', name: 'معادلة حاسبات انجليزي' }
+						]" [routerLink]="plan.path" (click)="closeSubscriptionDropdown()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors border-t border-gray-100" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+						<div class="font-semibold">{{ plan.name }}</div>
+					</a>
+				</div>
+			</div>
+		</li>
+			<li>
+			<a routerLink="/success-stories" 
+			   (click)="scrollToTop()"
+			   [class]="isActiveRoute('/success-stories') ? 'nav-link active' : 'nav-link'"
+			   class="relative px-1.5 xl:px-2 py-1 text-gray-700 link-hover whitespace-nowrap" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					<span style="font-family: 'TheYearofHandicrafts', sans-serif !important;">قصص النجاح</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+
+	<!-- Mobile/Tablet Menu -->
+	<div *ngIf="isMobile && isMobileMenuOpen" class="slide-in mobile-menu" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+		<div class="px-4 pt-3 pb-4 space-y-1 bg-white border-t border-slate-200 shadow-lg mobile-menu-panel">
+			<div class="px-4 py-2 mobile-menu-group">
+				<a routerLink="/news/equation"
+					(click)="closeMobileMenu()"
+					[class.text-orange-600]="isActiveRoute('/news/equation')"
+					class="flex items-center justify-between w-full text-base font-medium text-gray-700 hover:text-orange-600 transition-all duration-300 px-4 py-3 rounded-lg hover:bg-gray-50 btn-hover ripple mobile-menu-toggle"
+					style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					أخبار المعادلة
+				</a>
+			</div>
+			<div class="px-4 py-2 mobile-menu-group">
+				<button 
+					(click)="toggleMobileRequirementsDropdown()"
+					class="flex items-center justify-between w-full text-base font-medium text-gray-700 hover:text-orange-600 transition-colors px-4 py-3 rounded-lg hover:bg-gray-50 mobile-menu-toggle" 
+					style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					شروط المعادلة
+					<svg class="w-4 h-4 transition-transform duration-200" [class.rotate-180]="isMobileRequirementsDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+					</svg>
+				</button>
+				<div class="mt-2 space-y-1" [class.hidden]="!isMobileRequirementsDropdownOpen">
+					<a routerLink="/requirements" 
+					   (click)="closeMobileRequirementsDropdown()"
+					   [class]="isActiveRoute('/requirements') ? 'mobile-nav-link active' : 'mobile-nav-link'"
+					   class="block px-8 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all duration-300 link-hover" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+						شروط المعادلة
+					</a>
+					<a routerLink="/schools" 
+					   (click)="closeMobileRequirementsDropdown()"
+					   [class]="isActiveRoute('/schools') ? 'mobile-nav-link active' : 'mobile-nav-link'"
+					   class="block px-8 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all duration-300 link-hover" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+						المدارس والمعاهد
+					</a>
+				</div>
+			</div>
+			<div class="px-4 py-2 mobile-menu-group">
+				<button 
+					(click)="toggleMobilePlatformDropdown()"
+					class="flex items-center justify-between w-full text-base font-medium text-gray-700 hover:text-orange-600 transition-all duration-300 px-4 py-3 rounded-lg hover:bg-gray-50 btn-hover ripple mobile-menu-toggle" 
+					style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					المنصة
+					<svg class="w-4 h-4 transition-transform duration-200" [class.rotate-180]="isMobilePlatformDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+					</svg>
+				</button>
+				<div class="mt-2 space-y-1" [class.hidden]="!isMobilePlatformDropdownOpen">
+					<a href="https://app-mo3adlet-handsa.com/student/index.php" 
+					   target="_blank"
+					   (click)="closeMobilePlatformDropdown()"
+					   class="block px-8 py-3 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all duration-300 link-hover" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+						<div class="flex items-center gap-3">
+							<div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+								<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+								</svg>
+							</div>
+							<div>
+								<div class="font-semibold">تسجيل دخول</div>
+								<div class="text-xs text-gray-500">ادخل إلى حسابك في المنصة التعليمية</div>
+							</div>
+						</div>
+					</a>
+					<a href="https://app-mo3adlet-handsa.com/register.php" 
+					   target="_blank"
+					   (click)="closeMobilePlatformDropdown()"
+					   class="block px-8 py-3 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all duration-300 link-hover" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+						<div class="flex items-center gap-3">
+							<div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+								<svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+								</svg>
+							</div>
+							<div>
+								<div class="font-semibold">إنشاء حساب جديد</div>
+								<div class="text-xs text-gray-500">سجل الآن كطالب جديد في المنصة</div>
+							</div>
+						</div>
+					</a>
+					<a href="https://www.appmo3adla-follow-up.com/" 
+					   target="_blank"
+					   (click)="closeMobilePlatformDropdown(); closeMobileMenu()"
+					   class="block px-8 py-3 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all duration-300 link-hover border-t border-gray-100" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+						<div class="flex items-center gap-3">
+							<div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
+								<svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2"></path>
+								</svg>
+							</div>
+							<div>
+								<div class="font-semibold">سيستم المتابعة</div>
+								<div class="text-xs text-gray-500">تابع تقدمك ومذاكرتك باستمرار</div>
+							</div>
+						</div>
+					</a>
+				</div>
+			</div>
+			<a routerLink="/faq" 
+			   (click)="closeMobileMenu()"
+			   [class]="isActiveRoute('/faq') ? 'mobile-nav-link active' : 'mobile-nav-link'"
+			   class="block px-4 py-3 rounded-lg text-base font-medium hover:bg-gray-50 transition-all duration-300 link-hover mobile-menu-link" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+				الأسئلة الشائعة
+			</a>
+			<div class="px-4 py-2 mobile-menu-group">
+				<button type="button" (click)="toggleMobileEngineersDropdown()" class="flex items-center justify-between w-full text-base font-medium text-gray-700 hover:text-orange-600 transition-colors px-4 py-3 rounded-lg hover:bg-gray-50 mobile-menu-toggle" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					المهندسين
+					<svg class="w-4 h-4 transition-transform duration-200" [class.rotate-180]="isMobileEngineersDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+				</button>
+				<div *ngIf="isMobileEngineersDropdownOpen" class="mt-2 space-y-1">
+					<a routerLink="/engineers-ar" (click)="closeMobileEngineersDropdown(); closeMobileMenu()" class="block px-4 py-3 rounded-lg text-base font-medium hover:bg-orange-50 transition-all duration-300 mobile-menu-link">مهندسين المعادلة عربي</a>
+					<a routerLink="/engineers-en" (click)="closeMobileEngineersDropdown(); closeMobileMenu()" class="block px-4 py-3 rounded-lg text-base font-medium hover:bg-blue-50 transition-all duration-300 mobile-menu-link">مهندسين المعادلة انجليزي</a>
+				</div>
+			</div>
+			<a routerLink="/success-story" 
+			   (click)="closeMobileMenu()"
+			   [class]="isActiveRoute('/success-story') ? 'mobile-nav-link active' : 'mobile-nav-link'"
+			   class="block px-4 py-3 rounded-lg text-base font-medium hover:bg-gray-50 transition-all duration-300 link-hover mobile-menu-link" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+				تابعنا
+			</a>
+			<a routerLink="/batch-2027"
+			   (click)="closeMobileMenu()"
+			   [class]="isActiveRoute('/batch-2027') ? 'mobile-nav-link active' : 'mobile-nav-link'"
+			   class="block px-4 py-3 rounded-lg text-base font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 transition-all duration-300 link-hover mobile-menu-link batch-nav-link">
+				دفعة 2027 🎁
+			</a>
+		<div class="px-4 py-2 mobile-menu-group mobile-subscription-group">
+			<button type="button"
+				(click)="toggleMobileSubscriptionDropdown()"
+				class="flex items-center justify-between w-full text-base font-medium text-gray-700 hover:text-orange-600 transition-colors px-4 py-3 rounded-lg hover:bg-gray-50 mobile-menu-toggle"
+				style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+				تفاصيل الإشتراك
+				<svg class="w-4 h-4 transition-transform duration-200" [class.rotate-180]="isMobileSubscriptionDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+			</button>
+		<div *ngIf="isMobileSubscriptionDropdownOpen" class="mt-2 space-y-1" [class.hidden]="!isMobileSubscriptionDropdownOpen">
+			<a routerLink="/subscription-engineering-ar"
+			   (click)="closeMobileSubscriptionDropdown(); closeMobileMenu()"
+			   class="flex items-center gap-3 px-4 py-3 rounded-xl border border-blue-100 bg-blue-50 hover:bg-blue-100 transition-all duration-300" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+				<div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+					<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+					</svg>
+				</div>
+				<div>
+					<div class="font-bold text-blue-800 text-base" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">معادلة هندسة عربي</div>
+				</div>
+			</a>
+			<a routerLink="/subscription-computers-ar"
+			   (click)="closeMobileSubscriptionDropdown(); closeMobileMenu()"
+			   class="flex items-center gap-3 px-4 py-3 rounded-xl border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-all duration-300" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+				<div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+					<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+					</svg>
+				</div>
+				<div>
+					<div class="font-bold text-orange-800 text-base" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">معادلة حاسبات عربي</div>
+				</div>
+			</a>
+					<a routerLink="/subscription-engineering-en" (click)="closeMobileSubscriptionDropdown(); closeMobileMenu()" class="flex items-center gap-3 px-4 py-3 rounded-xl border border-blue-100 bg-blue-50 hover:bg-blue-100 transition-all duration-300" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+						<div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0"><span class="text-white font-bold">EN</span></div>
+						<div><div class="font-bold text-blue-800 text-base">معادلة هندسة انجليزي</div></div>
+			</a>
+			<a routerLink="/subscription-computers-en" (click)="closeMobileSubscriptionDropdown(); closeMobileMenu()" class="flex items-center gap-3 px-4 py-3 rounded-xl border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-all duration-300" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+				<div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0"><span class="text-white font-bold">EN</span></div>
+						<div><div class="font-bold text-orange-800 text-base">معادلة حاسبات انجليزي</div></div>
+			</a>
+		</div>
+		</div>
+			<a routerLink="/success-stories" 
+			   (click)="closeMobileMenu()"
+			   [class]="isActiveRoute('/success-stories') ? 'mobile-contact-btn active' : 'mobile-contact-btn'"
+			   class="block px-4 py-3 rounded-lg text-base font-medium text-center mx-4 mt-2 btn-hover ripple glow mobile-menu-action mobile-menu-action--contact" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
+					 قصص النجاح
+			</a>
+		</div>
+	</div>
+</nav>

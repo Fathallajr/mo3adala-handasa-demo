@@ -1,0 +1,209 @@
+{
+  "info": {
+    "name": "Mo3adala Handasa API",
+    "description": "Collection for the Mo3adala Handasa backend and admin dashboard APIs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001" },
+    { "key": "pageKey", "value": "home" },
+    { "key": "leadId", "value": "" },
+    { "key": "programId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/health" }
+        },
+        {
+          "name": "OpenAPI JSON",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/openapi.json" }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login successful', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "if (data.token) pm.environment.set('token', data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"jr1\",\n  \"password\": \"jr1\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Current Admin",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/auth/me" }
+        },
+        {
+          "name": "Logout",
+          "request": { "method": "POST", "header": [], "url": "{{baseUrl}}/api/auth/logout" }
+        }
+      ]
+    },
+    {
+      "name": "Content",
+      "item": [
+        {
+          "name": "List Pages",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/content" }
+        },
+        {
+          "name": "Get Page",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/content/{{pageKey}}" }
+        }
+      ]
+    },
+    {
+      "name": "Leads",
+      "item": [
+        {
+          "name": "Create Public Lead",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) pm.environment.set('leadId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"اسم الطالب\",\n  \"whatsapp\": \"01012345678\",\n  \"school\": \"اسم المدرسة\",\n  \"studentType\": \"ثانوي\",\n  \"program\": \"معادلة هندسة\",\n  \"source\": \"postman\"\n}" },
+            "url": "{{baseUrl}}/api/leads"
+          }
+        },
+        {
+          "name": "List Leads",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/leads?page=1&limit=20" }
+        },
+        {
+          "name": "Get Lead",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/leads/{{leadId}}" }
+        },
+        {
+          "name": "Update Lead",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"contacted\",\n  \"notes\": \"تم التواصل مع الطالب\"\n}" },
+            "url": "{{baseUrl}}/api/admin/leads/{{leadId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Programs",
+      "item": [
+        {
+          "name": "Public Programs",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/programs" }
+        },
+        {
+          "name": "Admin Programs",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/programs" }
+        },
+        {
+          "name": "Create Program",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) pm.environment.set('programId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"معادلة هندسة\",\n  \"slug\": \"engineering-equation\",\n  \"category\": \"engineering\",\n  \"language\": \"ar\",\n  \"price\": 700,\n  \"features\": [\"شرح كامل\", \"امتحانات\"],\n  \"isActive\": true,\n  \"enrollmentStatus\": \"open\"\n}" },
+            "url": "{{baseUrl}}/api/admin/programs"
+          }
+        },
+        {
+          "name": "Update Program",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"price\": 750,\n  \"isActive\": true\n}" },
+            "url": "{{baseUrl}}/api/admin/programs/{{programId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Summary",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/dashboard/summary" }
+        },
+        {
+          "name": "Audit Logs",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/audit-logs?limit=50" }
+        }
+      ]
+    },
+    {
+      "name": "Wheel",
+      "item": [
+        {
+          "name": "Wheel Options",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/wheel/options" }
+        },
+        {
+          "name": "Spin",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 200) pm.environment.set('wheelToken', pm.response.json().token);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"sessionId\": \"postman-demo-session\"\n}" },
+            "url": "{{baseUrl}}/api/wheel/spin"
+          }
+        },
+        {
+          "name": "Claim Gift",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"اسم الطالب\",\n  \"whatsapp\": \"01012345678\",\n  \"program\": \"معادلة هندسة\",\n  \"wheelToken\": \"{{wheelToken}}\"\n}" },
+            "url": "{{baseUrl}}/api/wheel/claim"
+          }
+        },
+        {
+          "name": "Admin Wheel Claims",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/admin/wheel/claims" }
+        }
+      ]
+    }
+  ]
+}

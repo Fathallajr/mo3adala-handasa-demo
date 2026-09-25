@@ -1,0 +1,13 @@
+Options -MultiViews
+DirectoryIndex index.html
+
+RewriteEngine On
+RewriteBase /
+
+# Let real files and generated route folders pass through normally.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Angular fallback for routes that are not pre-generated.
+RewriteRule ^ index.html [L]

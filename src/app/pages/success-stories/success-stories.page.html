@@ -1,0 +1,44 @@
+<main *ngIf="isPageVisible" class="success-page" dir="rtl">
+	<section class="success-hero">
+		<div class="success-hero__content" @fadeInUp>
+			<a routerLink="/" class="success-hero__back">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7" /></svg>
+				العودة للرئيسية
+			</a>
+			<div class="success-hero__eyebrow"><span></span> {{ eyebrow }}</div>
+			<h1 class="success-hero__title">{{ title }}<br><span>{{ highlight }}</span></h1>
+			<p class="success-hero__text">{{ description }}</p>
+			<div class="success-hero__actions">
+				<app-subscription-choice-trigger label="ابدأ خطوتك" buttonClass="success-link success-link--primary"></app-subscription-choice-trigger>
+				<a routerLink="/photos-2025" class="success-link success-link--ghost">معرض صور الناجحين</a>
+			</div>
+			<div class="success-hero__proof"><span><i></i> تجارب حقيقية</span><span><i></i> نصائح من القلب</span><span><i></i> طريق قابل للتكرار</span></div>
+		</div>
+		<div class="success-hero__media" @fadeInUp>
+			<img src="/assets/قصص النجاح.jpeg?v=20260621-2" alt="طلاب ناجحين في معادلة كلية هندسة" loading="eager" decoding="async">
+			<div class="success-hero__media-shade"></div>
+			<span class="success-hero__media-tag">رحلة نجاح</span>
+			<div class="success-hero__media-caption"><strong>دفعات نجحت وكمّلت الطريق</strong><span>معادلة هندسة</span></div>
+		</div>
+	</section>
+
+	<section class="success-stats" aria-label="إحصائيات قصص النجاح" @fadeInUp>
+		<div class="success-stat"><div class="success-stat__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-5a4 4 0 0 1 0 7.75M22 21v-2a4 4 0 0 0-3-3.87" /></svg></div><div><strong>{{ stories.length }}+</strong><span>تجربة طالب</span></div></div>
+		<div class="success-stat"><div class="success-stat__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.78 5.63L21 9.54l-4.5 4.38 1.06 6.19L12 17.19l-5.56 2.92 1.06-6.19L3 9.54l6.22-.91L12 3Z" /></svg></div><div><strong>100%</strong><span>قصص حقيقية</span></div></div>
+		<div class="success-stat"><div class="success-stat__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2ZM8 6h8m-8 4h8" /></svg></div><div><strong>2</strong><span>مسارات مذاكرة</span></div></div>
+	</section>
+
+	<section id="stories" class="stories-wrap">
+		<div class="stories-heading" @fadeInUp>
+			<div><p class="stories-heading__eyebrow">من طالب لطالب</p><h2>كل نجاح له قصة</h2><p>اختار القصة الأقرب لظروفك وخد منها الخطوة اللي تناسبك.</p></div>
+			<span class="stories-heading__count">{{ stories.length }} قصة متاحة</span>
+		</div>
+		<div class="stories-grid" @staggerList>
+			<a *ngFor="let story of stories; let i = index" class="story-card" [routerLink]="['/success-stories', story.id]">
+				<div class="story-card__image"><img [src]="story.image" [alt]="'قصة نجاح ' + story.name" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"><span class="story-card__number">{{ i + 1 }}</span></div>
+				<div class="story-card__body"><div class="story-card__meta"><span>{{ story.honorific }}</span><i></i><span>تجربة حقيقية</span></div><h3>{{ story.name }}</h3><p class="story-card__result">{{ story.result }}</p><p class="story-card__quote">{{ story.summary }}</p><span class="story-card__button">اقرأ قصته <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></span></div>
+			</a>
+		</div>
+	</section>
+</main>
+<main *ngIf="!isPageVisible" class="success-page" dir="rtl"><section class="success-hero"><div class="success-hero__content"><h1 class="success-hero__title">الصفحة غير متاحة حاليًا</h1><p class="success-hero__text">تابعنا لمعرفة موعد عودة قصص النجاح.</p></div></section></main>

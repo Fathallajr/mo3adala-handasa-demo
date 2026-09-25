@@ -1,0 +1,486 @@
+<!-- Hero Section with a video-only background -->
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <!-- Background Video with Overlay -->
+    <div class="absolute inset-0 z-0">
+        <!-- The hero intentionally has no image fallback or poster. -->
+        <video
+			*ngIf="shouldUseHeroVideo"
+            #heroVideo
+            class="absolute inset-0 w-full h-full object-cover" 
+            autoplay
+            muted 
+            loop 
+            playsinline
+            preload="auto"
+            poster="assets/media-hero.jpg"
+            webkit-playsinline
+            x5-playsinline
+            style="pointer-events: none; z-index: 2;"
+            (loadedmetadata)="onVideoReady()"
+            (canplay)="onVideoCanPlay()"
+            (error)="onVideoError()">
+            <source src="assets/background-video.mp4" type="video/mp4">
+        </video>
+        <!-- Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/70 z-10"></div>
+    </div>
+
+	<!-- Floating Success Students Animation -->
+	
+
+	
+	
+	<!-- Main Content -->
+	<div class="hero-content relative z-30 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+		<div @fadeInUp class="hero-content-inner space-y-6 md:space-y-8">
+			<div class="hero-kicker"><span></span> طريقك لكلية الهندسة يبدأ هنا <span></span></div>
+			<!-- Main Heading with White Text -->
+			<div class="hero-heading pt-8 md:pt-12 lg:pt-16">
+				<h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-3 md:mb-4">
+					<span class="hero-title-main inline-block drop-shadow-2xl">ابلكيشن معادلة كلية هندسة</span>
+					<br>
+					<span class="hero-title-accent text-lg sm:text-xl md:text-2xl lg:text-3xl text-orange-400 font-bold inline-block mr-2 sm:mr-3 drop-shadow-lg">
+						دايماً في ضهرك
+					</span>
+				</h1>
+			</div>
+			
+			<!-- Animated Description with Typewriter Effect -->
+			<div class="min-h-[60px] sm:min-h-[80px] md:min-h-[100px] lg:min-h-[120px] flex items-center justify-center">
+				<p class="hero-description text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold max-w-5xl mx-auto leading-relaxed drop-shadow-2xl px-4">
+					<span class="typewriter-text">
+						<span *ngFor="let word of getWords(); let i = index" class="hero-word inline-block">
+							<span 
+								[class.text-white]="isHighlighted(word)"
+								[class.text-orange-400]="!isHighlighted(word)"
+								class="drop-shadow-lg">
+								{{ word }}
+							</span>
+							<span *ngIf="i < getWords().length - 1" class="hero-word-space" aria-hidden="true">&nbsp;</span>
+						</span>
+					</span>
+				</p>
+			</div>
+			
+		</div>
+	</div>
+
+	<!-- Scroll Indicator -->
+	<div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30 animate-bounce">
+		<svg class="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+		</svg>
+	</div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section-modern relative overflow-hidden py-14 md:py-20">
+	<div class="features-glow features-glow--orange" aria-hidden="true"></div>
+	<div class="features-glow features-glow--blue" aria-hidden="true"></div>
+
+	<div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+		<div class="features-heading text-center" @fadeInUp>
+			<span class="features-eyebrow">رحلتك تبدأ من هنا</span>
+			<h2 class="features-title">
+				<span>هنوفرلك</span> كل اللي تحتاجه في رحلة معادلة هندسة
+			</h2>
+			<p class="features-subtitle">محتوى منظم، تدريب مستمر، ومتابعة تساعدك توصل لهدفك بثقة.</p>
+		</div>
+
+		<div #featuresTrack class="features-grid" @staggerList
+			 (mouseenter)="pauseFeaturesAutoplay()" (mouseleave)="resumeFeaturesAutoplay()"
+			 (touchstart)="pauseFeaturesAutoplay()" (touchend)="resumeFeaturesAutoplay()">
+			<article class="feature-card-modern">
+				<div class="feature-card-top"><span>01</span><div class="feature-icon-modern"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332 1.253"></path></svg></div></div>
+				<h3>مناهج بسيطة ومُحدّثة</h3><p>شرح مرتب ومناسب لمستواك مع تحديثات مستمرة للمحتوى.</p>
+			</article>
+			<article class="feature-card-modern">
+				<div class="feature-card-top"><span>02</span><div class="feature-icon-modern"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div></div>
+				<h3>شرح وتدريب عملي</h3><p>أمثلة محلولة وامتحانات إلكترونية تقيس فهمك خطوة بخطوة.</p>
+			</article>
+			<article class="feature-card-modern">
+				<div class="feature-card-top"><span>03</span><div class="feature-icon-modern"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div></div>
+				<h3>خطة تناسب وقتك</h3><p>جداول مرنة تساعدك تذاكر بانتظام من غير ضغط أو عشوائية.</p>
+			</article>
+			<article class="feature-card-modern">
+				<div class="feature-card-top"><span>04</span><div class="feature-icon-modern"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div></div>
+				<h3>دعم ومتابعة مستمرة</h3><p>فريق يساعدك تفضل متابع وتعرف تعمل إيه في كل مرحلة.</p>
+			</article>
+		</div>
+	</div>
+</section>
+
+<app-what-is-equation />
+
+<!-- Successful Students Photos 2025 -->
+<section class="photo-gallery-section bg-gradient-to-br from-slate-50 to-blue-50 py-8 md:py-16">
+	<div class="mx-auto max-w-7xl px-4">
+		<!-- Section Header -->
+		<div class="photo-gallery-header text-center mb-6 md:mb-12" @fadeInUp>
+			<span class="photo-gallery-eyebrow">لحظات تستحق الاحتفال</span>
+			<h2 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 mb-2 md:mb-4">
+				صور الطلاب الناجحين دفعة 2025
+			</h2>
+			<p class="text-sm sm:text-base md:text-lg text-slate-600 max-w-2xl mx-auto">
+				شاهد صور طلابنا الناجحين في معادلة كلية الهندسة
+			</p>
+		</div>
+
+		<!-- Photos Grid -->
+		<div class="photo-gallery-shell" @staggerList>
+			<div #photosTrack class="photo-gallery-track" dir="rtl">
+				<div *ngFor="let photo of studentPhotos2025 | slice:0:8; let i = index" 
+					 class="photo-card photo-card-slider cursor-pointer"
+					 (click)="openPhoto(photo)">
+					<img [src]="'assets/' + photo" 
+						 alt="طالب ناجح 2025" 
+						 class="w-full object-cover" 
+						 loading="lazy"
+						 decoding="async"
+						 onerror="this.src='/assets/logo.png'">
+					<div class="photo-card-caption">طالب ناجح <span>{{ i + 1 }}</span></div>
+				</div>
+			</div>
+			
+			<!-- Lightbox Modal -->
+			<div *ngIf="selectedPhoto" 
+				 class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+				 (click)="closePhoto()">
+				<!-- Close Button -->
+				<button (click)="closePhoto()" 
+						class="absolute top-4 right-4 text-white hover:text-red-400 transition-colors z-10">
+					<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+				
+				<!-- Photo -->
+				<div class="max-w-full max-h-full" (click)="$event.stopPropagation()">
+					<img [src]="'assets/' + selectedPhoto" 
+						 alt="صورة طالب ناجح" 
+						 class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl">
+				</div>
+			</div>
+		</div>
+
+		<!-- View All Button -->
+		<div class="mt-4 md:mt-6 text-center">
+			<a routerLink="/photos-2025" class="inline-block bg-orange-600 text-white px-6 py-2 md:px-8 md:py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors duration-300">
+				عرض الكل
+			</a>
+		</div>
+	</div>
+</section>
+
+<!-- Student Reviews Section -->
+<section class="student-reviews-section bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+	<div class="mx-auto max-w-6xl px-4">
+		<!-- Section Header -->
+		<div class="reviews-header text-center mb-12" @fadeInUp>
+			<h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+				آراء طلابنا الناجحين
+			</h2>
+			<p class="text-lg text-slate-600 max-w-2xl mx-auto">
+				اكتشف تجارب الطلاب الذين نجحوا في معادلة كلية الهندسة بفضل برنامجنا
+			</p>
+			
+			<!-- Overall Rating -->
+			<div class="reviews-rating flex items-center justify-center gap-4 mt-6">
+				<div class="flex items-center gap-2">
+					<div class="flex reviews-stars">
+						<svg *ngFor="let star of [1,2,3,4,5]" class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+							<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+						</svg>
+					</div>
+					<span class="text-2xl font-bold text-slate-900">4.9</span>
+				</div>
+				<!-- <div class="text-slate-600">
+					<span class="font-semibold">4,850+</span> تقييم
+				</div> -->
+			</div>
+		</div>
+
+		<!-- Reviews Swiper -->
+		<div class="reviews-carousel relative" @staggerList>
+			<!-- Left Arrow - Scroll Left -->
+			<button type="button" (click)="scrollReviewsNext()" aria-label="الشمال"
+				class="flex absolute -left-2 md:-left-3 top-1/2 -translate-y-1/2 z-10 h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full bg-white shadow border border-slate-200 hover:bg-blue-50 active:scale-95 transition-transform">
+				<span class="text-lg md:text-xl">‹</span>
+			</button>
+
+			<!-- Right Arrow - Scroll Right -->
+			<button type="button" (click)="scrollReviewsPrev()" aria-label="اليمين"
+				class="flex absolute -right-2 md:-right-3 top-1/2 -translate-y-1/2 z-10 h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full bg-white shadow border border-slate-200 hover:bg-blue-50 active:scale-95 transition-transform">
+				<span class="text-lg md:text-xl">›</span>
+			</button>
+
+			<!-- Reviews Track -->
+			<div #reviewsTrack class="swiper-track reviews-track overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-4 pb-2" dir="rtl">
+				<!-- Review Card 1 -->
+				<div class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
+					<div class="p-6">
+						<div class="flex items-center gap-4 mb-4">
+							<img src="/assets/student1.png" alt="صفوة طه" class="w-12 h-12 rounded-full object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+							<div>
+								<h4 class="font-semibold text-slate-900">صفوة طه </h4>
+								<p class="text-sm text-slate-600">طالبة هندسة حلوان</p>
+								<div class="flex mt-1">
+									<svg *ngFor="let star of [1,2,3,4,5]" class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+									</svg>
+								</div>
+							</div>
+						</div>
+					<p class="text-slate-700 leading-relaxed text-sm break-words hyphens-auto" style="line-height: 1.6; word-wrap: break-word;">
+						" بشكر كل المهندسين والأسيستانت على تعبهم ومجهودهم الجبار
+						<br> والحمد لله إن ربنا وفقني معاهم، ويا رب ينجح كل طالب معادلة مجتهد.
+					</p>
+					</div>
+				</div>
+
+				<!-- Review Card 2 -->
+				<div class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
+					<div class="p-6">
+						<div class="flex items-center gap-4 mb-4">
+							<img src="/assets/student2.png" alt="احمد المنياوي" class="w-12 h-12 rounded-full object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+							<div>
+								<h4 class="font-semibold text-slate-900"> احمد المنياوي</h4>
+								<p class="text-sm text-slate-600">طالب هندسة عين شمس</p>
+								<div class="flex mt-1">
+									<svg *ngFor="let star of [1,2,3,4,5]" class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+									</svg>
+								</div>
+							</div>
+						</div>
+					<p class="text-slate-700 leading-relaxed text-sm break-words hyphens-auto" style="line-height: 1.6; word-wrap: break-word;">
+						الأبليكيشن عظمة ونظام الأونلاين أنجح تدريس في مصر،
+						<br> أوفر في الوقت والفلوس وراحة دماغ، وسبب كبير في نجاح الطلاب</p>
+					</div>
+				</div>
+
+				<!-- Review Card 3 -->
+				<div class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
+					<div class="p-6">
+						<div class="flex items-center gap-4 mb-4">
+							<img src="/assets/student3.png" alt="محمد حسن" class="w-12 h-12 rounded-full object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+							<div>
+								<h4 class="font-semibold text-slate-900">ميان حامد </h4>
+								<p class="text-sm text-slate-600"> طالبة هندسة المنصورة</p>
+								<div class="flex mt-1">
+									<svg *ngFor="let star of [1,2,3,4,5]" class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+									</svg>
+								</div>
+							</div>
+						</div>
+					<p class="text-slate-700 leading-relaxed text-sm break-words hyphens-auto" style="line-height: 1.6; word-wrap: break-word;">
+						أفضل تيم بلا منافس، شرح ومتابعة مستمرة وامتحانات دورية بتحاكي أسئلة المعادلة،
+						<br> ومجهود عظيم تستحقوا التقدير.</p>
+					</div>
+				</div>
+
+				<!-- Review Card 4 -->
+				<div class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
+					<div class="p-6">
+						<div class="flex items-center gap-4 mb-4">
+							<img src="/assets/student4.png" alt="السيد حماد" class="w-12 h-12 rounded-full object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+							<div>
+								<h4 class="font-semibold text-slate-900">نور الدين</h4>
+								<p class="text-sm text-slate-600">طالب هندسة طنطا</p>
+								<div class="flex mt-1">
+									<svg *ngFor="let star of [1,2,3,4,5]" class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+									</svg>
+								</div>
+							</div>
+						</div>
+					<p class="text-slate-700 leading-relaxed text-sm break-words hyphens-auto" style="line-height: 1.6; word-wrap: break-word;">
+						الأبليكيشن ممتاز وبيوفر وقت وفلوس ومجهود عن المواصلات والزحمة، 
+						<br>ودخلته مخصوص عشان فتح الله، ومن الآخر اختيار موفق جدًا</p>
+					</div>
+				</div>
+
+				<!-- Review Card 5 -->
+				<div class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
+					<div class="p-6">
+						<div class="flex items-center gap-4 mb-4">
+							<img src="/assets/student5.png" alt="عبد الله بدري" class="w-12 h-12 rounded-full object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+							<div>
+								<h4 class="font-semibold text-slate-900">عبد الله بدري</h4>
+								<p class="text-sm text-slate-600">طالب هندسة أسيوط</p>
+								<div class="flex mt-1">
+									<svg *ngFor="let star of [1,2,3,4,5]" class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+									</svg>
+								</div>
+							</div>
+						</div>
+					<p class="text-slate-700 leading-relaxed text-sm break-words hyphens-auto" style="line-height: 1.6; word-wrap: break-word;">
+						تجربتي مع الأبليكيشن سنتين كانت رائعة، متابعة وامتحانات وتنظيم وقت،
+						<br> بيوفر فلوس ومجهود وبيخلي المنهج في ذهنك طول السنة، من الآخر نمبر وان					</p>
+					</div>
+				</div>
+
+				<!-- Review Card 6 -->
+				<div class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
+					<div class="p-6">
+						<div class="flex items-center gap-4 mb-4">
+							<img src="/assets/student6.png" alt="ضحى علي عبد الرحيم" class="w-12 h-12 rounded-full object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+							<div>
+								<h4 class="font-semibold text-slate-900">ضحى علي عبد الرحيم</h4>
+								<p class="text-sm text-slate-600">طالبة هندسة جنوب الوادي</p>
+								<div class="flex mt-1">
+									<svg *ngFor="let star of [1,2,3,4,5]" class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+									</svg>
+								</div>
+							</div>
+						</div>
+					<p class="text-slate-700 leading-relaxed text-sm break-words hyphens-auto" style="line-height: 1.6; word-wrap: break-word;">
+						بفضل ربنا ثم مهندسين الأبليكيشن وتيم الدعم اللي بيتقوا ربنا في شغلهم،
+						<br> أنا مبسوطة إني كنت معاكم السنة دي، والتجربة معاكم لا تتكرر</p>
+					</div>
+				</div>
+
+				<!-- Review Card 7 - حمدي محمد -->
+				<div class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
+					<div class="p-6">
+						<div class="flex items-center gap-4 mb-4">
+							<img src="/assets/student.png" alt="حمدي محمد" class="w-12 h-12 rounded-full object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+							<div>
+								<h4 class="font-semibold text-slate-900">حمدي محمد</h4>
+								<p class="text-sm text-slate-600">هندسة عين شمس</p>
+								<div class="flex mt-1">
+									<svg *ngFor="let star of [1,2,3,4,5]" class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+									</svg>
+								</div>
+							</div>
+						</div>
+						<p class="text-slate-700 leading-relaxed text-sm break-words hyphens-auto" style="line-height: 1.6; word-wrap: break-word;">
+							"الأبليكيشن كان نظام محترم وتعب المهندسين والأسستنت معانا طول السنة،
+							<br> ومبسوط إنه حقق أعلى نسب نجاح، وربنا يكرمنا ونفرحكم ونشوفكم في التكريم قريب"
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="reviews-feedback-cta">
+			<div>
+				<span class="reviews-feedback-kicker">رأيك بيفرق معانا</span>
+				<h3>قول رأيك في الأبليكيشن</h3>
+				<p>شاركنا تجربتك وساعد طلاب تانيين ياخدوا الخطوة بثقة.</p>
+			</div>
+			<a routerLink="/feedback" class="reviews-feedback-button">اكتب رأيك <span aria-hidden="true">←</span></a>
+		</div>
+
+		<!-- Videos Section -->
+		<div class="experiences-section mt-12">
+			<!-- Section Header -->
+			<div class="experiences-header text-center mb-12" @fadeInUp>
+				<span class="experiences-eyebrow">قصص حقيقية من طلابنا</span>
+				<h2>تجارب صنعت فرقًا حقيقيًا</h2>
+				<p class="text-lg text-slate-600 max-w-2xl mx-auto">
+					شاهد تجارب الطلاب الذين نجحوا في معادلة كلية الهندسة معنا
+				</p>
+			</div>
+
+			<!-- Videos Grid -->
+			<div class="experiences-grid grid grid-cols-1 md:grid-cols-2 gap-8" @staggerList>
+				<div *ngFor="let video of homeVideos" class="experience-card bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+					<div class="relative bg-black rounded-t-xl overflow-hidden" style="padding-bottom: 56.25%;">
+						<button
+							*ngIf="!isHomeVideoLoaded(video.id)"
+							type="button"
+							class="absolute inset-0 w-full h-full group"
+							(click)="loadHomeVideo(video.id)"
+							[attr.aria-label]="'تشغيل ' + video.title">
+							<img
+								[src]="getHomeVideoThumbnail(video.id)"
+								[alt]="video.title"
+								class="absolute inset-0 w-full h-full object-cover"
+								loading="lazy"
+								decoding="async">
+							<span class="absolute inset-0 bg-black/35 group-hover:bg-black/25 transition-colors"></span>
+							<span class="absolute inset-0 flex items-center justify-center">
+								<span class="flex h-16 w-16 items-center justify-center rounded-full bg-white/95 text-orange-600 shadow-xl group-hover:scale-105 transition-transform">
+									<svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+										<path d="M8 5v14l11-7z"/>
+									</svg>
+								</span>
+							</span>
+						</button>
+						<iframe
+							*ngIf="isHomeVideoLoaded(video.id)"
+							class="absolute top-0 left-0 w-full h-full"
+							[src]="getHomeVideoEmbedUrl(video.id)"
+							[title]="video.title"
+							frameborder="0"
+							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+							allowfullscreen>
+						</iframe>
+					</div>
+					<a
+						class="mx-5 mt-3 inline-flex items-center gap-2 text-sm font-bold text-orange-600 hover:text-orange-700"
+						[target]="'_blank'"
+						[rel]="'noopener noreferrer'"
+						[href]="getHomeVideoWatchUrl(video.id)">
+						فتح الفيديو على يوتيوب <span aria-hidden="true">↗</span>
+					</a>
+					<div class="experience-card-content p-6">
+						<h3 class="text-xl font-bold text-slate-900 mb-2">{{ video.heading }}</h3>
+						<p class="text-slate-600 mb-4">{{ video.description }}</p>
+						<button type="button" class="experience-watch-link" (click)="loadHomeVideo(video.id)">
+							شاهد الفيديو <span aria-hidden="true">←</span>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	<!-- Call to Action -->
+		<div class="text-center mt-12" @fadeInUp>
+			<app-subscription-choice-trigger label="انضم إلى مئات الطلاب الناجحين" buttonClass="home-reviews-cta"></app-subscription-choice-trigger>
+		</div>
+	</div>
+</section>
+
+<!-- Final CTA -->
+<section class="final-cta-section" @fadeInUp>
+	<div class="final-cta-shell">
+		<div class="final-cta-content">
+			<span class="final-cta-eyebrow">خطوتك الأولى للنجاح</span>
+			<h2>ابدأ رحلتك يا بشمهندس</h2>
+			<p>انضم إلى مئات الطلاب وابدأ مذاكرتك بخطة واضحة، شرح متكامل، ومتابعة مستمرة لحد يوم الامتحان.</p>
+			<div class="final-cta-actions">
+				<div class="final-subscription-picker">
+					<button type="button" class="final-cta-primary" (click)="toggleFinalSubscriptionChoices($event)" [attr.aria-expanded]="showFinalSubscriptionChoices" aria-haspopup="menu">
+						ابدأ الآن <span aria-hidden="true">←</span>
+					</button>
+					<div *ngIf="showFinalSubscriptionChoices" class="final-subscription-menu" role="menu" aria-label="اختار نوع الاشتراك">
+						<a routerLink="/subscription-engineering-ar" (click)="closeFinalSubscriptionChoices()" role="menuitem">هندسة عربي</a>
+						<a routerLink="/subscription-computers-ar" (click)="closeFinalSubscriptionChoices()" role="menuitem">حاسبات عربي</a>
+						<a routerLink="/subscription-engineering-en" (click)="closeFinalSubscriptionChoices()" role="menuitem">هندسة إنجليزي</a>
+						<a routerLink="/subscription-computers-en" (click)="closeFinalSubscriptionChoices()" role="menuitem">حاسبات إنجليزي</a>
+					</div>
+				</div>
+				<div class="final-teacher-picker">
+					<button type="button" class="final-cta-secondary" (click)="toggleFinalTeacherChoices($event)" [attr.aria-expanded]="showFinalTeacherChoices" aria-haspopup="menu">
+						اتعرف على المدرسين
+					</button>
+					<div *ngIf="showFinalTeacherChoices" class="final-subscription-menu" role="menu" aria-label="اختار لغة المدرسين">
+						<a routerLink="/engineers-ar" (click)="closeFinalTeacherChoices()" role="menuitem">المدرسين عربي</a>
+						<a routerLink="/engineers-en" (click)="closeFinalTeacherChoices()" role="menuitem">المدرسين إنجليزي</a>
+					</div>
+				</div>
+			</div>
+			<div class="final-cta-proof"><span>✓</span> محتوى منظم <span>✓</span> متابعة مستمرة <span>✓</span> تدريب على شكل الامتحان</div>
+		</div>
+		<div class="final-cta-visual">
+			<img src="assets/media-hero.jpg" alt="طلاب معادلة كلية الهندسة" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+			<div class="final-cta-badge">مستعد تبدأ؟</div>
+		</div>
+	</div>
+</section>

@@ -1,0 +1,226 @@
+{
+  "pages": {
+    "subscription-details": {
+      "data": {
+        "isEnrollmentClosed": false,
+        "enrollmentReopenMessage": "سيتم فتح الاشتراك للمشتركين الجدد مع بداية الشهر القادم بإذن الله.",
+        "subscriptionDetails": {
+          "month": " شهر مايو 2026",
+          "groupA": {
+            "name": "جروب A",
+            "price": "700"
+          },
+          "groupB": {
+            "name": "جروب B",
+            "price": "800"
+          },
+          "groupC": {
+            "name": "جروب C",
+            "price": "800"
+          },
+          "currency": "ج",
+          "features": [
+            "فيديوهات تأسيسية في جميع المواد",
+            "فيديوهات شرح تفصيلية للمناهج",
+            "فيديوهات حل بنوك المسائل",
+            "ملازم وملفات PDF للتحميل",
+            "امتحانات إلكترونية تفاعلية",
+            "تتبع التقدم والدرجات",
+            "دعم فني على مدار الساعة",
+            "سيستم متابعة كامل (جديد)"
+          ],
+          "offers": [
+            "خصم 20% للطلاب الجدد",
+            "ضمان استرداد المبلغ خلال 7 أيام",
+            "وصول مدى الحياة للمحتوى",
+            "شهادة إنجاز معتمدة"
+          ],
+          "googleForms": {
+            "groupA": {
+              "key": "groupA",
+              "label": "جروب A",
+              "description": "للمشتركين الأساسيين",
+              "buttonText": "سجل فورم جروب A",
+              "link": "https://forms.gle/DXsVyF3kPvWXwkHG8",
+              "isClosed": true
+            },
+            "groupB": {
+              "key": "groupB",
+              "label": "جروب B",
+              "description": "للمشتركين الجدد جروب B",
+              "buttonText": "سجل فورم جروب B",
+              "link": "https://forms.gle/NDYjPGQug76Damm6A",
+              "isClosed": true
+            },
+            "groupC": {
+              "key": "groupC",
+              "label": "جروب C",
+              "description": "للمشتركين الجدد جروب C",
+              "buttonText": "سجل فورم جروب C",
+              "link": "https://forms.gle/mXzLb7Bnff43GUxK8",
+              "isClosed": false
+            }
+          },
+          "vodafoneNumbers": [
+            {
+              "number": "01040490778",
+              "owner": "احمد ع********* س***"
+            },
+            {
+              "number": "01040490779",
+              "owner": "سعد ف** ص*** ا***"
+            },
+            {
+              "number": "01025326080",
+              "owner": "احمد م**** ا***** ز***"
+            },
+            {
+              "number": "01080681865",
+              "owner": "Mona k***** A**"
+            }
+          ],
+          "scheduleImages": [
+            {
+              "group": "جدول جروب A",
+              "src": "/assets/جروب A.png",
+              "alt": "جدول محتوى شهر مايو - جروب A",
+              "note": "👆 اضغط على الصورة للتكبير"
+            },
+            {
+              "group": "جدول جروب B",
+              "src": "/assets/جروب B.png",
+              "alt": "جدول محتوى شهر مايو - جروب B",
+              "note": "👆 اضغط على الصورة للتكبير"
+            },
+            {
+              "group": "جدول جروب C",
+              "src": "/assets/جروب C.jpeg?v=20260621",
+              "alt": "جدول محتوى شهر مايو - جروب C",
+              "note": "👆 اضغط على الصورة للتكبير"
+            }
+          ],
+          "requiredInfo": [
+            "رقم الموبايل اللي حولت منه 📲",
+            "سكرين شوت بالتحويل 🖼",
+            "وقت وتاريخ التحويل ⏳"
+          ],
+          "whatsappNumber": "201554843745",
+          "subscriptionWarnings": {
+            "validity": {
+              "title": "مدة صلاحية الاشتراك:",
+              "points": [
+                "الكود شغال لغاية آخر الشهر فقط",
+                "مع انتهاء الشهر بيقفل المحتوى تلقائياً",
+                "عند تجديد الاشتراك الكود الجديد بيفتحلك كل المحتوى من الأول"
+              ]
+            },
+            "refund": {
+              "title": "سياسة الاسترداد:",
+              "points": [
+                "السحب متاح خلال أسبوع من الاشتراك مع استرداد نصف المبلغ فقط",
+                "بعد الأسبوع، لا يُمكن استرداد أي مبلغ"
+              ]
+            }
+          },
+          "subtitle": " الشهر الثامن لدفعة 2026 "
+        }
+      },
+      "updatedAt": "2026-05-11T20:23:25.386Z"
+    },
+    "news-equation": {
+      "data": {
+        "visible": true,
+        "title": "أخبار المعادلة",
+        "items": [
+          {
+            "title": "جدول اختبارات معادلة كلية الهندسة 2026",
+            "description": "خبر هام | أعلن المجلس الأعلى للجامعات جدول اختبارات معادلة كلية الهندسة للعام الجامعي 2026/2027.",
+            "image": "/assets/جدول اختبارات معادلة كلية الهندسة .jpeg",
+            "link": "/news/detail/engineering-equation-exam-schedule-2026"
+          },
+          {
+            "title": "تيست",
+            "description": "تيست",
+            "image": "/uploads/1778531047542-ab109933.png",
+            "link": "https://chatgpt.com/share/6a023a3d-38d8-83ea-85e7-7850dbc5e839"
+          }
+        ]
+      },
+      "updatedAt": "2026-05-11T20:24:22.517Z"
+    },
+    "news-app": {
+      "data": {
+        "visible": true,
+        "title": "أخبار الأبلكيشن",
+        "items": [
+          {
+            "title": "المجلس الأعلى للجامعات يعلن فتح باب التقديم لاختبارات معادلة كلية الهندسة 2026",
+            "description": "أعلن المجلس الأعلى للجامعات فتح باب التقديم لاختبارات معادلة كلية الهندسة للعام الجامعي 2026/2027.",
+            "image": "/assets/خبر فتح باب التقديم.jpeg",
+            "link": "/news/detail/engineering-equation-application-open-2026"
+          }
+        ]
+      },
+      "updatedAt": "2026-07-31T18:15:00.000Z"
+    },
+    "subscription-intensive": {
+      "data": {
+        "isEnrollmentClosed": true,
+        "enrollmentReopenMessage": "انتظروا التفاصيل قريباً بإذن الله 🔥",
+        "subscriptionDetails": {
+          "title": "الاشتراك المكثف",
+          "subtitle": "كورس مكثف لكلية الهندسة - دفعة 2026",
+          "googleFormLink": "https://forms.gle/CYS6WCbAeX4W3E6Z7",
+          "paymentPlans": {
+            "installment2": {
+              "amount": "1600",
+              "label": "القسط الثاني",
+              "note": "ابتداءً من 7 أغسطس"
+            }
+          },
+          "currency": "ج",
+          "vodafoneNumbers": [
+            {
+              "number": "01080594862",
+              "owner": "Ahmed A*********"
+            },
+            {
+              "number": "01001793817",
+              "owner": "Saad F*** S****"
+            },
+            {
+              "number": "01021069340",
+              "owner": "Mona k***** A**"
+            },
+            {
+              "number": "01021201970",
+              "owner": "Mona k***** A**"
+            }
+          ],
+          "requiredInfo": [
+            "رقم الموبايل اللي حولت منه 📲",
+            "سكرين شوت بالتحويل 🖼",
+            "وقت وتاريخ التحويل ⏳"
+          ],
+          "whatsappNumber": "201554843745",
+          "subscriptionWarnings": {
+            "refund": {
+              "title": "سياسة الاسترداد:",
+              "points": [
+                "لا يوجد استرداد أو سحب للاشتراك نهائيًا لأي سبب من الأسباب"
+              ]
+            },
+            "validity": {
+              "title": "مدة صلاحية الاشتراك:",
+              "points": [
+                "الكود شغال لغاية آخر الامتحانات",
+                "مع انتهاء الامتحانات بيقفل المحتوى تلقائياً"
+              ]
+            }
+          }
+        }
+      },
+      "updatedAt": "2026-05-11T20:24:53.692Z"
+    }
+  }
+}

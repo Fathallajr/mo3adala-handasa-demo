@@ -1,0 +1,106 @@
+.admin-login-page {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2rem 1rem;
+	background: radial-gradient(circle at top, #e2e8f0 0, #f8fafc 35%, #ffffff 100%);
+	font-family: 'TheYearofHandicrafts', sans-serif;
+}
+
+.admin-login-card {
+	width: min(100%, 460px);
+	background: #fff;
+	border-radius: 20px;
+	padding: 2rem;
+	box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+	border: 1px solid #e2e8f0;
+	text-align: center;
+}
+
+.admin-login-badge {
+	display: inline-block;
+	padding: 0.35rem 0.9rem;
+	border-radius: 999px;
+	background: #0f172a;
+	color: #fff;
+	font-size: 0.8rem;
+	font-weight: 700;
+	margin-bottom: 1rem;
+}
+
+.admin-login-title {
+	font-size: 2rem;
+	font-weight: 900;
+	color: #111827;
+	margin: 0 0 0.5rem;
+}
+
+.admin-login-subtitle {
+	color: #64748b;
+	font-size: 0.95rem;
+	line-height: 1.7;
+	margin-bottom: 1.5rem;
+}
+
+.admin-login-form {
+	text-align: right;
+}
+
+.admin-login-label {
+	display: block;
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: #1f2937;
+	margin-bottom: 0.5rem;
+}
+
+.admin-login-input {
+	width: 100%;
+	border: 1px solid #cbd5e1;
+	border-radius: 12px;
+	padding: 0.95rem 1rem;
+	font-size: 1rem;
+	margin-bottom: 0.9rem;
+	outline: none;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-login-input:focus {
+	border-color: #0f172a;
+	box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+}
+
+.admin-login-error {
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	color: #b91c1c;
+	padding: 0.75rem 1rem;
+	border-radius: 12px;
+	margin-bottom: 0.9rem;
+	font-size: 0.9rem;
+}
+
+.admin-login-button {
+	width: 100%;
+	border: none;
+	border-radius: 12px;
+	padding: 0.95rem 1rem;
+	font-size: 1rem;
+	font-weight: 800;
+	color: #fff;
+	background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+	cursor: pointer;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+}
+
+.admin-login-button:hover {
+	transform: translateY(-2px);
+}
+
+.admin-login-button:disabled {
+	opacity: 0.7;
+	cursor: not-allowed;
+	transform: none;
+}

@@ -1,0 +1,52 @@
+<main class="faq-page" dir="rtl">
+  <div class="faq-shell">
+    <div *ngIf="isLoading" class="faq-loading" aria-live="polite">
+      <span class="faq-loading__spinner" aria-hidden="true"></span>
+      <p>جاري تجهيز الإجابات...</p>
+    </div>
+
+    <ng-container *ngIf="!isLoading">
+      <section class="faq-hero" @fadeInUp>
+        <div class="faq-hero__copy">
+          <span class="faq-eyebrow"><i></i> مركز المساعدة</span>
+          <h1>كل إجابة تقرّبك من هدفك</h1>
+          <p>إجابات واضحة وسريعة على أهم الأسئلة حول المعادلة والمنصة وطريقة المذاكرة.</p>
+        </div>
+        <div class="faq-hero__mark" aria-hidden="true"><span>؟</span><b>FAQ</b></div>
+      </section>
+
+      <section class="faq-tools" @fadeInUp>
+        <div class="faq-tools__topline">
+          <div><span class="faq-section-label">الأسئلة الشائعة</span><h2>إيه اللي حابب تعرفه؟</h2></div>
+          <span class="faq-count">{{ filteredFaqs().length }} إجابة</span>
+        </div>
+        <label class="faq-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg>
+          <input [(ngModel)]="query" placeholder="ابحث في الأسئلة والإجابات..." aria-label="ابحث في الأسئلة والإجابات" />
+          <span *ngIf="query" class="faq-search__clear" (click)="query = ''" role="button" tabindex="0" aria-label="مسح البحث">×</span>
+        </label>
+      </section>
+
+      <section class="faq-list" @staggerList aria-label="قائمة الأسئلة الشائعة">
+        <div *ngFor="let q of filteredFaqs(); let i = index" class="faq-item" [class.faq-item--open]="openIndex === i">
+          <button class="faq-question" type="button" [attr.aria-expanded]="openIndex === i" (click)="toggle(i)">
+            <span class="faq-question__number">{{ (i + 1).toString().padStart(2, '0') }}</span>
+            <span class="faq-question__text">{{ q.q }}</span>
+            <span class="faq-question__icon" aria-hidden="true"><span></span><span></span></span>
+          </button>
+          <div class="faq-answer" [class.faq-answer--open]="openIndex === i"><div class="faq-answer__inner"><p>{{ q.a }}</p></div></div>
+        </div>
+        <div *ngIf="filteredFaqs().length === 0" class="faq-empty">
+          <span>⌕</span><h3>مش لاقيين السؤال ده</h3><p>جرّب كلمة مختلفة أو تواصل معنا مباشرة.</p>
+          <button type="button" (click)="query = ''">عرض كل الأسئلة</button>
+        </div>
+      </section>
+
+      <section class="faq-cta" @fadeInUp>
+        <div class="faq-cta__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884Z"/></svg></div>
+        <div class="faq-cta__copy"><span>لسه محتاج مساعدة؟</span><h2>فريقنا معاك خطوة بخطوة</h2><p>ابعتلنا سؤالك على واتساب وهتلاقي حد من فريقنا يرد عليك.</p></div>
+        <a href="https://api.whatsapp.com/send/?phone=201554843745&text&type=phone_number&app_absent=0" target="_blank" rel="noopener" class="faq-cta__button">تواصل عبر واتساب <b>←</b></a>
+      </section>
+    </ng-container>
+  </div>
+</main>

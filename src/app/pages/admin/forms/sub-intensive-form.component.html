@@ -1,0 +1,131 @@
+<div class="cms-form" *ngIf="data">
+
+	<!-- حالة الاشتراك -->
+	<div class="cms-section">
+		<div class="cms-section-title">حالة الاشتراك</div>
+		<div class="cms-toggle-wrap" style="margin-bottom:0.75rem">
+			<label class="cms-switch">
+				<input type="checkbox" [(ngModel)]="data.isEnrollmentClosed" />
+				<span class="cms-slider"></span>
+			</label>
+			<span class="cms-toggle-label">{{ data.isEnrollmentClosed ? 'الاشتراك مغلق' : 'الاشتراك مفتوح' }}</span>
+		</div>
+		<div class="cms-field" style="margin-bottom:0">
+			<label class="cms-label">رسالة إعادة فتح الاشتراك</label>
+			<textarea class="cms-textarea" [(ngModel)]="data.enrollmentReopenMessage" rows="2"></textarea>
+		</div>
+	</div>
+
+	<!-- تفاصيل المكثف -->
+	<div class="cms-section">
+		<div class="cms-section-title">تفاصيل الكورس المكثف</div>
+		<div class="cms-row">
+			<div class="cms-field">
+				<label class="cms-label">العنوان</label>
+				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.title" placeholder="الاشتراك المكثف" />
+			</div>
+			<div class="cms-field">
+				<label class="cms-label">العنوان الفرعي</label>
+				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.subtitle" placeholder="كورس مكثف..." />
+			</div>
+		</div>
+		<div class="cms-field" style="margin-bottom:0">
+			<label class="cms-label">رابط فورم التسجيل</label>
+			<input class="cms-input" [(ngModel)]="data.subscriptionDetails.googleFormLink" placeholder="https://forms.gle/..." dir="ltr" />
+		</div>
+	</div>
+
+	<!-- خطط الدفع -->
+	<div class="cms-section">
+		<div class="cms-section-title">خطط الدفع</div>
+		<div class="cms-subsection" style="margin-bottom:0">
+			<div class="cms-subsection-title">القسط الثاني فقط</div>
+			<div class="cms-row">
+				<div class="cms-field">
+					<label class="cms-label">مبلغ القسط الثاني</label>
+					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.paymentPlans.installment2.amount" placeholder="1600" dir="ltr" />
+				</div>
+				<div class="cms-field">
+					<label class="cms-label">ملاحظة القسط الثاني</label>
+					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.paymentPlans.installment2.note" placeholder="ابتداءً من 7 أغسطس" />
+				</div>
+			</div>
+			<div class="cms-row">
+				<div class="cms-field" style="margin-bottom:0">
+					<label class="cms-label">تسمية الخطة</label>
+					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.paymentPlans.installment2.label" placeholder="القسط الثاني" />
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- أرقام فودافون -->
+	<div class="cms-section">
+		<div class="cms-section-title">أرقام فودافون كاش ({{ data.subscriptionDetails.vodafoneNumbers.length }})</div>
+		<div class="cms-array-list">
+			<div class="cms-array-item" *ngFor="let w of data.subscriptionDetails.vodafoneNumbers; let i = index">
+				<div style="flex:1">
+					<div class="cms-array-item__num">رقم {{ i + 1 }}</div>
+					<div class="cms-row">
+						<div class="cms-field" style="margin-bottom:0">
+							<label class="cms-label">الرقم</label>
+							<input class="cms-input" [(ngModel)]="w.number" placeholder="01xxxxxxxxx" dir="ltr" />
+						</div>
+						<div class="cms-field" style="margin-bottom:0">
+							<label class="cms-label">اسم الصاحب</label>
+							<input class="cms-input" [(ngModel)]="w.owner" placeholder="Ahmed A*****" />
+						</div>
+					</div>
+				</div>
+				<button type="button" class="cms-array-item__del" (click)="removeVodafone(i)">×</button>
+			</div>
+		</div>
+		<button type="button" class="cms-add-btn" (click)="addVodafone()">+ إضافة رقم</button>
+	</div>
+
+	<!-- البيانات المطلوبة -->
+	<div class="cms-section">
+		<div class="cms-section-title">البيانات المطلوبة بعد الدفع</div>
+		<div class="cms-array-list">
+			<div class="cms-array-item" *ngFor="let r of data.subscriptionDetails.requiredInfo; let i = index">
+				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.requiredInfo[i]" placeholder="بيان مطلوب..." style="flex:1" />
+				<button type="button" class="cms-array-item__del" (click)="removeRequired(i)">×</button>
+			</div>
+		</div>
+		<button type="button" class="cms-add-btn" (click)="addRequired()">+ إضافة بيان</button>
+	</div>
+
+	<!-- التحذيرات -->
+	<div class="cms-section">
+		<div class="cms-section-title">التحذيرات والتنبيهات</div>
+		<div class="cms-subsection">
+			<div class="cms-subsection-title">صلاحية الاشتراك</div>
+			<div class="cms-field">
+				<label class="cms-label">عنوان القسم</label>
+				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.subscriptionWarnings.validity.title" />
+			</div>
+			<div class="cms-array-list">
+				<div class="cms-array-item" *ngFor="let p of data.subscriptionDetails.subscriptionWarnings.validity.points; let i = index">
+					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.subscriptionWarnings.validity.points[i]" placeholder="نقطة..." style="flex:1" />
+					<button type="button" class="cms-array-item__del" (click)="removeValidityPoint(i)">×</button>
+				</div>
+			</div>
+			<button type="button" class="cms-add-btn" (click)="addValidityPoint()">+ إضافة نقطة</button>
+		</div>
+		<div class="cms-subsection" style="margin-bottom:0">
+			<div class="cms-subsection-title">سياسة الاسترداد</div>
+			<div class="cms-field">
+				<label class="cms-label">عنوان القسم</label>
+				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.subscriptionWarnings.refund.title" />
+			</div>
+			<div class="cms-array-list">
+				<div class="cms-array-item" *ngFor="let p of data.subscriptionDetails.subscriptionWarnings.refund.points; let i = index">
+					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.subscriptionWarnings.refund.points[i]" placeholder="نقطة..." style="flex:1" />
+					<button type="button" class="cms-array-item__del" (click)="removeRefundPoint(i)">×</button>
+				</div>
+			</div>
+			<button type="button" class="cms-add-btn" (click)="addRefundPoint()">+ إضافة نقطة</button>
+		</div>
+	</div>
+
+</div>

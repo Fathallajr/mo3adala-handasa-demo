@@ -1,0 +1,79 @@
+<div class="td-page" *ngIf="teacher" dir="rtl">
+	<section class="td-hero" [class]="'td-hero--' + teacher.color">
+		<div class="td-hero__grid" aria-hidden="true"></div>
+		<div class="td-hero__glow td-hero__glow--one" aria-hidden="true"></div>
+		<div class="td-hero__glow td-hero__glow--two" aria-hidden="true"></div>
+
+		<div class="td-hero__shell">
+			<div class="td-hero__topbar">
+				<button class="td-back-btn" type="button" (click)="goBack()">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 19 8 12l7-7" /></svg>
+					كل المدرسين
+				</button>
+				<span class="td-page-label"><i></i> ملف المدرس</span>
+			</div>
+
+			<div class="td-hero__layout">
+				<div class="td-portrait-column">
+					<div class="td-portrait-ring">
+						<div class="td-portrait-glow" aria-hidden="true"></div>
+						<img [src]="teacher.image" [alt]="teacher.name" class="td-avatar" loading="eager" decoding="async" onerror="this.src='/assets/logo.png'">
+					</div>
+					<div class="td-portrait-caption"><span>متخصص في</span><strong>{{ teacher.specialization }}</strong></div>
+				</div>
+
+				<div class="td-hero-info">
+					<span class="td-hero-kicker">فريق معادلة كلية الهندسة</span>
+					<h1 class="td-name">{{ teacher.name }}</h1>
+					<p class="td-hero-specialization">{{ teacher.specialization }}</p>
+					<p class="td-hero-description">شرح واضح، خبرة حقيقية، ومتابعة تخليك فاهم كل خطوة في طريقك للمعادلة.</p>
+					<div class="td-hero-facts" aria-label="معلومات المدرس">
+						<div><strong>{{ teacher.experience }}+</strong><span>سنة خبرة</span></div>
+						<div><strong>01</strong><span>مدرس متخصص</span></div>
+						<div><strong>24/7</strong><span>دعم ومتابعة</span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="td-content-shell" *ngIf="teacher.isComingSoon">
+		<div class="td-coming-soon">
+			<span class="td-section-eyebrow">قريبًا معانا</span>
+			<h2>نجم جديد ينضم لفريق الأبلكيشن</h2>
+			<p>استعد لتجربة شرح مختلفة مع مدرس بخبرة استثنائية في مجاله.</p>
+			<div class="td-coming-grid"><span>خبرة استثنائية</span><span>شرح عملي</span><span>نتائج مميزة</span></div>
+		</div>
+	</section>
+
+	<main class="td-content-shell" *ngIf="!teacher.isComingSoon">
+		<div class="td-content-heading">
+			<div><span class="td-section-eyebrow">خليك على تواصل</span><h2>تابع {{ teacher.name }}</h2></div>
+		</div>
+
+		<section class="td-contact-panel" aria-labelledby="teacher-contact-heading">
+			<div class="td-panel-heading"><span class="td-panel-icon" aria-hidden="true">↗</span><h2 id="teacher-contact-heading">تابع المهندس</h2></div>
+			<div class="td-contact-grid">
+				<a *ngIf="teacher.socialLinks.facebook" [href]="teacher.socialLinks.facebook" target="_blank" rel="noopener" class="td-contact-card td-contact-card--fb">
+					<span class="td-contact-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073C24 5.446 18.627.073 12 .073S0 5.446 0 12.073c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953h-1.514c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073Z"/></svg></span>
+					<span class="td-contact-copy"><strong>فيسبوك</strong><small>تابع الصفحة الرسمية</small></span><span class="td-contact-arrow">←</span>
+				</a>
+				<a *ngIf="teacher.socialLinks.youtube" [href]="teacher.socialLinks.youtube" target="_blank" rel="noopener" class="td-contact-card td-contact-card--yt">
+					<span class="td-contact-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814ZM9.545 15.568V8.432L15.818 12l-6.273 3.568Z"/></svg></span>
+					<span class="td-contact-copy"><strong>يوتيوب</strong><small>شاهد الشروحات التعليمية</small></span><span class="td-contact-arrow">←</span>
+				</a>
+			</div>
+		</section>
+
+		<section class="td-video-section" *ngIf="teacher.demoVideo?.youtubeId">
+			<div class="td-video-heading"><span class="td-section-eyebrow">تجربة قبل الاشتراك</span><h2>شوف أسلوب {{ teacher.name }} في الشرح</h2><p>فيديو مجاني يساعدك تتعرف على طريقة الشرح قبل ما تبدأ.</p></div>
+			<div class="td-video-wrap">
+				<div class="td-video-thumb" *ngIf="!isVideoLoaded" (click)="loadVideo()" role="button" tabindex="0" (keydown.enter)="loadVideo()" aria-label="تشغيل الفيديو المجاني">
+					<img [src]="getVideoThumbnail()" alt="فيديو مجاني" class="td-thumb-img" loading="lazy">
+					<div class="td-play-btn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></div><span class="td-free-badge">مجاني بالكامل</span>
+				</div>
+				<iframe *ngIf="isVideoLoaded" class="td-video-iframe" [src]="getVideoEmbedUrl()" title="فيديو تعليمي" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+			</div>
+		</section>
+	</main>
+</div>

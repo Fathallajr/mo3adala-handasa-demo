@@ -1,0 +1,36 @@
+<div class="engineers-page" [class.engineers-page--en]="isEnglish" dir="rtl" [@subPageTransition]>
+	<section class="eng-hero">
+		<div class="eng-hero__pattern"></div>
+		<a routerLink="/" class="eng-back eng-back--top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7" /></svg> العودة للرئيسية</a>
+		<div class="eng-hero__inner">
+			<div class="eng-hero__content">
+				<div class="eng-hero__eyebrow"><span></span> {{ isEnglish ? 'فريق مدرسين المعادلة English' : 'فريق مدرسين المعادلة عربي' }}</div>
+				<h1>خبرة تشرحلك<br><strong>{{ isEnglish ? 'بالطريقة اللي تناسبك' : 'الطريق لحد ما توصل' }}</strong></h1>
+				<p>{{ isEnglish ? 'اتعرّف على المدرسين اللي بيشرحوا مواد هندسة وحاسبات باللغة الإنجليزية، مع حل وامتحانات بنفس النظام.' : 'اتعرّف على المدرسين اللي بيشرحوا مواد هندسة وحاسبات بالعربي، وبيفضلوا معاك من أول شرح لحد يوم الامتحان.' }}</p>
+				<div class="eng-hero__actions"><app-subscription-choice-trigger label="ابدأ رحلتك" buttonClass="eng-button eng-button--primary"></app-subscription-choice-trigger><a routerLink="/faq" class="eng-button eng-button--ghost">اعرف أكتر عن الأبلكيشن</a></div>
+				<div class="eng-hero__proof"><span><i></i> شرح منظم</span><span><i></i> خبرة عملية</span><span><i></i> متابعة مستمرة</span></div>
+			</div>
+			<div class="eng-hero__visual"><img [src]="isEnglish ? 'assets/english-engineers-hero.png' : 'assets/arabic-engineers-hero.png'" [alt]="isEnglish ? 'طالب هندسة يستعد لمعادلة كلية الهندسة' : 'فريق مهندسي معادلة كلية الهندسة'" loading="eager" decoding="async" onerror="this.src='/assets/logo.png'"><div class="eng-hero__visual-shade"></div><span class="eng-hero__visual-tag">فريق الأبلكيشن</span><div class="eng-hero__visual-caption"><strong>كل مادة مع خبيرها</strong><span>مستعدين يساعدوك توصل</span></div></div>
+		</div>
+	</section>
+
+	<section class="eng-stats" aria-label="مميزات فريق المهندسين" @fadeInUp><div><strong>{{ isEnglish ? '4' : '5' }}</strong><span>مدرسين متخصصين</span></div><div><strong>6</strong><span>تخصصات أساسية</span></div><div><strong>24/7</strong><span>دعم ومتابعة</span></div></section>
+
+	<section class="eng-team" @fadeInUp>
+		<div class="eng-section-heading"><span>{{ isEnglish ? 'شرح English واضح ومنظم' : 'ناس فاهمة مشوارك' }}</span><h2>قابل الفريق اللي هيكون في ضهرك</h2><p>{{ isEnglish ? 'كل مدرس متخصص في مادته، والشرح والحل والامتحانات باللغة الإنجليزية.' : 'كل مدرس في الفريق متخصص في مادته، وعارف يحوّل أصعب جزء في المنهج لخطوات بسيطة تقدر تمشي عليها.' }}</p></div>
+		<div class="teachers-grid" [@cascadeAnimation] *ngIf="!isEnglish">
+			<article class="teacher-card" [@cardAnimation] role="button" tabindex="0" (click)="viewTeacherDetails(1)" (keydown.enter)="viewTeacherDetails(1)"><div class="teacher-card__image"><img src="assets/teacher.jpg" alt="المهندس أحمد فتح الله" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"><span>رياضيات</span></div><div class="teacher-card__body"><h3>المهندس أحمد فتح الله</h3><p>أستاذ الرياضيات العامة والخاصة</p><div class="teacher-card__link">عرض الملف الشخصي <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></div></div></article>
+			<article class="teacher-card" [@cardAnimation] role="button" tabindex="0" (click)="viewTeacherDetails(2)" (keydown.enter)="viewTeacherDetails(2)"><div class="teacher-card__image"><img src="assets/teacher1.jpg" alt="المهندس أحمد أبو زيد" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"><span>ميكانيكا</span></div><div class="teacher-card__body"><h3>المهندس أحمد أبو زيد</h3><p>أستاذ الميكانيكا</p><div class="teacher-card__link">عرض الملف الشخصي <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></div></div></article>
+			<article class="teacher-card" [@cardAnimation] role="button" tabindex="0" (click)="viewTeacherDetails(4)" (keydown.enter)="viewTeacherDetails(4)"><div class="teacher-card__image"><img src="assets/teacher3.jpg" alt="المهندس أحمد الشامي" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"><span>فيزياء</span></div><div class="teacher-card__body"><h3>المهندس أحمد الشامي</h3><p>أستاذ الفيزياء</p><div class="teacher-card__link">عرض الملف الشخصي <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></div></div></article>
+			<article class="teacher-card" [@cardAnimation] role="button" tabindex="0" (click)="viewTeacherDetails(3)" (keydown.enter)="viewTeacherDetails(3)"><div class="teacher-card__image"><img src="assets/teacher4.jpg" alt="دكتور سعد العميري" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"><span>كيمياء</span></div><div class="teacher-card__body"><h3>دكتور سعد العميري</h3><p>أستاذ الكيمياء</p><div class="teacher-card__link">عرض الملف الشخصي <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></div></div></article>
+			<article class="teacher-card" [@cardAnimation] role="button" tabindex="0" (click)="viewTeacherDetails(5)" (keydown.enter)="viewTeacherDetails(5)"><div class="teacher-card__image"><img src="assets/teacher2.png" alt="د/ عمر أحمد عبد الفتاح" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"><span>إنجليزي</span></div><div class="teacher-card__body"><h3>د/ عمر أحمد عبد الفتاح</h3><p>أستاذ اللغة الإنجليزية</p><div class="teacher-card__link">عرض الملف الشخصي <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></div></div></article>
+		</div>
+		<div class="teachers-grid teachers-grid--english" *ngIf="isEnglish">
+			<article class="teacher-card teacher-card--static" *ngFor="let teacher of englishTeachers">
+				<div class="teacher-card__body"><h3>{{ teacher.name }}</h3><p>{{ teacher.subject }}</p></div>
+			</article>
+		</div>
+	</section>
+
+	<section class="eng-cta" @fadeInUp><div><span>جاهز تبدأ؟</span><h2>خلي الخطوة الجاية محسوبة</h2><p>اختار طريقك وابدأ مع فريق فاهم أنت محتاج إيه.</p></div><app-subscription-choice-trigger label="ابدأ الآن" buttonClass="eng-button eng-button--light"></app-subscription-choice-trigger></section>
+</div>

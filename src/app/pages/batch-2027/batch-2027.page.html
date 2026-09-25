@@ -1,0 +1,101 @@
+<main *ngIf="isPageVisible" class="batch-page" dir="rtl">
+	<section class="batch-hero">
+		<div class="batch-hero-ref__wash" aria-hidden="true"></div>
+		<div class="batch-container batch-hero-ref">
+			<div class="batch-hero-ref__topline">
+				<a routerLink="/" class="batch-back">العودة للرئيسية <b>←</b></a>
+			</div>
+			<div class="batch-hero-ref__body">
+				<div class="batch-hero-ref__visual">
+					<div class="batch-hero-ref__art" aria-hidden="true"></div>
+					<div class="batch-hero-ref__year">2027</div>
+					<div class="batch-hero-ref__badge batch-hero-ref__badge--orange">ابدأ من هنا</div>
+					<div class="batch-hero-ref__badge batch-hero-ref__badge--white">+25,000 طالب</div>
+				</div>
+				<div class="batch-hero-ref__copy">
+					<span class="batch-hero-ref__eyebrow">{{ heroEyebrow }}</span>
+					<h1>{{ heroTitle }}<br><strong>{{ heroHighlight }}</strong></h1>
+					<p>منصة تعليمية متكاملة لطلاب الدبلوم الفني والمعاهد، تساعدك تجهّز صح وتوصل لهدفك في كلية الهندسة.</p>
+					<div class="batch-hero-ref__features">
+						<span *ngFor="let feature of heroFeatures; let i = index"><b>0{{ i + 1 }}</b> {{ feature }}<br><small>خطوة أقرب لهدفك</small></span>
+					</div>
+					<div class="batch-hero__actions">
+						<div class="batch-subscription-picker">
+							<button type="button" class="batch-button batch-button--primary" (click)="toggleHeroSubscriptionChoices($event)" [attr.aria-expanded]="showHeroSubscriptionChoices" aria-haspopup="menu">ابدأ رحلتك الآن <span>←</span></button>
+							<div *ngIf="showHeroSubscriptionChoices" class="batch-subscription-menu" role="menu" aria-label="اختار نوع الاشتراك">
+								<a routerLink="/subscription-engineering-ar" (click)="closeHeroSubscriptionChoices()" role="menuitem">هندسة عربي</a>
+								<a routerLink="/subscription-computers-ar" (click)="closeHeroSubscriptionChoices()" role="menuitem">حاسبات عربي</a>
+								<a routerLink="/subscription-engineering-en" (click)="closeHeroSubscriptionChoices()" role="menuitem">هندسة إنجليزي</a>
+								<a routerLink="/subscription-computers-en" (click)="closeHeroSubscriptionChoices()" role="menuitem">حاسبات إنجليزي</a>
+							</div>
+						</div>
+						<a href="https://app-mo3adlet-handsa.com/register.php" target="_blank" rel="noopener" class="batch-button batch-button--ghost">اعمل حساب على المنصة</a>
+					</div>
+					<a href="#join" class="batch-hero-ref__video"><span>▶</span> شاهد فيديو تعريفي عن المنصة</a>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="batch-benefits batch-container">
+		<div class="batch-gift-wheel-wrap">
+			<span class="batch-kicker"><span></span> جرّب حظك</span>
+			<h2>لف العجلة واختار هديتك</h2>
+			<div class="batch-gift-wheel" [class.is-spinning]="giftWheelSpinning" [class.is-awaiting-result]="wheelAwaitingResult">
+				<span class="batch-gift-wheel__pointer" aria-hidden="true"></span>
+				<div class="batch-gift-wheel__disc" [style.transform]="'rotate(' + wheelRotation + 'deg)'" [style.transition-duration.ms]="wheelTransitionDuration">
+					<span *ngFor="let gift of giftOptions; let i = index" class="batch-gift-wheel__label" [style.transform]="'rotate(' + (i * 40 + 20) + 'deg) translateY(-118px) rotate(-' + (i * 40 + 20 + wheelRotation) + 'deg)'">{{ gift.emoji }}</span>
+				</div>
+				<button type="button" class="batch-gift-wheel__spin" [attr.aria-label]="giftWheelSpinning ? 'العجلة تدور' : 'لف العجلة'" [disabled]="giftWheelSpinning || wheelUsed || wheelLocked" (click)="startGiftWheel()"><span class="batch-gift-wheel__center-box"><b>عجلة الحظ</b></span></button>
+			</div>
+			<form *ngIf="wheelResult?.available && !wheelClaimComplete && !wheelAlreadyUsed" class="wheel-claim-card" novalidate (ngSubmit)="submitWheelClaim()">
+				<div class="wheel-claim-card__heading">
+					<small>هديتك</small>
+					<strong>{{ wheelResult?.label }}</strong>
+					<span>اكتب بياناتك مرة واحدة لتأكيد الاستلام</span>
+				</div>
+				<label class="wheel-claim-field">
+					<span>الاسم</span>
+					<input name="wheelClaimName" [(ngModel)]="wheelClaim.name" (ngModelChange)="wheelClaimError = ''" autocomplete="name" maxlength="120" placeholder="اكتب اسمك" />
+				</label>
+				<label class="wheel-claim-field">
+					<span>نوع المعادلة</span>
+					<app-styled-select name="wheelClaimProgram" [(ngModel)]="wheelClaim.program" [options]="programOptions" placeholder="اختار نوع المعادلة"></app-styled-select>
+				</label>
+				<label class="wheel-claim-field">
+					<span>رقم الواتساب</span>
+					<input name="wheelClaimWhatsapp" [ngModel]="wheelClaim.whatsapp" (ngModelChange)="updateWheelPhone($event)" inputmode="numeric" autocomplete="tel" type="tel" maxlength="11" placeholder="01xxxxxxxxx" dir="ltr" />
+					<small [class.is-complete]="wheelPhoneLength === 11">{{ wheelPhoneLength }} / 11 رقم</small>
+				</label>
+				<button type="submit" class="wheel-claim-submit" [disabled]="wheelClaimSubmitting">
+					{{ wheelClaimSubmitting ? 'جاري تسجيل الهدية...' : 'تأكيد واستلام الهدية' }}
+				</button>
+				<p *ngIf="wheelClaimError" class="wheel-claim-status wheel-claim-status--error" role="alert">{{ wheelClaimError }}</p>
+			</form>
+			<p *ngIf="wheelUsed && wheelClaimError && !wheelAlreadyUsed && !wheelResult?.available" class="batch-wheel-used" role="alert">{{ wheelClaimError }}</p>
+			<div *ngIf="wheelResult" class="batch-wheel-result" [class.is-empty]="!wheelResult.available" [class.is-used]="wheelAlreadyUsed" aria-live="polite"><b>{{ wheelAlreadyUsed ? 'أنت استفدت قبل كده!' : (wheelResult.available ? 'مبروك! كسبت' : 'حظ أوفر!') }}</b><span>{{ wheelAlreadyUsed ? (wheelExistingGift ? 'استفدت من: ' + wheelExistingGift : 'تم تسجيل استفادتك السابقة') : wheelResult.label }}</span><small *ngIf="!wheelAlreadyUsed && !wheelResult.available">شكرًا لمشاركتك، جرّب حظك في المرة الجاية</small></div>
+			<div *ngIf="wheelClaimComplete && selectedGift" class="wheel-claim-success" role="status"><b>✓ تم تسجيل هديتك بنجاح</b><span>رقمك اتسجل كما كتبته: {{ wheelClaim.whatsapp }}</span></div>
+			<button *ngIf="wheelClaimComplete && selectedGift" type="button" class="batch-button batch-button--primary batch-wheel-claim" (click)="claimGiftOnWhatsApp()">استلم هديتك على واتساب <span>←</span></button>
+		</div>
+	</section>
+
+	<div class="batch-form-heading"><span>خطوتك الجاية تبدأ هنا</span><h2>سجل الآن يا بشمهندس</h2></div>
+	<section id="join" class="batch-join batch-container">
+		<div class="batch-join__intro" *ngIf="!offerSubmitted"><span class="batch-kicker"><span></span> {{ joinEyebrow }}</span><h2>{{ joinTitle }}<br><b>{{ joinHighlight }}</b></h2><p>{{ joinDescription }}</p><div class="batch-join__note">🔒 بياناتك للتواصل معاك بخصوص العرض والدفعة الجديدة فقط.</div></div>
+		<div class="batch-join__success" *ngIf="offerSubmitted"><div>✓</div><h2>تم تسجيل بياناتك بنجاح</h2><p>هنكلمك قريب بكل تفاصيل دفعة 2027 والعرض الخاص بيك.</p></div>
+		<form *ngIf="!offerSubmitted" class="batch-form launch-offer-form" (ngSubmit)="submitLaunchOffer()">
+			<label><span>اسمك الثلاثي <b>*</b></span><input name="offerName" [(ngModel)]="lead.name" required placeholder="اكتب اسمك الثلاثي" /></label>
+			<label><span>رقم الواتساب <b>*</b></span><input name="offerWhatsapp" [(ngModel)]="lead.whatsapp" required inputmode="numeric" type="tel" pattern="01[0-9]{9}" minlength="11" maxlength="11" placeholder="01xxxxxxxxx" /></label>
+			<label><span>المدرسة أو المعهد <b>*</b></span><input name="offerSchool" [(ngModel)]="lead.school" required placeholder="اكتب اسم المدرسة أو المعهد" /></label>
+			<label><span>نوع التعليم <b>*</b></span><app-styled-select name="offerStudentType" [(ngModel)]="lead.studentType" [options]="offerStudentTypeOptions" placeholder="اختار نوع التعليم"></app-styled-select></label>
+			<label><span>نوع المعادلة <b>*</b></span><app-styled-select name="offerProgram" [(ngModel)]="lead.program" [options]="programOptions" placeholder="اختار نوع المعادلة"></app-styled-select></label>
+			<label><span>عرفتنا منين؟ <b>*</b></span><app-styled-select name="offerSource" [(ngModel)]="lead.source" [options]="offerSourceOptions" placeholder="اختار مصدر معرفتك بنا"></app-styled-select></label>
+			<label class="launch-offer-consent"><input id="batchContactConsent" type="checkbox" name="offerContactConsent" [(ngModel)]="offerContactConsent" required (change)="offerError = ''" /><span>أوافق على التواصل معي بخصوص العرض والدفعة الجديدة <b>*</b></span></label>
+			<button type="submit" [disabled]="offerSubmitting" class="batch-button batch-button--submit">{{ offerSubmitting ? 'جاري تسجيل بياناتك...' : submitLabel }} <span>{{ offerSubmitting ? '⟳' : '←' }}</span></button>
+			<p *ngIf="offerError" class="batch-form-error" role="alert">⚠ {{ offerError }}</p>
+		</form>
+	</section>
+
+	<section class="batch-final"><div class="batch-container"><span>دفعة 2027</span><h2>كل يوم بدري فيه خطوة أقرب لحلمك</h2><a href="https://app-mo3adlet-handsa.com/register.php" target="_blank" rel="noopener" class="batch-button batch-button--primary">أنشئ حسابك الآن <span>←</span></a></div></section>
+</main>
+<main *ngIf="!isPageVisible" class="batch-page batch-page--hidden" dir="rtl"><div class="batch-container"><h1>الصفحة غير متاحة حاليًا</h1><p>تابعنا لمعرفة موعد فتحها من جديد.</p></div></main>

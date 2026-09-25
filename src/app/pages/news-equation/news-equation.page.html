@@ -1,0 +1,34 @@
+<main class="news-page news-page--equation" dir="rtl">
+  <div class="news-shell">
+    <section class="news-hero">
+      <div class="news-hero__copy">
+        <span class="news-eyebrow"><i></i> تحديثات مهمة للطلاب</span>
+        <h1>أخبار المعادلة</h1>
+        <p>صفحة واحدة تجمع أخبار معادلة هندسة وحاسبات، وآخر تحديثات الأبلكيشن والمواعيد والشروط والقرارات المهمة للطلاب.</p>
+      </div>
+      <div class="news-hero__mark" aria-hidden="true"><span>↗</span><b>EQUATION</b></div>
+    </section>
+
+    <section class="news-intro">
+      <div><span class="news-section-label">آخر التحديثات</span><h2>خليك عارف كل جديد</h2></div>
+      <p>بنحدّث أخبار المعادلة والأبلكيشن أولًا بأول عشان تبدأ خطواتك وأنت مطمّن.</p>
+        <span class="news-count">{{ newsItems.length }} خبر</span>
+    </section>
+
+    <section class="news-grid" aria-label="أخبار المعادلة">
+      <article *ngFor="let item of newsItems; let i = index" class="news-card" [class.news-card--important]="item.important">
+        <a [routerLink]="['/news/detail', item.slug]" class="news-card__media">
+          <img [src]="item.image" [alt]="item.title" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+          <span class="news-card__number">{{ (i + 1).toString().padStart(2, '0') }}</span>
+          <span *ngIf="item.important" class="news-card__important"><i></i> خبر مهم</span>
+        </a>
+        <div class="news-card__body">
+          <div class="news-card__meta"><span *ngIf="item.category" class="news-card__category">{{ item.category }}</span><time>{{ formatDate(item.date) }}</time></div>
+          <h2 [class.news-card__title--important]="item.important">{{ item.title }}</h2>
+          <p>{{ item.excerpt }}</p>
+          <a [routerLink]="['/news/detail', item.slug]" class="news-card__link">اقرأ التفاصيل <b>←</b></a>
+        </div>
+      </article>
+    </section>
+  </div>
+</main>

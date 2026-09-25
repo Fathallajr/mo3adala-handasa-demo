@@ -1,0 +1,56 @@
+<main *ngIf="isPageVisible" class="requirements-page" dir="rtl" [@subPageTransition]>
+  <div class="requirements-shell">
+    <section class="requirements-hero" @fadeInUp>
+      <div class="requirements-hero__copy">
+        <span class="requirements-eyebrow"><i></i> دليل التقديم</span>
+        <h1>{{ pageTitle }}</h1>
+        <p>{{ pageDescription }}</p>
+        <div class="requirements-hero__facts"><span><b>5</b> شروط أساسية</span><span><b>7</b> خطوات واضحة</span><span><b>4</b> مستندات مطلوبة</span></div>
+      </div>
+      <div class="requirements-hero__mark" aria-hidden="true"><span>✓</span><b>READY<br>TO APPLY</b></div>
+    </section>
+
+    <nav class="requirements-program-switcher" aria-label="اختار نوع المعادلة">
+      <button type="button" [class.is-active]="selectedProgram === 'engineering'" (click)="selectProgram('engineering')">شروط معادلة هندسة</button>
+      <button type="button" [class.is-active]="selectedProgram === 'computers'" (click)="selectProgram('computers')">شروط معادلة حاسبات</button>
+    </nav>
+
+    <section class="requirements-section requirements-section--conditions" @cascadeAnimation>
+      <div class="requirements-section__heading"><div class="requirements-section__icon requirements-section__icon--blue">✓</div><div><span>قبل ما تبدأ</span><h2>شروط التقديم</h2></div></div>
+      <div class="condition-grid" *ngIf="selectedProgram === 'engineering'">
+        <article *ngFor="let condition of engineeringConditions; let i = index" class="condition-card"><span>{{ (i + 1).toString().padStart(2, '0') }}</span><p>{{ condition }}</p></article>
+      </div>
+      <div class="condition-grid condition-grid--computers" *ngIf="selectedProgram === 'computers'">
+        <article *ngFor="let condition of computersConditions; let i = index" class="condition-card"><span>{{ (i + 1).toString().padStart(2, '0') }}</span><p>{{ condition }}</p></article>
+      </div>
+    </section>
+
+    <section class="requirements-section requirements-section--documents" @fadeInUp>
+      <div class="requirements-section__heading"><div class="requirements-section__icon requirements-section__icon--orange">▤</div><div><span>جهّز ورقك</span><h2>المستندات المطلوبة</h2></div></div>
+      <div class="documents-grid">
+        <article *ngFor="let document of documents; let i = index" class="document-card"><span>{{ (i + 1).toString().padStart(2, '0') }}</span><div><b>{{ document }}</b><small>مستند مطلوب</small></div></article>
+      </div>
+    </section>
+
+    <section class="requirements-section requirements-section--steps" @staggerList>
+      <div class="requirements-section__heading"><div class="requirements-section__icon requirements-section__icon--green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h14v5H5zM5 15h14v5H5zM12 9v6m0 0-2.5-2.5M12 15l2.5-2.5"/></svg></div><div><span>امشِ بالترتيب</span><h2>خطوات التقديم</h2></div></div>
+      <div class="steps-list">
+        <article *ngFor="let step of steps; let i = index" class="step-card"><span>{{ i + 1 }}</span><div><h3>{{ step.title }}</h3><p>{{ step.description }}</p></div></article>
+      </div>
+    </section>
+
+    <section class="requirements-section requirements-section--geography" @fadeInUp>
+      <div class="requirements-section__heading"><div class="requirements-section__icon requirements-section__icon--purple">⌖</div><div><span>اعرف مكانك</span><h2>التوزيع الجغرافي</h2></div></div>
+      <p class="requirements-section__lead">حسب الرقم القومي للمعاهد الفنية وحسب محافظة المؤهل للدبلومات الفنية:</p>
+      <div class="geography-table-wrap"><table class="geography-table"><thead><tr><th>القطاع الجغرافي</th><th>المحافظات</th><th>مكان التقديم والامتحان</th></tr></thead><tbody>
+        <tr><td>قطاع القاهرة الكبرى</td><td>القاهرة - الجيزة - القليوبية - الفيوم - بني سويف - حلوان</td><td>كلية الهندسة جامعة القاهرة</td></tr>
+        <tr><td>قطاع قبلي</td><td>المنيا - سوهاج - أسيوط - قنا - أسوان - الوادي الجديد - الأقصر - البحر الأحمر</td><td>كلية الهندسة جامعة أسيوط</td></tr>
+        <tr><td>قطاع بحري</td><td>الإسكندرية - البحيرة - كفر الشيخ - مطروح - الغربية</td><td>كلية الهندسة جامعة كفر الشيخ</td></tr>
+        <tr><td>قطاع الدلتا والقناة</td><td>الشرقية - الدقهلية - المنوفية - الإسماعيلية - السويس - دمياط - بورسعيد - شمال سيناء - جنوب سيناء</td><td>كلية الهندسة جامعة الزقازيق</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="requirements-cta" @fadeInUp><div><span>جاهز تبدأ؟</span><h2>ابدأ طريقك لكلية الهندسة بثقة</h2><p>راجع الشروط، جهّز مستنداتك، وخد أول خطوة نحو حلمك.</p></div><div class="requirements-cta__actions"><a href="https://engineering.scu.eg/student/StudentHome.php" target="_blank" rel="noopener">ابدأ التقديم <b>←</b></a><a routerLink="/faq">عندك سؤال؟</a></div></section>
+  </div>
+</main>
+<main *ngIf="!isPageVisible" class="requirements-page" dir="rtl"><div class="requirements-shell"><section class="requirements-hero"><div class="requirements-hero__copy"><h1>الصفحة غير متاحة حاليًا</h1><p>تابعنا لمعرفة آخر تحديثات شروط التقديم.</p></div></section></div></main>

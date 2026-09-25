@@ -1,0 +1,11 @@
+<div class="subscription-choice-trigger">
+	<button type="button" [class]="buttonClass" [style.background]="buttonClass === 'network-cta' ? 'linear-gradient(135deg, #f47b2b, #e95b16)' : null" [style.color]="buttonClass === 'network-cta' ? '#fff' : null" [style.opacity]="buttonClass === 'network-cta' ? '1' : null" (click)="toggle($event)" [attr.aria-expanded]="showChoices" aria-haspopup="menu">
+		{{ label }} <span aria-hidden="true">←</span>
+	</button>
+	<div *ngIf="showChoices" class="subscription-choice-trigger__menu" role="menu" aria-label="اختار نوع الاشتراك">
+		<a routerLink="/subscription-engineering-ar" (click)="close()" role="menuitem">هندسة عربي</a>
+		<a routerLink="/subscription-computers-ar" (click)="close()" role="menuitem">حاسبات عربي</a>
+		<a routerLink="/subscription-engineering-en" (click)="close()" role="menuitem">هندسة إنجليزي</a>
+		<a routerLink="/subscription-computers-en" (click)="close()" role="menuitem">حاسبات إنجليزي</a>
+	</div>
+</div>

@@ -1,0 +1,46 @@
+<main *ngIf="isPageVisible" class="feedback-page" dir="rtl">
+	<div class="feedback-shell">
+		<a routerLink="/" class="feedback-back">← الرجوع للرئيسية</a>
+		<div class="feedback-heading">
+			<span>{{ eyebrow }}</span>
+			<h1>{{ title }}</h1>
+			<p>{{ description }}</p>
+		</div>
+
+		<form *ngIf="!submitted" class="feedback-form" (ngSubmit)="submitFeedback(feedbackForm)" #feedbackForm="ngForm">
+			<div class="feedback-field">
+				<label for="name">الاسم</label>
+				<input id="name" name="name" type="text" placeholder="اكتب اسمك" required ngModel>
+			</div>
+			<div class="feedback-grid">
+				<div class="feedback-field">
+					<label for="university">الكلية أو الجامعة</label>
+					<input id="university" name="university" type="text" placeholder="مثال: هندسة حلوان" required ngModel>
+				</div>
+				<div class="feedback-field">
+					<label for="rating">تقييمك للتجربة</label>
+					<select id="rating" name="rating" required ngModel>
+						<option value="" disabled>اختار التقييم</option>
+						<option *ngFor="let rate of [5,4,3,2,1]" [value]="rate">{{ rate }} من 5</option>
+					</select>
+				</div>
+			</div>
+			<div class="feedback-field">
+				<label for="message">اكتب رأيك</label>
+				<textarea id="message" name="message" rows="5" placeholder="احكيلنا عن تجربتك مع الأبليكيشن..." required ngModel></textarea>
+			</div>
+			<p *ngIf="submitError" class="feedback-error" role="alert">{{ submitError }}</p>
+			<button type="submit" class="feedback-submit" [disabled]="feedbackForm.invalid || submitting">
+				{{ submitting ? 'جاري الإرسال...' : 'إرسال رأيي' }} <span *ngIf="!submitting">←</span>
+			</button>
+		</form>
+
+		<div *ngIf="submitted" class="feedback-success">
+			<div class="feedback-success-icon">✓</div>
+			<h2>شكرًا لمشاركتنا رأيك</h2>
+			<p>رأيك وصل بنجاح، وهنستخدمه عشان نطوّر تجربتك معانا.</p>
+			<a routerLink="/" class="feedback-submit">العودة للرئيسية</a>
+		</div>
+	</div>
+</main>
+<main *ngIf="!isPageVisible" class="feedback-page" dir="rtl"><div class="feedback-shell"><h1>الصفحة غير متاحة حاليًا</h1><p>تابعنا لمعرفة موعد عودة استقبال الآراء.</p></div></main>

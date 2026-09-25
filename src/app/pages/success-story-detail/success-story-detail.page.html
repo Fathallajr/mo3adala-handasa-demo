@@ -1,0 +1,55 @@
+<main class="story-detail-page" dir="rtl">
+	<ng-container *ngIf="story; else notFound">
+		<section class="story-detail-hero">
+			<div class="story-detail-hero__content" @fadeInUp>
+				<a routerLink="/success-stories" class="story-detail-back">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7" /></svg>
+					كل قصص النجاح
+				</a>
+				<div class="story-detail-eyebrow"><span></span> قصة نجاح حقيقية</div>
+				<h1>قصة نجاح<br><strong>{{ story.name }}</strong></h1>
+				<p class="story-detail-result">“{{ story.result }}”</p>
+				<p class="story-detail-summary">{{ story.summary }}</p>
+				<div *ngIf="hasVideo(story)" class="story-detail-actions">
+					<a *ngFor="let videoUrl of story.videoUrls; let videoIndex = index" [href]="videoUrl" target="_blank" rel="noopener" class="story-external-link">
+						<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 8 6 4-6 4V8Z"/><circle cx="12" cy="12" r="9"/></svg>
+						شوف تجربة {{ story.videoUrls.length > 1 ? (videoIndex + 1) : '' }}
+					</a>
+				</div>
+				<div class="story-detail-proof"><span><i></i> تجربة حقيقية</span><span><i></i> نصيحة من القلب</span><span><i></i> خطوة قابلة للتكرار</span></div>
+			</div>
+			<figure class="story-detail-hero__media" @fadeInUp>
+				<img [src]="story.image" [alt]="'صورة ' + story.name" loading="eager" decoding="async" onerror="this.src='/assets/logo.png'">
+				<div class="story-detail-hero__media-shade"></div>
+				<span class="story-detail-hero__media-tag">رحلة نجاح</span>
+				<figcaption><strong>{{ story.name }}</strong><span>من طلاب أبلكيشن معادلة كلية هندسة</span></figcaption>
+			</figure>
+		</section>
+
+		<section class="story-student-message" @fadeInUp>
+			<div class="story-section-label">من الطالب ليك</div>
+			<div class="story-student-message__content">
+				<h2>رسالة {{ story.honorific }}</h2>
+				<p>“{{ story.message }}”</p>
+				<strong>{{ story.name }}</strong>
+			</div>
+		</section>
+
+		<section class="story-journey" @fadeInUp>
+			<div class="section-heading"><span>رحلة التغيير</span><h2>الفرق بيبدأ من قرار</h2><p>خطوة منظمة في الوقت المناسب ممكن تغيّر شكل الطريق كله.</p></div>
+			<div class="story-journey__grid">
+				<article><div class="story-journey__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div><span>قبل البداية</span><h3>قبل الاشتراك</h3><p>{{ story.before }}</p></article>
+				<article class="story-journey__card--after"><div class="story-journey__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></div><span>بعد الاستمرار</span><h3>بعد الخطة والمتابعة</h3><p>{{ story.after }}</p></article>
+			</div>
+		</section>
+
+		<section class="story-detail-list" @fadeInUp>
+			<div class="section-heading"><span>مفاتيح التجربة</span><h2>إيه اللي ساعده يوصل؟</h2><p>أهم الدروس اللي ممكن تبدأ بيها من النهارده.</p></div>
+			<ul><li *ngFor="let detail of story.details"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span>{{ detail }}</li></ul>
+		</section>
+	</ng-container>
+
+	<ng-template #notFound>
+		<section class="story-not-found"><div class="story-detail-eyebrow"><span></span> غير متاحة</div><h1>القصة غير موجودة</h1><p>ارجع لصفحة قصص النجاح واختار قصة تانية.</p><a routerLink="/success-stories" class="story-external-link">كل قصص النجاح</a></section>
+	</ng-template>
+</main>

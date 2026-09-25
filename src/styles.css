@@ -1,0 +1,430 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Site-wide responsive baseline: pages must never widen the viewport. */
+html,
+body,
+app-root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+app-root,
+.route-page-transition,
+main {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+
+img,
+video,
+iframe,
+svg,
+canvas {
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .route-page-transition {
+    overflow-x: clip;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+}
+
+/* Performance optimizations */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Optimize images */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Optimize animations - removed unused float animations */
+
+/* WhatsApp Floating Button Animation */
+@keyframes pulse-whatsapp {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+  }
+}
+
+.floating-whatsapp {
+  animation: float-gentle 3s ease-in-out infinite;
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Beautiful WhatsApp Float Animations */
+@keyframes whatsapp-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes online-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes float-circle-1 {
+  0%, 100% {
+    transform: translate(-20px, -30px) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(-40px, -60px) scale(1.2);
+    opacity: 0.6;
+  }
+}
+
+@keyframes float-circle-2 {
+  0%, 100% {
+    transform: translate(20px, -40px) scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translate(40px, -70px) scale(1.3);
+    opacity: 0.5;
+  }
+}
+
+@keyframes float-circle-3 {
+  0%, 100% {
+    transform: translate(-10px, -50px) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(-30px, -80px) scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+@keyframes blink-support {
+  0%, 70% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  85% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive adjustments for beautiful WhatsApp */
+@media (max-width: 768px) {
+  .whatsapp-float-container {
+    bottom: 20px !important;
+    right: 20px !important;
+  }
+  
+  .whatsapp-main-btn {
+    width: 55px !important;
+    height: 55px !important;
+  }
+  
+  .whatsapp-main-btn svg {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  
+  .whatsapp-message {
+    bottom: 70px !important;
+    max-width: 180px !important;
+    font-size: 12px !important;
+  }
+  
+  /* Support label responsive */
+  .whatsapp-float-container > div:first-child {
+    bottom: 50px !important;
+    right: 2px !important;
+    font-size: 7px !important;
+    padding: 2px 4px !important;
+  }
+  
+  .floating-circles .circle {
+    display: none; /* Hide floating circles on mobile for performance */
+  }
+  
+  .ripple-effect {
+    width: 55px !important;
+    height: 55px !important;
+  }
+}
+
+/* TheYearofHandicrafts font family */
+@font-face {
+  font-family: 'TheYearofHandicrafts';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/TheYearofHandicrafts-Regular.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'TheYearofHandicrafts';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./assets/fonts/TheYearofHandicrafts-Medium.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'TheYearofHandicrafts';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./assets/fonts/TheYearofHandicrafts-SemiBold.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'TheYearofHandicrafts';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/TheYearofHandicrafts-Bold.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'TheYearofHandicrafts';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('./assets/fonts/TheYearofHandicrafts-Black.otf') format('opentype');
+}
+
+/* Import custom animations */
+@import './app/shared/styles/animations.css';
+
+html[lang="ar"][dir="rtl"] body {
+  @apply bg-slate-50 text-slate-900 font-cairo antialiased;
+}
+
+/* Typography scale using the available TheYearofHandicrafts weights */
+body {
+  font-family: 'TheYearofHandicrafts', sans-serif !important;
+  font-weight: 400;
+  line-height: 1.75;
+}
+
+h1 {
+  font-weight: 900 !important;
+  line-height: 1.25;
+}
+
+h2,
+h3 {
+  font-weight: 700 !important;
+  line-height: 1.35;
+}
+
+h4,
+h5,
+h6,
+label,
+legend {
+  font-weight: 600 !important;
+  line-height: 1.45;
+}
+
+button,
+input,
+select,
+textarea,
+a {
+  font-family: 'TheYearofHandicrafts', sans-serif !important;
+}
+
+button,
+nav a,
+label {
+  font-weight: 600;
+}
+
+strong,
+b {
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  h1 {
+    line-height: 1.3;
+  }
+
+  h2,
+  h3 {
+    line-height: 1.4;
+  }
+}
+
+/* ULTIMATE CAIRO FONT FIX - GLOBAL OVERRIDE */
+nav,
+nav *,
+nav a,
+nav button,
+nav span,
+nav div,
+nav li,
+nav ul,
+nav p,
+nav h1,
+nav h2,
+nav h3,
+nav h4,
+nav h5,
+nav h6 {
+  font-family: 'TheYearofHandicrafts', sans-serif !important;
+}
+
+/* Force TheYearofHandicrafts on all navbar states */
+nav a:link,
+nav a:visited,
+nav a:hover,
+nav a:active,
+nav a:focus {
+  font-family: 'TheYearofHandicrafts', sans-serif !important;
+}
+
+/* Override Tailwind font classes in navbar */
+nav .font-sans,
+nav .font-serif,
+nav .font-mono,
+nav .font-cairo,
+nav .text-sm,
+nav .text-base,
+nav .text-lg,
+nav .text-xl,
+nav .text-2xl,
+nav .text-xs,
+nav .font-medium,
+nav .font-semibold,
+nav .font-bold,
+nav .font-extrabold {
+  font-family: 'TheYearofHandicrafts', sans-serif !important;
+}
+
+/* Nuclear option - force TheYearofHandicrafts everywhere */
+* {
+  font-family: 'TheYearofHandicrafts', sans-serif !important;
+}
+
+/* The navbar floats over every route: keep page backgrounds at the top,
+   while starting each route's actual content below the navbar. */
+main.app-page-shell:not(.route-home) > div > *:not(router-outlet) > :first-child {
+  padding-top: clamp(6.5rem, 8vw, 7.5rem);
+}
+
+/* Shared site canvas: the light grid is the default background for every
+   route. Individual heroes, cards, and footer sections can still provide
+   their own solid or gradient surfaces above it. */
+:root {
+  --site-canvas: #f7f9fc;
+  --site-grid-line: rgba(15, 23, 42, 0.025);
+}
+
+html,
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+  background-color: var(--site-canvas);
+  background-image:
+    linear-gradient(var(--site-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--site-grid-line) 1px, transparent 1px);
+  background-size: 42px 42px;
+  background-attachment: fixed;
+}
+
+main.app-page-shell {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  background-color: transparent;
+  background-image:
+    linear-gradient(var(--site-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--site-grid-line) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+/* The home hero owns its full-screen video background. */
+main.app-page-shell.route-home {
+  background-image: none;
+}
+@font-face{font-family:'bootstrap-icons';font-style:normal;font-weight:400;src:url('/assets/bootstrap-icons.woff2') format('woff2')}
+.bi::before{display:inline-block;font-family:bootstrap-icons!important;font-style:normal;font-weight:400!important;font-variant:normal;text-transform:none;line-height:1;vertical-align:-.125em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.bi-lightning-charge-fill::before{content:"\f46c"}.bi-book-half::before{content:"\f193"}.bi-person-check-fill::before{content:"\f4d5"}.bi-calendar2-check::before{content:"\f1f8"}.bi-check-circle-fill::before{content:"\f26a"}.bi-shield-check::before{content:"\f52f"}.bi-tag-fill::before{content:"\f5af"}.bi-wallet2::before{content:"\f615"}.bi-ui-checks-grid::before{content:"\f5f8"}.bi-key-fill::before{content:"\f44e"}.bi-diagram-3-fill::before{content:"\f2ed"}.bi-stars::before{content:"\f589"}.bi-copy::before{content:"\f759"}.bi-check2::before{content:"\f272"}.bi-clipboard-check::before{content:"\f28b"}.bi-file-earmark-text::before{content:"\f38b"}.bi-pencil-square::before{content:"\f4ca"}.bi-arrow-up-left::before{content:"\f13f"}.bi-whatsapp::before{content:"\f618"}.bi-play-fill::before{content:"\f4f4"}.bi-calendar3::before{content:"\f214"}.bi-arrows-fullscreen::before{content:"\f14d"}.bi-download::before{content:"\f30a"}.bi-x-lg::before{content:"\f659"}.bi-person::before{content:"\f4e1"}.bi-box-arrow-in-left::before{content:"\f1bd"}.bi-person-plus::before{content:"\f4dd"}.bi-headset::before{content:"\f414"}

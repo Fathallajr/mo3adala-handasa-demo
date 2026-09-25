@@ -1,0 +1,35 @@
+<div class="admin-login-page">
+	<div class="admin-login-card">
+		<div class="admin-login-badge">Admin</div>
+		<h1 class="admin-login-title">لوحة التحكم</h1>
+		<p class="admin-login-subtitle">سجّل دخولك باسم المستخدم وكلمة المرور علشان تعدّل محتوى الشهر وتحدّثه مباشرة على السيرفر.</p>
+
+		<form (ngSubmit)="submit()" class="admin-login-form">
+			<label class="admin-login-label" for="username">اسم المستخدم</label>
+			<input
+				id="username"
+				name="username"
+				type="text"
+				[(ngModel)]="username"
+				class="admin-login-input"
+				placeholder="اسم المستخدم"
+				autocomplete="username">
+
+			<label class="admin-login-label" for="password">كلمة المرور</label>
+			<input
+				id="password"
+				name="password"
+				type="password"
+				[(ngModel)]="password"
+				class="admin-login-input"
+				placeholder="اكتب كلمة المرور"
+				autocomplete="current-password">
+
+			<div *ngIf="errorMessage" class="admin-login-error">{{ errorMessage }}</div>
+
+			<button type="submit" class="admin-login-button" [disabled]="isSubmitting">
+				{{ isSubmitting ? 'جاري الدخول...' : 'دخول' }}
+			</button>
+		</form>
+	</div>
+</div>
