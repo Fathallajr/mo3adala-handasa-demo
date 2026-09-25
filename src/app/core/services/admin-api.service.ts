@@ -42,5 +42,14 @@ export class AdminApiService {
 	listPrograms(): Observable<{ data: Program[] }> { return this.http.get<{ data: Program[] }>(`${this.base}/admin/programs`); }
 	createProgram(payload: Partial<Program>): Observable<Program> { return this.http.post<Program>(`${this.base}/admin/programs`, payload); }
 	updateProgram(id: string, payload: Partial<Program>): Observable<Program> { return this.http.patch<Program>(`${this.base}/admin/programs/${id}`, payload); }
-	listWheelClaims(): Observable<{ data: WheelClaim[]; total: number }> { return this.http.get<{ data: WheelClaim[]; total: number }>(`${this.base}/admin/wheel/claims`); }
+	listWheelClaims(filters: { search?: string; gift?: string; program?: string; from?: string; to?: string } = {}): Observable<{ data: WheelClaim[]; total: number }> {
+		let params = new HttpParams();
+		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);
+		return this.http.get<{ data: WheelClaim[]; total: number }>(`${this.base}/admin/wheel/claims`, { params });
+	}
+	exportWheelClaims(filters: { search?: string; gift?: string; program?: string; from?: string; to?: string } = {}): Observable<Blob> {
+		let params = new HttpParams();
+		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);
+		return this.http.get(`${this.base}/admin/wheel/claims/export`, { params, responseType: 'blob' });
+	}
 }

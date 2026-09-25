@@ -58,6 +58,12 @@ export class AdminDashboardPageComponent implements OnInit {
 	leads: Lead[] = [];
 	programs: Program[] = [];
 	wheelClaims: WheelClaim[] = [];
+	wheelSearch = '';
+	wheelGift = '';
+	wheelProgram = '';
+	wheelDateFrom = '';
+	wheelDateTo = '';
+	readonly wheelGiftOptions = ['', '50 جنيه', '100 جنيه', '200 جنيه', 'خصم 10%', 'خصم 15%', 'خصم 20%', 'حظ سعيد'];
 	leadSearch = '';
 	leadStatus = '';
 	leadSource = '';
@@ -180,7 +186,21 @@ export class AdminDashboardPageComponent implements OnInit {
 		const request = this.editingProgramId ? this.adminApi.updateProgram(this.editingProgramId, this.programDraft) : this.adminApi.createProgram(this.programDraft);
 		request.subscribe({ next: () => { this.statusMessage = 'تم حفظ البرنامج.'; this.loadPrograms(); this.newProgram(); }, error: err => this.handleApiError(err) });
 	}
-	loadWheelClaims(): void { this.adminApi.listWheelClaims().subscribe({ next: result => this.wheelClaims = result.data, error: err => this.handleApiError(err) }); }
+	loadWheelClaims(): void {
+		this.adminApi.listWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo }).subscribe({
+			next: result => { this.wheelClaims = result.data; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; },
+			error: err => this.handleApiError(err)
+		});
+	}
+	searchWheelClaims(): void { this.loadWheelClaims(); }
+	clearWheelFilters(): void { this.wheelSearch = ''; this.wheelGift = ''; this.wheelProgram = ''; this.wheelDateFrom = ''; this.wheelDateTo = ''; this.loadWheelClaims(); }
+	exportWheelClaims(): void {
+		if (this.wheelDateFrom && this.wheelDateTo && this.wheelDateFrom > this.wheelDateTo) { this.errorMessage = 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية.'; return; }
+		this.adminApi.exportWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo }).subscribe({
+			next: blob => { const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `wheel-claims-${this.wheelDateFrom || 'all'}-${this.wheelDateTo || 'all'}.csv`; anchor.click(); URL.revokeObjectURL(url); this.statusMessage = 'تم تصدير نتائج العجلة المطابقة للفلاتر.'; },
+			error: err => this.handleApiError(err)
+		});
+	}
 
 	private handleApiError(err: HttpErrorResponse): void {
 		if (err.status === 401) { this.handleSessionExpired(); return; }

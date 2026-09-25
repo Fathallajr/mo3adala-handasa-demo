@@ -609,9 +609,17 @@ app.get('/api/admin/audit-logs', requireAdmin, requireFullAdmin, async (req, res
 	res.json({ data: store.auditLogs.slice(0, limit) });
 });
 
-app.get('/api/admin/wheel/claims', requireAdmin, requirePermission('wheel:read'), async (_req, res) => {
+app.get('/api/admin/wheel/claims', requireAdmin, requirePermission('wheel:read'), async (req, res) => {
+	const search = String(req.query.search || '').trim().toLowerCase();
+	const gift = String(req.query.gift || '').trim();
+	const program = String(req.query.program || '').trim();
+	const from = String(req.query.from || '').trim();
+	const to = String(req.query.to || '').trim();
+	if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) return res.status(400).json({ message: 'Invalid from date' });
+	if (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)) return res.status(400).json({ message: 'Invalid to date' });
+	if (from && to && from > to) return res.status(400).json({ message: 'From date must be before to date' });
 	const state = await readWheelState();
-	const data = Object.values(state.spins)
+	let data = Object.values(state.spins)
 		.filter(spin => spin?.claimed)
 		.sort((a, b) => String(b.claimedAt || '').localeCompare(String(a.claimedAt || '')))
 		.map(spin => ({
@@ -622,7 +630,35 @@ app.get('/api/admin/wheel/claims', requireAdmin, requirePermission('wheel:read')
 			gift: spin.gift?.label || '',
 			claimedAt: spin.claimedAt
 		}));
+	if (search) data = data.filter(item => [item.name, item.whatsapp, item.program, item.gift].some(value => String(value || '').toLowerCase().includes(search)));
+	if (gift) data = data.filter(item => item.gift === gift);
+	if (program) data = data.filter(item => item.program === program);
+	if (from) data = data.filter(item => String(item.claimedAt || '').slice(0, 10) >= from);
+	if (to) data = data.filter(item => String(item.claimedAt || '').slice(0, 10) <= to);
 	res.json({ data, total: data.length });
+});
+
+app.get('/api/admin/wheel/claims/export', requireAdmin, requirePermission('wheel:read'), async (req, res) => {
+	const search = String(req.query.search || '').trim().toLowerCase();
+	const gift = String(req.query.gift || '').trim();
+	const program = String(req.query.program || '').trim();
+	const from = String(req.query.from || '').trim();
+	const to = String(req.query.to || '').trim();
+	if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) return res.status(400).json({ message: 'Invalid from date' });
+	if (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)) return res.status(400).json({ message: 'Invalid to date' });
+	if (from && to && from > to) return res.status(400).json({ message: 'From date must be before to date' });
+	const state = await readWheelState();
+	let data = Object.values(state.spins).filter(spin => spin?.claimed).sort((a, b) => String(b.claimedAt || '').localeCompare(String(a.claimedAt || ''))).map(spin => ({ name: spin.name || '', whatsapp: spin.phone || '', program: spin.program || '', gift: spin.gift?.label || '', claimedAt: spin.claimedAt }));
+	if (search) data = data.filter(item => [item.name, item.whatsapp, item.program, item.gift].some(value => String(value || '').toLowerCase().includes(search)));
+	if (gift) data = data.filter(item => item.gift === gift);
+	if (program) data = data.filter(item => item.program === program);
+	if (from) data = data.filter(item => String(item.claimedAt || '').slice(0, 10) >= from);
+	if (to) data = data.filter(item => String(item.claimedAt || '').slice(0, 10) <= to);
+	const escapeCsv = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+	const rows = [['الاسم', 'واتساب', 'البرنامج', 'الهدية', 'التاريخ'], ...data.map(item => [item.name, item.whatsapp, item.program, item.gift, item.claimedAt])];
+	const csv = '\uFEFF' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n');
+	res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="wheel-claims-${from || 'all'}-${to || 'all'}.csv"` });
+	res.send(csv);
 });
 
 function normalizeProgramInput(input, existing = {}) {
