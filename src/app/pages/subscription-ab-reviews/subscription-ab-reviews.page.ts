@@ -87,7 +87,23 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		}
 
 		const countdownClosed = typeof window !== 'undefined' && localStorage.getItem(this.enrollmentClosedStorageKey) === 'true';
-		this.isEnrollmentClosed = countdownClosed || state.isEnrollmentClosed || this.isEnrollmentClosed;
+		if (typeof state.isEnrollmentClosed === 'boolean') {
+			// The CMS value is authoritative, so reopening the subscription from
+			// the admin also reopens the public countdown immediately.
+			this.isEnrollmentClosed = state.isEnrollmentClosed;
+			if (typeof window !== 'undefined' && !state.isEnrollmentClosed) {
+				localStorage.removeItem(this.enrollmentClosedStorageKey);
+			}
+			if (state.isEnrollmentClosed) {
+				this.stopClosingTimer();
+			} else if (!this.closingTimer) {
+				this.closingDate = this.getNextClosingDate();
+				this.updateClosingCountdown();
+				if (!this.isEnrollmentClosed) this.closingTimer = setInterval(() => this.updateClosingCountdown(), 1000);
+			}
+		} else {
+			this.isEnrollmentClosed = countdownClosed || this.isEnrollmentClosed;
+		}
 		this.enrollmentReopenMessage = state.enrollmentReopenMessage ?? this.enrollmentReopenMessage;
 
 		const loaded = state.subscriptionDetails;
@@ -273,10 +289,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy(): void {
 		this.contentSubscription?.unsubscribe();
-		if (this.closingTimer) {
-			clearInterval(this.closingTimer);
-			this.closingTimer = null;
-		}
+		this.stopClosingTimer();
 
 		if (typeof window === 'undefined' || typeof document === 'undefined') {
 			return;
@@ -285,6 +298,13 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		document.removeEventListener('visibilitychange', this.handleVisibilityChange);
 		window.removeEventListener('focus', this.handleWindowFocus);
 		window.removeEventListener('pageshow', this.handleWindowFocus);
+	}
+
+	private stopClosingTimer(): void {
+		if (this.closingTimer) {
+			clearInterval(this.closingTimer);
+			this.closingTimer = null;
+		}
 	}
 
 	private getNextClosingDate(): Date {
@@ -335,10 +355,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			if (typeof window !== 'undefined') {
 				localStorage.setItem(this.enrollmentClosedStorageKey, 'true');
 			}
-			if (this.closingTimer) {
-				clearInterval(this.closingTimer);
-				this.closingTimer = null;
-			}
+			this.stopClosingTimer();
 			return;
 		}
 		const totalSeconds = Math.floor(remaining / 1000);
