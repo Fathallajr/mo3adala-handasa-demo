@@ -13,7 +13,7 @@ import { MonthlyContentService } from '../../core/services/monthly-content.servi
 	styleUrls: ['./news-equation.page.css']
 })
 export class NewsEquationPageComponent implements OnInit {
-	newsItems = [
+	newsItems: any[] = [
 		{
 			id: 4,
 			title: 'جدول اختبارات معادلة كلية الهندسة 2026',
@@ -227,7 +227,9 @@ export class NewsEquationPageComponent implements OnInit {
 	ngOnInit(): void {
 		this.monthlyContent.loadPageState('news-equation', { visible: true, title: 'أخبار المعادلة', items: this.newsItems }).subscribe((state: any) => {
 			if (state?.visible === false) return;
-			if (Array.isArray(state?.items) && state.items.length) this.newsItems = state.items;
+			if (Array.isArray(state?.items) && state.items.length) {
+				this.newsItems = state.items.map((item: any, index: number) => this.normalizeNewsItem(item, index));
+			}
 		});
 		if (typeof window !== 'undefined') {
 			const siteUrl = (window as any)['NG_SITE_URL'] || 'https://www.appmo3adla.com';
@@ -241,6 +243,29 @@ export class NewsEquationPageComponent implements OnInit {
 			this.seo.setTwitterTags({ title, description });
 			this.canonical.setCanonical(url);
 		}
+	}
+
+	private normalizeNewsItem(item: any, index: number): any {
+		const link = typeof item?.link === 'string' ? item.link.trim() : '';
+		const linkedSlug = link.match(/^\/news\/detail\/([^/?#]+)/)?.[1];
+		const slug = item?.slug || linkedSlug || `news-${index + 1}`;
+		return {
+			...item,
+			excerpt: item?.excerpt || item?.description || '',
+			content: item?.content || item?.description || item?.excerpt || '',
+			date: item?.date || new Date().toISOString(),
+			slug,
+			category: item?.category || 'أخبار المعادلة',
+			important: item?.important === true
+		};
+	}
+
+	isInternalLink(item: any): boolean {
+		return typeof item?.link === 'string' && /^\/news\/detail\//.test(item.link);
+	}
+
+	resolveAssetUrl(url: string): string {
+		return this.monthlyContent.resolveAssetUrl(url);
 	}
 
 	formatDate(dateString: string): string {

@@ -17,8 +17,8 @@
 
     <section class="news-grid" aria-label="أخبار المعادلة">
       <article *ngFor="let item of newsItems; let i = index" class="news-card" [class.news-card--important]="item.important">
-        <a [routerLink]="['/news/detail', item.slug]" class="news-card__media">
-          <img [src]="item.image" [alt]="item.title" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+        <a [routerLink]="isInternalLink(item) ? ['/news/detail', item.slug] : null" [href]="isInternalLink(item) ? null : (item.link || '#')" [target]="isInternalLink(item) ? undefined : '_blank'" class="news-card__media">
+          <img [src]="resolveAssetUrl(item.image)" [alt]="item.title" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
           <span class="news-card__number">{{ (i + 1).toString().padStart(2, '0') }}</span>
           <span *ngIf="item.important" class="news-card__important"><i></i> خبر مهم</span>
         </a>
@@ -26,7 +26,7 @@
           <div class="news-card__meta"><span *ngIf="item.category" class="news-card__category">{{ item.category }}</span><time>{{ formatDate(item.date) }}</time></div>
           <h2 [class.news-card__title--important]="item.important">{{ item.title }}</h2>
           <p>{{ item.excerpt }}</p>
-          <a [routerLink]="['/news/detail', item.slug]" class="news-card__link">اقرأ التفاصيل <b>←</b></a>
+          <a [routerLink]="isInternalLink(item) ? ['/news/detail', item.slug] : null" [href]="isInternalLink(item) ? null : (item.link || '#')" [target]="isInternalLink(item) ? undefined : '_blank'" class="news-card__link">اقرأ التفاصيل <b>←</b></a>
         </div>
       </article>
     </section>
