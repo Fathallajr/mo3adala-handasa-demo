@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { SeoService } from '../../core/seo.service';
 import { CanonicalService } from '../../core/canonical.service';
+import { MonthlyContentService } from '../../core/services/monthly-content.service';
 
 @Component({
 	selector: 'app-news-detail',
@@ -25,7 +26,8 @@ export class NewsDetailPageComponent implements OnInit {
 		private route: ActivatedRoute,
 		private location: Location,
 		private seo: SeoService,
-		private canonical: CanonicalService
+		private canonical: CanonicalService,
+		private monthlyContent: MonthlyContentService
 	) { }
 
 	// Mock data - في التطبيق الحقيقي ستحصل على البيانات من API
@@ -1167,7 +1169,30 @@ export class NewsDetailPageComponent implements OnInit {
 			if (this.newsItem) {
 				this.updatePageTitle();
 			}
+
+			this.monthlyContent.loadPageState('news-equation', { items: [] }).subscribe((state: any) => {
+				const items = Array.isArray(state?.items) ? state.items : [];
+				const dynamic = items.find((item: any, index: number) => this.getDynamicSlug(item, index) === this.newsId);
+				if (!dynamic) return;
+				this.newsItem = {
+					...dynamic,
+					id: this.newsId,
+					content: dynamic.content || dynamic.description || dynamic.excerpt || '',
+					category: dynamic.category || 'أخبار المعادلة',
+					date: dynamic.date || new Date().toISOString(),
+					author: dynamic.author || 'فريق المعادلة'
+				};
+				this.updatePageTitle();
+			});
 		});
+	}
+
+	private getDynamicSlug(item: any, index: number): string {
+		const internalSlug = typeof item?.link === 'string' ? item.link.match(/^\/news\/detail\/([^/?#]+)/)?.[1] : '';
+		if (internalSlug) return internalSlug;
+		if (item?.slug) return item.slug;
+		const slug = String(item?.title || '').trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+		return slug || `news-${index + 1}`;
 	}
 
 	private updatePageTitle(): void {

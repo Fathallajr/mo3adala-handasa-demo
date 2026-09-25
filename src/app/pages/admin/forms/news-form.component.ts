@@ -53,7 +53,7 @@ interface NewsContent {
 					<div class="cms-array-item__num">خبر {{ i + 1 }}</div>
 					<div class="cms-field">
 						<label class="cms-label">العنوان</label>
-						<input class="cms-input" [(ngModel)]="item.title" placeholder="عنوان الخبر" />
+						<input class="cms-input" [(ngModel)]="item.title" (ngModelChange)="onTitleChange(item, i)" placeholder="عنوان الخبر" />
 					</div>
 					<div class="cms-field">
 						<label class="cms-label">الوصف</label>
@@ -72,8 +72,8 @@ interface NewsContent {
 						</div>
 					</div>
 					<div class="cms-field" style="margin-bottom:0">
-						<label class="cms-label">رابط الخبر (link)</label>
-						<input class="cms-input" [(ngModel)]="item.link" placeholder="https://..." dir="ltr" />
+						<label class="cms-label">رابط الخبر (يُولد تلقائيًا)</label>
+						<input class="cms-input" [ngModel]="item.link" readonly dir="ltr" />
 					</div>
 				</div>
 				<button type="button" class="cms-array-item__del" (click)="remove(i)">×</button>
@@ -99,7 +99,23 @@ export class NewsFormComponent implements OnChanges {
 		if (typeof raw.visible !== 'boolean') raw.visible = true;
 		if (!raw.title) raw.title = '';
 		if (!Array.isArray(raw.items)) raw.items = [];
+		raw.items.forEach((item, index) => {
+			item.link = this.generateNewsLink(item.title, index);
+		});
 		this.data = raw as NewsContent;
+	}
+
+	onTitleChange(item: NewsItem, index: number): void {
+		item.link = this.generateNewsLink(item.title, index);
+	}
+
+	private generateNewsLink(title: string, index: number): string {
+		const slug = (title || '')
+			.trim()
+			.toLowerCase()
+			.replace(/[^\p{L}\p{N}]+/gu, '-')
+			.replace(/^-+|-+$/g, '');
+		return `/news/detail/${slug || `news-${index + 1}`}`;
 	}
 
 	add(): void {
