@@ -488,9 +488,11 @@ app.get('/api/admin/leads', requireAdmin, async (req, res) => {
 	const source = String(req.query.source || '').trim();
 	const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
 	const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
-	let leads = store.leads;
+	// Wheel submissions have their own admin screen and must not pollute the
+	// customer/leads view or its filters.
+	let leads = store.leads.filter(lead => String(lead.source || '') !== 'عجلة الحظ');
 	if (status && LEAD_STATUSES.includes(status)) leads = leads.filter(lead => lead.status === status);
-	if (source) leads = leads.filter(lead => String(lead.source || '') === source);
+	if (source && source !== 'عجلة الحظ') leads = leads.filter(lead => String(lead.source || '') === source);
 	if (search) leads = leads.filter(lead => [lead.name, lead.whatsapp, lead.school, lead.program, lead.source].some(value => String(value).toLowerCase().includes(search)));
 	const total = leads.length;
 	res.json({ data: leads.slice((page - 1) * limit, page * limit), pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
@@ -600,10 +602,11 @@ app.get('/api/admin/dashboard/summary', requireAdmin, async (req, res) => {
 	const wheelState = readWheelState();
 	const wheelClaimsCount = Object.values(wheelState.spins).filter(spin => spin?.claimed).length;
 	const today = new Date().toISOString().slice(0, 10);
-	const byStatus = Object.fromEntries(LEAD_STATUSES.map(status => [status, store.leads.filter(lead => lead.status === status).length]));
+	const customerLeads = store.leads.filter(lead => String(lead.source || '') !== 'عجلة الحظ');
+	const byStatus = Object.fromEntries(LEAD_STATUSES.map(status => [status, customerLeads.filter(lead => lead.status === status).length]));
 	const byProgram = {};
-	for (const lead of store.leads) byProgram[lead.program || 'unknown'] = (byProgram[lead.program || 'unknown'] || 0) + 1;
-	res.json({ totalLeads: store.leads.length, todayLeads: store.leads.filter(lead => lead.createdAt.startsWith(today)).length, wheelClaimsCount, byStatus, byProgram, recentLeads: store.leads.slice(0, 10), recentActivity: store.auditLogs.slice(0, 10) });
+	for (const lead of customerLeads) byProgram[lead.program || 'unknown'] = (byProgram[lead.program || 'unknown'] || 0) + 1;
+	res.json({ totalLeads: customerLeads.length, todayLeads: customerLeads.filter(lead => lead.createdAt.startsWith(today)).length, wheelClaimsCount, byStatus, byProgram, recentLeads: customerLeads.slice(0, 10), recentActivity: store.auditLogs.slice(0, 10) });
 });
 
 // Wheel claims are intentionally isolated from every other form and Apps Script.

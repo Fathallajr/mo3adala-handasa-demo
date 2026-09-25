@@ -58,7 +58,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadSearch = '';
 	leadStatus = '';
 	leadSource = '';
-	readonly leadSourceOptions = ['', 'عجلة الحظ', 'فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
+	readonly leadSourceOptions = ['', 'فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
 	leadsPage = 1;
 	leadsPages = 1;
 	leadsTotal = 0;
@@ -116,6 +116,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		});
 	}
 	searchLeads(): void { this.leadsPage = 1; this.loadLeads(); }
+	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadStatus = ''; this.searchLeads(); }
 	changeLeadPage(delta: number): void { this.leadsPage = Math.min(Math.max(this.leadsPage + delta, 1), this.leadsPages); this.loadLeads(); }
 	updateLeadStatus(lead: Lead, status: string): void {
 		this.adminApi.updateLead(lead.id, { status }).subscribe({ next: updated => { lead.status = updated.status; this.statusMessage = 'تم تحديث حالة العميل.'; }, error: err => this.handleApiError(err) });
