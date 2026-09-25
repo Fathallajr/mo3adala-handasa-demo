@@ -9,6 +9,7 @@
     "test:cycle": "node server/admin-cycle-test.js",
     "migrate:postgres": "node server/migrate-sqlite-to-postgres.js",
     "build": "ng build",
+    "postinstall": "npm run build",
     "gen:content": "node scripts/build-content.mjs",
     "gen:sitemap": "node scripts/generate-sitemap.mjs",
     "postbuild": "npm run gen:sitemap && npm run gen:social",
