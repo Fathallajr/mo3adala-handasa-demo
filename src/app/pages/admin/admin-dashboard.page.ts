@@ -71,9 +71,19 @@ export class AdminDashboardPageComponent implements OnInit {
 	readonly leadStatusLabels: Record<string, string> = { new: 'جديد', contacted: 'تم التواصل', interested: 'مهتم', registered: 'مسجل', not_interested: 'غير مهتم', follow_up: 'متابعة', closed: 'مغلق', converted: 'تم التحويل' };
 	programDraft: Partial<Program> = { name: '', slug: '', category: '', language: 'ar', price: 0, enrollmentStatus: 'open', isActive: true };
 	editingProgramId: string | null = null;
-	pageOptions: PageOption[] = cmsPageOptions;
+	private readonly hiddenAdminPageKeys = new Set<CmsPageKey>([
+		'home',
+		'faq',
+		'contact',
+		'requirements',
+		'success-stories',
+		'feedback',
+		'photos-2025',
+		'engineers'
+	]);
+	pageOptions: PageOption[] = cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key));
 
-	selectedPageKey: CmsPageKey = 'home';
+	selectedPageKey: CmsPageKey = 'batch-2027';
 	currentContent: unknown = null;
 	statusMessage = '';
 	errorMessage = '';
@@ -280,6 +290,6 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	private resolvePageKey(value: string | null): CmsPageKey {
 		const page = this.pageOptions.find(item => item.key === value);
-		return page?.key || 'home';
+		return page?.key || 'batch-2027';
 	}
 }
