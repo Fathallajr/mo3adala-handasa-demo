@@ -63,7 +63,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	wheelProgram = '';
 	wheelDateFrom = '';
 	wheelDateTo = '';
-	wheelFiltersOpen = true;
+	wheelFiltersOpen = false;
+	leadsFiltersOpen = false;
 	readonly wheelGiftOptions = ['', '50 جنيه', '100 جنيه', '200 جنيه', 'خصم 10%', 'خصم 15%', 'خصم 20%', 'حظ سعيد'];
 	leadSearch = '';
 	leadStatus = '';
@@ -196,6 +197,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	searchWheelClaims(): void { this.loadWheelClaims(); }
 	clearWheelFilters(): void { this.wheelSearch = ''; this.wheelGift = ''; this.wheelProgram = ''; this.wheelDateFrom = ''; this.wheelDateTo = ''; this.loadWheelClaims(); }
 	toggleWheelFilters(): void { this.wheelFiltersOpen = !this.wheelFiltersOpen; }
+	toggleLeadsFilters(): void { this.leadsFiltersOpen = !this.leadsFiltersOpen; }
 	exportWheelClaims(): void {
 		if (this.wheelDateFrom && this.wheelDateTo && this.wheelDateFrom > this.wheelDateTo) { this.errorMessage = 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية.'; return; }
 		this.adminApi.exportWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo }).subscribe({
