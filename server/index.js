@@ -279,6 +279,11 @@ function requireFullAdmin(req, res, next) {
 	return res.status(403).json({ message: 'هذا القسم متاح للأدمن الرئيسي فقط.' });
 }
 
+function requirePagePermission(req, res, next) {
+	if (req.adminRole === 'admin' || (req.adminRole === 'leads' && req.params.pageKey === 'batch-2027')) return next();
+	return res.status(403).json({ message: 'ليس لديك صلاحية تعديل هذه الصفحة.' });
+}
+
 function addAuditLog(store, action, entity, entityId, req) {
 	store.auditLogs.unshift({
 		id: crypto.randomUUID(),
@@ -849,7 +854,7 @@ app.get('/api/content/:pageKey', async (req, res) => {
 	res.json(data);
 });
 
-app.put('/api/content/:pageKey', requireAdmin, requireFullAdmin, async (req, res) => {
+app.put('/api/content/:pageKey', requireAdmin, requirePagePermission, async (req, res) => {
 	const { pageKey } = req.params;
 
 	if (!PAGE_KEYS.includes(pageKey)) {

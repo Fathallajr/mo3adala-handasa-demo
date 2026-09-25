@@ -332,8 +332,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	get groupedPageOptions(): Array<{ group: string; pages: PageOption[] }> {
-		if (this.auth.isLeadsOnly()) return [];
-		return this.pageOptions.reduce<Array<{ group: string; pages: PageOption[] }>>((groups, page) => {
+		const visiblePages = this.auth.isLeadsOnly() ? this.pageOptions.filter(page => page.key === 'batch-2027') : this.pageOptions;
+		return visiblePages.reduce<Array<{ group: string; pages: PageOption[] }>>((groups, page) => {
 			const existingGroup = groups.find(item => item.group === page.group);
 			if (existingGroup) { existingGroup.pages.push(page); return groups; }
 			groups.push({ group: page.group, pages: [page] });
