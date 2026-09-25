@@ -141,6 +141,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.selectedGift = '';
 		this.wheelAlreadyUsed = false;
 		this.wheelExistingGift = '';
+		this.wheelClaimComplete = false;
+		this.selectedGift = '';
 		this.wheelClaimError = '';
 		this.wheelAttempts += 1;
 		const controller = new AbortController();
@@ -229,6 +231,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.wheelClaimError = '';
 		this.wheelAlreadyUsed = false;
 		this.wheelExistingGift = '';
+		this.wheelClaimComplete = false;
+		this.selectedGift = '';
 		const name = this.wheelClaim.name.trim();
 		const program = this.wheelClaim.program.trim();
 		const whatsapp = normalizePhone(this.wheelClaim.whatsapp);
@@ -251,6 +255,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				this.wheelClaimError = phoneCheck.message || 'تم تسجيل هذا الرقم من قبل.';
 				this.wheelAlreadyUsed = true;
 				this.wheelExistingGift = phoneCheck.gift || '';
+				this.wheelClaimComplete = false;
+				this.selectedGift = '';
 				this.wheelUsed = true;
 				return;
 			}
@@ -288,6 +294,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 					this.wheelClaimError = payload.message || 'تم تسجيل هذا الرقم من قبل.';
 					this.wheelAlreadyUsed = true;
 					this.wheelExistingGift = payload.gift || '';
+					this.wheelClaimComplete = false;
+					this.selectedGift = '';
 					this.wheelUsed = true;
 					return;
 				}
@@ -320,6 +328,10 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.giftWheelSpinning = false;
 		this.wheelAwaitingResult = false;
 		this.wheelResult = null;
+		this.wheelClaimComplete = false;
+		this.wheelAlreadyUsed = false;
+		this.wheelExistingGift = '';
+		this.selectedGift = '';
 		if (this.giftRevealTimer) clearTimeout(this.giftRevealTimer);
 	}
 
