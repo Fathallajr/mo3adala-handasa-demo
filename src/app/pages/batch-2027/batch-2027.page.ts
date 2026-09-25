@@ -148,9 +148,15 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		const controller = new AbortController();
 		const timeout = window.setTimeout(() => controller.abort(), WHEEL_REQUEST_TIMEOUT_MS);
 		try {
-		const payload = this.isStaticDeployment()
-			? await this.requestWheelSpin()
-			: await this.requestWheelSpinFromServer(controller.signal);
+		let payload: any;
+		try {
+			payload = await this.requestWheelSpinFromServer(controller.signal);
+		} catch (serverError) {
+			// Keep a static-site fallback, but never bypass the local API when it
+			// is available on the deployed Node server.
+			if (this.isLocalBrowser()) throw serverError;
+			payload = await this.requestWheelSpin();
+		}
 		if (payload?.success === false || !payload?.token || !payload?.gift?.id) {
 			this.wheelAttempts -= 1;
 			this.giftWheelSpinning = false;
@@ -288,8 +294,14 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				wheelToken: this.wheelToken,
 				sessionId: this.wheelSessionId
 			});
-			if (this.isStaticDeployment() || this.isLocalBrowser()) {
-				const payload = await this.requestWheelClaim(claimBody);
+			try {
+				const response = await fetch(this.resolveWheelEndpoint('claim'), {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+					body: claimBody,
+					signal: controller.signal
+				});
+				const payload = await response.json() as { success?: boolean; alreadyRegistered?: boolean; message?: string; gift?: string };
 				if (payload.alreadyRegistered) {
 					this.wheelClaimError = payload.message || 'تم تسجيل هذا الرقم من قبل.';
 					this.wheelAlreadyUsed = true;
@@ -302,24 +314,21 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				this.selectedGift = payload.gift || this.wheelResult.label;
 				this.wheelUsed = true;
 				return;
-			}
-			const response = await fetch(this.resolveWheelEndpoint('claim'), {
-				method: 'POST',
-				body: claimBody,
-				signal: controller.signal
-			});
-			const payload = await response.json() as { success?: boolean; alreadyRegistered?: boolean; message?: string; gift?: string };
-			if (payload.alreadyRegistered) {
-				this.wheelClaimError = payload.message || 'تم استلام هدية العجلة بهذا الرقم من قبل.';
-				this.wheelAlreadyUsed = true;
-				this.wheelExistingGift = payload.gift || '';
+			} catch (serverError) {
+				if (this.isLocalBrowser()) throw serverError;
+				const payload = await this.requestWheelClaim(claimBody);
+				if (payload.alreadyRegistered) {
+					this.wheelClaimError = payload.message || 'تم استلام هدية العجلة بهذا الرقم من قبل.';
+					this.wheelAlreadyUsed = true;
+					this.wheelExistingGift = payload.gift || '';
+					this.wheelUsed = true;
+					return;
+				}
+				if (!payload.success) throw new Error(payload.message || 'تعذر تسجيل هدية العجلة.');
+				this.wheelClaimComplete = true;
+				this.selectedGift = payload.gift || this.wheelResult.label;
 				this.wheelUsed = true;
-				return;
 			}
-			if (!response.ok || !payload.success) throw new Error(payload.message || 'تعذر تسجيل هدية العجلة.');
-			this.wheelClaimComplete = true;
-			this.selectedGift = payload.gift || this.wheelResult.label;
-			this.wheelUsed = true;
 		} catch (error) {
 			this.wheelClaimError = error instanceof DOMException && error.name === 'AbortError'
 				? 'خدمة تسجيل العجلة اتأخرت. من فضلك ما تضغطش مرة تانية.'
@@ -331,10 +340,9 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	}
 
 	private resolveWheelEndpoint(action: 'spin' | 'claim'): string {
-		if (this.isLocalBrowser()) {
-			return `/api/wheel/${action}`;
-		}
-		return this.wheelAppsScriptEndpoint();
+		// The deployed Node app owns the wheel state. Apps Script is used only
+		// as a fallback when a genuinely static build has no local API.
+		return `/api/wheel/${action}`;
 	}
 
 	private isStaticDeployment(): boolean {

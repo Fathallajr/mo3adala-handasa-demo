@@ -11,6 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const LAUNCH_OFFER_ENDPOINT = process.env.LAUNCH_OFFER_ENDPOINT || 'https://script.google.com/macros/s/AKfycbzOMDZcgaUgRacnKnqgngxO_97N5iUU9AVoH1bA5HHEFg0LKS3Lju8ku6yl0nYgrLdQ/exec';
 const WHEEL_APPS_SCRIPT_ENDPOINT = process.env.WHEEL_APPS_SCRIPT_ENDPOINT || 'https://script.google.com/macros/s/AKfycbyrF6S-pyZys6aKo75ExPWxXCm9F-zIRKr_t-IvV7gyeCGKIBJ-nnISHMlyaRSNk4_r/exec';
+const WHEEL_FORWARD_TO_APPS_SCRIPT = process.env.WHEEL_FORWARD_TO_APPS_SCRIPT === 'true';
 // Apps Script can be slow while scanning the sheet for an existing phone.
 // Give it enough time to finish so the UI does not invite duplicate retries.
 const LAUNCH_OFFER_TIMEOUT_MS = 60000;
@@ -64,9 +65,6 @@ const WHEEL_OPTIONS = [
 ];
 if (process.env.NODE_ENV === 'production' && (ADMIN_USERNAME === 'jr1' || ADMIN_PASSWORD === 'jr1')) {
 	throw new Error('Production requires ADMIN_USERNAME and ADMIN_PASSWORD to be changed from the local defaults.');
-}
-if (process.env.NODE_ENV === 'production' && !process.env.WHEEL_APPS_SCRIPT_SECRET) {
-	throw new Error('Production requires WHEEL_APPS_SCRIPT_SECRET.');
 }
 const CORS_ORIGINS = new Set((process.env.CORS_ORIGINS || 'http://localhost:4200,http://localhost:3001')
 	.split(',')
@@ -453,10 +451,12 @@ app.post('/api/launch-offer', rateLimit({ name: 'launch-offer', windowMs: 15 * 6
 
 	try {
 		const payload = await postToAppsScript(LAUNCH_OFFER_ENDPOINT, values, LAUNCH_OFFER_TIMEOUT_MS);
-		return res.json(payload);
+		return res.json({ ...payload, localSaved: true, externalSync: true });
 	} catch (error) {
-		const timedOut = error?.name === 'AbortError';
-		return res.status(timedOut ? 504 : 502).json({ success: false, message: timedOut ? 'Registration service timed out' : 'Registration service unavailable' });
+		// The local database is authoritative. Do not tell the student that the
+		// registration failed after it was already saved for the admin.
+		console.error('External lead sync failed; local lead was saved', error?.message || error);
+		return res.status(202).json({ success: true, localSaved: true, externalSync: false, message: 'تم تسجيل بياناتك بنجاح.' });
 	}
 });
 
@@ -648,34 +648,15 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 	if (findLeadByPhone(store, whatsapp)) {
 		return res.status(409).json({ success: false, alreadyRegistered: true, message: 'هذا الرقم مسجل بالفعل.' });
 	}
-	if (!WHEEL_APPS_SCRIPT_ENDPOINT) {
-		return res.status(503).json({ success: false, message: 'خدمة تسجيل العجلة غير مفعلة بعد.' });
-	}
-	if (!WHEEL_APPS_SCRIPT_SECRET) {
-		return res.status(503).json({ success: false, message: 'حماية خدمة العجلة غير مفعلة على السيرفر.' });
-	}
-
 	try {
 		const createdAt = getNowIso();
-		const payload = await postToAppsScript(WHEEL_APPS_SCRIPT_ENDPOINT, {
-			name,
-			whatsapp,
-			program,
-			gift: spin.gift.label,
-			wheelToken,
-			createdAt,
-			apiSignature: createWheelSignature(createdAt, wheelToken, whatsapp, spin.gift.label),
-			sessionId: spin.sessionId
-		}, WHEEL_CLAIM_TIMEOUT_MS);
-		if (!payload.success && !payload.alreadyRegistered) {
-			return res.status(502).json({ success: false, message: payload.message || 'تعذر تسجيل هدية العجلة.' });
-		}
-
+		// Save locally first so the admin dashboard always has the claim, even
+		// when the optional spreadsheet service is slow or unavailable.
 		spin.claimed = true;
 		spin.phone = whatsapp;
 		spin.name = name;
 		spin.program = program;
-		spin.claimedAt = getNowIso();
+		spin.claimedAt = createdAt;
 		state.spins[wheelToken] = spin;
 		state.claims[whatsapp] = wheelToken;
 		saveWheelState(state);
@@ -684,13 +665,24 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 		} catch (error) {
 			if (error.code !== 'DUPLICATE_PHONE') throw error;
 		}
-		return res.json(payload);
+
+		let externalSync = false;
+		if (WHEEL_FORWARD_TO_APPS_SCRIPT && WHEEL_APPS_SCRIPT_ENDPOINT && WHEEL_APPS_SCRIPT_SECRET) {
+			try {
+				await postToAppsScript(WHEEL_APPS_SCRIPT_ENDPOINT, {
+					name, whatsapp, program, gift: spin.gift.label, wheelToken, createdAt,
+					apiSignature: createWheelSignature(createdAt, wheelToken, whatsapp, spin.gift.label),
+					sessionId: spin.sessionId
+				}, WHEEL_CLAIM_TIMEOUT_MS);
+				externalSync = true;
+			} catch (syncError) {
+				console.error('Optional wheel sync failed; local claim was saved', syncError?.message || syncError);
+			}
+		}
+		return res.json({ success: true, gift: spin.gift.label, localSaved: true, externalSync });
 	} catch (error) {
-		const timedOut = error?.name === 'AbortError';
-		return res.status(timedOut ? 504 : 502).json({
-			success: false,
-			message: timedOut ? 'خدمة تسجيل العجلة اتأخرت. من فضلك ما تضغطش مرة تانية.' : 'تعذر الاتصال بخدمة تسجيل العجلة.'
-		});
+		console.error('Wheel local claim failed', error);
+		return res.status(500).json({ success: false, message: 'تعذر حفظ هدية العجلة على السيرفر.' });
 	}
 });
 
