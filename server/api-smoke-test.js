@@ -38,6 +38,8 @@ async function main() {
 			result = await request(route, { headers });
 			assert(result.response.ok, `${route} failed with ${result.response.status}`);
 		}
+		result = await request('/admin/leads/export?from=2020-01-01&to=2099-12-31', { headers });
+		assert(result.response.ok && (result.body === null || result.response.headers.get('content-type')?.includes('text/csv')), 'lead export failed');
 		result = await request('/wheel/options');
 		assert(result.response.ok && Array.isArray(result.body), 'wheel options failed');
 		result = await request('/openapi.json');

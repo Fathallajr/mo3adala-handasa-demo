@@ -58,6 +58,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadSearch = '';
 	leadStatus = '';
 	leadSource = '';
+	leadDateFrom = '';
+	leadDateTo = '';
 	readonly leadSourceOptions = ['', 'فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
 	leadsPage = 1;
 	leadsPages = 1;
@@ -110,13 +112,28 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	loadOverview(): void { this.adminApi.getSummary().subscribe({ next: value => this.dashboard = value, error: err => this.handleApiError(err) }); }
 	loadLeads(): void {
-		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadsPage).subscribe({
+		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadDateFrom, this.leadDateTo, this.leadsPage).subscribe({
 			next: result => { this.leads = result.data; this.leadsPages = result.pagination.pages || 1; this.leadsTotal = result.pagination.total; },
 			error: err => this.handleApiError(err)
 		});
 	}
 	searchLeads(): void { this.leadsPage = 1; this.loadLeads(); }
-	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadStatus = ''; this.searchLeads(); }
+	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadStatus = ''; this.leadDateFrom = ''; this.leadDateTo = ''; this.searchLeads(); }
+	downloadLeadsExcel(): void {
+		if (this.leadDateFrom && this.leadDateTo && this.leadDateFrom > this.leadDateTo) { this.errorMessage = 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية.'; return; }
+		this.adminApi.exportLeads({ search: this.leadSearch.trim(), status: this.leadStatus, source: this.leadSource, from: this.leadDateFrom, to: this.leadDateTo }).subscribe({
+			next: blob => {
+				const url = URL.createObjectURL(blob);
+				const anchor = document.createElement('a');
+				anchor.href = url;
+				anchor.download = `leads-${this.leadDateFrom || 'all'}-${this.leadDateTo || 'all'}.csv`;
+				anchor.click();
+				URL.revokeObjectURL(url);
+				this.statusMessage = 'تم تصدير النتائج المطابقة للفلاتر.';
+			},
+			error: err => this.handleApiError(err)
+		});
+	}
 	changeLeadPage(delta: number): void { this.leadsPage = Math.min(Math.max(this.leadsPage + delta, 1), this.leadsPages); this.loadLeads(); }
 	updateLeadStatus(lead: Lead, status: string): void {
 		this.adminApi.updateLead(lead.id, { status }).subscribe({ next: updated => { lead.status = updated.status; this.statusMessage = 'تم تحديث حالة العميل.'; }, error: err => this.handleApiError(err) });
