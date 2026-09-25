@@ -74,6 +74,9 @@ tbody tr:hover { background:#faf9ff; }
 
 /* The sidebar is a page switcher only; keep it focused on page names. */
 .admin-sidebar { padding:16px 12px; }
+.sidebar-tools { display:grid; gap:7px; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid #ffffff18; }
+.sidebar-tools button { width:100%; border:1px solid #ffffff14; border-radius:11px; padding:11px 13px; color:#c5cce0; background:#ffffff08; text-align:right; cursor:pointer; font:inherit; font-size:13px; font-weight:800; transition:.2s ease; }
+.sidebar-tools button:hover,.sidebar-tools button.page-item--active { color:#fff; background:linear-gradient(90deg,#6d4aff,#5b43c9); box-shadow:0 8px 18px #6d4aff35; }
 .sidebar-heading-row { padding:0 10px 10px; }
 .page-list { gap:7px; margin-top:0; }
 .page-group { gap:5px; }
