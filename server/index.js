@@ -321,7 +321,13 @@ async function createLead(input, req, options = {}) {
 }
 
 app.get('/api/health', (req, res) => {
-	res.json({ ok: true, now: getNowIso() });
+	const usesPostgres = Boolean(process.env.DATABASE_URL);
+	res.json({
+		ok: true,
+		now: getNowIso(),
+		storage: usesPostgres ? 'postgresql' : 'sqlite',
+		persistentStorageConfigured: usesPostgres
+	});
 });
 
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
