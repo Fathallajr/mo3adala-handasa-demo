@@ -167,7 +167,7 @@ const openApiDocument = {
 		'/api/auth/logout': { post: { tags: ['Authentication'], summary: 'Logout current admin session', security: [{ bearerAuth: [] }], responses: { 204: { description: 'Logged out' } } } },
 		'/api/content': { get: { tags: ['Content'], summary: 'List public CMS pages', responses: { 200: { description: 'Page summaries' } } } },
 		'/api/content/{pageKey}': { get: { tags: ['Content'], summary: 'Get a public CMS page', parameters: [{ name: 'pageKey', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Page content' }, 404: { description: 'Page not found' } } }, put: { tags: ['Content'], summary: 'Save CMS page content', security: [{ bearerAuth: [] }], parameters: [{ name: 'pageKey', in: 'path', required: true, schema: { type: 'string' } }], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } }, responses: { 200: { description: 'Saved content' }, 401: { description: 'Unauthorized' } } } },
-		'/api/admin/leads': { get: { tags: ['Leads'], summary: 'List and filter leads', security: [{ bearerAuth: [] }], parameters: [{ name: 'search', in: 'query', schema: { type: 'string' } }, { name: 'status', in: 'query', schema: { type: 'string', enum: LEAD_STATUSES } }, { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } }, { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } }], responses: { 200: { description: 'Paginated leads' }, 401: { description: 'Unauthorized' } } } },
+		'/api/admin/leads': { get: { tags: ['Leads'], summary: 'List and filter leads', security: [{ bearerAuth: [] }], parameters: [{ name: 'search', in: 'query', schema: { type: 'string' } }, { name: 'status', in: 'query', schema: { type: 'string', enum: LEAD_STATUSES } }, { name: 'source', in: 'query', schema: { type: 'string' } }, { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } }, { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } }], responses: { 200: { description: 'Paginated leads' }, 401: { description: 'Unauthorized' } } } },
 		'/api/leads': { post: { tags: ['Leads'], summary: 'Create a public lead', requestBody: { required: true, content: { 'application/json': { schema: { '$ref': '#/components/schemas/Lead' } } } }, responses: { 201: { description: 'Lead created' }, 400: { description: 'Validation error' } } } },
 		'/api/admin/leads/{id}': { get: { tags: ['Leads'], summary: 'Get one lead', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], responses: { 200: { description: 'Lead details' }, 404: { description: 'Lead not found' } } }, patch: { tags: ['Leads'], summary: 'Update a lead', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], requestBody: { content: { 'application/json': { schema: { '$ref': '#/components/schemas/Lead' } } } }, responses: { 200: { description: 'Updated lead' }, 404: { description: 'Lead not found' } } } },
 		'/api/admin/audit-logs': { get: { tags: ['Dashboard'], summary: 'List admin activity logs', security: [{ bearerAuth: [] }], responses: { 200: { description: 'Activity logs' }, 401: { description: 'Unauthorized' } } } },
@@ -485,10 +485,12 @@ app.get('/api/admin/leads', requireAdmin, async (req, res) => {
 	const store = await readStore();
 	const search = String(req.query.search || '').trim().toLowerCase();
 	const status = String(req.query.status || '').trim();
+	const source = String(req.query.source || '').trim();
 	const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
 	const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
 	let leads = store.leads;
 	if (status && LEAD_STATUSES.includes(status)) leads = leads.filter(lead => lead.status === status);
+	if (source) leads = leads.filter(lead => String(lead.source || '') === source);
 	if (search) leads = leads.filter(lead => [lead.name, lead.whatsapp, lead.school, lead.program, lead.source].some(value => String(value).toLowerCase().includes(search)));
 	const total = leads.length;
 	res.json({ data: leads.slice((page - 1) * limit, page * limit), pagination: { page, limit, total, pages: Math.ceil(total / limit) } });

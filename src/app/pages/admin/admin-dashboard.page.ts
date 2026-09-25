@@ -57,6 +57,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	wheelClaims: WheelClaim[] = [];
 	leadSearch = '';
 	leadStatus = '';
+	leadSource = '';
+	readonly leadSourceOptions = ['', 'عجلة الحظ', 'فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
 	leadsPage = 1;
 	leadsPages = 1;
 	leadsTotal = 0;
@@ -108,7 +110,7 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	loadOverview(): void { this.adminApi.getSummary().subscribe({ next: value => this.dashboard = value, error: err => this.handleApiError(err) }); }
 	loadLeads(): void {
-		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadsPage).subscribe({
+		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadsPage).subscribe({
 			next: result => { this.leads = result.data; this.leadsPages = result.pagination.pages || 1; this.leadsTotal = result.pagination.total; },
 			error: err => this.handleApiError(err)
 		});
@@ -215,6 +217,10 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	formatLeadStatus(status?: string): string {
 		return this.leadStatusLabels[status || ''] || status || 'غير محدد';
+	}
+
+	formatLeadSource(source?: string): string {
+		return source === 'عجلة الحظ' ? 'العجلة' : source || 'غير محدد';
 	}
 
 	openPreview(): void {

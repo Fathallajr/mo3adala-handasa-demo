@@ -23,10 +23,11 @@ export class AdminApiService {
 	private readonly base = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api';
 
 	getSummary(): Observable<DashboardSummary> { return this.http.get<DashboardSummary>(`${this.base}/admin/dashboard/summary`); }
-	listLeads(search = '', status = '', page = 1, limit = 20): Observable<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
+	listLeads(search = '', status = '', source = '', page = 1, limit = 20): Observable<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
 		let params = new HttpParams().set('page', page).set('limit', limit);
 		if (search) params = params.set('search', search);
 		if (status) params = params.set('status', status);
+		if (source) params = params.set('source', source);
 		return this.http.get<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }>(`${this.base}/admin/leads`, { params });
 	}
 	updateLead(id: string, payload: Partial<Lead>): Observable<Lead> { return this.http.patch<Lead>(`${this.base}/admin/leads/${id}`, payload); }
