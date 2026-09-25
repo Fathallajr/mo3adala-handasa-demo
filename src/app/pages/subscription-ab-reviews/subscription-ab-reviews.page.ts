@@ -6,6 +6,7 @@ import { SeoService } from '../../core/seo.service';
 import { CanonicalService } from '../../core/canonical.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
 import { CmsPageKey } from '../../core/cms-page.registry';
+import { Subscription } from 'rxjs';
 
 interface ScheduleImage {
 	group: string;
@@ -31,6 +32,7 @@ interface ReviewFormConfig {
 	styleUrls: ['./subscription-ab-reviews.page.css']
 })
 export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
+	private contentSubscription?: Subscription;
 	isComputersSubscription = false;
 	isEnglishSubscription = false;
 	subscriptionProgramLabel = 'معادلة هندسة عربي';
@@ -221,12 +223,8 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		}
 
 		const contentKey = this.getSubscriptionContentKey(pathname);
-		this.monthlyContent
-			.loadPageState(contentKey, {
-				isEnrollmentClosed: this.isEnrollmentClosed,
-				enrollmentReopenMessage: this.enrollmentReopenMessage,
-				subscriptionDetails: this.subscriptionDetails
-			})
+		this.contentSubscription = this.monthlyContent
+			.watchPageState(contentKey)
 			.subscribe(state => this.applyLoadedState(state));
 	}
 
@@ -274,6 +272,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(): void {
+		this.contentSubscription?.unsubscribe();
 		if (this.closingTimer) {
 			clearInterval(this.closingTimer);
 			this.closingTimer = null;

@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { SeoService } from '../../core/seo.service';
 import { CanonicalService } from '../../core/canonical.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
+import { Subscription } from 'rxjs';
 
 interface ScheduleImage {
 	group: string;
@@ -21,6 +22,7 @@ interface ScheduleImage {
 	styleUrls: ['./subscription-intensive.page.css']
 })
 export class SubscriptionIntensivePageComponent implements OnInit, OnDestroy {
+	private contentSubscription?: Subscription;
 	copiedNumber: string | null = null;
 	isImageModalOpen = false;
 	activeScheduleImage: ScheduleImage | null = null;
@@ -110,15 +112,13 @@ export class SubscriptionIntensivePageComponent implements OnInit, OnDestroy {
 		this.shuffleVodafoneNumbers();
 		this.listenForVisibilityChange();
 
-		this.monthlyContent
-			.loadPageState('subscription-intensive', {
-				isEnrollmentClosed: this.isEnrollmentClosed,
-				subscriptionDetails: this.subscriptionDetails
-			})
+		this.contentSubscription = this.monthlyContent
+			.watchPageState('subscription-intensive')
 			.subscribe(state => this.applyLoadedState(state));
 	}
 
 	ngOnDestroy(): void {
+		this.contentSubscription?.unsubscribe();
 		if (typeof window === 'undefined' || typeof document === 'undefined') return;
 		document.removeEventListener('visibilitychange', this.handleVisibilityChange);
 		window.removeEventListener('focus', this.handleWindowFocus);

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError, map, of } from 'rxjs';
+import { EMPTY, Observable, catchError, map, of, switchMap, timer } from 'rxjs';
 import { AdminAuthService } from './admin-auth.service';
 import { CmsPageKey } from '../cms-page.registry';
 
@@ -40,6 +40,12 @@ export class MonthlyContentService {
 	loadPageState<T>(pageKey: CmsPageKey, fallback: T): Observable<T> {
 		return this.http.get<T>(`${this.apiBase}/content/${pageKey}`).pipe(
 			catchError(() => of(fallback))
+		);
+	}
+
+	watchPageState<T>(pageKey: CmsPageKey, refreshMs = 5000): Observable<T> {
+		return timer(0, refreshMs).pipe(
+			switchMap(() => this.http.get<T>(`${this.apiBase}/content/${pageKey}`).pipe(catchError(() => EMPTY)))
 		);
 	}
 
