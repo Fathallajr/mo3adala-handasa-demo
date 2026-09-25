@@ -40,6 +40,9 @@ testem.log
 /server/data/wheel-secret.txt
 /server/data/*.db
 /server/data/*.db-*
+/.env
+/.env.*
+!.env.example
 /npm-start*.log
 /*.log
 
