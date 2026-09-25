@@ -13,7 +13,7 @@ interface BatchContent { wheelVisible: boolean; [key: string]: unknown; }
 		<div class="cms-form" *ngIf="data">
 			<div class="cms-section"><div class="cms-section-title">إعدادات العجلة</div>
 				<div class="cms-toggle-wrap">
-					<label class="cms-switch"><input type="checkbox" [(ngModel)]="data.wheelVisible" /><span class="cms-slider"></span></label>
+					<label class="cms-switch"><input type="checkbox" [ngModel]="data.wheelVisible" (ngModelChange)="setWheelVisible($event)" /><span class="cms-slider"></span></label>
 					<span class="cms-toggle-label">{{ data.wheelVisible ? 'العجلة ظاهرة للزوار' : 'العجلة مخفية عن الزوار' }}</span>
 				</div>
 				<p class="cms-help">احفظ التعديلات لتطبيق الحالة على صفحة دفعة 2027.</p>
@@ -30,5 +30,13 @@ export class Batch2027FormComponent implements OnChanges {
 		const raw = (this.content || {}) as Partial<BatchContent>;
 		this.data = { wheelVisible: raw.wheelVisible !== false };
 		if (this.content && typeof this.content === 'object') Object.assign(this.content, this.data);
+	}
+
+	setWheelVisible(value: boolean): void {
+		if (!this.data) return;
+		this.data.wheelVisible = value;
+		if (this.content && typeof this.content === 'object') {
+			(this.content as Record<string, unknown>)['wheelVisible'] = value;
+		}
 	}
 }
