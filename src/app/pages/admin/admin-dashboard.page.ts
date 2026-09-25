@@ -58,9 +58,12 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadSearch = '';
 	leadStatus = '';
 	leadSource = '';
+	leadProgram = '';
 	leadDateFrom = '';
 	leadDateTo = '';
 	readonly leadSourceOptions = ['', 'فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
+	readonly defaultLeadProgramOptions = ['', 'معادلة هندسة', 'معادلة حاسبات', 'معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
+	leadProgramOptions = [...this.defaultLeadProgramOptions];
 	leadsPage = 1;
 	leadsPages = 1;
 	leadsTotal = 0;
@@ -110,18 +113,18 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (view === 'wheel') this.loadWheelClaims();
 	}
 
-	loadOverview(): void { this.adminApi.getSummary().subscribe({ next: value => this.dashboard = value, error: err => this.handleApiError(err) }); }
+	loadOverview(): void { this.adminApi.getSummary().subscribe({ next: value => { this.dashboard = value; this.leadProgramOptions = Array.from(new Set([...this.defaultLeadProgramOptions, ...Object.keys(value.byProgram || {})])).sort((a, b) => a.localeCompare(b, 'ar')); }, error: err => this.handleApiError(err) }); }
 	loadLeads(): void {
-		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadDateFrom, this.leadDateTo, this.leadsPage).subscribe({
+		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage).subscribe({
 			next: result => { this.leads = result.data; this.leadsPages = result.pagination.pages || 1; this.leadsTotal = result.pagination.total; },
 			error: err => this.handleApiError(err)
 		});
 	}
 	searchLeads(): void { this.leadsPage = 1; this.loadLeads(); }
-	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadStatus = ''; this.leadDateFrom = ''; this.leadDateTo = ''; this.searchLeads(); }
+	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadStatus = ''; this.leadProgram = ''; this.leadDateFrom = ''; this.leadDateTo = ''; this.searchLeads(); }
 	downloadLeadsExcel(): void {
 		if (this.leadDateFrom && this.leadDateTo && this.leadDateFrom > this.leadDateTo) { this.errorMessage = 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية.'; return; }
-		this.adminApi.exportLeads({ search: this.leadSearch.trim(), status: this.leadStatus, source: this.leadSource, from: this.leadDateFrom, to: this.leadDateTo }).subscribe({
+		this.adminApi.exportLeads({ search: this.leadSearch.trim(), status: this.leadStatus, source: this.leadSource, program: this.leadProgram, from: this.leadDateFrom, to: this.leadDateTo }).subscribe({
 			next: blob => {
 				const url = URL.createObjectURL(blob);
 				const anchor = document.createElement('a');

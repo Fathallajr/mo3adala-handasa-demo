@@ -23,16 +23,17 @@ export class AdminApiService {
 	private readonly base = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api';
 
 	getSummary(): Observable<DashboardSummary> { return this.http.get<DashboardSummary>(`${this.base}/admin/dashboard/summary`); }
-	listLeads(search = '', status = '', source = '', from = '', to = '', page = 1, limit = 20): Observable<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
+	listLeads(search = '', status = '', source = '', program = '', from = '', to = '', page = 1, limit = 20): Observable<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
 		let params = new HttpParams().set('page', page).set('limit', limit);
 		if (search) params = params.set('search', search);
 		if (status) params = params.set('status', status);
 		if (source) params = params.set('source', source);
+		if (program) params = params.set('program', program);
 		if (from) params = params.set('from', from);
 		if (to) params = params.set('to', to);
 		return this.http.get<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }>(`${this.base}/admin/leads`, { params });
 	}
-	exportLeads(filters: { search?: string; status?: string; source?: string; from?: string; to?: string }): Observable<Blob> {
+	exportLeads(filters: { search?: string; status?: string; source?: string; program?: string; from?: string; to?: string }): Observable<Blob> {
 		let params = new HttpParams();
 		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);
 		return this.http.get(`${this.base}/admin/leads/export`, { params, responseType: 'blob' });
