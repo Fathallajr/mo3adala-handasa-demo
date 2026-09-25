@@ -358,11 +358,11 @@ app.post('/api/auth/logout', requireAdmin, (req, res) => {
 	res.sendStatus(204);
 });
 
-app.post('/api/wheel/spin', rateLimit({ name: 'wheel-spin', windowMs: 15 * 60 * 1000, max: 30 }), (req, res) => {
+app.post('/api/wheel/spin', rateLimit({ name: 'wheel-spin', windowMs: 15 * 60 * 1000, max: 30 }), async (req, res) => {
 	const sessionId = typeof req.body?.sessionId === 'string' ? req.body.sessionId.trim() : '';
 	if (!sessionId || sessionId.length > 128) return res.status(400).json({ message: 'Invalid wheel session' });
 
-	const state = readWheelState();
+	const state = await readWheelState();
 	const now = Date.now();
 	for (const [token, spin] of Object.entries(state.spins)) {
 		if (!spin || now - spin.createdAt > WHEEL_TTL_MS) delete state.spins[token];
@@ -390,7 +390,7 @@ app.post('/api/wheel/spin', rateLimit({ name: 'wheel-spin', windowMs: 15 * 60 * 
 	const gift = WHEEL_OPTIONS.find(option => (pick -= option.weight) < 0) || WHEEL_OPTIONS[0];
 	const token = `server-${crypto.randomBytes(24).toString('hex')}`;
 	state.spins[token] = { token, sessionId, gift, attempts: previousAttempts + 1, createdAt: now, claimed: false };
-	saveWheelState(state);
+	await saveWheelState(state);
 	return res.json({ token, gift, attempts: previousAttempts + 1, remainingAttempts: Math.max(MAX_WHEEL_ATTEMPTS - previousAttempts - 1, 0) });
 });
 
@@ -401,7 +401,7 @@ app.get('/api/wheel/options', (_req, res) => {
 app.get('/api/wheel/check', rateLimit({ name: 'wheel-check', windowMs: 15 * 60 * 1000, max: 30 }), async (req, res) => {
 	const whatsapp = normalizePhone(req.query.whatsapp);
 	if (!/^01\d{9}$/.test(whatsapp)) return res.status(400).json({ message: 'رقم الواتساب يجب أن يبدأ بـ 01 ويتكون من 11 رقم.' });
-	const state = readWheelState();
+	const state = await readWheelState();
 	const previousSpin = state.spins[state.claims[whatsapp]];
 	if (previousSpin?.claimed) return res.json({ registered: true, wheelRegistered: true, gift: previousSpin.gift?.label || '', message: 'تم استلام هدية العجلة بهذا الرقم من قبل.' });
 	const store = await readStore();
@@ -592,8 +592,8 @@ app.get('/api/admin/audit-logs', requireAdmin, async (req, res) => {
 	res.json({ data: store.auditLogs.slice(0, limit) });
 });
 
-app.get('/api/admin/wheel/claims', requireAdmin, (_req, res) => {
-	const state = readWheelState();
+app.get('/api/admin/wheel/claims', requireAdmin, async (_req, res) => {
+	const state = await readWheelState();
 	const data = Object.values(state.spins)
 		.filter(spin => spin?.claimed)
 		.sort((a, b) => String(b.claimedAt || '').localeCompare(String(a.claimedAt || '')))
@@ -663,7 +663,7 @@ app.patch('/api/admin/programs/:id', requireAdmin, async (req, res) => {
 
 app.get('/api/admin/dashboard/summary', requireAdmin, async (req, res) => {
 	const store = await readStore();
-	const wheelState = readWheelState();
+	const wheelState = await readWheelState();
 	const wheelClaimsCount = Object.values(wheelState.spins).filter(spin => spin?.claimed).length;
 	const today = new Date().toISOString().slice(0, 10);
 	const customerLeads = store.leads.filter(lead => !isWheelLead(lead));
@@ -698,7 +698,7 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 	}
 	if (!wheelToken) return res.status(400).json({ success: false, message: 'نتيجة العجلة غير موجودة.' });
 
-	const state = readWheelState();
+	const state = await readWheelState();
 	const spin = state.spins[wheelToken];
 	if (!spin || Date.now() - spin.createdAt > WHEEL_TTL_MS) {
 		return res.status(409).json({ success: false, message: 'انتهت صلاحية نتيجة العجلة. لف العجلة من جديد.' });
@@ -732,7 +732,7 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 		spin.claimedAt = createdAt;
 		state.spins[wheelToken] = spin;
 		state.claims[whatsapp] = wheelToken;
-		saveWheelState(state);
+		await saveWheelState(state);
 		try {
 			await createLead({ name, whatsapp, program, source: 'عجلة الحظ', notes: `هدية: ${spin.gift.label}` }, req);
 		} catch (error) {
@@ -845,14 +845,16 @@ if (fssync.existsSync(DIST_DIR)) {
 	}));
 }
 
-function readWheelState() {
+async function readWheelState() {
+	if (typeof database.readWheelState === 'function') return database.readWheelState();
 	try {
 		if (fssync.existsSync(WHEEL_STATE_FILE)) return JSON.parse(fssync.readFileSync(WHEEL_STATE_FILE, 'utf8'));
 	} catch {}
 	return { spins: {}, claims: {} };
 }
 
-function saveWheelState(state) {
+async function saveWheelState(state) {
+	if (typeof database.writeWheelState === 'function') return database.writeWheelState(state);
 	fssync.mkdirSync(DATA_DIR, { recursive: true });
 	const tempFile = `${WHEEL_STATE_FILE}.${process.pid}.tmp`;
 	fssync.writeFileSync(tempFile, JSON.stringify(state), 'utf8');

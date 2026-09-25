@@ -28,6 +28,9 @@ db.exec(`
     id TEXT PRIMARY KEY, action TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL,
     actor TEXT DEFAULT '', ip TEXT DEFAULT '', created_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS wheel_state (
+    id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT NOT NULL
+  );
 `);
 
 function migrateLegacyStore() {
@@ -81,4 +84,13 @@ function writeStore(store) {
   transaction();
 }
 
-module.exports = { readStore, writeStore, databaseFile };
+function readWheelState() {
+	const row = db.prepare('SELECT data FROM wheel_state WHERE id = 1').get();
+	try { return row ? JSON.parse(row.data) : { spins: {}, claims: {} }; } catch { return { spins: {}, claims: {} }; }
+}
+
+function writeWheelState(state) {
+	db.prepare('INSERT INTO wheel_state(id, data) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data').run(JSON.stringify(state));
+}
+
+module.exports = { readStore, writeStore, readWheelState, writeWheelState, databaseFile };

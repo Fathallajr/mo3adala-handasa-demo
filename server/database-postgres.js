@@ -27,6 +27,9 @@ function ensureSchema() {
 				id TEXT PRIMARY KEY, action TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL,
 				actor TEXT DEFAULT '', ip TEXT DEFAULT '', created_at TIMESTAMPTZ NOT NULL
 			);
+			CREATE TABLE IF NOT EXISTS wheel_state (
+				id INTEGER PRIMARY KEY CHECK (id = 1), data JSONB NOT NULL
+			);
 		`);
 	}
 	return schemaPromise;
@@ -75,4 +78,16 @@ async function writeStore(store) {
 	}
 }
 
-module.exports = { readStore, writeStore, databaseFile: null, pool, ensureSchema };
+async function readWheelState() {
+	await ensureSchema();
+	const result = await pool.query('SELECT data FROM wheel_state WHERE id = 1');
+	return result.rows[0]?.data || { spins: {}, claims: {} };
+}
+
+async function writeWheelState(state) {
+	await ensureSchema();
+	await pool.query(`INSERT INTO wheel_state(id, data) VALUES (1, $1::jsonb)
+		ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data`, [JSON.stringify(state)]);
+}
+
+module.exports = { readStore, writeStore, readWheelState, writeWheelState, databaseFile: null, pool, ensureSchema };
