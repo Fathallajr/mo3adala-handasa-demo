@@ -390,6 +390,12 @@ main.app-page-shell:not(.route-home) > div > *:not(router-outlet) > :first-child
   padding-top: clamp(6.5rem, 8vw, 7.5rem);
 }
 
+/* Admin has its own compact top bar and does not render the public navbar.
+   Do not reserve the public navbar's vertical space on admin routes. */
+main.app-page-shell:not(.route-home) > div > app-admin-dashboard-page > :first-child {
+  padding-top: 0 !important;
+}
+
 /* Shared site canvas: the light grid is the default background for every
    route. Individual heroes, cards, and footer sections can still provide
    their own solid or gradient surfaces above it. */
