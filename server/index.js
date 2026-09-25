@@ -285,6 +285,11 @@ function findLeadByPhone(store, whatsapp) {
 	return store.leads.find(lead => normalizePhone(lead.whatsapp) === normalized);
 }
 
+function isWheelLead(lead) {
+	const source = String(lead?.source || '').trim().toLowerCase();
+	return source === 'عجلة الحظ' || source === 'العجلة' || source === 'wheel' || source === 'wheel of luck';
+}
+
 async function createLead(input, req, options = {}) {
 	const store = await readStore();
 	const normalizedWhatsapp = normalizePhone(input.whatsapp);
@@ -510,9 +515,9 @@ app.get('/api/admin/leads', requireAdmin, async (req, res) => {
 	if (from && to && from > to) return res.status(400).json({ message: 'From date must be before to date' });
 	// Wheel submissions have their own admin screen and must not pollute the
 	// customer/leads view or its filters.
-	let leads = store.leads.filter(lead => String(lead.source || '') !== 'عجلة الحظ');
+	let leads = store.leads.filter(lead => !isWheelLead(lead));
 	if (status && LEAD_STATUSES.includes(status)) leads = leads.filter(lead => lead.status === status);
-	if (source && source !== 'عجلة الحظ') leads = leads.filter(lead => String(lead.source || '') === source);
+	if (source && !isWheelLead({ source })) leads = leads.filter(lead => String(lead.source || '') === source);
 	if (from) leads = leads.filter(lead => String(lead.createdAt || '').slice(0, 10) >= from);
 	if (to) leads = leads.filter(lead => String(lead.createdAt || '').slice(0, 10) <= to);
 	if (search) leads = leads.filter(lead => [lead.name, lead.whatsapp, lead.school, lead.program, lead.source].some(value => String(value).toLowerCase().includes(search)));
@@ -530,9 +535,9 @@ app.get('/api/admin/leads/export', requireAdmin, async (req, res) => {
 	if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) return res.status(400).json({ message: 'Invalid from date' });
 	if (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)) return res.status(400).json({ message: 'Invalid to date' });
 	if (from && to && from > to) return res.status(400).json({ message: 'From date must be before to date' });
-	let leads = store.leads.filter(lead => String(lead.source || '') !== 'عجلة الحظ');
+	let leads = store.leads.filter(lead => !isWheelLead(lead));
 	if (status && LEAD_STATUSES.includes(status)) leads = leads.filter(lead => lead.status === status);
-	if (source && source !== 'عجلة الحظ') leads = leads.filter(lead => String(lead.source || '') === source);
+	if (source && !isWheelLead({ source })) leads = leads.filter(lead => String(lead.source || '') === source);
 	if (from) leads = leads.filter(lead => String(lead.createdAt || '').slice(0, 10) >= from);
 	if (to) leads = leads.filter(lead => String(lead.createdAt || '').slice(0, 10) <= to);
 	if (search) leads = leads.filter(lead => [lead.name, lead.whatsapp, lead.school, lead.program, lead.source].some(value => String(value).toLowerCase().includes(search)));
@@ -650,7 +655,7 @@ app.get('/api/admin/dashboard/summary', requireAdmin, async (req, res) => {
 	const wheelState = readWheelState();
 	const wheelClaimsCount = Object.values(wheelState.spins).filter(spin => spin?.claimed).length;
 	const today = new Date().toISOString().slice(0, 10);
-	const customerLeads = store.leads.filter(lead => String(lead.source || '') !== 'عجلة الحظ');
+	const customerLeads = store.leads.filter(lead => !isWheelLead(lead));
 	const byStatus = Object.fromEntries(LEAD_STATUSES.map(status => [status, customerLeads.filter(lead => lead.status === status).length]));
 	const byProgram = {};
 	for (const lead of customerLeads) byProgram[lead.program || 'unknown'] = (byProgram[lead.program || 'unknown'] || 0) + 1;
