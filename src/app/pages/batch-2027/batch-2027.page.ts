@@ -36,13 +36,13 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	showHeroSubscriptionChoices = false;
 	giftOptions = [
 		{ id: 'cash-50', label: '50 جنيه', value: '50 جنيه', detail: 'هدية مالية', available: true, emoji: '50 جنيه', weight: 30 },
-		{ id: 'lucky-chance', label: 'حظ سعيد', value: 'فرصة', detail: 'محاولة إضافية', available: false, emoji: 'حظ سعيد', weight: 60 },
+		{ id: 'lucky-chance', label: 'حظ سعيد', value: 'فرصة', detail: 'محاولة إضافية', available: false, emoji: 'حظ سعيد', weight: 67 },
 		{ id: 'discount-10', label: 'خصم 10%', value: '10%', detail: 'خصم على أول شهر', available: true, emoji: 'خصم 10%', weight: 10 },
-		{ id: 'cash-200', label: '200 جنيه', value: '200 جنيه', detail: 'هدية مالية', available: true, emoji: '200 جنيه', weight: 30 },
-		{ id: 'lucky-empty-1', label: 'حظ سعيد', value: 'فارغ', detail: 'حظ سعيد', available: false, emoji: 'حظ سعيد', weight: 60 },
+		{ id: 'cash-200', label: '200 جنيه', value: '200 جنيه', detail: 'هدية مالية', available: true, emoji: '200 جنيه', weight: 10 },
+		{ id: 'lucky-empty-1', label: 'حظ سعيد', value: 'فارغ', detail: 'حظ سعيد', available: false, emoji: 'حظ سعيد', weight: 67 },
 		{ id: 'discount-15', label: 'خصم 15%', value: '15%', detail: 'خصم على أول شهر', available: true, emoji: 'خصم 15%', weight: 10 },
 		{ id: 'cash-100', label: '100 جنيه', value: '100 جنيه', detail: 'هدية مالية', available: true, emoji: '100 جنيه', weight: 30 },
-		{ id: 'lucky-empty-2', label: 'حظ سعيد', value: 'فارغ', detail: 'حظ سعيد', available: false, emoji: 'حظ سعيد', weight: 60 },
+		{ id: 'lucky-empty-2', label: 'حظ سعيد', value: 'فارغ', detail: 'حظ سعيد', available: false, emoji: 'حظ سعيد', weight: 66 },
 		{ id: 'discount-20', label: 'خصم 20%', value: '20%', detail: 'خصم على أول شهر', available: true, emoji: 'خصم 20%', weight: 10 },
 	];
 	giftAvailable = true;

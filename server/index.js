@@ -60,13 +60,13 @@ const WHEEL_TTL_MS = 30 * 60 * 1000;
 const MAX_WHEEL_ATTEMPTS = 3;
 const WHEEL_OPTIONS = [
 	{ id: 'cash-50', label: '50 جنيه', weight: 30, available: true },
-	{ id: 'lucky-chance', label: 'حظ سعيد', weight: 60, available: false },
+	{ id: 'lucky-chance', label: 'حظ سعيد', weight: 67, available: false },
 	{ id: 'discount-10', label: 'خصم 10%', weight: 10, available: true },
-	{ id: 'cash-200', label: '200 جنيه', weight: 30, available: true },
-	{ id: 'lucky-empty-1', label: 'حظ سعيد', weight: 60, available: false },
+	{ id: 'cash-200', label: '200 جنيه', weight: 10, available: true },
+	{ id: 'lucky-empty-1', label: 'حظ سعيد', weight: 67, available: false },
 	{ id: 'discount-15', label: 'خصم 15%', weight: 10, available: true },
 	{ id: 'cash-100', label: '100 جنيه', weight: 30, available: true },
-	{ id: 'lucky-empty-2', label: 'حظ سعيد', weight: 60, available: false },
+	{ id: 'lucky-empty-2', label: 'حظ سعيد', weight: 66, available: false },
 	{ id: 'discount-20', label: 'خصم 20%', weight: 10, available: true },
 ];
 if (process.env.NODE_ENV === 'production' && (ADMIN_USERNAME === 'jr1' || ADMIN_PASSWORD === 'jr1')) {
