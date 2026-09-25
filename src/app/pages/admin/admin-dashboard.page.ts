@@ -69,6 +69,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadSearch = '';
 	leadStatus = '';
 	leadSource = '';
+	leadPlatform = '';
+	leadCampaign = '';
 	leadProgram = '';
 	leadDateFrom = '';
 	leadDateTo = '';
@@ -148,7 +150,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.isLoadingLeads = true;
 		this.statusMessage = '';
 		this.errorMessage = '';
-		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage).subscribe({
+		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage, 20, this.leadPlatform.trim(), this.leadCampaign.trim()).subscribe({
 			next: result => {
 				if (requestId !== this.leadsRequestId) return;
 				this.leads = result.data;
@@ -165,10 +167,10 @@ export class AdminDashboardPageComponent implements OnInit {
 		});
 	}
 	searchLeads(): void { this.leadsPage = 1; this.loadLeads(); }
-	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadStatus = ''; this.leadProgram = ''; this.leadDateFrom = ''; this.leadDateTo = ''; this.leads = []; this.leadsTotal = 0; this.searchLeads(); }
+	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadPlatform = ''; this.leadCampaign = ''; this.leadStatus = ''; this.leadProgram = ''; this.leadDateFrom = ''; this.leadDateTo = ''; this.leads = []; this.leadsTotal = 0; this.searchLeads(); }
 	downloadLeadsExcel(): void {
 		if (this.leadDateFrom && this.leadDateTo && this.leadDateFrom > this.leadDateTo) { this.errorMessage = 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية.'; return; }
-		this.adminApi.exportLeads({ search: this.leadSearch.trim(), status: this.leadStatus, source: this.leadSource, program: this.leadProgram, from: this.leadDateFrom, to: this.leadDateTo }).subscribe({
+		this.adminApi.exportLeads({ search: this.leadSearch.trim(), status: this.leadStatus, source: this.leadSource, platform: this.leadPlatform.trim(), campaign: this.leadCampaign.trim(), program: this.leadProgram, from: this.leadDateFrom, to: this.leadDateTo }).subscribe({
 			next: blob => {
 				const url = URL.createObjectURL(blob);
 				const anchor = document.createElement('a');
@@ -309,6 +311,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	formatLeadSource(source?: string): string {
 		return source === 'عجلة الحظ' ? 'العجلة' : source || 'غير محدد';
 	}
+
+	formatAttributionPlatform(platform?: string): string { return platform || 'غير محددة'; }
 
 	openPreview(): void {
 		const route = this.selectedPageRoute || '/';

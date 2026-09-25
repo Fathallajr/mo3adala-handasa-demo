@@ -8,6 +8,7 @@ import { pageTransition } from './shared/animations';
 import { ViewportScroller } from '@angular/common';
 import { SeoService } from './core/seo.service';
 import { StyledSelectComponent } from './shared/components/styled-select/styled-select.component';
+import { captureLeadAttribution, LeadAttribution } from './core/lead-attribution';
 
 declare global {
 	interface Window {
@@ -52,6 +53,7 @@ export class AppComponent implements OnInit, OnDestroy {
 	offerSubmitting = false;
 	offerError = '';
 	private readonly fallbackLaunchOfferEndpoint = '/api/launch-offer';
+	private readonly leadAttribution: LeadAttribution = captureLeadAttribution();
 	countdownDays = 15;
 	countdownHours = 0;
 	countdownMinutes = 0;
@@ -194,7 +196,7 @@ export class AppComponent implements OnInit, OnDestroy {
 		}
 		this.offerSubmitting = true;
 		this.offerError = '';
-		const lead = { name: this.offerName.trim(), whatsapp: this.offerWhatsapp.trim(), school: this.offerSchool.trim(), studentType: this.offerStudentType, program: this.offerProgram, source: this.offerSource, consent: this.offerContactConsent ? 'نعم' : 'لا' };
+		const lead = { name: this.offerName.trim(), whatsapp: this.offerWhatsapp.trim(), school: this.offerSchool.trim(), studentType: this.offerStudentType, program: this.offerProgram, source: this.offerSource, consent: this.offerContactConsent ? 'نعم' : 'لا', attribution: JSON.stringify(this.leadAttribution) };
 		const controller = new AbortController();
 		// The backend may wait up to 60 seconds for Google Apps Script while it
 		// scans the sheet for an existing WhatsApp number.

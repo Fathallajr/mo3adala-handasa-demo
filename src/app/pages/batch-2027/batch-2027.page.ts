@@ -7,6 +7,7 @@ import { SeoService } from '../../core/seo.service';
 import { StyledSelectComponent } from '../../shared/components/styled-select/styled-select.component';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
 import { cmsPageDefaults } from '../../core/cms-page.registry';
+import { captureLeadAttribution, LeadAttribution } from '../../core/lead-attribution';
 
 const PHONE_PATTERN = /^01\d{9}$/;
 const WHEEL_SPIN_DURATION_MS = 5200;
@@ -108,6 +109,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	offerError = '';
 	private readonly launchOfferEndpoint = '/api/launch-offer';
 	private readonly giftWhatsAppNumber = '201080681865';
+	private readonly leadAttribution: LeadAttribution = captureLeadAttribution();
 
 	constructor(
 		private seo: SeoService,
@@ -447,7 +449,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		}
 		this.offerSubmitting = true;
 		this.offerError = '';
-		const lead = { name: this.lead.name.trim(), whatsapp: this.lead.whatsapp.trim(), school: this.lead.school.trim(), studentType: this.lead.studentType, program: this.lead.program, source: this.lead.source, consent: this.offerContactConsent ? 'نعم' : 'لا' };
+		const lead = { name: this.lead.name.trim(), whatsapp: this.lead.whatsapp.trim(), school: this.lead.school.trim(), studentType: this.lead.studentType, program: this.lead.program, source: this.lead.source, consent: this.offerContactConsent ? 'نعم' : 'لا', attribution: JSON.stringify(this.leadAttribution) };
 		try {
 			const payload = await this.postLead(lead);
 			if (payload.alreadyRegistered) {

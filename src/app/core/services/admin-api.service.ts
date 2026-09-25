@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 export interface Lead {
 	id: string; name: string; whatsapp: string; school?: string; studentType?: string;
-	program?: string; source?: string; status: string; notes?: string; createdAt: string; updatedAt?: string;
+	program?: string; source?: string; attribution?: { platform?: string; campaign?: string; adSet?: string; ad?: string; medium?: string; content?: string; landingPage?: string; referrer?: string }; status: string; notes?: string; createdAt: string; updatedAt?: string;
 }
 export interface DashboardSummary {
 	totalLeads: number; todayLeads: number; wheelClaimsCount: number;
@@ -23,7 +23,7 @@ export class AdminApiService {
 	private readonly base = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api';
 
 	getSummary(): Observable<DashboardSummary> { return this.http.get<DashboardSummary>(`${this.base}/admin/dashboard/summary`); }
-	listLeads(search = '', status = '', source = '', program = '', from = '', to = '', page = 1, limit = 20): Observable<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
+	listLeads(search = '', status = '', source = '', program = '', from = '', to = '', page = 1, limit = 20, platform = '', campaign = ''): Observable<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
 		let params = new HttpParams().set('page', page).set('limit', limit);
 		if (search) params = params.set('search', search);
 		if (status) params = params.set('status', status);
@@ -31,9 +31,11 @@ export class AdminApiService {
 		if (program) params = params.set('program', program);
 		if (from) params = params.set('from', from);
 		if (to) params = params.set('to', to);
+		if (platform) params = params.set('platform', platform);
+		if (campaign) params = params.set('campaign', campaign);
 		return this.http.get<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }>(`${this.base}/admin/leads`, { params });
 	}
-	exportLeads(filters: { search?: string; status?: string; source?: string; program?: string; from?: string; to?: string }): Observable<Blob> {
+	exportLeads(filters: { search?: string; status?: string; source?: string; program?: string; from?: string; to?: string; platform?: string; campaign?: string }): Observable<Blob> {
 		let params = new HttpParams();
 		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);
 		return this.http.get(`${this.base}/admin/leads/export`, { params, responseType: 'blob' });

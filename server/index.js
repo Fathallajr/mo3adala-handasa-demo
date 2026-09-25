@@ -153,7 +153,7 @@ const openApiDocument = {
 	components: {
 		securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'Token' } },
 		schemas: {
-			Lead: { type: 'object', properties: { id: { type: 'string' }, name: { type: 'string' }, whatsapp: { type: 'string' }, school: { type: 'string' }, studentType: { type: 'string' }, program: { type: 'string' }, source: { type: 'string' }, status: { type: 'string', enum: LEAD_STATUSES }, notes: { type: 'string' }, createdAt: { type: 'string', format: 'date-time' }, updatedAt: { type: 'string', format: 'date-time' } } },
+		Lead: { type: 'object', properties: { id: { type: 'string' }, name: { type: 'string' }, whatsapp: { type: 'string' }, school: { type: 'string' }, studentType: { type: 'string' }, program: { type: 'string' }, source: { type: 'string' }, attribution: { type: 'object', additionalProperties: { type: 'string' } }, status: { type: 'string', enum: LEAD_STATUSES }, notes: { type: 'string' }, createdAt: { type: 'string', format: 'date-time' }, updatedAt: { type: 'string', format: 'date-time' } } },
 			WheelGift: { type: 'object', properties: { id: { type: 'string' }, label: { type: 'string' }, available: { type: 'boolean' } } },
 			Error: { type: 'object', properties: { message: { type: 'string' } } },
 			Program: { type: 'object', properties: { id: { type: 'string', format: 'uuid' }, name: { type: 'string' }, slug: { type: 'string' }, category: { type: 'string' }, language: { type: 'string' }, price: { type: 'number' }, features: { type: 'array', items: { type: 'string' } }, isActive: { type: 'boolean' }, enrollmentStatus: { type: 'string', enum: ['open', 'closed'] } } }
@@ -166,8 +166,8 @@ const openApiDocument = {
 		'/api/auth/logout': { post: { tags: ['Authentication'], summary: 'Logout current admin session', security: [{ bearerAuth: [] }], responses: { 204: { description: 'Logged out' } } } },
 		'/api/content': { get: { tags: ['Content'], summary: 'List public CMS pages', responses: { 200: { description: 'Page summaries' } } } },
 		'/api/content/{pageKey}': { get: { tags: ['Content'], summary: 'Get a public CMS page', parameters: [{ name: 'pageKey', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Page content' }, 404: { description: 'Page not found' } } }, put: { tags: ['Content'], summary: 'Save CMS page content', security: [{ bearerAuth: [] }], parameters: [{ name: 'pageKey', in: 'path', required: true, schema: { type: 'string' } }], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } }, responses: { 200: { description: 'Saved content' }, 401: { description: 'Unauthorized' } } } },
-		'/api/admin/leads': { get: { tags: ['Leads'], summary: 'List and filter leads', security: [{ bearerAuth: [] }], parameters: [{ name: 'search', in: 'query', schema: { type: 'string' } }, { name: 'status', in: 'query', schema: { type: 'string', enum: LEAD_STATUSES } }, { name: 'source', in: 'query', schema: { type: 'string' } }, { name: 'program', in: 'query', schema: { type: 'string' } }, { name: 'from', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'to', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } }, { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } }], responses: { 200: { description: 'Paginated leads' }, 401: { description: 'Unauthorized' } } } },
-		'/api/admin/leads/export': { get: { tags: ['Leads'], summary: 'Export filtered leads as CSV for Excel', security: [{ bearerAuth: [] }], parameters: [{ name: 'search', in: 'query', schema: { type: 'string' } }, { name: 'status', in: 'query', schema: { type: 'string', enum: LEAD_STATUSES } }, { name: 'source', in: 'query', schema: { type: 'string' } }, { name: 'program', in: 'query', schema: { type: 'string' } }, { name: 'from', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'to', in: 'query', schema: { type: 'string', format: 'date' } }], responses: { 200: { description: 'CSV export' }, 401: { description: 'Unauthorized' } } } },
+		'/api/admin/leads': { get: { tags: ['Leads'], summary: 'List and filter leads', security: [{ bearerAuth: [] }], parameters: [{ name: 'search', in: 'query', schema: { type: 'string' } }, { name: 'status', in: 'query', schema: { type: 'string', enum: LEAD_STATUSES } }, { name: 'source', in: 'query', schema: { type: 'string' } }, { name: 'platform', in: 'query', schema: { type: 'string' } }, { name: 'campaign', in: 'query', schema: { type: 'string' } }, { name: 'program', in: 'query', schema: { type: 'string' } }, { name: 'from', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'to', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } }, { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } }], responses: { 200: { description: 'Paginated leads' }, 401: { description: 'Unauthorized' } } } },
+		'/api/admin/leads/export': { get: { tags: ['Leads'], summary: 'Export filtered leads as CSV for Excel', security: [{ bearerAuth: [] }], parameters: [{ name: 'search', in: 'query', schema: { type: 'string' } }, { name: 'status', in: 'query', schema: { type: 'string', enum: LEAD_STATUSES } }, { name: 'source', in: 'query', schema: { type: 'string' } }, { name: 'platform', in: 'query', schema: { type: 'string' } }, { name: 'campaign', in: 'query', schema: { type: 'string' } }, { name: 'program', in: 'query', schema: { type: 'string' } }, { name: 'from', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'to', in: 'query', schema: { type: 'string', format: 'date' } }], responses: { 200: { description: 'CSV export' }, 401: { description: 'Unauthorized' } } } },
 		'/api/leads': { post: { tags: ['Leads'], summary: 'Create a public lead', requestBody: { required: true, content: { 'application/json': { schema: { '$ref': '#/components/schemas/Lead' } } } }, responses: { 201: { description: 'Lead created' }, 400: { description: 'Validation error' } } } },
 		'/api/admin/leads/{id}': { get: { tags: ['Leads'], summary: 'Get one lead', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], responses: { 200: { description: 'Lead details' }, 404: { description: 'Lead not found' } } }, patch: { tags: ['Leads'], summary: 'Update a lead', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], requestBody: { content: { 'application/json': { schema: { '$ref': '#/components/schemas/Lead' } } } }, responses: { 200: { description: 'Updated lead' }, 404: { description: 'Lead not found' } } } },
 		'/api/admin/audit-logs': { get: { tags: ['Dashboard'], summary: 'List admin activity logs', security: [{ bearerAuth: [] }], responses: { 200: { description: 'Activity logs' }, 401: { description: 'Unauthorized' } } } },
@@ -306,6 +306,14 @@ function isWheelLead(lead) {
 	return source === 'عجلة الحظ' || source === 'العجلة' || source === 'wheel' || source === 'wheel of luck';
 }
 
+function normalizeAttribution(value) {
+	if (!value || typeof value !== 'object') return {};
+	const allowed = ['platform', 'campaign', 'adSet', 'ad', 'medium', 'content', 'landingPage', 'referrer'];
+	return Object.fromEntries(allowed
+		.map(key => [key, typeof value[key] === 'string' ? value[key].trim().slice(0, 300) : ''])
+		.filter(([, item]) => item));
+}
+
 async function createLead(input, req, options = {}) {
 	const store = await readStore();
 	const normalizedWhatsapp = normalizePhone(input.whatsapp);
@@ -325,6 +333,7 @@ async function createLead(input, req, options = {}) {
 		studentType: String(input.studentType || '').trim(),
 		program: String(input.program || '').trim(),
 		source: String(input.source || '').trim(),
+		attribution: normalizeAttribution(input.attribution),
 		status: 'new',
 		notes: '',
 		createdAt: now,
@@ -470,13 +479,18 @@ const LAUNCH_OFFER_PROGRAMS = [
 ];
 
 app.post('/api/launch-offer', rateLimit({ name: 'launch-offer', windowMs: 15 * 60 * 1000, max: 10 }), async (req, res) => {
-	const { name, whatsapp, school, studentType, program, source, consent } = req.body || {};
+	const { name, whatsapp, school, studentType, program, source, consent, attribution } = req.body || {};
 	if (source === 'عجلة الحظ') {
 		return res.status(400).json({ success: false, message: 'Wheel claims must use the dedicated wheel service' });
 	}
 	const cleanWhatsapp = typeof whatsapp === 'string' ? whatsapp.trim() : '';
+	const normalizedAttribution = normalizeAttribution(typeof attribution === 'string' ? (() => { try { return JSON.parse(attribution); } catch { return {}; } })() : attribution);
 	const requiredValues = { name, whatsapp: cleanWhatsapp, school, studentType, program, source, consent };
 	const values = { ...requiredValues, whatsapp: `'${cleanWhatsapp}` };
+	values.platform = normalizedAttribution.platform || '';
+	values.campaign = normalizedAttribution.campaign || '';
+	values.adSet = normalizedAttribution.adSet || '';
+	values.ad = normalizedAttribution.ad || '';
 
 	if (Object.values(requiredValues).some(value => typeof value !== 'string' || !value.trim())) {
 		return res.status(400).json({ success: false, message: 'من فضلك أكمل كل بيانات فورم العرض.' });
@@ -494,7 +508,7 @@ app.post('/api/launch-offer', rateLimit({ name: 'launch-offer', windowMs: 15 * 6
 	}
 
 	try {
-		await createLead({ name, whatsapp: cleanWhatsapp, school, studentType, program, source }, req);
+		await createLead({ name, whatsapp: cleanWhatsapp, school, studentType, program, source, attribution: normalizedAttribution }, req);
 	} catch (error) {
 		console.error('Failed to save lead locally', error);
 		return res.status(500).json({ success: false, localSaved: false, message: 'تعذر حفظ البيانات محليًا. حاول مرة أخرى.' });
@@ -535,6 +549,8 @@ app.get('/api/admin/leads', requireAdmin, requirePermission('leads:read'), async
 	const search = String(req.query.search || '').trim().toLowerCase();
 	const status = String(req.query.status || '').trim();
 	const source = String(req.query.source || '').trim();
+	const platform = String(req.query.platform || '').trim().toLowerCase();
+	const campaign = String(req.query.campaign || '').trim().toLowerCase();
 	const program = String(req.query.program || '').trim();
 	const from = String(req.query.from || '').trim();
 	const to = String(req.query.to || '').trim();
@@ -548,10 +564,12 @@ app.get('/api/admin/leads', requireAdmin, requirePermission('leads:read'), async
 	let leads = store.leads.filter(lead => !isWheelLead(lead));
 	if (status && LEAD_STATUSES.includes(status)) leads = leads.filter(lead => lead.status === status);
 	if (source && !isWheelLead({ source })) leads = leads.filter(lead => String(lead.source || '') === source);
+	if (platform) leads = leads.filter(lead => String(lead.attribution?.platform || '').toLowerCase().includes(platform));
+	if (campaign) leads = leads.filter(lead => String(lead.attribution?.campaign || '').toLowerCase().includes(campaign));
 	if (program) leads = leads.filter(lead => String(lead.program || '') === program);
 	if (from) leads = leads.filter(lead => String(lead.createdAt || '').slice(0, 10) >= from);
 	if (to) leads = leads.filter(lead => String(lead.createdAt || '').slice(0, 10) <= to);
-	if (search) leads = leads.filter(lead => [lead.name, lead.whatsapp, lead.school, lead.program, lead.source].some(value => String(value).toLowerCase().includes(search)));
+	if (search) leads = leads.filter(lead => [lead.name, lead.whatsapp, lead.school, lead.program, lead.source, lead.attribution?.platform, lead.attribution?.campaign].some(value => String(value || '').toLowerCase().includes(search)));
 	const total = leads.length;
 	res.json({ data: leads.slice((page - 1) * limit, page * limit), pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
 });
@@ -561,6 +579,8 @@ app.get('/api/admin/leads/export', requireAdmin, requirePermission('leads:read')
 	const search = String(req.query.search || '').trim().toLowerCase();
 	const status = String(req.query.status || '').trim();
 	const source = String(req.query.source || '').trim();
+	const platform = String(req.query.platform || '').trim().toLowerCase();
+	const campaign = String(req.query.campaign || '').trim().toLowerCase();
 	const program = String(req.query.program || '').trim();
 	const from = String(req.query.from || '').trim();
 	const to = String(req.query.to || '').trim();
@@ -570,14 +590,16 @@ app.get('/api/admin/leads/export', requireAdmin, requirePermission('leads:read')
 	let leads = store.leads.filter(lead => !isWheelLead(lead));
 	if (status && LEAD_STATUSES.includes(status)) leads = leads.filter(lead => lead.status === status);
 	if (source && !isWheelLead({ source })) leads = leads.filter(lead => String(lead.source || '') === source);
+	if (platform) leads = leads.filter(lead => String(lead.attribution?.platform || '').toLowerCase().includes(platform));
+	if (campaign) leads = leads.filter(lead => String(lead.attribution?.campaign || '').toLowerCase().includes(campaign));
 	if (program) leads = leads.filter(lead => String(lead.program || '') === program);
 	if (from) leads = leads.filter(lead => String(lead.createdAt || '').slice(0, 10) >= from);
 	if (to) leads = leads.filter(lead => String(lead.createdAt || '').slice(0, 10) <= to);
-	if (search) leads = leads.filter(lead => [lead.name, lead.whatsapp, lead.school, lead.program, lead.source].some(value => String(value).toLowerCase().includes(search)));
+	if (search) leads = leads.filter(lead => [lead.name, lead.whatsapp, lead.school, lead.program, lead.source, lead.attribution?.platform, lead.attribution?.campaign].some(value => String(value || '').toLowerCase().includes(search)));
 	const escapeCsv = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
 	const rows = [
-		['الاسم', 'واتساب', 'المدرسة أو المعهد', 'نوع التعليم', 'البرنامج', 'المصدر', 'الحالة', 'ملاحظات', 'تاريخ التسجيل'],
-		...leads.map(lead => [lead.name, lead.whatsapp, lead.school, lead.studentType, lead.program, lead.source || 'غير محدد', lead.status, lead.notes, lead.createdAt])
+		['الاسم', 'واتساب', 'المدرسة أو المعهد', 'نوع التعليم', 'البرنامج', 'المصدر', 'منصة الإعلان', 'الكامبين', 'مجموعة الإعلان', 'الإعلان', 'الحالة', 'ملاحظات', 'تاريخ التسجيل'],
+		...leads.map(lead => [lead.name, lead.whatsapp, lead.school, lead.studentType, lead.program, lead.source || 'غير محدد', lead.attribution?.platform || 'غير محدد', lead.attribution?.campaign || 'غير محدد', lead.attribution?.adSet || '', lead.attribution?.ad || '', lead.status, lead.notes, lead.createdAt])
 	];
 	const csv = '\uFEFF' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n');
 	res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="leads-${from || 'all'}-${to || 'all'}.csv"` });

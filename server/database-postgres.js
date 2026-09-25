@@ -16,7 +16,7 @@ function ensureSchema() {
 			CREATE TABLE IF NOT EXISTS leads (
 				id TEXT PRIMARY KEY, name TEXT NOT NULL, whatsapp TEXT NOT NULL UNIQUE, school TEXT DEFAULT '',
 				student_type TEXT DEFAULT '', program TEXT DEFAULT '', source TEXT DEFAULT '', status TEXT NOT NULL,
-				notes TEXT DEFAULT '', created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ
+				notes TEXT DEFAULT '', attribution JSONB NOT NULL DEFAULT '{}'::jsonb, created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ
 			);
 			CREATE TABLE IF NOT EXISTS programs (
 				id TEXT PRIMARY KEY, name TEXT NOT NULL, slug TEXT NOT NULL UNIQUE, category TEXT NOT NULL,
@@ -37,6 +37,7 @@ function ensureSchema() {
 				token TEXT PRIMARY KEY, expires_at TIMESTAMPTZ NOT NULL, role TEXT NOT NULL DEFAULT 'admin'
 			);
 			ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'admin';
+			ALTER TABLE leads ADD COLUMN IF NOT EXISTS attribution JSONB NOT NULL DEFAULT '{}'::jsonb;
 		`);
 	}
 	return schemaPromise;
@@ -46,7 +47,7 @@ async function readStore() {
 	await ensureSchema();
 	const [pages, leads, programs, auditLogs] = await Promise.all([
 		pool.query('SELECT key, data, updated_at AS "updatedAt" FROM pages'),
-		pool.query('SELECT id,name,whatsapp,school,student_type AS "studentType",program,source,status,notes,created_at AS "createdAt",updated_at AS "updatedAt" FROM leads ORDER BY created_at DESC'),
+		pool.query('SELECT id,name,whatsapp,school,student_type AS "studentType",program,source,status,notes,attribution,created_at AS "createdAt",updated_at AS "updatedAt" FROM leads ORDER BY created_at DESC'),
 		pool.query('SELECT id,name,slug,category,language,price,features,is_active AS "isActive",enrollment_status AS "enrollmentStatus",created_at AS "createdAt",updated_at AS "updatedAt" FROM programs ORDER BY created_at DESC'),
 		pool.query('SELECT id,action,entity_type AS "entityType",entity_id AS "entityId",actor,ip,created_at AS "createdAt" FROM audit_logs ORDER BY created_at DESC')
 	]);
@@ -68,7 +69,7 @@ async function writeStore(store) {
 			await client.query('INSERT INTO pages(key,data,updated_at) VALUES ($1,$2::jsonb,$3)', [key, JSON.stringify(value.data ?? {}), value.updatedAt || new Date().toISOString()]);
 		}
 		for (const lead of store.leads || []) {
-			await client.query(`INSERT INTO leads(id,name,whatsapp,school,student_type,program,source,status,notes,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`, [lead.id, lead.name || '', lead.whatsapp || '', lead.school || '', lead.studentType || '', lead.program || '', lead.source || '', lead.status || 'new', lead.notes || '', lead.createdAt || new Date().toISOString(), lead.updatedAt || null]);
+			await client.query(`INSERT INTO leads(id,name,whatsapp,school,student_type,program,source,status,notes,attribution,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12)`, [lead.id, lead.name || '', lead.whatsapp || '', lead.school || '', lead.studentType || '', lead.program || '', lead.source || '', lead.status || 'new', lead.notes || '', JSON.stringify(lead.attribution || {}), lead.createdAt || new Date().toISOString(), lead.updatedAt || null]);
 		}
 		for (const program of store.programs || []) {
 			await client.query(`INSERT INTO programs(id,name,slug,category,language,price,features,is_active,enrollment_status,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11)`, [program.id, program.name || '', program.slug || '', program.category || '', program.language || 'ar', Number(program.price || 0), JSON.stringify(program.features || []), program.isActive !== false, program.enrollmentStatus || 'open', program.createdAt || new Date().toISOString(), program.updatedAt || null]);

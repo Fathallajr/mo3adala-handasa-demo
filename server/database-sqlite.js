@@ -15,8 +15,8 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS pages (key TEXT PRIMARY KEY, data TEXT NOT NULL, updated_at TEXT NOT NULL);
   CREATE TABLE IF NOT EXISTS leads (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, whatsapp TEXT NOT NULL, school TEXT DEFAULT '',
-    student_type TEXT DEFAULT '', program TEXT DEFAULT '', source TEXT DEFAULT '', status TEXT NOT NULL,
-    notes TEXT DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT
+		student_type TEXT DEFAULT '', program TEXT DEFAULT '', source TEXT DEFAULT '', status TEXT NOT NULL,
+		notes TEXT DEFAULT '', attribution TEXT DEFAULT '{}', created_at TEXT NOT NULL, updated_at TEXT
   );
   CREATE UNIQUE INDEX IF NOT EXISTS leads_whatsapp_unique ON leads(whatsapp);
   CREATE TABLE IF NOT EXISTS programs (
@@ -39,6 +39,7 @@ db.exec(`
   );
 `);
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
+try { db.prepare("ALTER TABLE leads ADD COLUMN attribution TEXT DEFAULT '{}'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 
 function migrateLegacyStore() {
   if (db.prepare('SELECT value FROM metadata WHERE key = ?').get('legacy-json-migrated')) return;
@@ -47,8 +48,8 @@ function migrateLegacyStore() {
   const insert = db.transaction(() => {
     const pageInsert = db.prepare('INSERT OR REPLACE INTO pages(key, data, updated_at) VALUES (?, ?, ?)');
     for (const [key, value] of Object.entries(legacy.pages || {})) pageInsert.run(key, JSON.stringify(value.data ?? {}), value.updatedAt || new Date().toISOString());
-    const leadInsert = db.prepare(`INSERT OR IGNORE INTO leads(id,name,whatsapp,school,student_type,program,source,status,notes,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)`);
-    for (const lead of Array.isArray(legacy.leads) ? legacy.leads : []) leadInsert.run(lead.id, lead.name || '', lead.whatsapp || '', lead.school || '', lead.studentType || '', lead.program || '', lead.source || '', lead.status || 'new', lead.notes || '', lead.createdAt || new Date().toISOString(), lead.updatedAt || null);
+		const leadInsert = db.prepare(`INSERT OR IGNORE INTO leads(id,name,whatsapp,school,student_type,program,source,status,notes,attribution,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`);
+		for (const lead of Array.isArray(legacy.leads) ? legacy.leads : []) leadInsert.run(lead.id, lead.name || '', lead.whatsapp || '', lead.school || '', lead.studentType || '', lead.program || '', lead.source || '', lead.status || 'new', lead.notes || '', JSON.stringify(lead.attribution || {}), lead.createdAt || new Date().toISOString(), lead.updatedAt || null);
     const programInsert = db.prepare(`INSERT OR IGNORE INTO programs(id,name,slug,category,language,price,features,is_active,enrollment_status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)`);
     for (const program of Array.isArray(legacy.programs) ? legacy.programs : []) programInsert.run(program.id, program.name || '', program.slug || '', program.category || '', program.language || 'ar', Number(program.price || 0), JSON.stringify(program.features || []), program.isActive === false ? 0 : 1, program.enrollmentStatus || 'open', program.createdAt || new Date().toISOString(), program.updatedAt || null);
     const auditInsert = db.prepare('INSERT OR IGNORE INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES (?,?,?,?,?,?,?)');
@@ -67,7 +68,7 @@ function readStore() {
     try { data = JSON.parse(row.data); } catch {}
     pages[row.key] = { data, updatedAt: row.updated_at };
   }
-  const leads = db.prepare('SELECT id,name,whatsapp,school,student_type AS studentType,program,source,status,notes,created_at AS createdAt,updated_at AS updatedAt FROM leads ORDER BY created_at DESC').all();
+	const leads = db.prepare('SELECT id,name,whatsapp,school,student_type AS studentType,program,source,status,notes,attribution,created_at AS createdAt,updated_at AS updatedAt FROM leads ORDER BY created_at DESC').all().map(lead => { try { lead.attribution = JSON.parse(lead.attribution || '{}'); } catch { lead.attribution = {}; } return lead; });
   const programs = db.prepare('SELECT id,name,slug,category,language,price,features,is_active AS isActive,enrollment_status AS enrollmentStatus,created_at AS createdAt,updated_at AS updatedAt FROM programs ORDER BY created_at DESC').all().map(item => ({ ...item, isActive: Boolean(item.isActive), features: JSON.parse(item.features || '[]') }));
   const auditLogs = db.prepare('SELECT id,action,entity_type AS entityType,entity_id AS entityId,actor,ip,created_at AS createdAt FROM audit_logs ORDER BY created_at DESC').all();
   return { pages, leads, programs, auditLogs };
@@ -79,8 +80,8 @@ function writeStore(store) {
     const pageInsert = db.prepare('INSERT INTO pages(key,data,updated_at) VALUES (?,?,?)');
     for (const [key, value] of Object.entries(store.pages || {})) pageInsert.run(key, JSON.stringify(value.data ?? {}), value.updatedAt || new Date().toISOString());
     db.prepare('DELETE FROM leads').run();
-    const leadInsert = db.prepare(`INSERT INTO leads(id,name,whatsapp,school,student_type,program,source,status,notes,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)`);
-    for (const lead of store.leads || []) leadInsert.run(lead.id, lead.name || '', lead.whatsapp || '', lead.school || '', lead.studentType || '', lead.program || '', lead.source || '', lead.status || 'new', lead.notes || '', lead.createdAt || new Date().toISOString(), lead.updatedAt || null);
+		const leadInsert = db.prepare(`INSERT INTO leads(id,name,whatsapp,school,student_type,program,source,status,notes,attribution,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`);
+		for (const lead of store.leads || []) leadInsert.run(lead.id, lead.name || '', lead.whatsapp || '', lead.school || '', lead.studentType || '', lead.program || '', lead.source || '', lead.status || 'new', lead.notes || '', JSON.stringify(lead.attribution || {}), lead.createdAt || new Date().toISOString(), lead.updatedAt || null);
     db.prepare('DELETE FROM programs').run();
     const programInsert = db.prepare(`INSERT INTO programs(id,name,slug,category,language,price,features,is_active,enrollment_status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)`);
     for (const program of store.programs || []) programInsert.run(program.id, program.name, program.slug, program.category, program.language || 'ar', Number(program.price || 0), JSON.stringify(program.features || []), program.isActive === false ? 0 : 1, program.enrollmentStatus || 'open', program.createdAt || new Date().toISOString(), program.updatedAt || null);
