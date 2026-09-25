@@ -77,11 +77,12 @@ export class SchoolsFormComponent implements OnChanges {
 		if (!this.draft.category) { this.errorMessage = 'اختار تصنيف المؤسسة أولًا.'; return; }
 		const nextId = this.items.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1;
 		this.items.push({ id: nextId, name, type: this.draft.type || 'مدرسة صناعية', category: this.draft.category, logo: this.draft.logo || '/assets/schools/tech-school.png' });
+		this.content.items = this.items;
 		this.errorMessage = '';
 		this.draft = this.emptyDraft();
 	}
 
 	removeItem(index: number): void { this.items.splice(index, 1); }
 
-	private emptyDraft(): Partial<SchoolItem> { return { name: '', type: 'مدرسة صناعية', category: '', logo: '/assets/schools/tech-school.png' }; }
+	private emptyDraft(): Partial<SchoolItem> { return { name: '', type: 'مدرسة صناعية', category: 'مدارس الثانوية الصناعية نظام 3 سنوات', logo: '/assets/schools/tech-school.png' }; }
 }
