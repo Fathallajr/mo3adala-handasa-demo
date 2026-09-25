@@ -1205,6 +1205,10 @@ export class NewsDetailPageComponent implements OnInit {
 		return slug || `news-${index + 1}`;
 	}
 
+	resolveAssetUrl(url: string): string {
+		return this.monthlyContent.resolveAssetUrl(url);
+	}
+
 	private updatePageTitle(): void {
 		if (this.newsItem && typeof window !== 'undefined') {
 			const siteUrl = (window as any)['NG_SITE_URL'] || 'https://www.appmo3adla.com';
