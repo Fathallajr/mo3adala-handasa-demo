@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { adminFormStyles } from './admin-form-styles';
 import { MonthlyContentService } from '../../../core/services/monthly-content.service';
+import { subscriptionFormStyles } from './subscription-form-styles';
 
 @Component({
 	selector: 'app-sub-intensive-form',
 	standalone: true,
 	imports: [CommonModule, FormsModule],
-	styles: [adminFormStyles],
+	styles: [adminFormStyles + subscriptionFormStyles],
 	templateUrl: './sub-intensive-form.component.html'
 })
 export class SubIntensiveFormComponent implements OnChanges {
