@@ -240,29 +240,28 @@ async function writeStore(store) {
 	return storeWriteQueue;
 }
 
-function issueToken() {
+async function issueToken() {
 	const token = crypto.randomBytes(24).toString('hex');
-	TOKENS.set(token, Date.now() + TOKEN_TTL_MS);
-	saveTokens(TOKENS);
-	return token;
+	const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
+	await database.createAdminSession(token, expiresAt);
+	return { token, expiresAt };
 }
 
-function requireAdmin(req, res, next) {
-	const authHeader = req.headers.authorization || '';
-	const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+async function requireAdmin(req, res, next) {
+	try {
+		const authHeader = req.headers.authorization || '';
+		const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+		if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
-	if (!token || !TOKENS.has(token)) {
-		return res.status(401).json({ message: 'Unauthorized' });
+		const expiresAt = await database.getAdminSession(token);
+		if (!expiresAt || Date.now() > Date.parse(expiresAt)) {
+			if (expiresAt) await database.deleteAdminSession(token);
+			return res.status(401).json({ message: 'Session expired' });
+		}
+		next();
+	} catch (error) {
+		next(error);
 	}
-
-	const expiresAt = TOKENS.get(token);
-	if (Date.now() > expiresAt) {
-		TOKENS.delete(token);
-		saveTokens(TOKENS);
-		return res.status(401).json({ message: 'Session expired' });
-	}
-
-	next();
 }
 
 function addAuditLog(store, action, entity, entityId, req) {
@@ -330,29 +329,33 @@ app.get('/api/health', (req, res) => {
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.get('/api/openapi.json', (req, res) => res.json(openApiDocument));
 
-app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000, max: 10 }), (req, res) => {
+app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000, max: 10 }), async (req, res, next) => {
 	const { username, password } = req.body || {};
 
 	if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
 		return res.status(401).json({ message: 'Invalid credentials' });
 	}
 
-	const token = issueToken();
-	res.json({
-		token,
-		expiresAt: new Date(Date.now() + TOKEN_TTL_MS).toISOString()
-	});
+	try {
+		const session = await issueToken();
+		res.json(session);
+	} catch (error) {
+		next(error);
+	}
 });
 
 app.get('/api/auth/me', requireAdmin, (req, res) => {
 	res.json({ username: ADMIN_USERNAME, role: 'admin' });
 });
 
-app.post('/api/auth/logout', requireAdmin, (req, res) => {
+app.post('/api/auth/logout', requireAdmin, async (req, res, next) => {
 	const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-	TOKENS.delete(token);
-	saveTokens(TOKENS);
-	res.sendStatus(204);
+	try {
+		await database.deleteAdminSession(token);
+		res.sendStatus(204);
+	} catch (error) {
+		next(error);
+	}
 });
 
 app.post('/api/wheel/spin', rateLimit({ name: 'wheel-spin', windowMs: 15 * 60 * 1000, max: 30 }), async (req, res) => {

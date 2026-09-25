@@ -33,6 +33,9 @@ function ensureSchema() {
 			CREATE TABLE IF NOT EXISTS assets (
 				filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BYTEA NOT NULL, created_at TIMESTAMPTZ NOT NULL
 			);
+			CREATE TABLE IF NOT EXISTS admin_sessions (
+				token TEXT PRIMARY KEY, expires_at TIMESTAMPTZ NOT NULL
+			);
 		`);
 	}
 	return schemaPromise;
@@ -105,4 +108,20 @@ async function readAsset(filename) {
 	return result.rows[0] || null;
 }
 
-module.exports = { readStore, writeStore, readWheelState, writeWheelState, writeAsset, readAsset, databaseFile: null, pool, ensureSchema };
+async function createAdminSession(token, expiresAt) {
+	await ensureSchema();
+	await pool.query('INSERT INTO admin_sessions(token, expires_at) VALUES ($1, $2)', [token, expiresAt]);
+}
+
+async function getAdminSession(token) {
+	await ensureSchema();
+	const result = await pool.query('SELECT expires_at AS "expiresAt" FROM admin_sessions WHERE token = $1', [token]);
+	return result.rows[0]?.expiresAt || null;
+}
+
+async function deleteAdminSession(token) {
+	await ensureSchema();
+	await pool.query('DELETE FROM admin_sessions WHERE token = $1', [token]);
+}
+
+module.exports = { readStore, writeStore, readWheelState, writeWheelState, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, databaseFile: null, pool, ensureSchema };

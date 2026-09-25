@@ -34,6 +34,9 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS assets (
     filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BLOB NOT NULL, created_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS admin_sessions (
+    token TEXT PRIMARY KEY, expires_at TEXT NOT NULL
+  );
 `);
 
 function migrateLegacyStore() {
@@ -105,4 +108,17 @@ function readAsset(filename) {
 	return row || null;
 }
 
-module.exports = { readStore, writeStore, readWheelState, writeWheelState, writeAsset, readAsset, databaseFile };
+function createAdminSession(token, expiresAt) {
+	db.prepare('INSERT INTO admin_sessions(token, expires_at) VALUES (?, ?)').run(token, expiresAt);
+}
+
+function getAdminSession(token) {
+	const row = db.prepare('SELECT expires_at AS expiresAt FROM admin_sessions WHERE token = ?').get(token);
+	return row?.expiresAt || null;
+}
+
+function deleteAdminSession(token) {
+	db.prepare('DELETE FROM admin_sessions WHERE token = ?').run(token);
+}
+
+module.exports = { readStore, writeStore, readWheelState, writeWheelState, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, databaseFile };
