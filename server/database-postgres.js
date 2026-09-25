@@ -30,6 +30,9 @@ function ensureSchema() {
 			CREATE TABLE IF NOT EXISTS wheel_state (
 				id INTEGER PRIMARY KEY CHECK (id = 1), data JSONB NOT NULL
 			);
+			CREATE TABLE IF NOT EXISTS assets (
+				filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BYTEA NOT NULL, created_at TIMESTAMPTZ NOT NULL
+			);
 		`);
 	}
 	return schemaPromise;
@@ -90,4 +93,16 @@ async function writeWheelState(state) {
 		ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data`, [JSON.stringify(state)]);
 }
 
-module.exports = { readStore, writeStore, readWheelState, writeWheelState, databaseFile: null, pool, ensureSchema };
+async function writeAsset({ filename, mimeType, data, createdAt }) {
+	await ensureSchema();
+	await pool.query(`INSERT INTO assets(filename, mime_type, data, created_at) VALUES ($1,$2,$3,$4)
+		ON CONFLICT (filename) DO UPDATE SET mime_type = EXCLUDED.mime_type, data = EXCLUDED.data`, [filename, mimeType, data, createdAt || new Date().toISOString()]);
+}
+
+async function readAsset(filename) {
+	await ensureSchema();
+	const result = await pool.query('SELECT filename, mime_type AS "mimeType", data FROM assets WHERE filename = $1', [filename]);
+	return result.rows[0] || null;
+}
+
+module.exports = { readStore, writeStore, readWheelState, writeWheelState, writeAsset, readAsset, databaseFile: null, pool, ensureSchema };

@@ -2,6 +2,7 @@ const Database = require('better-sqlite3');
 const database = require('./database-postgres');
 const sqliteFile = process.env.SQLITE_FILE || require('path').join(__dirname, 'data', 'app.db');
 const wheelStateFile = require('path').join(__dirname, 'data', 'wheel-state.json');
+const uploadsDir = require('path').join(__dirname, 'uploads');
 
 async function main() {
 	if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
@@ -18,7 +19,18 @@ async function main() {
 	sqlite.close();
 	await database.writeStore(store);
 	await database.writeWheelState(wheelState);
-	console.log(`Migrated ${Object.keys(store.pages).length} pages, ${store.leads.length} leads, ${store.programs.length} programs and ${Object.keys(wheelState.claims || {}).length} wheel claims to PostgreSQL.`);
+	let assetCount = 0;
+	try {
+		const fs = require('fs');
+		for (const filename of fs.readdirSync(uploadsDir)) {
+			const fullPath = require('path').join(uploadsDir, filename);
+			if (!fs.statSync(fullPath).isFile()) continue;
+			const mimeType = filename.endsWith('.png') ? 'image/png' : filename.endsWith('.webp') ? 'image/webp' : filename.endsWith('.gif') ? 'image/gif' : 'image/jpeg';
+			await database.writeAsset({ filename, mimeType, data: fs.readFileSync(fullPath) });
+			assetCount += 1;
+		}
+	} catch {}
+	console.log(`Migrated ${Object.keys(store.pages).length} pages, ${store.leads.length} leads, ${store.programs.length} programs, ${Object.keys(wheelState.claims || {}).length} wheel claims and ${assetCount} uploaded assets to PostgreSQL.`);
 	await database.pool.end();
 }
 

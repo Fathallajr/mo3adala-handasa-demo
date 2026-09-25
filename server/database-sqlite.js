@@ -31,6 +31,9 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS wheel_state (
     id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS assets (
+    filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BLOB NOT NULL, created_at TEXT NOT NULL
+  );
 `);
 
 function migrateLegacyStore() {
@@ -93,4 +96,13 @@ function writeWheelState(state) {
 	db.prepare('INSERT INTO wheel_state(id, data) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data').run(JSON.stringify(state));
 }
 
-module.exports = { readStore, writeStore, readWheelState, writeWheelState, databaseFile };
+function writeAsset({ filename, mimeType, data, createdAt }) {
+	db.prepare('INSERT OR REPLACE INTO assets(filename, mime_type, data, created_at) VALUES (?, ?, ?, ?)').run(filename, mimeType, data, createdAt || new Date().toISOString());
+}
+
+function readAsset(filename) {
+	const row = db.prepare('SELECT filename, mime_type AS mimeType, data FROM assets WHERE filename = ?').get(filename);
+	return row || null;
+}
+
+module.exports = { readStore, writeStore, readWheelState, writeWheelState, writeAsset, readAsset, databaseFile };

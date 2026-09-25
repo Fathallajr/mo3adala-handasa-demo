@@ -122,13 +122,7 @@ if (!fssync.existsSync(UPLOADS_DIR)) {
 	fssync.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
-const uploadStorage = multer.diskStorage({
-	destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
-	filename: (_req, file, cb) => {
-		const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-		cb(null, Date.now() + '-' + crypto.randomBytes(4).toString('hex') + ext);
-	}
-});
+const uploadStorage = multer.memoryStorage();
 const upload = multer({
 	storage: uploadStorage,
 	limits: { fileSize: 8 * 1024 * 1024 },
@@ -815,12 +809,24 @@ app.put('/api/content/:pageKey', requireAdmin, async (req, res) => {
 	res.json(store.pages[pageKey].data);
 });
 
-app.post('/api/uploads', requireAdmin, upload.single('file'), (req, res) => {
+app.post('/api/uploads', requireAdmin, upload.single('file'), async (req, res) => {
 	if (!req.file) {
 		return res.status(400).json({ message: 'No file uploaded or unsupported format' });
 	}
 
-	res.json({ url: `/uploads/${req.file.filename}` });
+	const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+	const filename = Date.now() + '-' + crypto.randomBytes(4).toString('hex') + ext;
+	await database.writeAsset({ filename, mimeType: req.file.mimetype, data: req.file.buffer });
+	res.json({ url: `/uploads/${filename}` });
+});
+
+app.get('/uploads/:filename', async (req, res, next) => {
+	const filename = path.basename(req.params.filename);
+	const asset = await database.readAsset(filename);
+	if (!asset) return next();
+	res.setHeader('Content-Type', asset.mimeType);
+	res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+	res.send(asset.data);
 });
 
 app.use('/uploads', express.static(UPLOADS_DIR));
