@@ -52,6 +52,7 @@ interface PageOption {
 	styleUrls: ['./admin-dashboard.page.css']
 })
 export class AdminDashboardPageComponent implements OnInit {
+	sidebarOpen = false;
 	activeView: 'overview' | 'leads' | 'programs' | 'wheel' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = null;
 	leads: Lead[] = [];
@@ -187,10 +188,15 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	selectPage(pageKey: CmsPageKey): void {
+		this.sidebarOpen = false;
 		this.activeView = 'cms';
 		if (pageKey === this.selectedPageKey) return;
 		this.pendingCmsNavigation = true;
 		void this.router.navigate(['/admin', pageKey]);
+	}
+
+	toggleSidebar(): void {
+		this.sidebarOpen = !this.sidebarOpen;
 	}
 
 	loadPage(pageKey: CmsPageKey): void {

@@ -8,6 +8,7 @@
 			</div>
 		</div>
 		<div class="topbar-actions">
+			<button type="button" class="mobile-menu-btn" [attr.aria-expanded]="sidebarOpen" aria-label="فتح قائمة الإدارة" (click)="toggleSidebar()"><span></span><span></span><span></span></button>
 			<span class="system-status"><i></i> النظام يعمل</span>
 			<button type="button" class="site-link" (click)="openPreview()">فتح الموقع ↗</button>
 			<button type="button" class="admin-logout-btn" (click)="logout()">خروج</button>
@@ -15,7 +16,8 @@
 	</header>
 
 	<div class="admin-body">
-		<aside class="admin-sidebar">
+		<div class="admin-sidebar-backdrop" *ngIf="sidebarOpen" (click)="toggleSidebar()"></div>
+		<aside class="admin-sidebar" [class.admin-sidebar--open]="sidebarOpen">
 			<div class="sidebar-tools">
 				<button type="button" [class.page-item--active]="activeView === 'leads'" (click)="setView('leads')">الليدز</button>
 				<button type="button" [class.page-item--active]="activeView === 'wheel'" (click)="setView('wheel')">نتائج العجلة</button>
