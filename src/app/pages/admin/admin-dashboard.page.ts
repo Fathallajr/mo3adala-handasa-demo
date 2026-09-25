@@ -89,6 +89,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	errorMessage = '';
 	isSaving = false;
 	isLoading = false;
+	isLoadingLeads = false;
 	pageSummaries: Record<string, { hasContent: boolean; updatedAt?: string }> = {};
 	private pendingCmsNavigation = false;
 
@@ -131,9 +132,21 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	loadOverview(): void { this.adminApi.getSummary().subscribe({ next: value => { this.dashboard = value; this.leadProgramOptions = Array.from(new Set([...this.defaultLeadProgramOptions, ...Object.keys(value.byProgram || {})])).sort((a, b) => a.localeCompare(b, 'ar')); }, error: err => this.handleApiError(err) }); }
 	loadLeads(): void {
+		this.isLoadingLeads = true;
+		this.statusMessage = '';
+		this.errorMessage = '';
 		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage).subscribe({
-			next: result => { this.leads = result.data; this.leadsPages = result.pagination.pages || 1; this.leadsTotal = result.pagination.total; },
-			error: err => this.handleApiError(err)
+			next: result => {
+				this.leads = result.data;
+				this.leadsPages = result.pagination.pages || 1;
+				this.leadsTotal = result.pagination.total;
+				this.isLoadingLeads = false;
+				this.statusMessage = 'تم تحديث بيانات الليدز بنجاح.';
+			},
+			error: err => {
+				this.isLoadingLeads = false;
+				this.handleApiError(err);
+			}
 		});
 	}
 	searchLeads(): void { this.leadsPage = 1; this.loadLeads(); }
