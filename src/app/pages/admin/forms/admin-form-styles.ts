@@ -25,6 +25,10 @@ export const adminFormStyles = `
 .cms-array-item__del:hover { background:#ffe2e8; }
 .cms-add-btn { width:100%; margin-top:.5rem; padding:.65rem 1rem; border:1.5px dashed #a99bff; border-radius:10px; background:#f0edff; color:#5540c9; cursor:pointer; font:inherit; font-weight:800; }
 .cms-add-btn:hover { background:#e8e3ff; }
+.cms-button { padding:.65rem 1rem; border:0; border-radius:10px; background:#6d4aff; color:#fff; cursor:pointer; font:inherit; font-weight:800; }
+.cms-button:hover { background:#5536df; }
+.cms-button--secondary { border:1px solid #dfe4ed; background:#fff; color:#5540c9; }
+.cms-button--secondary:hover { background:#f4f1ff; }
 .cms-image-field { display:flex; flex-direction:column; gap:.5rem; }
 .cms-image-preview { width:88px; height:72px; border:1px solid #e6eaf1; border-radius:8px; background:#f1f3f8; object-fit:cover; }
 .cms-image-actions { display:flex; align-items:center; flex-wrap:wrap; gap:.5rem; }

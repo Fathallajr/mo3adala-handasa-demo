@@ -80,6 +80,7 @@ export const monthlyContentDefaults = {
 	'subscription-ab-reviews': {
 		isEnrollmentClosed: false,
 		enrollmentReopenMessage: 'سيتم فتح الاشتراك مع بداية الشهر القادم بإذن الله.',
+		enrollmentWindow: { days: 0, hours: 0, minutes: 0, seconds: 0, startedAt: '', expiresAt: '' },
 		subscriptionDetails: {
 			month: 'الشهر الأول — أكتوبر',
 			review: {

@@ -34,11 +34,31 @@ export class SubAbReviewsFormComponent implements OnChanges {
 		sd.subscriptionWarnings ??= {};
 		sd.subscriptionWarnings.validity ??= { title: 'مدة صلاحية الاشتراك:', points: [] };
 		sd.subscriptionWarnings.refund ??= { title: 'سياسة الاسترداد:', points: [] };
+		raw.enrollmentWindow ??= { days: 0, hours: 0, minutes: 0, seconds: 0, startedAt: '', expiresAt: '' };
+		for (const unit of ['days', 'hours', 'minutes', 'seconds']) raw.enrollmentWindow[unit] = Math.max(0, Number(raw.enrollmentWindow[unit]) || 0);
 
 		if (!Array.isArray(sd.subscriptionWarnings.validity.points)) sd.subscriptionWarnings.validity.points = [];
 		if (!Array.isArray(sd.subscriptionWarnings.refund.points)) sd.subscriptionWarnings.refund.points = [];
 
-		this.data = raw;
+	this.data = raw;
+	}
+
+	startEnrollmentWindow(): void {
+		const window = this.data.enrollmentWindow;
+		const totalSeconds = (Number(window.days) || 0) * 86400
+			+ (Number(window.hours) || 0) * 3600
+			+ (Number(window.minutes) || 0) * 60
+			+ (Number(window.seconds) || 0);
+		if (totalSeconds <= 0) return;
+		const startedAt = new Date();
+		window.startedAt = startedAt.toISOString();
+		window.expiresAt = new Date(startedAt.getTime() + totalSeconds * 1000).toISOString();
+		this.data.isEnrollmentClosed = false;
+	}
+
+	clearEnrollmentWindow(): void {
+		this.data.enrollmentWindow.startedAt = '';
+		this.data.enrollmentWindow.expiresAt = '';
 	}
 
 	addVodafone(): void { this.data.subscriptionDetails.vodafoneNumbers.push({ number: '', owner: '' }); }

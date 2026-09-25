@@ -789,7 +789,10 @@ app.get('/api/content/:pageKey', async (req, res) => {
 		return res.status(404).json({ message: 'Content not found' });
 	}
 
-	res.json(entry.data);
+	const data = { ...entry.data };
+	const expiresAt = Date.parse(String(data.enrollmentWindow?.expiresAt || ''));
+	if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) data.isEnrollmentClosed = true;
+	res.json(data);
 });
 
 app.put('/api/content/:pageKey', requireAdmin, async (req, res) => {

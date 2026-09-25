@@ -62,6 +62,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		return this.isEnglishSubscription ? 'October 10' : this.closingDateLabel;
 	}
 	private closingDate: Date | null = null;
+	private enrollmentExpiresAt = '';
 	private readonly closingDeadlineStorageKey = 'subscription-enrollment-deadline';
 	private readonly enrollmentClosedStorageKey = 'subscription-enrollment-closed';
 
@@ -87,17 +88,26 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		}
 
 		const countdownClosed = typeof window !== 'undefined' && localStorage.getItem(this.enrollmentClosedStorageKey) === 'true';
+		const configuredExpiry = String(state.enrollmentWindow?.expiresAt || '');
+		const configuredExpiryTime = Date.parse(configuredExpiry);
+		const windowExpired = Number.isFinite(configuredExpiryTime) && configuredExpiryTime <= Date.now();
+		if (configuredExpiry) {
+			this.enrollmentExpiresAt = configuredExpiry;
+			this.closingDate = Number.isFinite(configuredExpiryTime) ? new Date(configuredExpiryTime) : null;
+		} else {
+			this.enrollmentExpiresAt = '';
+		}
 		if (typeof state.isEnrollmentClosed === 'boolean') {
 			// The CMS value is authoritative, so reopening the subscription from
 			// the admin also reopens the public countdown immediately.
-			this.isEnrollmentClosed = state.isEnrollmentClosed;
-			if (typeof window !== 'undefined' && !state.isEnrollmentClosed) {
+			this.isEnrollmentClosed = state.isEnrollmentClosed || windowExpired;
+			if (typeof window !== 'undefined' && !state.isEnrollmentClosed && !windowExpired) {
 				localStorage.removeItem(this.enrollmentClosedStorageKey);
 			}
-			if (state.isEnrollmentClosed) {
+			if (state.isEnrollmentClosed || windowExpired) {
 				this.stopClosingTimer();
 			} else if (!this.closingTimer) {
-				this.closingDate = this.getNextClosingDate();
+				this.closingDate = this.closingDate ?? this.getNextClosingDate();
 				this.updateClosingCountdown();
 				if (!this.isEnrollmentClosed) this.closingTimer = setInterval(() => this.updateClosingCountdown(), 1000);
 			}
@@ -308,6 +318,10 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	private getNextClosingDate(): Date {
+		if (this.enrollmentExpiresAt) {
+			const configured = new Date(this.enrollmentExpiresAt);
+			if (!Number.isNaN(configured.getTime())) return configured;
+		}
 		if (typeof window !== 'undefined') {
 			const storedDeadline = Number(localStorage.getItem(this.closingDeadlineStorageKey));
 			if (storedDeadline > 0) {

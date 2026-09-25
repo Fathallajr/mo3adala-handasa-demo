@@ -13,6 +13,21 @@
 			<label class="cms-label">رسالة إعادة الفتح (تظهر عند الإغلاق)</label>
 			<textarea class="cms-textarea" [(ngModel)]="data.enrollmentReopenMessage" rows="2"></textarea>
 		</div>
+		<div class="cms-subsection" style="margin-top:1rem">
+			<div class="cms-section-title">مدة فتح الاشتراك التلقائية</div>
+			<p class="cms-help">حدد المدة ثم اضغط بدء المدة، وبعدها اضغط حفظ التعديلات. عند وصول العداد للصفر يُغلق الاشتراك تلقائيًا.</p>
+			<div class="cms-row">
+				<div class="cms-field"><label class="cms-label">الأيام</label><input class="cms-input" type="number" min="0" [(ngModel)]="data.enrollmentWindow.days" dir="ltr" /></div>
+				<div class="cms-field"><label class="cms-label">الساعات</label><input class="cms-input" type="number" min="0" max="23" [(ngModel)]="data.enrollmentWindow.hours" dir="ltr" /></div>
+				<div class="cms-field"><label class="cms-label">الدقائق</label><input class="cms-input" type="number" min="0" max="59" [(ngModel)]="data.enrollmentWindow.minutes" dir="ltr" /></div>
+				<div class="cms-field"><label class="cms-label">الثواني</label><input class="cms-input" type="number" min="0" max="59" [(ngModel)]="data.enrollmentWindow.seconds" dir="ltr" /></div>
+			</div>
+			<div class="cms-row" style="align-items:center">
+				<button type="button" class="cms-button" (click)="startEnrollmentWindow()">بدء مدة الاشتراك</button>
+				<button type="button" class="cms-button cms-button--secondary" (click)="clearEnrollmentWindow()">إلغاء المدة التلقائية</button>
+				<span class="cms-help" *ngIf="data.enrollmentWindow.expiresAt">ينتهي: {{ data.enrollmentWindow.expiresAt | date:'short' }}</span>
+			</div>
+		</div>
 	</div>
 
 	<div class="cms-section">
