@@ -50,7 +50,7 @@ interface PageOption {
 	styleUrls: ['./admin-dashboard.page.css']
 })
 export class AdminDashboardPageComponent implements OnInit {
-	activeView: 'overview' | 'leads' | 'programs' | 'wheel' | 'cms' = 'overview';
+	activeView: 'overview' | 'leads' | 'programs' | 'wheel' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = null;
 	leads: Lead[] = [];
 	programs: Program[] = [];
@@ -90,6 +90,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	isSaving = false;
 	isLoading = false;
 	pageSummaries: Record<string, { hasContent: boolean; updatedAt?: string }> = {};
+	private pendingCmsNavigation = false;
 
 	constructor(
 		private contentService: MonthlyContentService,
@@ -103,12 +104,17 @@ export class AdminDashboardPageComponent implements OnInit {
 	ngOnInit(): void {
 		this.seo.setTitle('لوحة تحكم الإدارة');
 		this.seo.setRobots('noindex, nofollow, noarchive');
-		this.loadOverview();
 		this.refreshSummaries();
 		this.route.paramMap.subscribe(params => {
-			this.activeView = params.get('pageKey') ? 'cms' : this.activeView;
 			const pageKey = this.resolvePageKey(params.get('pageKey'));
 			this.selectedPageKey = pageKey;
+			if (this.pendingCmsNavigation) {
+				this.activeView = 'cms';
+				this.pendingCmsNavigation = false;
+			} else {
+				this.activeView = 'leads';
+				this.loadLeads();
+			}
 			this.loadPage(pageKey);
 		});
 	}
@@ -168,6 +174,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	selectPage(pageKey: CmsPageKey): void {
 		this.activeView = 'cms';
 		if (pageKey === this.selectedPageKey) return;
+		this.pendingCmsNavigation = true;
 		void this.router.navigate(['/admin', pageKey]);
 	}
 
