@@ -475,11 +475,12 @@ app.post('/api/launch-offer', rateLimit({ name: 'launch-offer', windowMs: 15 * 6
 		await createLead({ name, whatsapp: cleanWhatsapp, school, studentType, program, source }, req);
 	} catch (error) {
 		console.error('Failed to save lead locally', error);
+		return res.status(500).json({ success: false, localSaved: false, message: 'تعذر حفظ البيانات محليًا. حاول مرة أخرى.' });
 	}
 
 	try {
 		const payload = await postToAppsScript(LAUNCH_OFFER_ENDPOINT, values, LAUNCH_OFFER_TIMEOUT_MS);
-		return res.json({ ...payload, localSaved: true, externalSync: true });
+		return res.json({ success: true, localSaved: true, externalSync: true, externalResponse: payload });
 	} catch (error) {
 		// The local database is authoritative. Do not tell the student that the
 		// registration failed after it was already saved for the admin.

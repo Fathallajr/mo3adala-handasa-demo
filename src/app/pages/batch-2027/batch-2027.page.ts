@@ -385,7 +385,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.submitLabel = state.submitLabel || this.submitLabel;
 	}
 
-	private async postLead(data: Record<string, string>): Promise<{ success?: boolean; alreadyRegistered?: boolean; message?: string }> {
+	private async postLead(data: Record<string, string>): Promise<{ success?: boolean; localSaved?: boolean; alreadyRegistered?: boolean; message?: string }> {
 		const controller = new AbortController();
 		const timeout = window.setTimeout(() => controller.abort(), 70000);
 		const response = await fetch(this.launchOfferEndpoint, {
@@ -429,7 +429,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				this.offerError = 'رقم الواتساب ده مسجل بالفعل.';
 				return;
 			}
-			if (!payload.success) throw new Error(payload.message || 'request-failed');
+			if (!payload.success && !payload.localSaved) throw new Error(payload.message || 'request-failed');
 			this.offerSubmitted = true;
 			if (typeof window !== 'undefined') localStorage.setItem('launch-offer-lead', JSON.stringify({ ...lead, createdAt: new Date().toISOString() }));
 		} catch {
