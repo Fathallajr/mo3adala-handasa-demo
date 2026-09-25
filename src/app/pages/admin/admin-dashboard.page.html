@@ -16,17 +16,7 @@
 
 	<div class="admin-body">
 		<aside class="admin-sidebar">
-			<div class="sidebar-intro"><span>مساحة العمل</span><strong>إدارة المحتوى والبيانات</strong></div>
-			<h2 class="sidebar-title">الإدارة</h2>
-			<div class="admin-nav">
-				<button type="button" [class.page-item--active]="activeView === 'overview'" (click)="setView('overview')"><span class="nav-icon">⌂</span> الرئيسية</button>
-				<button type="button" [class.page-item--active]="activeView === 'leads'" (click)="setView('leads')"><span class="nav-icon">◉</span> العملاء <b *ngIf="dashboard">{{ dashboard.totalLeads }}</b></button>
-				<button type="button" [class.page-item--active]="activeView === 'programs'" (click)="setView('programs')"><span class="nav-icon">▦</span> البرامج</button>
-				<button type="button" [class.page-item--active]="activeView === 'wheel'" (click)="setView('wheel')"><span class="nav-icon">✦</span> جوائز العجلة <b *ngIf="dashboard">{{ dashboard.wheelClaimsCount }}</b></button>
-				<button type="button" [class.page-item--active]="activeView === 'cms'" (click)="setView('cms')"><span class="nav-icon">✎</span> محتوى الموقع</button>
-			</div>
-			<div *ngIf="activeView !== 'cms'" class="sidebar-divider"></div>
-			<div class="sidebar-heading-row"><h2 class="sidebar-title">صفحات الموقع</h2><span>{{ pageOptions.length }}</span></div>
+			<div class="sidebar-heading-row"><h2 class="sidebar-title">صفحات الموقع</h2></div>
 			<div class="page-list">
 				<div class="page-group" *ngFor="let group of groupedPageOptions">
 					<div class="page-group__title">{{ group.group }}</div>
@@ -37,15 +27,6 @@
 						[class.page-item--active]="isSelected(page.key)"
 						(click)="selectPage(page.key)">
 						<div class="page-item__title">{{ page.title }}</div>
-						<div class="page-item__route">{{ page.route }}</div>
-						<div class="page-item__desc">{{ page.description }}</div>
-						<div class="page-item__meta" *ngIf="pageSummaries[page.key] as summary">
-							<span [class.page-item__dot--saved]="summary.hasContent" class="page-item__dot"></span>
-							{{ summary.hasContent ? 'محفوظ' : 'لم يُحفظ' }}
-						</div>
-						<div class="page-item__meta" *ngIf="!pageSummaries[page.key]">
-							<span class="page-item__dot"></span> جاهز
-						</div>
 					</button>
 				</div>
 			</div>
