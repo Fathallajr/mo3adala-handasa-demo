@@ -103,6 +103,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	isLoadingLeads = false;
 	pageSummaries: Record<string, { hasContent: boolean; updatedAt?: string }> = {};
 	private pendingCmsNavigation = false;
+	private leadsRequestId = 0;
 
 	constructor(
 		private contentService: MonthlyContentService,
@@ -143,11 +144,13 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	loadOverview(): void { this.adminApi.getSummary().subscribe({ next: value => { this.dashboard = value; this.leadProgramOptions = Array.from(new Set([...this.defaultLeadProgramOptions, ...Object.keys(value.byProgram || {})])).sort((a, b) => a.localeCompare(b, 'ar')); }, error: err => this.handleApiError(err) }); }
 	loadLeads(): void {
+		const requestId = ++this.leadsRequestId;
 		this.isLoadingLeads = true;
 		this.statusMessage = '';
 		this.errorMessage = '';
 		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage).subscribe({
 			next: result => {
+				if (requestId !== this.leadsRequestId) return;
 				this.leads = result.data;
 				this.leadsPages = result.pagination.pages || 1;
 				this.leadsTotal = result.pagination.total;
@@ -155,13 +158,14 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.statusMessage = 'تم تحديث بيانات الليدز بنجاح.';
 			},
 			error: err => {
+				if (requestId !== this.leadsRequestId) return;
 				this.isLoadingLeads = false;
 				this.handleApiError(err);
 			}
 		});
 	}
 	searchLeads(): void { this.leadsPage = 1; this.loadLeads(); }
-	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadStatus = ''; this.leadProgram = ''; this.leadDateFrom = ''; this.leadDateTo = ''; this.searchLeads(); }
+	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadStatus = ''; this.leadProgram = ''; this.leadDateFrom = ''; this.leadDateTo = ''; this.leads = []; this.leadsTotal = 0; this.searchLeads(); }
 	downloadLeadsExcel(): void {
 		if (this.leadDateFrom && this.leadDateTo && this.leadDateFrom > this.leadDateTo) { this.errorMessage = 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية.'; return; }
 		this.adminApi.exportLeads({ search: this.leadSearch.trim(), status: this.leadStatus, source: this.leadSource, program: this.leadProgram, from: this.leadDateFrom, to: this.leadDateTo }).subscribe({
