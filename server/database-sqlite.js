@@ -35,9 +35,10 @@ db.exec(`
     filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BLOB NOT NULL, created_at TEXT NOT NULL
   );
   CREATE TABLE IF NOT EXISTS admin_sessions (
-    token TEXT PRIMARY KEY, expires_at TEXT NOT NULL
+    token TEXT PRIMARY KEY, expires_at TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'admin'
   );
 `);
+try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 
 function migrateLegacyStore() {
   if (db.prepare('SELECT value FROM metadata WHERE key = ?').get('legacy-json-migrated')) return;
@@ -108,13 +109,13 @@ function readAsset(filename) {
 	return row || null;
 }
 
-function createAdminSession(token, expiresAt) {
-	db.prepare('INSERT INTO admin_sessions(token, expires_at) VALUES (?, ?)').run(token, expiresAt);
+function createAdminSession(token, expiresAt, role = 'admin') {
+	db.prepare('INSERT INTO admin_sessions(token, expires_at, role) VALUES (?, ?, ?)').run(token, expiresAt, role);
 }
 
 function getAdminSession(token) {
-	const row = db.prepare('SELECT expires_at AS expiresAt FROM admin_sessions WHERE token = ?').get(token);
-	return row?.expiresAt || null;
+	const row = db.prepare('SELECT expires_at AS expiresAt, role FROM admin_sessions WHERE token = ?').get(token);
+	return row || null;
 }
 
 function deleteAdminSession(token) {

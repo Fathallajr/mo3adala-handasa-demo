@@ -20,7 +20,7 @@
 				<button type="button" [class.page-item--active]="activeView === 'leads'" (click)="setView('leads')">الليدز</button>
 				<button type="button" [class.page-item--active]="activeView === 'wheel'" (click)="setView('wheel')">نتائج العجلة</button>
 			</div>
-			<div class="sidebar-heading-row"><h2 class="sidebar-title">صفحات الموقع</h2></div>
+			<div class="sidebar-heading-row" *ngIf="!leadsOnlyAccount"><h2 class="sidebar-title">صفحات الموقع</h2></div>
 			<div class="page-list">
 				<div class="page-group" *ngFor="let group of groupedPageOptions">
 					<div class="page-group__title">{{ group.group }}</div>

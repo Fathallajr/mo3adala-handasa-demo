@@ -34,8 +34,9 @@ function ensureSchema() {
 				filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BYTEA NOT NULL, created_at TIMESTAMPTZ NOT NULL
 			);
 			CREATE TABLE IF NOT EXISTS admin_sessions (
-				token TEXT PRIMARY KEY, expires_at TIMESTAMPTZ NOT NULL
+				token TEXT PRIMARY KEY, expires_at TIMESTAMPTZ NOT NULL, role TEXT NOT NULL DEFAULT 'admin'
 			);
+			ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'admin';
 		`);
 	}
 	return schemaPromise;
@@ -108,15 +109,15 @@ async function readAsset(filename) {
 	return result.rows[0] || null;
 }
 
-async function createAdminSession(token, expiresAt) {
+async function createAdminSession(token, expiresAt, role = 'admin') {
 	await ensureSchema();
-	await pool.query('INSERT INTO admin_sessions(token, expires_at) VALUES ($1, $2)', [token, expiresAt]);
+	await pool.query('INSERT INTO admin_sessions(token, expires_at, role) VALUES ($1, $2, $3)', [token, expiresAt, role]);
 }
 
 async function getAdminSession(token) {
 	await ensureSchema();
-	const result = await pool.query('SELECT expires_at AS "expiresAt" FROM admin_sessions WHERE token = $1', [token]);
-	return result.rows[0]?.expiresAt || null;
+	const result = await pool.query('SELECT expires_at AS "expiresAt", role FROM admin_sessions WHERE token = $1', [token]);
+	return result.rows[0] || null;
 }
 
 async function deleteAdminSession(token) {

@@ -5,6 +5,7 @@ import { Observable, tap } from 'rxjs';
 interface LoginResponse {
 	token: string;
 	expiresAt: string;
+	role: 'admin' | 'leads';
 }
 
 interface LoginRequest {
@@ -16,6 +17,7 @@ interface LoginRequest {
 export class AdminAuthService {
 	private readonly http = inject(HttpClient);
 	private readonly tokenKey = 'mo3adala-admin-token';
+	private readonly roleKey = `${this.tokenKey}-role`;
 	private readonly apiBase = this.resolveApiBase();
 
 	private resolveApiBase(): string {
@@ -31,6 +33,7 @@ export class AdminAuthService {
 			tap(response => {
 				localStorage.setItem(this.tokenKey, response.token);
 				localStorage.setItem(`${this.tokenKey}-expires`, response.expiresAt);
+				localStorage.setItem(this.roleKey, response.role || 'admin');
 			})
 		);
 	}
@@ -42,6 +45,7 @@ export class AdminAuthService {
 
 		localStorage.removeItem(this.tokenKey);
 		localStorage.removeItem(`${this.tokenKey}-expires`);
+		localStorage.removeItem(this.roleKey);
 	}
 
 	getToken(): string | null {
@@ -66,5 +70,14 @@ export class AdminAuthService {
 
 	isAuthenticated(): boolean {
 		return this.getToken() !== null;
+	}
+
+	getRole(): 'admin' | 'leads' {
+		if (typeof localStorage === 'undefined') return 'admin';
+		return localStorage.getItem(this.roleKey) === 'leads' ? 'leads' : 'admin';
+	}
+
+	isLeadsOnly(): boolean {
+		return this.getRole() === 'leads';
 	}
 }

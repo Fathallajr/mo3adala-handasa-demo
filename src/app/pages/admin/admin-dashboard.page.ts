@@ -302,6 +302,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	get groupedPageOptions(): Array<{ group: string; pages: PageOption[] }> {
+		if (this.auth.isLeadsOnly()) return [];
 		return this.pageOptions.reduce<Array<{ group: string; pages: PageOption[] }>>((groups, page) => {
 			const existingGroup = groups.find(item => item.group === page.group);
 			if (existingGroup) { existingGroup.pages.push(page); return groups; }
@@ -311,7 +312,12 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	private resolvePageKey(value: string | null): CmsPageKey {
+		if (this.auth.isLeadsOnly()) return 'batch-2027';
 		const page = this.pageOptions.find(item => item.key === value);
 		return page?.key || 'batch-2027';
+	}
+
+	get leadsOnlyAccount(): boolean {
+		return this.auth.isLeadsOnly();
 	}
 }

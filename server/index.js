@@ -18,6 +18,8 @@ const LAUNCH_OFFER_TIMEOUT_MS = 60000;
 const WHEEL_CLAIM_TIMEOUT_MS = 30000;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'jr1';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'jr1';
+const LEADS_ADMIN_USERNAME = process.env.LEADS_ADMIN_USERNAME || '';
+const LEADS_ADMIN_PASSWORD = process.env.LEADS_ADMIN_PASSWORD || '';
 const PAGE_KEYS = [
 	'home',
 	'photos-2025',
@@ -240,11 +242,11 @@ async function writeStore(store) {
 	return storeWriteQueue;
 }
 
-async function issueToken() {
+async function issueToken(role = 'admin') {
 	const token = crypto.randomBytes(24).toString('hex');
 	const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
-	await database.createAdminSession(token, expiresAt);
-	return { token, expiresAt };
+	await database.createAdminSession(token, expiresAt, role);
+	return { token, expiresAt, role };
 }
 
 async function requireAdmin(req, res, next) {
@@ -253,15 +255,28 @@ async function requireAdmin(req, res, next) {
 		const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
 		if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
-		const expiresAt = await database.getAdminSession(token);
-		if (!expiresAt || Date.now() > Date.parse(expiresAt)) {
-			if (expiresAt) await database.deleteAdminSession(token);
+		const session = await database.getAdminSession(token);
+		if (!session || Date.now() > Date.parse(session.expiresAt)) {
+			if (session) await database.deleteAdminSession(token);
 			return res.status(401).json({ message: 'Session expired' });
 		}
+		req.adminRole = session.role || 'admin';
 		next();
 	} catch (error) {
 		next(error);
 	}
+}
+
+function requirePermission(permission) {
+	return (req, res, next) => {
+		if (req.adminRole === 'admin' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission))) return next();
+		return res.status(403).json({ message: 'ليس لديك صلاحية للوصول إلى هذا القسم.' });
+	};
+}
+
+function requireFullAdmin(req, res, next) {
+	if (req.adminRole === 'admin') return next();
+	return res.status(403).json({ message: 'هذا القسم متاح للأدمن الرئيسي فقط.' });
 }
 
 function addAuditLog(store, action, entity, entityId, req) {
@@ -332,12 +347,14 @@ app.get('/api/openapi.json', (req, res) => res.json(openApiDocument));
 app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000, max: 10 }), async (req, res, next) => {
 	const { username, password } = req.body || {};
 
-	if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+	const isFullAdmin = username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+	const isLeadsAdmin = LEADS_ADMIN_USERNAME && LEADS_ADMIN_PASSWORD && username === LEADS_ADMIN_USERNAME && password === LEADS_ADMIN_PASSWORD;
+	if (!isFullAdmin && !isLeadsAdmin) {
 		return res.status(401).json({ message: 'Invalid credentials' });
 	}
 
 	try {
-		const session = await issueToken();
+		const session = await issueToken(isFullAdmin ? 'admin' : 'leads');
 		res.json(session);
 	} catch (error) {
 		next(error);
@@ -345,7 +362,7 @@ app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000,
 });
 
 app.get('/api/auth/me', requireAdmin, (req, res) => {
-	res.json({ username: ADMIN_USERNAME, role: 'admin' });
+	res.json({ username: req.adminRole === 'leads' ? LEADS_ADMIN_USERNAME : ADMIN_USERNAME, role: req.adminRole, permissions: req.adminRole === 'leads' ? ['leads:read', 'leads:update', 'wheel:read'] : ['*'] });
 });
 
 app.post('/api/auth/logout', requireAdmin, async (req, res, next) => {
@@ -508,7 +525,7 @@ app.post('/api/leads', rateLimit({ name: 'leads', windowMs: 15 * 60 * 1000, max:
 	res.status(201).json(lead);
 });
 
-app.get('/api/admin/leads', requireAdmin, async (req, res) => {
+app.get('/api/admin/leads', requireAdmin, requirePermission('leads:read'), async (req, res) => {
 	const store = await readStore();
 	const search = String(req.query.search || '').trim().toLowerCase();
 	const status = String(req.query.status || '').trim();
@@ -534,7 +551,7 @@ app.get('/api/admin/leads', requireAdmin, async (req, res) => {
 	res.json({ data: leads.slice((page - 1) * limit, page * limit), pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
 });
 
-app.get('/api/admin/leads/export', requireAdmin, async (req, res) => {
+app.get('/api/admin/leads/export', requireAdmin, requirePermission('leads:read'), async (req, res) => {
 	const store = await readStore();
 	const search = String(req.query.search || '').trim().toLowerCase();
 	const status = String(req.query.status || '').trim();
@@ -562,14 +579,14 @@ app.get('/api/admin/leads/export', requireAdmin, async (req, res) => {
 	res.send(csv);
 });
 
-app.get('/api/admin/leads/:id', requireAdmin, async (req, res) => {
+app.get('/api/admin/leads/:id', requireAdmin, requirePermission('leads:read'), async (req, res) => {
 	const store = await readStore();
 	const lead = store.leads.find(item => item.id === req.params.id);
 	if (!lead) return res.status(404).json({ message: 'Lead not found' });
 	res.json(lead);
 });
 
-app.patch('/api/admin/leads/:id', requireAdmin, async (req, res) => {
+app.patch('/api/admin/leads/:id', requireAdmin, requirePermission('leads:update'), async (req, res) => {
 	const store = await readStore();
 	const lead = store.leads.find(item => item.id === req.params.id);
 	if (!lead) return res.status(404).json({ message: 'Lead not found' });
@@ -586,13 +603,13 @@ app.patch('/api/admin/leads/:id', requireAdmin, async (req, res) => {
 	res.json(lead);
 });
 
-app.get('/api/admin/audit-logs', requireAdmin, async (req, res) => {
+app.get('/api/admin/audit-logs', requireAdmin, requireFullAdmin, async (req, res) => {
 	const store = await readStore();
 	const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 50, 1), 200);
 	res.json({ data: store.auditLogs.slice(0, limit) });
 });
 
-app.get('/api/admin/wheel/claims', requireAdmin, async (_req, res) => {
+app.get('/api/admin/wheel/claims', requireAdmin, requirePermission('wheel:read'), async (_req, res) => {
 	const state = await readWheelState();
 	const data = Object.values(state.spins)
 		.filter(spin => spin?.claimed)
@@ -631,12 +648,12 @@ app.get('/api/programs', async (req, res) => {
 	res.json(store.programs.filter(program => program.isActive !== false));
 });
 
-app.get('/api/admin/programs', requireAdmin, async (req, res) => {
+app.get('/api/admin/programs', requireAdmin, requireFullAdmin, async (req, res) => {
 	const store = await readStore();
 	res.json({ data: store.programs });
 });
 
-app.post('/api/admin/programs', requireAdmin, async (req, res) => {
+app.post('/api/admin/programs', requireAdmin, requireFullAdmin, async (req, res) => {
 	const store = await readStore();
 	const normalized = normalizeProgramInput(req.body || {});
 	if (normalized.error) return res.status(400).json({ message: normalized.error });
@@ -648,7 +665,7 @@ app.post('/api/admin/programs', requireAdmin, async (req, res) => {
 	res.status(201).json(program);
 });
 
-app.patch('/api/admin/programs/:id', requireAdmin, async (req, res) => {
+app.patch('/api/admin/programs/:id', requireAdmin, requireFullAdmin, async (req, res) => {
 	const store = await readStore();
 	const program = store.programs.find(item => item.id === req.params.id);
 	if (!program) return res.status(404).json({ message: 'Program not found' });
@@ -661,7 +678,7 @@ app.patch('/api/admin/programs/:id', requireAdmin, async (req, res) => {
 	res.json(program);
 });
 
-app.get('/api/admin/dashboard/summary', requireAdmin, async (req, res) => {
+app.get('/api/admin/dashboard/summary', requireAdmin, requireFullAdmin, async (req, res) => {
 	const store = await readStore();
 	const wheelState = await readWheelState();
 	const wheelClaimsCount = Object.values(wheelState.spins).filter(spin => spin?.claimed).length;
@@ -796,7 +813,7 @@ app.get('/api/content/:pageKey', async (req, res) => {
 	res.json(data);
 });
 
-app.put('/api/content/:pageKey', requireAdmin, async (req, res) => {
+app.put('/api/content/:pageKey', requireAdmin, requireFullAdmin, async (req, res) => {
 	const { pageKey } = req.params;
 
 	if (!PAGE_KEYS.includes(pageKey)) {
@@ -813,7 +830,7 @@ app.put('/api/content/:pageKey', requireAdmin, async (req, res) => {
 	res.json(store.pages[pageKey].data);
 });
 
-app.post('/api/uploads', requireAdmin, upload.single('file'), async (req, res) => {
+app.post('/api/uploads', requireAdmin, requireFullAdmin, upload.single('file'), async (req, res) => {
 	if (!req.file) {
 		return res.status(400).json({ message: 'No file uploaded or unsupported format' });
 	}
