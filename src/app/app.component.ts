@@ -178,7 +178,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
 	async submitLaunchOffer() {
 		if (this.offerSubmitting) return;
-		if (!this.offerName.trim() || !this.offerWhatsapp.trim() || !this.offerSchool.trim() || !this.offerStudentType || !this.offerProgram || !this.offerSource) return;
+		if (!this.offerName.trim()) { this.offerError = 'اكتب الاسم الثلاثي.'; return; }
+		if (!this.offerWhatsapp.trim()) { this.offerError = 'اكتب رقم الواتساب.'; return; }
+		if (!this.offerSchool.trim()) { this.offerError = 'اكتب اسم المدرسة أو المعهد.'; return; }
+		if (!this.offerStudentType) { this.offerError = 'اختار نوع التعليم.'; return; }
+		if (!this.offerProgram) { this.offerError = 'اختار نوع المعادلة.'; return; }
+		if (!this.offerSource) { this.offerError = 'اختار عرفتَنا منين.'; return; }
 		if (!this.offerContactConsent) {
 			this.offerError = 'لازم توافق على التواصل قبل إرسال البيانات.';
 			return;
@@ -227,7 +232,9 @@ export class AppComponent implements OnInit, OnDestroy {
 		} catch (error) {
 			this.offerError = error instanceof DOMException && error.name === 'AbortError'
 				? 'الخدمة اتأخرت عن المعتاد. حاول تاني بعد لحظات.'
-				: 'حصلت مشكلة بسيطة في الاتصال. حاول تاني من فضلك.';
+				: error instanceof Error && !['invalid-response', 'request-failed'].includes(error.message)
+					? error.message
+					: 'حصلت مشكلة بسيطة في الاتصال. حاول تاني من فضلك.';
 		} finally {
 			clearTimeout(timeout);
 			this.offerSubmitting = false;

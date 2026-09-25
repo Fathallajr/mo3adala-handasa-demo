@@ -413,7 +413,12 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 
 	async submitLaunchOffer(): Promise<void> {
 		if (this.offerSubmitting) return;
-		if (!this.lead.name.trim() || !this.lead.whatsapp.trim() || !this.lead.school.trim() || !this.lead.studentType || !this.lead.program || !this.lead.source) return;
+		if (!this.lead.name.trim()) { this.offerError = 'اكتب الاسم الثلاثي.'; return; }
+		if (!this.lead.whatsapp.trim()) { this.offerError = 'اكتب رقم الواتساب.'; return; }
+		if (!this.lead.school.trim()) { this.offerError = 'اكتب اسم المدرسة أو المعهد.'; return; }
+		if (!this.lead.studentType) { this.offerError = 'اختار نوع التعليم.'; return; }
+		if (!this.lead.program) { this.offerError = 'اختار نوع المعادلة.'; return; }
+		if (!this.lead.source) { this.offerError = 'اختار عرفتَنا منين.'; return; }
 		if (!this.offerContactConsent) {
 			this.offerError = 'لازم توافق على التواصل قبل إرسال البيانات.';
 			return;
@@ -434,8 +439,10 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 			if (!payload.success && !payload.localSaved) throw new Error(payload.message || 'request-failed');
 			this.offerSubmitted = true;
 			if (typeof window !== 'undefined') localStorage.setItem('launch-offer-lead', JSON.stringify({ ...lead, createdAt: new Date().toISOString() }));
-		} catch {
-			this.offerError = 'حصلت مشكلة بسيطة في الاتصال. حاول تاني من فضلك.';
+		} catch (error) {
+			this.offerError = error instanceof Error && !['invalid-response', 'request-failed'].includes(error.message)
+				? error.message
+				: 'حصلت مشكلة بسيطة في الاتصال. حاول تاني من فضلك.';
 		} finally {
 			this.offerSubmitting = false;
 		}

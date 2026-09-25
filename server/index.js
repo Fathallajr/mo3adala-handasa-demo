@@ -400,9 +400,9 @@ app.get('/api/wheel/check', rateLimit({ name: 'wheel-check', windowMs: 15 * 60 *
 	if (previousSpin?.claimed) return res.json({ registered: true, wheelRegistered: true, gift: previousSpin.gift?.label || '', message: 'تم استلام هدية العجلة بهذا الرقم من قبل.' });
 	const store = await readStore();
 	const existingLead = findLeadByPhone(store, whatsapp);
-	if (!existingLead) return res.json({ registered: false, wheelRegistered: false, gift: '' });
+	if (!existingLead || !isWheelLead(existingLead)) return res.json({ registered: false, wheelRegistered: false, gift: '' });
 	const legacyGift = String(existingLead.notes || '').match(/هدية:\s*(.+)$/)?.[1] || '';
-	return res.json({ registered: true, wheelRegistered: existingLead.source === 'عجلة الحظ', gift: legacyGift, message: legacyGift ? `تم استلام هدية العجلة بهذا الرقم من قبل: ${legacyGift}` : 'هذا الرقم مسجل بالفعل.' });
+	return res.json({ registered: true, wheelRegistered: true, gift: legacyGift, message: legacyGift ? `الرقم ده استخدم العجلة قبل كده وحصل على: ${legacyGift}` : 'الرقم ده استخدم العجلة قبل كده.' });
 });
 
 async function postToAppsScript(endpoint, values, timeoutMs) {
@@ -451,18 +451,18 @@ app.post('/api/launch-offer', rateLimit({ name: 'launch-offer', windowMs: 15 * 6
 	const values = { ...requiredValues, whatsapp: `'${cleanWhatsapp}` };
 
 	if (Object.values(requiredValues).some(value => typeof value !== 'string' || !value.trim())) {
-		return res.status(400).json({ success: false, message: 'Missing required fields' });
+		return res.status(400).json({ success: false, message: 'من فضلك أكمل كل بيانات فورم العرض.' });
 	}
 
 	if (!/^01\d{9}$/.test(cleanWhatsapp)) {
-		return res.status(400).json({ success: false, message: 'Invalid WhatsApp number' });
+		return res.status(400).json({ success: false, message: 'رقم الواتساب في فورم العرض يجب أن يبدأ بـ 01 ويتكون من 11 رقم.' });
 	}
 	if (!LAUNCH_OFFER_PROGRAMS.includes(program)) {
-		return res.status(400).json({ success: false, message: 'Invalid program' });
+		return res.status(400).json({ success: false, message: 'اختار نوع معادلة صحيح في فورم العرض.' });
 	}
 	const currentStore = await readStore();
 	if (findLeadByPhone(currentStore, cleanWhatsapp)) {
-		return res.status(409).json({ success: false, alreadyRegistered: true, message: 'هذا الرقم مسجل بالفعل.' });
+		return res.status(409).json({ success: false, alreadyRegistered: true, message: 'الرقم ده مسجل بالفعل في فورم العرض أو الخصم.' });
 	}
 
 	try {
@@ -710,10 +710,11 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 		});
 	}
 	const store = await readStore();
-	if (findLeadByPhone(store, whatsapp)) {
-		const previousLead = findLeadByPhone(store, whatsapp);
+	const existingWheelLead = findLeadByPhone(store, whatsapp);
+	if (existingWheelLead && isWheelLead(existingWheelLead)) {
+		const previousLead = existingWheelLead;
 		const legacyGift = String(previousLead?.notes || '').match(/هدية:\s*(.+)$/)?.[1] || '';
-		return res.status(409).json({ success: false, alreadyRegistered: true, gift: legacyGift, message: legacyGift ? `تم استلام هدية العجلة بهذا الرقم من قبل: ${legacyGift}` : 'هذا الرقم مسجل بالفعل.' });
+		return res.status(409).json({ success: false, alreadyRegistered: true, gift: legacyGift, message: legacyGift ? `الرقم ده استخدم العجلة قبل كده وحصل على: ${legacyGift}` : 'الرقم ده استخدم العجلة قبل كده.' });
 	}
 	try {
 		const createdAt = getNowIso();
@@ -727,12 +728,6 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 		state.spins[wheelToken] = spin;
 		state.claims[whatsapp] = wheelToken;
 		await saveWheelState(state);
-		try {
-			await createLead({ name, whatsapp, program, source: 'عجلة الحظ', notes: `هدية: ${spin.gift.label}` }, req);
-		} catch (error) {
-			if (error.code !== 'DUPLICATE_PHONE') throw error;
-		}
-
 		let externalSync = false;
 		if (WHEEL_FORWARD_TO_APPS_SCRIPT && WHEEL_APPS_SCRIPT_ENDPOINT && WHEEL_APPS_SCRIPT_SECRET) {
 			try {
