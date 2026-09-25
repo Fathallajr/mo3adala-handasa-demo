@@ -169,7 +169,13 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		// visible animation and reveal the result after that animation ends.
 		this.wheelTransitionDuration = WHEEL_SPIN_DURATION_MS;
 		window.requestAnimationFrame(() => {
-			this.wheelRotation += 1440 + (360 - (resultIndex * 40 + 20));
+			// The disc keeps its previous rotation between spins. Calculate the
+			// shortest clockwise offset from the current angle so the server's
+			// result always lands under the fixed top pointer.
+			const currentAngle = ((this.wheelRotation % 360) + 360) % 360;
+			const targetAngle = (360 - (resultIndex * 40 + 20)) % 360;
+			const alignmentOffset = (targetAngle - currentAngle + 360) % 360;
+			this.wheelRotation += 1440 + alignmentOffset;
 		});
 		this.wheelTimer = window.setTimeout(() => {
 			this.wheelResult = this.giftOptions[resultIndex];
