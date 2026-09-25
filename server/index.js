@@ -179,6 +179,7 @@ const openApiDocument = {
 		,'/api/launch-offer': { post: { tags: ['Leads'], summary: 'Register for the launch offer', requestBody: { required: true, content: { 'application/json': { schema: { '$ref': '#/components/schemas/Lead' } } } }, responses: { 200: { description: 'Registration forwarded to the external service' }, 400: { description: 'Validation error' }, 409: { description: 'Phone already registered' } } } }
 		,'/api/wheel/spin': { post: { tags: ['Wheel'], summary: 'Create or resume a wheel spin', requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['sessionId'], properties: { sessionId: { type: 'string', maxLength: 128 } } } } } }, responses: { 200: { description: 'Spin result', content: { 'application/json': { schema: { type: 'object', properties: { token: { type: 'string' }, gift: { '$ref': '#/components/schemas/WheelGift' } } } } } }, 409: { description: 'Wheel already used' } } } }
 		,'/api/wheel/claim': { post: { tags: ['Wheel'], summary: 'Claim a winning wheel gift and prevent duplicate phone claims', requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['name', 'whatsapp', 'program', 'wheelToken'], properties: { name: { type: 'string' }, whatsapp: { type: 'string' }, program: { type: 'string' }, wheelToken: { type: 'string' } } } } } }, responses: { 200: { description: 'Claim result' }, 409: { description: 'Expired spin or duplicate phone' } } } }
+		,'/api/wheel/check': { get: { tags: ['Wheel'], summary: 'Check whether a phone already used the wheel', parameters: [{ name: 'whatsapp', in: 'query', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Phone wheel eligibility and previous gift' } } } }
 		,'/api/wheel/options': { get: { tags: ['Wheel'], summary: 'Get public wheel options', responses: { 200: { description: 'Available wheel options' } } } }
 		,'/api/admin/wheel/claims': { get: { tags: ['Wheel'], summary: 'List wheel gift claims', security: [{ bearerAuth: [] }], responses: { 200: { description: 'Wheel claims' }, 401: { description: 'Unauthorized' } } } }
 		,'/api/uploads': { post: { tags: ['Content'], summary: 'Upload an image for CMS content', security: [{ bearerAuth: [] }], requestBody: { required: true, content: { 'multipart/form-data': { schema: { type: 'object', required: ['file'], properties: { file: { type: 'string', format: 'binary' } } } } } }, responses: { 200: { description: 'Uploaded asset URL' }, 401: { description: 'Unauthorized' } } } }
@@ -384,6 +385,19 @@ app.post('/api/wheel/spin', rateLimit({ name: 'wheel-spin', windowMs: 15 * 60 * 
 
 app.get('/api/wheel/options', (_req, res) => {
 	res.json(WHEEL_OPTIONS.map(({ id, label, available }) => ({ id, label, available })));
+});
+
+app.get('/api/wheel/check', rateLimit({ name: 'wheel-check', windowMs: 15 * 60 * 1000, max: 30 }), async (req, res) => {
+	const whatsapp = normalizePhone(req.query.whatsapp);
+	if (!/^01\d{9}$/.test(whatsapp)) return res.status(400).json({ message: 'رقم الواتساب يجب أن يبدأ بـ 01 ويتكون من 11 رقم.' });
+	const state = readWheelState();
+	const previousSpin = state.spins[state.claims[whatsapp]];
+	if (previousSpin?.claimed) return res.json({ registered: true, wheelRegistered: true, gift: previousSpin.gift?.label || '', message: 'تم استلام هدية العجلة بهذا الرقم من قبل.' });
+	const store = await readStore();
+	const existingLead = findLeadByPhone(store, whatsapp);
+	if (!existingLead) return res.json({ registered: false, wheelRegistered: false, gift: '' });
+	const legacyGift = String(existingLead.notes || '').match(/هدية:\s*(.+)$/)?.[1] || '';
+	return res.json({ registered: true, wheelRegistered: existingLead.source === 'عجلة الحظ', gift: legacyGift, message: legacyGift ? `تم استلام هدية العجلة بهذا الرقم من قبل: ${legacyGift}` : 'هذا الرقم مسجل بالفعل.' });
 });
 
 async function postToAppsScript(endpoint, values, timeoutMs) {
@@ -687,7 +701,9 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 	}
 	const store = await readStore();
 	if (findLeadByPhone(store, whatsapp)) {
-		return res.status(409).json({ success: false, alreadyRegistered: true, message: 'هذا الرقم مسجل بالفعل.' });
+		const previousLead = findLeadByPhone(store, whatsapp);
+		const legacyGift = String(previousLead?.notes || '').match(/هدية:\s*(.+)$/)?.[1] || '';
+		return res.status(409).json({ success: false, alreadyRegistered: true, gift: legacyGift, message: legacyGift ? `تم استلام هدية العجلة بهذا الرقم من قبل: ${legacyGift}` : 'هذا الرقم مسجل بالفعل.' });
 	}
 	try {
 		const createdAt = getNowIso();

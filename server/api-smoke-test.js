@@ -42,6 +42,8 @@ async function main() {
 		assert(result.response.ok && (result.body === null || result.response.headers.get('content-type')?.includes('text/csv')), 'lead export failed');
 		result = await request('/wheel/options');
 		assert(result.response.ok && Array.isArray(result.body), 'wheel options failed');
+		result = await request('/wheel/check?whatsapp=01000000000');
+		assert(result.response.ok && result.body?.registered === false, 'wheel phone check failed');
 		result = await request('/openapi.json');
 		assert(result.response.ok && result.body?.paths?.['/api/wheel/claim'] && result.body?.paths?.['/api/admin/leads'], 'OpenAPI contract is missing required paths');
 

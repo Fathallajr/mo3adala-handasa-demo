@@ -200,6 +200,13 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		return payload;
 	}
 
+	private async checkWheelPhone(whatsapp: string): Promise<{ registered?: boolean; gift?: string; message?: string }> {
+		const response = await fetch(`${this.resolveWheelEndpoint('check')}?whatsapp=${encodeURIComponent(whatsapp)}`, { method: 'GET' });
+		const payload = await response.json();
+		if (!response.ok) throw new Error(payload.message || 'تعذر فحص الرقم. حاول تاني.');
+		return payload;
+	}
+
 	private createClientToken(): string {
 		if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
 			return crypto.randomUUID();
@@ -235,6 +242,19 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		}
 		if (!PHONE_PATTERN.test(whatsapp)) {
 			this.wheelClaimError = `اكتب رقم واتساب مصري صحيح من 11 رقم يبدأ بـ 01. المكتوب حاليًا ${whatsapp.length} رقم.`;
+			return;
+		}
+		try {
+			const phoneCheck = await this.checkWheelPhone(whatsapp);
+			if (phoneCheck.registered) {
+				this.wheelClaimError = phoneCheck.message || 'تم تسجيل هذا الرقم من قبل.';
+				this.wheelAlreadyUsed = true;
+				this.wheelExistingGift = phoneCheck.gift || '';
+				this.wheelUsed = true;
+				return;
+			}
+		} catch (error) {
+			this.wheelClaimError = error instanceof Error ? error.message : 'تعذر فحص الرقم. حاول تاني.';
 			return;
 		}
 		if (!this.wheelToken || !this.wheelResult?.available) {
@@ -285,7 +305,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	private resolveWheelEndpoint(action: 'spin' | 'claim'): string {
+	private resolveWheelEndpoint(action: 'spin' | 'claim' | 'check'): string {
 		// The Node API is the single source of truth for spins and claims.
 		return `/api/wheel/${action}`;
 	}
