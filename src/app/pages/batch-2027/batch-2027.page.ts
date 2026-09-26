@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CanonicalService } from '../../core/canonical.service';
@@ -10,8 +10,8 @@ import { cmsPageDefaults } from '../../core/cms-page.registry';
 import { captureLeadAttribution, LeadAttribution } from '../../core/lead-attribution';
 
 const PHONE_PATTERN = /^01\d{9}$/;
-const WHEEL_SPIN_DURATION_MS = 5200;
-const WHEEL_REQUEST_TIMEOUT_MS = 15000;
+const WHEEL_SPIN_DURATION_MS = 3600;
+const WHEEL_REQUEST_TIMEOUT_MS = 7000;
 
 declare global {
 	interface Window {
@@ -114,7 +114,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	constructor(
 		private seo: SeoService,
 		private canonical: CanonicalService,
-		private contentService: MonthlyContentService
+		private contentService: MonthlyContentService,
+		private changeDetector: ChangeDetectorRef
 	) {}
 
 	openGiftBox(): void {
@@ -147,10 +148,12 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.selectedGift = '';
 		this.wheelClaimError = '';
 		this.wheelAttempts += 1;
-		const controller = new AbortController();
-		const timeout = window.setTimeout(() => controller.abort(), WHEEL_REQUEST_TIMEOUT_MS);
+		// The server chooses the prize first. After that, exactly one finite
+		// transition moves the disc to the selected segment.
+		this.wheelTransitionDuration = WHEEL_SPIN_DURATION_MS;
 		try {
-		const payload = await this.requestWheelSpinFromServer(controller.signal);
+			const payload = await this.requestWheelSpinFromServer();
+			if (!this.giftWheelSpinning) return;
 		if (payload?.success === false || !payload?.token || !payload?.gift?.id) {
 			this.wheelAttempts -= 1;
 			this.giftWheelSpinning = false;
@@ -167,19 +170,20 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 			this.wheelClaimError = 'تعذر قراءة نتيجة العجلة. حاول تاني.';
 			return;
 		}
-		// The API decides the prize first. Only then do we start one fixed,
-		// visible animation and reveal the result after that animation ends.
+		this.wheelAwaitingResult = false;
 		this.wheelTransitionDuration = WHEEL_SPIN_DURATION_MS;
-		window.requestAnimationFrame(() => {
+		this.changeDetector.detectChanges();
+			window.requestAnimationFrame(() => {
 			// The disc keeps its previous rotation between spins. Calculate the
 			// shortest clockwise offset from the current angle so the server's
 			// result always lands under the fixed top pointer.
 			const currentAngle = ((this.wheelRotation % 360) + 360) % 360;
 			const targetAngle = (360 - (resultIndex * 40 + 20)) % 360;
 			const alignmentOffset = (targetAngle - currentAngle + 360) % 360;
-			this.wheelRotation += 1440 + alignmentOffset;
-		});
-		this.wheelTimer = window.setTimeout(() => {
+				this.wheelRotation += 2160 + alignmentOffset;
+				this.changeDetector.detectChanges();
+			});
+			this.wheelTimer = window.setTimeout(() => {
 			this.wheelResult = this.giftOptions[resultIndex];
 			this.selectedGift = '';
 			const exhausted = Boolean(payload.exhausted) || Number(payload.remainingAttempts) === 0;
@@ -188,24 +192,27 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 			this.giftWheelSpinning = false;
 			this.wheelAwaitingResult = false;
 			this.wheelTransitionDuration = WHEEL_SPIN_DURATION_MS;
+			this.changeDetector.detectChanges();
 		}, WHEEL_SPIN_DURATION_MS);
 		} catch (error) {
 			this.wheelAttempts -= 1;
 			this.wheelAwaitingResult = false;
 			this.giftWheelSpinning = false;
 			this.wheelClaimError = error instanceof Error ? error.message : 'تعذر تشغيل العجلة. حاول تاني.';
-		} finally {
-			window.clearTimeout(timeout);
+			this.changeDetector.detectChanges();
 		}
 	}
 
-	private async requestWheelSpinFromServer(signal: AbortSignal): Promise<any> {
-		const response = await fetch(this.resolveWheelEndpoint('spin'), {
+	private async requestWheelSpinFromServer(): Promise<any> {
+		const request = fetch(this.resolveWheelEndpoint('spin'), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-			body: new URLSearchParams({ action: 'spin', sessionId: this.wheelSessionId }),
-			signal
+			body: new URLSearchParams({ action: 'spin', sessionId: this.wheelSessionId })
 		});
+		const response = await Promise.race([
+			request,
+			new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('العجلة اتأخرت في الاستجابة. حاول تاني من فضلك.')), WHEEL_REQUEST_TIMEOUT_MS))
+		]);
 		const payload = await response.json();
 		if (!response.ok) throw new Error(payload.message || 'تعذر تشغيل العجلة. حاول تاني.');
 		return payload;
@@ -278,8 +285,6 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		}
 
 		this.wheelClaimSubmitting = true;
-		const controller = new AbortController();
-		const timeout = window.setTimeout(() => controller.abort(), 35000);
 		try {
 			const claimBody = new URLSearchParams({
 				action: 'claim',
@@ -290,12 +295,15 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				wheelToken: this.wheelToken,
 				sessionId: this.wheelSessionId
 			});
-			const response = await fetch(this.resolveWheelEndpoint('claim'), {
+			const request = fetch(this.resolveWheelEndpoint('claim'), {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-				body: claimBody,
-				signal: controller.signal
+				body: claimBody
 			});
+			const response = await Promise.race([
+				request,
+				new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('خدمة تسجيل العجلة اتأخرت. من فضلك حاول تاني.')), 35000))
+			]);
 			const payload = await response.json() as { success?: boolean; alreadyRegistered?: boolean; message?: string; gift?: string };
 			if (!response.ok) throw new Error(payload.message || 'تعذر تسجيل هدية العجلة.');
 				if (payload.alreadyRegistered) {
@@ -313,11 +321,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				this.wheelUsed = true;
 				return;
 		} catch (error) {
-			this.wheelClaimError = error instanceof DOMException && error.name === 'AbortError'
-				? 'خدمة تسجيل العجلة اتأخرت. من فضلك ما تضغطش مرة تانية.'
-				: error instanceof Error ? error.message : 'تعذر تسجيل هدية العجلة.';
-		} finally {
-			window.clearTimeout(timeout);
+			this.wheelClaimError = error instanceof Error ? error.message : 'تعذر تسجيل هدية العجلة.';
 			this.wheelClaimSubmitting = false;
 		}
 	}

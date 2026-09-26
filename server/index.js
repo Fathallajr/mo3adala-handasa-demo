@@ -9,13 +9,6 @@ const database = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const LAUNCH_OFFER_ENDPOINT = process.env.LAUNCH_OFFER_ENDPOINT || 'https://script.google.com/macros/s/AKfycbzOMDZcgaUgRacnKnqgngxO_97N5iUU9AVoH1bA5HHEFg0LKS3Lju8ku6yl0nYgrLdQ/exec';
-const WHEEL_APPS_SCRIPT_ENDPOINT = process.env.WHEEL_APPS_SCRIPT_ENDPOINT || 'https://script.google.com/macros/s/AKfycbyrF6S-pyZys6aKo75ExPWxXCm9F-zIRKr_t-IvV7gyeCGKIBJ-nnISHMlyaRSNk4_r/exec';
-const WHEEL_FORWARD_TO_APPS_SCRIPT = process.env.WHEEL_FORWARD_TO_APPS_SCRIPT === 'true';
-// Apps Script can be slow while scanning the sheet for an existing phone.
-// Give it enough time to finish so the UI does not invite duplicate retries.
-const LAUNCH_OFFER_TIMEOUT_MS = 60000;
-const WHEEL_CLAIM_TIMEOUT_MS = 30000;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'jr1';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'jr1';
 const LEADS_ADMIN_USERNAME = process.env.LEADS_ADMIN_USERNAME || '';
@@ -55,8 +48,6 @@ const TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000;
 const DATA_DIR = path.join(__dirname, 'data');
 const TOKENS_FILE = path.join(DATA_DIR, 'tokens.json');
 const WHEEL_STATE_FILE = path.join(DATA_DIR, 'wheel-state.json');
-const WHEEL_SECRET_FILE = path.join(DATA_DIR, 'wheel-secret.txt');
-const WHEEL_APPS_SCRIPT_SECRET = process.env.WHEEL_APPS_SCRIPT_SECRET || readLocalWheelSecret();
 const WHEEL_TTL_MS = 30 * 60 * 1000;
 const MAX_WHEEL_ATTEMPTS = 3;
 const WHEEL_OPTIONS = [
@@ -79,21 +70,6 @@ const CORS_ORIGINS = new Set((process.env.CORS_ORIGINS || 'http://localhost:4200
 	.filter(Boolean));
 const rateBuckets = new Map();
 let storeWriteQueue = Promise.resolve();
-
-function readLocalWheelSecret() {
-	try {
-		return fssync.readFileSync(WHEEL_SECRET_FILE, 'utf8').trim();
-	} catch {
-		return '';
-	}
-}
-
-function createWheelSignature(createdAt, wheelToken, whatsapp, gift) {
-	return crypto
-		.createHmac('sha256', WHEEL_APPS_SCRIPT_SECRET)
-		.update([createdAt, wheelToken, whatsapp, gift].join('|'))
-		.digest('hex');
-}
 
 function loadTokens() {
 	try {
@@ -423,7 +399,7 @@ app.post('/api/wheel/spin', rateLimit({ name: 'wheel-spin', windowMs: 15 * 60 * 
 	}
 	let existing = Object.values(state.spins).find(spin => spin.sessionId === sessionId);
 	if (existing?.claimed) return res.status(409).json({ alreadyUsed: true, message: 'Wheel already used' });
-	// Do not reuse pre-fix tokens; Apps Script accepts only the new server-* format.
+	// Do not reuse pre-fix tokens; only server-issued tokens are valid.
 	if (existing && !String(existing.token || '').startsWith('server-')) {
 		delete state.spins[existing.token];
 		existing = undefined;
@@ -465,32 +441,7 @@ app.get('/api/wheel/check', rateLimit({ name: 'wheel-check', windowMs: 15 * 60 *
 	return res.json({ registered: true, wheelRegistered: true, gift: legacyGift, message: legacyGift ? `الرقم ده استخدم العجلة قبل كده وحصل على: ${legacyGift}` : 'الرقم ده استخدم العجلة قبل كده.' });
 });
 
-async function postToAppsScript(endpoint, values, timeoutMs) {
-	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), timeoutMs);
-	try {
-		const upstream = await fetch(endpoint, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-			body: new URLSearchParams(values).toString(),
-			signal: controller.signal
-		});
-		const responseText = await upstream.text();
-		let payload;
-		try {
-			payload = JSON.parse(responseText);
-		} catch {
-			throw new Error('invalid-response');
-		}
-		if (!upstream.ok) throw new Error(payload.message || 'upstream-failed');
-		return payload;
-	} finally {
-		clearTimeout(timeout);
-	}
-}
-
-// This endpoint is only for the normal site forms. Wheel claims have their own
-// endpoint and their own Apps Script deployment below.
+// This endpoint is the single API entry point for the normal site forms.
 const LAUNCH_OFFER_PROGRAMS = [
 	// Keep the old values valid so existing saved forms and integrations remain compatible.
 	'معادلة هندسة',
@@ -509,12 +460,6 @@ app.post('/api/launch-offer', rateLimit({ name: 'launch-offer', windowMs: 15 * 6
 	const cleanWhatsapp = typeof whatsapp === 'string' ? whatsapp.trim() : '';
 	const normalizedAttribution = normalizeAttribution(typeof attribution === 'string' ? (() => { try { return JSON.parse(attribution); } catch { return {}; } })() : attribution);
 	const requiredValues = { name, whatsapp: cleanWhatsapp, school, studentType, program, source, consent };
-	const values = { ...requiredValues, whatsapp: `'${cleanWhatsapp}` };
-	values.platform = normalizedAttribution.platform || '';
-	values.campaign = normalizedAttribution.campaign || '';
-	values.adSet = normalizedAttribution.adSet || '';
-	values.ad = normalizedAttribution.ad || '';
-
 	if (Object.values(requiredValues).some(value => typeof value !== 'string' || !value.trim())) {
 		return res.status(400).json({ success: false, message: 'من فضلك أكمل كل بيانات فورم العرض.' });
 	}
@@ -537,15 +482,7 @@ app.post('/api/launch-offer', rateLimit({ name: 'launch-offer', windowMs: 15 * 6
 		return res.status(500).json({ success: false, localSaved: false, message: 'تعذر حفظ البيانات محليًا. حاول مرة أخرى.' });
 	}
 
-	try {
-		const payload = await postToAppsScript(LAUNCH_OFFER_ENDPOINT, values, LAUNCH_OFFER_TIMEOUT_MS);
-		return res.json({ success: true, localSaved: true, externalSync: true, externalResponse: payload });
-	} catch (error) {
-		// The local database is authoritative. Do not tell the student that the
-		// registration failed after it was already saved for the admin.
-		console.error('External lead sync failed; local lead was saved', error?.message || error);
-		return res.status(202).json({ success: true, localSaved: true, externalSync: false, message: 'تم تسجيل بياناتك بنجاح.' });
-	}
+	return res.status(201).json({ success: true, localSaved: true, message: 'تم تسجيل بياناتك بنجاح.' });
 });
 
 app.post('/api/leads', rateLimit({ name: 'leads', windowMs: 15 * 60 * 1000, max: 10 }), async (req, res) => {
@@ -877,7 +814,7 @@ app.get('/api/admin/dashboard/summary', requireAdmin, requireFullAdmin, async (r
 	res.json({ totalLeads: customerLeads.length, todayLeads: customerLeads.filter(lead => lead.createdAt.startsWith(today)).length, wheelClaimsCount, byStatus, byProgram, recentLeads: customerLeads.slice(0, 10), recentActivity: store.auditLogs.slice(0, 10) });
 });
 
-// Wheel claims are intentionally isolated from every other form and Apps Script.
+// Wheel claims are persisted locally and use the same database-backed API.
 app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 * 1000, max: 10 }), async (req, res) => {
 	const name = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
 	const whatsapp = normalizePhone(req.body?.whatsapp);
@@ -938,20 +875,7 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 		state.spins[wheelToken] = spin;
 		state.claims[whatsapp] = wheelToken;
 		await saveWheelState(state);
-		let externalSync = false;
-		if (WHEEL_FORWARD_TO_APPS_SCRIPT && WHEEL_APPS_SCRIPT_ENDPOINT && WHEEL_APPS_SCRIPT_SECRET) {
-			try {
-				await postToAppsScript(WHEEL_APPS_SCRIPT_ENDPOINT, {
-					name, whatsapp, program, gift: spin.gift.label, wheelToken, createdAt,
-					apiSignature: createWheelSignature(createdAt, wheelToken, whatsapp, spin.gift.label),
-					sessionId: spin.sessionId
-				}, WHEEL_CLAIM_TIMEOUT_MS);
-				externalSync = true;
-			} catch (syncError) {
-				console.error('Optional wheel sync failed; local claim was saved', syncError?.message || syncError);
-			}
-		}
-		return res.json({ success: true, gift: spin.gift.label, localSaved: true, externalSync });
+		return res.json({ success: true, gift: spin.gift.label, localSaved: true });
 	} catch (error) {
 		console.error('Wheel local claim failed', error);
 		return res.status(500).json({ success: false, message: 'تعذر حفظ هدية العجلة على السيرفر.' });

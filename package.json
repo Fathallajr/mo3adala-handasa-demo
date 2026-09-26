@@ -6,6 +6,7 @@
     "start": "ng serve",
     "api": "node server/index.js",
     "test:api": "node server/api-smoke-test.js",
+    "test:demo": "node server/api-demo-test.js",
     "test:cycle": "node server/admin-cycle-test.js",
     "migrate:postgres": "node server/migrate-sqlite-to-postgres.js",
     "build": "ng build",

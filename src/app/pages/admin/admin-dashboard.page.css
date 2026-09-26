@@ -67,8 +67,14 @@ tbody tr:hover { background:#faf9ff; }
 .section-eyebrow { color:var(--purple); font-size:11px; font-weight:900; letter-spacing:.4px; }
 .leads-toolbar .editor-title { font-size:27px; }
 .leads-toolbar .editor-subtitle { max-width:620px; }
-.records-count { display:flex; align-items:baseline; gap:6px; min-height:40px; padding:0 14px; border:1px solid #e8e2ff; border-radius:11px; color:#6d4aff; background:#f7f4ff; }
-.records-count strong { font-size:20px; font-weight:900; }.records-count span { color:#7c82a0; font-size:11px; font-weight:800; }
+.records-count { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-width:68px; min-height:40px; box-sizing:border-box; padding:0 12px; border:1px solid #ded5ff; border-radius:12px; color:#6d4aff; background:linear-gradient(145deg,#fbfaff,#f1edff); box-shadow:0 5px 14px rgba(109,74,255,.08); }
+.records-count strong { font-size:20px; font-weight:900; line-height:1; }.records-count span { color:#6e668e; font-size:11px; font-weight:900; white-space:nowrap; }
+.refresh-data-btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-width:132px; white-space:nowrap; transition:color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease; }
+.refresh-data-btn:not(:disabled):hover { border-color:#cfc3ff; color:#5b43c9; background:#f7f4ff; transform:translateY(-1px); }
+.refresh-data-btn:disabled { cursor:wait; opacity:.72; }
+.refresh-data-icon { display:inline-grid; place-items:center; width:18px; height:18px; font-size:16px; font-weight:900; line-height:1; }
+.refresh-data-icon.is-loading { animation:adminRefreshSpin .75s linear infinite; }
+@keyframes adminRefreshSpin { to { transform:rotate(360deg); } }
 .lead-summary-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
 .lead-summary-item { display:flex; align-items:center; gap:10px; min-height:70px; padding:12px 14px; border:1px solid #e5e9f2; border-radius:15px; background:linear-gradient(135deg,#fff,#fafbff); }
 .lead-summary-item--muted { background:#fbfbfd; }.summary-icon { display:grid; place-items:center; flex:0 0 33px; width:33px; height:33px; border-radius:10px; color:#fff; background:linear-gradient(135deg,#6d4aff,#9a6aff); font-size:18px; font-weight:900; }.lead-summary-item--muted .summary-icon { color:#73628f; background:#eeeafa; }
@@ -82,6 +88,8 @@ tbody tr:hover { background:#faf9ff; }
 .feedback-status-select--archived { color:#6d2e3f; background:#f8e8ed; border-color:#d991a5; }
 .admin-data-loading { padding:42px 15px!important; color:#718096; text-align:center!important; font-size:12px; font-weight:800; }
 .admin-data-loading__spinner { display:inline-block; width:18px; height:18px; margin-left:8px; vertical-align:middle; border:3px solid #e4e7ef; border-top-color:var(--purple); border-radius:50%; animation:spin .7s linear infinite; }
+.admin-global-loading { position: fixed; top: 78px; left: 50%; z-index: 40; display: inline-flex; align-items: center; gap: 8px; transform: translateX(-50%); padding: 8px 14px; border: 1px solid #ded5ff; border-radius: 999px; color: #5b43c9; background: rgba(255,255,255,.96); box-shadow: 0 8px 22px rgba(44,32,105,.12); font-size: 12px; font-weight: 800; }
+.admin-global-loading .admin-data-loading__spinner { width: 14px; height: 14px; margin: 0; border-width: 2px; }
 @media (max-width:700px) { .lead-summary-strip { grid-template-columns:1fr; }.leads-toolbar .editor-title { font-size:23px; }.filters-head { align-items:flex-start; }.lead-filters-card .filters { display:grid; grid-template-columns:1fr; }.filter-field { min-width:0; }.filter-submit { width:100%; }.table-panel-head { align-items:flex-start; flex-direction:column; } }
 @media (max-width:700px) { .filters-head-actions { flex-direction:column; align-items:flex-end; gap:4px; }.filter-toggle-btn { padding:6px 8px; font-size:10px; }.clear-filters-btn { font-size:10px; } }
 
@@ -151,4 +159,7 @@ tbody tr:hover { background:#faf9ff; }
   .admin-sidebar .page-list { display:flex; flex-direction:column; gap:7px; margin-top:7px; }
   .admin-sidebar .page-group { display:contents; }
   .admin-editor { height:auto; max-height:none; overflow:visible; }
+}
+.wheel-view .editor-toolbar .editor-actions > button:nth-child(2) {
+	display: none;
 }

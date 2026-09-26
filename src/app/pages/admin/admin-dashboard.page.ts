@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
+import { finalize, timeout } from 'rxjs';
 import { CmsPageKey, cmsPageDefaults, cmsPageOptions } from '../../core/cms-page.registry';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
@@ -65,6 +66,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	readonly feedbackStatuses: Feedback['status'][] = ['new', 'reviewed', 'published', 'archived'];
 	readonly feedbackStatusLabels: Record<string, string> = { new: 'جديد', reviewed: 'تمت المراجعة', published: 'منشور', archived: 'مؤرشف' };
 	isLoadingFeedback = false;
+	isLoadingOverview = false;
 	private feedbackLoaded = false;
 	adminUsers: AdminUser[] = [];
 	adminUserDraft = { username: '', password: '', permissions: [] as string[] };
@@ -75,6 +77,13 @@ export class AdminDashboardPageComponent implements OnInit {
 	adminUserPermissionDraft: Record<string, string[]> = {};
 	adminPermissionEdit: Record<string, boolean> = {};
 	isLoadingAdminUsers = false;
+	isLoadingPrograms = false;
+	isLoadingWheelClaims = false;
+	private overviewLoaded = false;
+	private leadsLoaded = false;
+	private programsLoaded = false;
+	private wheelClaimsLoaded = false;
+	private adminUsersLoaded = false;
 	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
 	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'wheel', title: 'نتائج العجلة' }];
 	wheelSearch = '';
@@ -125,6 +134,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	pageSummaries: Record<string, { hasContent: boolean; updatedAt?: string }> = {};
 	private pendingCmsNavigation = false;
 	private leadsRequestId = 0;
+	private pageLoadRequestId = 0;
 
 	constructor(
 		private contentService: MonthlyContentService,
@@ -141,6 +151,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.refreshSummaries();
 		this.route.paramMap.subscribe(params => {
 			const pageKey = this.resolvePageKey(params.get('pageKey'));
+			const isCmsNavigation = this.pendingCmsNavigation;
 			this.selectedPageKey = pageKey;
 			if (this.pendingCmsNavigation) {
 				this.activeView = 'cms';
@@ -148,17 +159,25 @@ export class AdminDashboardPageComponent implements OnInit {
 			} else {
 				if (this.auth.getRole() === 'admin') {
 					this.activeView = 'overview';
+					// Preload every admin data section after login so switching views
+					// only changes the visible panel and never triggers the first fetch.
 					this.loadOverview();
 					this.loadFeedback();
+					this.loadLeads();
+					this.loadPrograms();
+					this.loadWheelClaims();
+					this.loadAdminUsers();
 				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('wheel')) {
-					this.activeView = 'leads';
-					if (this.auth.canAccessFeature('leads')) this.loadLeads();
-					else if (this.auth.canAccessFeature('wheel')) { this.activeView = 'wheel'; this.loadWheelClaims(); }
+					const canLoadLeads = this.auth.canAccessFeature('leads');
+					const canLoadWheel = this.auth.canAccessFeature('wheel');
+					this.activeView = canLoadLeads ? 'leads' : 'wheel';
+					if (canLoadLeads) this.loadLeads();
+					if (canLoadWheel) this.loadWheelClaims();
 				} else {
 					this.activeView = 'cms';
 				}
 			}
-			this.loadPage(pageKey);
+			if (!isCmsNavigation) this.loadPage(pageKey);
 		});
 	}
 
@@ -181,9 +200,10 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (view === 'feedback') this.loadFeedback();
 		if (view === 'admins') this.loadAdminUsers();
 	}
-	loadAdminUsers(): void {
+	loadAdminUsers(force = false): void {
+		if (this.isLoadingAdminUsers || (this.adminUsersLoaded && !force)) return;
 		this.isLoadingAdminUsers = true;
-		this.adminApi.listAdminUsers().subscribe({ next: result => { this.adminUsers = result.data; this.adminUserPermissionDraft = Object.fromEntries(result.data.map(user => [user.username, [...user.permissions]])); this.isLoadingAdminUsers = false; }, error: err => { this.isLoadingAdminUsers = false; this.handleApiError(err); } });
+		this.adminApi.listAdminUsers().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingAdminUsers = false; })).subscribe({ next: result => { this.adminUsers = result.data; this.adminUserPermissionDraft = Object.fromEntries(result.data.map(user => [user.username, [...user.permissions]])); this.adminUsersLoaded = true; }, error: err => this.handleApiError(err) });
 	}
 	createAdminUser(): void {
 		const username = this.adminUserDraft.username.trim();
@@ -213,11 +233,16 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.adminApi.deleteAdminUser(user.username).subscribe({ next: () => { this.adminUsers = this.adminUsers.filter(item => item.username !== user.username); this.statusMessage = 'تم حذف الحساب.'; }, error: err => this.handleApiError(err) });
 	}
 	loadFeedback(force = false): void {
-		if (this.isLoadingFeedback || (this.feedbackLoaded && !force)) return;
+		if ((this.isLoadingFeedback && !force) || (this.feedbackLoaded && !force)) return;
 		this.isLoadingFeedback = true;
-		this.adminApi.listFeedback(this.feedbackSearch.trim(), this.feedbackStatus).subscribe({
-			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.feedbackLoaded = true; this.isLoadingFeedback = false; },
-			error: err => { this.isLoadingFeedback = false; this.handleApiError(err); }
+		this.statusMessage = '';
+		this.errorMessage = '';
+		this.adminApi.listFeedback(this.feedbackSearch.trim(), this.feedbackStatus).pipe(
+			timeout({ each: 15000 }),
+			finalize(() => { this.isLoadingFeedback = false; })
+		).subscribe({
+			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.feedbackLoaded = true; this.statusMessage = 'تم تحديث الآراء بنجاح.'; },
+			error: err => { this.handleApiError(err); }
 		});
 	}
 	updateFeedbackStatus(feedback: Feedback, status: Feedback['status']): void {
@@ -225,18 +250,20 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 	formatFeedbackStatus(status?: string): string { return this.feedbackStatusLabels[status || ''] || status || 'غير محدد'; }
 
-	loadOverview(): void { this.adminApi.getSummary().subscribe({ next: value => { this.dashboard = value; this.leadProgramOptions = Array.from(new Set([...this.defaultLeadProgramOptions, ...Object.keys(value.byProgram || {})])).sort((a, b) => a.localeCompare(b, 'ar')); }, error: err => this.handleApiError(err) }); }
-	loadLeads(): void {
+	loadOverview(force = false): void { if (this.isLoadingOverview || (this.overviewLoaded && !force)) return; this.isLoadingOverview = true; this.adminApi.getSummary().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingOverview = false; })).subscribe({ next: value => { this.dashboard = value; this.overviewLoaded = true; this.leadProgramOptions = Array.from(new Set([...this.defaultLeadProgramOptions, ...Object.keys(value.byProgram || {})])).sort((a, b) => a.localeCompare(b, 'ar')); }, error: err => this.handleApiError(err) }); }
+	loadLeads(force = false): void {
+		if ((this.isLoadingLeads && !force) || (this.leadsLoaded && !force)) return;
 		const requestId = ++this.leadsRequestId;
 		this.isLoadingLeads = true;
 		this.statusMessage = '';
 		this.errorMessage = '';
-		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage, 20, this.leadPlatform.trim(), this.leadCampaign.trim()).subscribe({
+		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage, 20, this.leadPlatform.trim(), this.leadCampaign.trim()).pipe(timeout({ each: 15000 }), finalize(() => { if (requestId === this.leadsRequestId) this.isLoadingLeads = false; })).subscribe({
 			next: result => {
 				if (requestId !== this.leadsRequestId) return;
 				this.leads = result.data;
 				this.leadsPages = result.pagination.pages || 1;
 				this.leadsTotal = result.pagination.total;
+				this.leadsLoaded = true;
 				this.isLoadingLeads = false;
 				this.statusMessage = 'تم تحديث بيانات الليدز بنجاح.';
 			},
@@ -247,7 +274,7 @@ export class AdminDashboardPageComponent implements OnInit {
 			}
 		});
 	}
-	searchLeads(): void { this.leadsPage = 1; this.loadLeads(); }
+	searchLeads(): void { this.leadsPage = 1; this.loadLeads(true); }
 	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadPlatform = ''; this.leadCampaign = ''; this.leadStatus = ''; this.leadProgram = ''; this.leadDateFrom = ''; this.leadDateTo = ''; this.leads = []; this.leadsTotal = 0; this.searchLeads(); }
 	downloadLeadsExcel(): void {
 		if (this.leadDateFrom && this.leadDateTo && this.leadDateFrom > this.leadDateTo) { this.errorMessage = 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية.'; return; }
@@ -264,25 +291,27 @@ export class AdminDashboardPageComponent implements OnInit {
 			error: err => this.handleApiError(err)
 		});
 	}
-	changeLeadPage(delta: number): void { this.leadsPage = Math.min(Math.max(this.leadsPage + delta, 1), this.leadsPages); this.loadLeads(); }
+	changeLeadPage(delta: number): void { this.leadsPage = Math.min(Math.max(this.leadsPage + delta, 1), this.leadsPages); this.loadLeads(true); }
 	updateLeadStatus(lead: Lead, status: string): void {
 		this.adminApi.updateLead(lead.id, { status }).subscribe({ next: updated => { lead.status = updated.status; this.statusMessage = 'تم تحديث حالة العميل.'; }, error: err => this.handleApiError(err) });
 	}
-	loadPrograms(): void { this.adminApi.listPrograms().subscribe({ next: result => this.programs = result.data, error: err => this.handleApiError(err) }); }
+	loadPrograms(force = false): void { if (this.isLoadingPrograms || (this.programsLoaded && !force)) return; this.isLoadingPrograms = true; this.adminApi.listPrograms().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingPrograms = false; })).subscribe({ next: result => { this.programs = result.data; this.programsLoaded = true; }, error: err => this.handleApiError(err) }); }
 	editProgram(program: Program): void { this.editingProgramId = program.id; this.programDraft = { ...program, features: [...(program.features || [])] }; }
 	newProgram(): void { this.editingProgramId = null; this.programDraft = { name: '', slug: '', category: '', language: 'ar', price: 0, enrollmentStatus: 'open', isActive: true }; }
 	saveProgram(): void {
 		const request = this.editingProgramId ? this.adminApi.updateProgram(this.editingProgramId, this.programDraft) : this.adminApi.createProgram(this.programDraft);
-		request.subscribe({ next: () => { this.statusMessage = 'تم حفظ البرنامج.'; this.loadPrograms(); this.newProgram(); }, error: err => this.handleApiError(err) });
+		request.subscribe({ next: () => { this.statusMessage = 'تم حفظ البرنامج.'; this.loadPrograms(true); this.newProgram(); }, error: err => this.handleApiError(err) });
 	}
-	loadWheelClaims(): void {
-		this.adminApi.listWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo }).subscribe({
-			next: result => { this.wheelClaims = result.data; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; },
+	loadWheelClaims(force = false): void {
+		if (this.isLoadingWheelClaims || (this.wheelClaimsLoaded && !force)) return;
+		this.isLoadingWheelClaims = true;
+		this.adminApi.listWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo }).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingWheelClaims = false; })).subscribe({
+			next: result => { this.wheelClaims = result.data; this.wheelClaimsLoaded = true; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; },
 			error: err => this.handleApiError(err)
 		});
 	}
-	searchWheelClaims(): void { this.loadWheelClaims(); }
-	clearWheelFilters(): void { this.wheelSearch = ''; this.wheelGift = ''; this.wheelProgram = ''; this.wheelDateFrom = ''; this.wheelDateTo = ''; this.loadWheelClaims(); }
+	searchWheelClaims(): void { this.loadWheelClaims(true); }
+	clearWheelFilters(): void { this.wheelSearch = ''; this.wheelGift = ''; this.wheelProgram = ''; this.wheelDateFrom = ''; this.wheelDateTo = ''; this.loadWheelClaims(true); }
 	toggleWheelFilters(): void { this.wheelFiltersOpen = !this.wheelFiltersOpen; }
 	toggleLeadsFilters(): void { this.leadsFiltersOpen = !this.leadsFiltersOpen; }
 	exportWheelClaims(): void {
@@ -302,6 +331,8 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.sidebarOpen = false;
 		this.activeView = 'cms';
 		if (pageKey === this.selectedPageKey) return;
+		this.selectedPageKey = pageKey;
+		this.loadPage(pageKey);
 		this.pendingCmsNavigation = true;
 		void this.router.navigate(['/admin', pageKey]);
 	}
@@ -311,18 +342,17 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	loadPage(pageKey: CmsPageKey): void {
+		const requestId = ++this.pageLoadRequestId;
 		this.statusMessage = '';
 		this.errorMessage = '';
 		this.isLoading = true;
 		this.currentContent = structuredClone(cmsPageDefaults[pageKey]);
 
-		this.contentService.loadPageState(pageKey, cmsPageDefaults[pageKey]).subscribe({
+		this.contentService.loadPageState(pageKey, cmsPageDefaults[pageKey]).pipe(timeout({ each: 15000 }), finalize(() => { if (requestId === this.pageLoadRequestId) this.isLoading = false; })).subscribe({
 			next: content => {
-				this.currentContent = content;
-				this.isLoading = false;
+				if (requestId === this.pageLoadRequestId) this.currentContent = content;
 			},
 			error: () => {
-				this.isLoading = false;
 				this.errorMessage = 'تعذر تحميل المحتوى من السيرفر، تم عرض القالب الافتراضي.';
 			}
 		});

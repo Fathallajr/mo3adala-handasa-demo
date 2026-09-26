@@ -41,7 +41,7 @@
 		<div class="batch-gift-wheel-wrap">
 			<span class="batch-kicker"><span></span> جرّب حظك</span>
 			<h2>لف العجلة واختار هديتك</h2>
-			<div class="batch-gift-wheel" [class.is-spinning]="giftWheelSpinning">
+			<div class="batch-gift-wheel" [class.is-spinning]="giftWheelSpinning" [class.is-awaiting-result]="wheelAwaitingResult">
 				<span class="batch-gift-wheel__pointer" aria-hidden="true"></span>
 				<div class="batch-gift-wheel__disc" [style.transform]="'rotate(' + wheelRotation + 'deg)'" [style.transition-duration.ms]="wheelTransitionDuration">
 					<span *ngFor="let gift of giftOptions; let i = index" class="batch-gift-wheel__label" [style.transform]="'rotate(' + (i * 40 + 20) + 'deg) translateY(-118px) rotate(-' + (i * 40 + 20 + wheelRotation) + 'deg)'">{{ gift.emoji }}</span>

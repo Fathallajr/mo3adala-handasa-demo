@@ -13,7 +13,6 @@ import { captureLeadAttribution, LeadAttribution } from './core/lead-attribution
 declare global {
 	interface Window {
 		NG_LAUNCH_OFFER_ENDPOINT?: string;
-		NG_WHEEL_APPS_SCRIPT_ENDPOINT?: string;
 	}
 }
 
@@ -188,12 +187,10 @@ export class AppComponent implements OnInit, OnDestroy {
 		this.offerError = '';
 		const lead = { name: this.offerName.trim(), whatsapp: this.offerWhatsapp.trim(), school: this.offerSchool.trim(), studentType: this.offerStudentType, program: this.offerProgram, source: this.offerSource, consent: this.offerContactConsent ? 'نعم' : 'لا', attribution: JSON.stringify(this.leadAttribution) };
 		const controller = new AbortController();
-		// The backend may wait up to 60 seconds for Google Apps Script while it
-		// scans the sheet for an existing WhatsApp number.
-		const timeout = setTimeout(() => controller.abort(), 65000);
+		const timeout = setTimeout(() => controller.abort(), 15000);
 		try {
-			// env.js is loaded asynchronously on the static deployment, so read
-			// the runtime endpoint at submit time instead of during app startup.
+			// Read the API endpoint at submit time so static deployments can override
+			// the API base without rebuilding the Angular bundle.
 			const launchOfferEndpoint = typeof window !== 'undefined'
 				? window.NG_LAUNCH_OFFER_ENDPOINT || this.fallbackLaunchOfferEndpoint
 				: this.fallbackLaunchOfferEndpoint;

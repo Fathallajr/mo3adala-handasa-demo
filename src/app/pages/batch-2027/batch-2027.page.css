@@ -159,9 +159,7 @@
 .batch-gift-wheel-wrap > .batch-kicker { justify-content: center; }
 .batch-gift-wheel-wrap h2 { margin: 8px 0 22px; color: #111b38; font-size: clamp(27px, 4vw, 38px); }
 .batch-gift-wheel { position: relative; width: 350px; height: 350px; margin: 0 auto 26px; display: grid; place-items: center; filter: drop-shadow(0 18px 24px rgba(23,36,82,.2)); }
-.batch-gift-wheel__disc { position: relative; width: 100%; height: 100%; border: 10px solid #fff; border-radius: 50%; background: conic-gradient(#ff7917 0 40deg, #172452 40deg 80deg, #f9b52d 80deg 120deg, #e9512d 120deg 160deg, #2761a8 160deg 200deg, #59a878 200deg 240deg, #8e5bb7 240deg 280deg, #e98b36 280deg 320deg, #2d9a8b 320deg 360deg); box-shadow: 0 0 0 4px #ffb16f, inset 0 0 0 5px rgba(255,255,255,.3); transition: transform 7.5s cubic-bezier(.12,.76,.16,1); will-change: transform; }
-.batch-gift-wheel.is-awaiting-result .batch-gift-wheel__disc { animation: batchWheelPending 1.2s linear infinite; }
-@keyframes batchWheelPending { to { transform: rotate(360deg); } }
+.batch-gift-wheel__disc { position: relative; width: 100%; height: 100%; border: 10px solid #fff; border-radius: 50%; background: conic-gradient(#ff7917 0 40deg, #172452 40deg 80deg, #f9b52d 80deg 120deg, #e9512d 120deg 160deg, #2761a8 160deg 200deg, #59a878 200deg 240deg, #8e5bb7 240deg 280deg, #e98b36 280deg 320deg, #2d9a8b 320deg 360deg); box-shadow: 0 0 0 4px #ffb16f, inset 0 0 0 5px rgba(255,255,255,.3); transition: transform 3.6s cubic-bezier(.12,.76,.16,1); will-change: transform; }
 .batch-gift-wheel__disc:after { content: ''; position: absolute; inset: 19%; border: 2px dashed rgba(255,255,255,.62); border-radius: 50%; }
 .batch-gift-wheel__pointer { position: absolute; top: -9px; z-index: 5; width: 0; height: 0; border-right: 19px solid transparent; border-left: 19px solid transparent; border-top: 39px solid #ed4d2a; filter: drop-shadow(0 3px 2px rgba(23,36,82,.28)); }
 .batch-gift-wheel__spin { position: absolute; z-index: 6; display: grid; width: 112px; height: 112px; place-content: center; border: 7px solid #fff; border-radius: 50%; color: #fff; background: #ed6b22; box-shadow: 0 7px 0 #b94227, 0 8px 16px rgba(23,36,82,.25); cursor: pointer; }
@@ -854,7 +852,6 @@
 .batch-gift-wheel__label { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
 .batch-gift-wheel__label:nth-child(3) { color: #172452; text-shadow: 0 1px 2px rgba(255,255,255,.35); }
 
-/* Rebuilt wheel state: one fixed transition, no competing pending animation. */
-.batch-gift-wheel__disc { transition: transform 5.2s cubic-bezier(.12,.76,.16,1) !important; }
-.batch-gift-wheel.is-spinning .batch-gift-wheel__disc { animation: none !important; }
+/* One deterministic transition; no competing keyframe animation. */
+.batch-gift-wheel__disc { transition: transform 3.6s cubic-bezier(.12,.76,.16,1) !important; }
 .batch-wheel-pending { margin: -8px auto 18px; color: #687697; font-size: 15px; font-weight: 700; }
