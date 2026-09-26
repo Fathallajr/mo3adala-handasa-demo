@@ -164,6 +164,10 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
 		if (view !== 'cms' && view !== 'leads' && view !== 'wheel' && this.auth.getRole() !== 'admin') return;
+		if (this.activeView === view) {
+			this.sidebarOpen = false;
+			return;
+		}
 		this.sidebarOpen = false;
 		this.activeView = view;
 		this.statusMessage = '';
