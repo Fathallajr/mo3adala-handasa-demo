@@ -23,13 +23,14 @@ export class EngineersPageComponent implements OnInit {
     { id: 2, image: 'assets/teacher1.jpg', alt: 'المهندس أحمد أبو زيد', subject: 'ميكانيكا', description: 'أستاذ الميكانيكا' },
     { id: 4, image: 'assets/teacher3.jpg', alt: 'المهندس أحمد الشامي', subject: 'فيزياء', description: 'أستاذ الفيزياء' },
     { id: 3, image: 'assets/teacher4.jpg', alt: 'دكتور سعد العميري', subject: 'كيمياء', description: 'أستاذ الكيمياء' },
-    { id: 5, image: 'assets/teacher2.png', alt: 'د/ عمر أحمد عبد الفتاح', subject: 'English', description: 'أستاذ اللغة الإنجليزية' }
+		{ id: 5, image: 'assets/teacher2.png', alt: 'د/ عمر أحمد عبد الفتاح', subject: 'English', description: 'أستاذ اللغة الإنجليزية' }
   ];
   englishTeachers = [
     { name: 'المهندس أحمد علي', subject: 'Math 1 / Math 2' },
     { name: 'المهندس محمد أشرف', subject: 'Mechanics' },
     { name: 'المهندس محمد نبيل', subject: 'Chemistry' },
-    { name: 'المهندس أحمد عبد المنعم', subject: 'Physics' }
+		{ name: 'المهندس أحمد عبد المنعم', subject: 'Physics' },
+		{ name: 'المهندس محمود الطرابيشي', subject: 'English' }
   ];
   constructor(
     private router: Router,
@@ -44,8 +45,11 @@ export class EngineersPageComponent implements OnInit {
     this.isEnglish = this.language === 'en';
     this.monthlyContent.loadPageState('engineers', { visible: true, teachers: this.teachers, englishTeachers: this.englishTeachers }).subscribe((state: any) => {
       if (state?.visible === false) return;
-      if (Array.isArray(state?.teachers) && state.teachers.length) this.teachers = state.teachers;
+      if (Array.isArray(state?.teachers) && state.teachers.length) this.teachers = state.teachers.map((teacher: any) => teacher.id === 5 ? { ...teacher, alt: 'د/ عمر أحمد عبد الفتاح' } : teacher);
       if (Array.isArray(state?.englishTeachers) && state.englishTeachers.length) this.englishTeachers = state.englishTeachers;
+      if (!this.englishTeachers.some((teacher: any) => teacher.subject === 'English' || String(teacher.name || '').includes('محمود الطرابيشي'))) {
+        this.englishTeachers = [...this.englishTeachers, { name: 'المهندس محمود الطرابيشي', subject: 'English' }];
+      }
     });
     if (typeof window !== 'undefined') {
       const siteUrl = (window as any)['NG_SITE_URL'] || 'https://www.appmo3adla.com';
