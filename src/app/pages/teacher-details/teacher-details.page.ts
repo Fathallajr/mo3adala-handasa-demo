@@ -145,7 +145,7 @@ export class TeacherDetailsPageComponent implements OnInit {
       socialLinks: {
         facebook: 'https://www.facebook.com/share/1B4CMMLdP7/',
         whatsapp: 'https://wa.me/201000278286',
-        youtube: 'https://youtube.com/@pi-in-physics?si=cwgjm8J4_Bdu-6cI'
+        youtube: 'https://www.youtube.com/@Shamy-physics'
       },
       demoVideo: {
         youtubeId: 'jPdkXXWy_D4?',
@@ -157,7 +157,7 @@ export class TeacherDetailsPageComponent implements OnInit {
     },
     {
       id: 5,
-      name: 'د/ عمر أحمد عبد الفتاح',
+		name: 'د/ عمر أحمد عبد الفتاح',
       subject: ' ',
       image: 'assets/teacher2.png',
       degree: '',
@@ -236,6 +236,11 @@ export class TeacherDetailsPageComponent implements OnInit {
     const cleanId = this.teacher.demoVideo.youtubeId.replace('?', '');
     const url = `https://www.youtube.com/embed/${cleanId}?autoplay=1&rel=0`;
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  getVideoWatchUrl(): string {
+    const id = this.teacher?.demoVideo?.youtubeId?.replace('?', '') || '';
+    return id ? `https://www.youtube.com/watch?v=${id}` : 'https://www.youtube.com/';
   }
 
 }

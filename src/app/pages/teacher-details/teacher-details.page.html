@@ -68,11 +68,10 @@
 		<section class="td-video-section" *ngIf="teacher.demoVideo?.youtubeId">
 			<div class="td-video-heading"><span class="td-section-eyebrow">تجربة قبل الاشتراك</span><h2>شوف أسلوب {{ teacher.name }} في الشرح</h2><p>فيديو مجاني يساعدك تتعرف على طريقة الشرح قبل ما تبدأ.</p></div>
 			<div class="td-video-wrap">
-				<div class="td-video-thumb" *ngIf="!isVideoLoaded" (click)="loadVideo()" role="button" tabindex="0" (keydown.enter)="loadVideo()" aria-label="تشغيل الفيديو المجاني">
+				<a class="td-video-thumb" [href]="getVideoWatchUrl()" target="_blank" rel="noopener noreferrer" *ngIf="teacher.demoVideo?.youtubeId" aria-label="تشغيل الفيديو المجاني على يوتيوب">
 					<img [src]="getVideoThumbnail()" alt="فيديو مجاني" class="td-thumb-img" loading="lazy">
 					<div class="td-play-btn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></div><span class="td-free-badge">مجاني بالكامل</span>
-				</div>
-				<iframe *ngIf="isVideoLoaded" class="td-video-iframe" [src]="getVideoEmbedUrl()" title="فيديو تعليمي" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+				</a>
 			</div>
 		</section>
 	</main>

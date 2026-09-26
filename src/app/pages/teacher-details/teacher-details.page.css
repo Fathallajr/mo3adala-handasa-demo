@@ -171,7 +171,7 @@
 .td-video-heading h2 { margin: .35rem 0 .25rem; color: var(--td-ink); font-size: 1.3rem; font-weight: 900; }
 .td-video-heading p { margin: 0; color: var(--td-muted); font-size: .85rem; }
 .td-video-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 1rem; background: #020617; box-shadow: 0 15px 35px rgba(15,23,42,.18); }
-.td-video-thumb { position: absolute; inset: 0; display: grid; place-items: center; cursor: pointer; }
+.td-video-thumb { position: absolute; inset: 0; display: grid; place-items: center; cursor: pointer; color: inherit; text-decoration: none; }
 .td-video-thumb::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(15,23,42,.32), rgba(15,23,42,.72)); transition: background .2s ease; }
 .td-video-thumb:hover::after { background: linear-gradient(135deg, rgba(15,23,42,.18), rgba(15,23,42,.6)); }
 .td-thumb-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
