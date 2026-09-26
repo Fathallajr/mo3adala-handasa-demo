@@ -31,7 +31,7 @@ $env:DATABASE_URL='postgresql://acefff_mo3adala:YOUR_DB_PASSWORD@pg6001.site4now
 npm run migrate:postgres
 ```
 
-The migration creates the schema and copies the current SQLite pages, leads, programs, and audit logs.
+The migration creates the schema and copies the current SQLite pages, leads, feedbacks, programs, audit logs, and wheel results. It also creates the dedicated persistent `wheel_claims` table and imports claims from the old wheel state.
 
 ## Deployment notes
 

@@ -30,6 +30,8 @@ interface PageOption {
 	group: string;
 }
 
+type AdminDataView = 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins';
+
 @Component({
 	selector: 'app-admin-dashboard-page',
 	standalone: true,
@@ -172,7 +174,7 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.pendingCmsNavigation = false;
 			} else {
 				if (this.auth.getRole() === 'admin') {
-					this.activeView = 'overview';
+					this.activeView = this.resolveDataView(this.route.snapshot.queryParamMap.get('view')) || 'overview';
 					// Preload every admin data section after login so switching views
 					// only changes the visible panel and never triggers the first fetch.
 					this.loadOverview();
@@ -211,6 +213,14 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.activeView = view;
 		this.statusMessage = '';
 		this.errorMessage = '';
+		if (view !== 'cms') {
+			void this.router.navigate([], {
+				relativeTo: this.route,
+				queryParams: { view: view === 'overview' ? null : view },
+				queryParamsHandling: 'merge',
+				replaceUrl: true
+			});
+		}
 		if (view === 'overview') this.loadOverview();
 		if (view === 'leads') this.loadLeads();
 		if (view === 'programs') this.loadPrograms();
@@ -502,6 +512,16 @@ export class AdminDashboardPageComponent implements OnInit {
 		}
 		const page = this.pageOptions.find(item => item.key === value);
 		return page?.key || 'batch-2027';
+	}
+
+	private resolveDataView(value: string | null): AdminDataView | null {
+		const allowed: AdminDataView[] = ['overview', 'leads', 'feedback', 'programs', 'wheel', 'admins'];
+		if (!value || !allowed.includes(value as AdminDataView)) return null;
+		const view = value as AdminDataView;
+		if (view === 'overview' || view === 'feedback' || view === 'programs' || view === 'admins') {
+			return this.auth.getRole() === 'admin' ? view : null;
+		}
+		return this.auth.canAccessFeature(view) ? view : null;
 	}
 
 	get leadsOnlyAccount(): boolean {

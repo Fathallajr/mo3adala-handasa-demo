@@ -35,6 +35,10 @@ function ensureSchema() {
 			CREATE TABLE IF NOT EXISTS wheel_state (
 				id INTEGER PRIMARY KEY CHECK (id = 1), data JSONB NOT NULL
 			);
+			CREATE TABLE IF NOT EXISTS wheel_claims (
+				token TEXT PRIMARY KEY, name TEXT NOT NULL, whatsapp TEXT NOT NULL UNIQUE,
+				program TEXT NOT NULL, gift TEXT NOT NULL, claimed_at TIMESTAMPTZ NOT NULL
+			);
 			CREATE TABLE IF NOT EXISTS assets (
 				filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BYTEA NOT NULL, created_at TIMESTAMPTZ NOT NULL
 			);
@@ -79,7 +83,7 @@ async function writeStore(store) {
 	const client = await pool.connect();
 	try {
 		await client.query('BEGIN');
-		await client.query('TRUNCATE pages, leads, programs, audit_logs, feedbacks');
+		await client.query('TRUNCATE pages, leads, programs, audit_logs');
 		for (const [key, value] of Object.entries(store.pages || {})) {
 			await client.query('INSERT INTO pages(key,data,updated_at) VALUES ($1,$2::jsonb,$3)', [key, JSON.stringify(value.data ?? {}), value.updatedAt || new Date().toISOString()]);
 		}
@@ -91,9 +95,6 @@ async function writeStore(store) {
 		}
 		for (const log of store.auditLogs || []) {
 			await client.query(`INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)`, [log.id || `${log.createdAt || Date.now()}-${Math.random()}`, log.action || '', log.entityType || '', log.entityId || '', log.actor || '', log.ip || '', log.createdAt || new Date().toISOString()]);
-		}
-		for (const feedback of store.feedbacks || []) {
-			await client.query(`INSERT INTO feedbacks(id,name,university,rating,message,status,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, [feedback.id, feedback.name || '', feedback.university || '', Number(feedback.rating || 0), feedback.message || '', feedback.status || 'new', feedback.createdAt || new Date().toISOString(), feedback.updatedAt || null]);
 		}
 		await client.query('COMMIT');
 	} catch (error) {
@@ -125,7 +126,17 @@ async function createLead(lead, auditLog) {
 async function readWheelState() {
 	await ensureSchema();
 	const result = await pool.query('SELECT data FROM wheel_state WHERE id = 1');
-	return result.rows[0]?.data || { spins: {}, claims: {} };
+	const state = result.rows[0]?.data || { spins: {}, claims: {} };
+	await migrateWheelClaims(state);
+	return state;
+}
+
+async function migrateWheelClaims(state) {
+	const claims = Object.values(state?.spins || {}).filter(spin => spin?.claimed && spin?.token && spin?.phone);
+	for (const spin of claims) {
+		await pool.query(`INSERT INTO wheel_claims(token,name,whatsapp,program,gift,claimed_at) VALUES ($1,$2,$3,$4,$5,$6)
+			ON CONFLICT DO NOTHING`, [spin.token, spin.name || '', spin.phone, spin.program || '', spin.gift?.label || '', spin.claimedAt || new Date().toISOString()]);
+	}
 }
 
 async function writeWheelState(state) {
@@ -163,8 +174,14 @@ async function createAdminUser(user) { await ensureSchema(); await pool.query('I
 async function updateAdminUser(username, changes) { await ensureSchema(); const sets = []; const values = []; const add = (sql, value) => { sets.push(sql.replace('$N', `$${values.length + 1}`)); values.push(value); }; if (changes.passwordHash) { add('password_hash = $N', changes.passwordHash); add('password_salt = $N', changes.passwordSalt); } if (changes.permissions) add('permissions = $N::jsonb', JSON.stringify(changes.permissions)); if (changes.isActive !== undefined) add('is_active = $N', changes.isActive); if (changes.updatedAt) add('updated_at = $N', changes.updatedAt); if (!sets.length) return; values.push(username); await pool.query(`UPDATE admin_users SET ${sets.join(', ')} WHERE username = $${values.length}`, values); }
 async function deleteAdminUser(username) { await ensureSchema(); await pool.query('DELETE FROM admin_users WHERE username = $1', [username]); }
 async function createFeedback(feedback) { await ensureSchema(); await pool.query('INSERT INTO feedbacks(id,name,university,rating,message,status,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [feedback.id, feedback.name, feedback.university || '', feedback.rating, feedback.message, feedback.status || 'new', feedback.createdAt, feedback.updatedAt || null]); }
+async function listFeedback() { await ensureSchema(); const result = await pool.query('SELECT id,name,university,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks ORDER BY created_at DESC'); return result.rows; }
+async function getFeedback(id) { await ensureSchema(); const result = await pool.query('SELECT id,name,university,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks WHERE id = $1', [id]); return result.rows[0] || null; }
 async function updateFeedback(id, changes) { await ensureSchema(); await pool.query('UPDATE feedbacks SET status = COALESCE($1,status), updated_at = COALESCE($2,updated_at) WHERE id = $3', [changes.status || null, changes.updatedAt || null, id]); }
 async function listPublishedFeedback() { await ensureSchema(); const result = await pool.query(`SELECT id,name,university,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks WHERE status = 'published' ORDER BY created_at DESC LIMIT 50`); return result.rows; }
+async function findWheelClaimByPhone(whatsapp) { await ensureSchema(); const state = (await pool.query('SELECT data FROM wheel_state WHERE id = 1')).rows[0]?.data; if (state) await migrateWheelClaims(state); const result = await pool.query('SELECT token,name,whatsapp,program,gift,claimed_at AS "claimedAt" FROM wheel_claims WHERE whatsapp = $1', [whatsapp]); return result.rows[0] || null; }
+async function createWheelClaim(claim) { await ensureSchema(); try { await pool.query('INSERT INTO wheel_claims(token,name,whatsapp,program,gift,claimed_at) VALUES ($1,$2,$3,$4,$5,$6)', [claim.token, claim.name, claim.whatsapp, claim.program, claim.gift, claim.claimedAt]); } catch (error) { if (error?.code === '23505') error.code = 'DUPLICATE_WHEEL_CLAIM'; throw error; } }
+async function listWheelClaims() { await ensureSchema(); const state = (await pool.query('SELECT data FROM wheel_state WHERE id = 1')).rows[0]?.data; if (state) await migrateWheelClaims(state); const result = await pool.query('SELECT token,name,whatsapp,program,gift,claimed_at AS "claimedAt" FROM wheel_claims ORDER BY claimed_at DESC'); return result.rows; }
+async function countWheelClaims() { await listWheelClaims(); const result = await pool.query('SELECT COUNT(*)::int AS count FROM wheel_claims'); return result.rows[0].count; }
 
 async function deleteAdminSession(token) {
 	await ensureSchema();
@@ -172,4 +189,4 @@ async function deleteAdminSession(token) {
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, createLead, readWheelState, writeWheelState, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, createFeedback, updateFeedback, listPublishedFeedback, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, createLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, createFeedback, listFeedback, getFeedback, updateFeedback, listPublishedFeedback, databaseFile: null, pool, ensureSchema };

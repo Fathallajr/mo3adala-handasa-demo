@@ -442,6 +442,8 @@ app.get('/api/wheel/options', (_req, res) => {
 app.get('/api/wheel/check', rateLimit({ name: 'wheel-check', windowMs: 15 * 60 * 1000, max: 30 }), async (req, res) => {
 	const whatsapp = normalizePhone(req.query.whatsapp);
 	if (!/^01\d{9}$/.test(whatsapp)) return res.status(400).json({ message: 'رقم الواتساب يجب أن يبدأ بـ 01 ويتكون من 11 رقم.' });
+	const savedClaim = await database.findWheelClaimByPhone(whatsapp);
+	if (savedClaim) return res.json({ registered: true, wheelRegistered: true, gift: savedClaim.gift || '', message: 'تم استلام هدية العجلة بهذا الرقم من قبل.' });
 	const state = await readWheelState();
 	const previousSpin = state.spins[state.claims[whatsapp]];
 	if (previousSpin?.claimed) return res.json({ registered: true, wheelRegistered: true, gift: previousSpin.gift?.label || '', message: 'تم استلام هدية العجلة بهذا الرقم من قبل.' });
@@ -618,13 +620,12 @@ app.patch('/api/admin/leads/:id', requireAdmin, requirePermission('leads:update'
 });
 
 app.get('/api/admin/feedback', requireAdmin, requireFullAdmin, async (req, res) => {
-	const store = await readStore();
 	const search = String(req.query.search || '').trim().toLowerCase();
 	const status = String(req.query.status || '').trim();
 	const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
 	const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
 	if (status && !FEEDBACK_STATUSES.includes(status)) return res.status(400).json({ message: 'Invalid feedback status' });
-	let feedbacks = Array.isArray(store.feedbacks) ? store.feedbacks : [];
+	let feedbacks = await database.listFeedback();
 	if (status) feedbacks = feedbacks.filter(item => item.status === status);
 	if (search) feedbacks = feedbacks.filter(item => [item.name, item.university, item.message].some(value => String(value || '').toLowerCase().includes(search)));
 	const total = feedbacks.length;
@@ -632,16 +633,13 @@ app.get('/api/admin/feedback', requireAdmin, requireFullAdmin, async (req, res) 
 });
 
 app.patch('/api/admin/feedback/:id', requireAdmin, requireFullAdmin, async (req, res) => {
-	const store = await readStore();
-	const feedback = (store.feedbacks || []).find(item => item.id === req.params.id);
+	const feedback = await database.getFeedback(req.params.id);
 	if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
 	const status = String(req.body?.status || '').trim();
 	if (!FEEDBACK_STATUSES.includes(status)) return res.status(400).json({ message: 'Invalid feedback status' });
 	feedback.status = status;
 	feedback.updatedAt = getNowIso();
-	addAuditLog(store, 'updated', 'feedback', feedback.id, req);
 	await database.updateFeedback(feedback.id, { status, updatedAt: feedback.updatedAt });
-	await writeStore(store);
 	res.json(feedback);
 });
 
@@ -715,18 +713,7 @@ app.get('/api/admin/wheel/claims', requireAdmin, requirePermission('wheel:read')
 	if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) return res.status(400).json({ message: 'Invalid from date' });
 	if (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)) return res.status(400).json({ message: 'Invalid to date' });
 	if (from && to && from > to) return res.status(400).json({ message: 'From date must be before to date' });
-	const state = await readWheelState();
-	let data = Object.values(state.spins)
-		.filter(spin => spin?.claimed)
-		.sort((a, b) => String(b.claimedAt || '').localeCompare(String(a.claimedAt || '')))
-		.map(spin => ({
-			token: spin.token,
-			name: spin.name || '',
-			whatsapp: spin.phone || '',
-			program: spin.program || '',
-			gift: spin.gift?.label || '',
-			claimedAt: spin.claimedAt
-		}));
+	let data = await database.listWheelClaims();
 	if (search) data = data.filter(item => [item.name, item.whatsapp, item.program, item.gift].some(value => String(value || '').toLowerCase().includes(search)));
 	if (gift) data = data.filter(item => item.gift === gift);
 	if (program) data = data.filter(item => item.program === program);
@@ -744,8 +731,7 @@ app.get('/api/admin/wheel/claims/export', requireAdmin, requirePermission('wheel
 	if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) return res.status(400).json({ message: 'Invalid from date' });
 	if (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)) return res.status(400).json({ message: 'Invalid to date' });
 	if (from && to && from > to) return res.status(400).json({ message: 'From date must be before to date' });
-	const state = await readWheelState();
-	let data = Object.values(state.spins).filter(spin => spin?.claimed).sort((a, b) => String(b.claimedAt || '').localeCompare(String(a.claimedAt || ''))).map(spin => ({ name: spin.name || '', whatsapp: spin.phone || '', program: spin.program || '', gift: spin.gift?.label || '', claimedAt: spin.claimedAt }));
+	let data = (await database.listWheelClaims()).map(({ name, whatsapp, program, gift, claimedAt }) => ({ name, whatsapp, program, gift, claimedAt }));
 	if (search) data = data.filter(item => [item.name, item.whatsapp, item.program, item.gift].some(value => String(value || '').toLowerCase().includes(search)));
 	if (gift) data = data.filter(item => item.gift === gift);
 	if (program) data = data.filter(item => item.program === program);
@@ -813,8 +799,7 @@ app.patch('/api/admin/programs/:id', requireAdmin, requireFullAdmin, async (req,
 
 app.get('/api/admin/dashboard/summary', requireAdmin, requireFullAdmin, async (req, res) => {
 	const store = await readStore();
-	const wheelState = await readWheelState();
-	const wheelClaimsCount = Object.values(wheelState.spins).filter(spin => spin?.claimed).length;
+	const wheelClaimsCount = await database.countWheelClaims();
 	const today = new Date().toISOString().slice(0, 10);
 	const customerLeads = store.leads.filter(lead => !isWheelLead(lead));
 	const byStatus = Object.fromEntries(LEAD_STATUSES.map(status => [status, customerLeads.filter(lead => lead.status === status).length]));
@@ -865,6 +850,8 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 			message: 'تم استلام هدية العجلة بهذا الرقم من قبل.'
 		});
 	}
+	const savedClaim = await database.findWheelClaimByPhone(whatsapp);
+	if (savedClaim) return res.json({ success: false, alreadyRegistered: true, gift: savedClaim.gift || '', message: 'تم استلام هدية العجلة بهذا الرقم من قبل.' });
 	const store = await readStore();
 	const existingWheelLead = findLeadByPhone(store, whatsapp);
 	if (existingWheelLead && isWheelLead(existingWheelLead)) {
@@ -884,8 +871,10 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 		state.spins[wheelToken] = spin;
 		state.claims[whatsapp] = wheelToken;
 		await saveWheelState(state);
+		await database.createWheelClaim({ token: wheelToken, name, whatsapp, program, gift: spin.gift.label, claimedAt: createdAt });
 		return res.json({ success: true, gift: spin.gift.label, localSaved: true });
 	} catch (error) {
+		if (error?.code === 'DUPLICATE_WHEEL_CLAIM') return res.json({ success: false, alreadyRegistered: true, message: 'تم استلام هدية العجلة بهذا الرقم من قبل.' });
 		console.error('Wheel local claim failed', error);
 		return res.status(500).json({ success: false, message: 'تعذر حفظ هدية العجلة على السيرفر.' });
 	}

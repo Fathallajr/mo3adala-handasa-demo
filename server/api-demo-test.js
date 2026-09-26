@@ -29,6 +29,9 @@ async function main() {
   const batchPhone = `01${String(Number(suffix) + 2).padStart(9, '0').slice(-9)}`;
   const wheelPhone = `01${String(Number(suffix) + 1).padStart(9, '0').slice(-9)}`;
   let feedbackId = '';
+  const snapshotDb = new Database(databaseFile);
+  const originalDbWheelState = snapshotDb.prepare('SELECT data FROM wheel_state WHERE id = 1').get()?.data || null;
+  snapshotDb.close();
 
   try {
     let result = await request('/auth/login', {
@@ -94,6 +97,9 @@ async function main() {
     await fs.writeFile(wheelStateFile, originalWheelState, 'utf8');
     const db = new Database(databaseFile);
     db.prepare('DELETE FROM feedbacks WHERE id = ?').run(feedbackId);
+    db.prepare('DELETE FROM wheel_claims WHERE whatsapp = ?').run(wheelPhone);
+    if (originalDbWheelState) db.prepare('INSERT INTO wheel_state(id,data) VALUES (1,?) ON CONFLICT(id) DO UPDATE SET data = excluded.data').run(originalDbWheelState);
+    else db.prepare('DELETE FROM wheel_state WHERE id = 1').run();
     const leads = db.prepare('SELECT id FROM leads WHERE whatsapp IN (?, ?, ?)').all(popupPhone, batchPhone, wheelPhone);
     for (const lead of leads) {
       db.prepare('DELETE FROM audit_logs WHERE entity_id = ?').run(lead.id);
