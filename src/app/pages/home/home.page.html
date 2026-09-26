@@ -1,5 +1,5 @@
 <!-- Hero Section with a video-only background -->
-<section class="relative min-h-screen flex items-center justify-center overflow-hidden">
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden page-enter-animation">
     <!-- Background Video with Overlay -->
     <div class="absolute inset-0 z-0">
         <!-- The hero intentionally has no image fallback or poster. -->
@@ -11,7 +11,7 @@
             muted 
             loop 
             playsinline
-            preload="auto"
+            preload="metadata"
             poster="assets/media-hero.jpg"
             webkit-playsinline
             x5-playsinline
@@ -362,6 +362,13 @@
 							"الأبليكيشن كان نظام محترم وتعب المهندسين والأسستنت معانا طول السنة،
 							<br> ومبسوط إنه حقق أعلى نسب نجاح، وربنا يكرمنا ونفرحكم ونشوفكم في التكريم قريب"
 						</p>
+					</div>
+				</div>
+				<!-- Feedbacks approved from the admin dashboard -->
+				<div *ngFor="let feedback of publishedFeedbacks" class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
+					<div class="p-6">
+						<div class="flex items-center gap-4 mb-4"><div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg">{{ feedback.name.charAt(0) }}</div><div><h4 class="font-semibold text-slate-900">{{ feedback.name }}</h4><p class="text-sm text-slate-600">{{ feedback.university || 'طالب من طلابنا' }}</p><div class="flex mt-1"><span *ngFor="let star of [1,2,3,4,5]" class="text-yellow-400">{{ star <= feedback.rating ? '★' : '☆' }}</span></div></div></div>
+						<p class="text-slate-700 leading-relaxed text-sm break-words hyphens-auto" style="line-height:1.6; word-wrap:break-word;">{{ feedback.message }}</p>
 					</div>
 				</div>
 			</div>

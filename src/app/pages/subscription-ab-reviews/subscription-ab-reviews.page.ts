@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { RouterLink } from '@angular/router';
 import { SeoService } from '../../core/seo.service';
 import { CanonicalService } from '../../core/canonical.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
@@ -27,7 +26,7 @@ interface ReviewFormConfig {
 @Component({
 	selector: 'app-subscription-ab-reviews',
 	standalone: true,
-	imports: [CommonModule, RouterLink],
+	imports: [CommonModule],
 	templateUrl: './subscription-ab-reviews.page.html',
 	styleUrls: ['./subscription-ab-reviews.page.css']
 })

@@ -14,9 +14,10 @@ import { SeoService } from '../../core/seo.service';
 	styleUrls: ['./admin-login.page.css']
 })
 export class AdminLoginPageComponent {
-	username = 'jr1';
+	username = '';
 	password = '';
 	isSubmitting = false;
+	showPassword = false;
 	errorMessage = '';
 
 	constructor(

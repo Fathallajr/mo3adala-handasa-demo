@@ -64,7 +64,6 @@
   
   <!-- PERFORMANCE OPTIMIZATIONS -->
   <link rel="preload" href="/assets/logo.png" as="image" type="image/png">
-  <link rel="preload" href="/assets/background-video.mp4" as="video" type="video/mp4">
   
   <!-- DNS Prefetch for external resources -->
   
@@ -81,7 +80,7 @@
   
   <script>
     // Register Service Worker for performance
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
           .then(registration => {
@@ -91,6 +90,8 @@
             console.log('SW registration failed: ', registrationError);
           });
       });
+    } else if ('serviceWorker' in navigator && location.hostname === 'localhost') {
+      navigator.serviceWorker.getRegistrations().then(registrations => registrations.forEach(registration => registration.unregister()));
     }
   </script>
 </head>

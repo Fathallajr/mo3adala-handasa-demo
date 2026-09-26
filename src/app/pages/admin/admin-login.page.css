@@ -71,6 +71,10 @@
 	box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
 }
 
+.admin-password-field { position:relative; margin-bottom:.9rem; }
+.admin-password-field .admin-login-input { margin-bottom:0; padding-left:5rem; }
+.password-toggle { position:absolute; left:.55rem; top:50%; transform:translateY(-50%); border:0; border-radius:8px; padding:.35rem .55rem; color:#475569; background:#eef2f7; font:inherit; font-size:.75rem; font-weight:800; cursor:pointer; }
+
 .admin-login-error {
 	background: #fef2f2;
 	border: 1px solid #fecaca;

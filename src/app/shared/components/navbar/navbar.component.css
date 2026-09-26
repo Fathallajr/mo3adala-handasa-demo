@@ -437,7 +437,7 @@ nav.sticky > .navbar-shell {
   border-color: rgba(255,255,255,.22) !important;
   background: rgba(15,23,42,.48) !important;
   box-shadow: 0 10px 26px rgba(0,0,0,.18) !important;
-  backdrop-filter: blur(10px);
+  backdrop-filter: none;
 }
 nav.sticky > .navbar-shell .navbar-brand,
 nav.sticky > .navbar-shell .navbar-brand span { color: #fff !important; }
@@ -462,14 +462,15 @@ nav.sticky > .navbar-shell .nav-main-menu > li > button::after { background: #ff
 
 /* White navbar with scroll-direction visibility */
 nav.sticky {
-  transition: transform .34s cubic-bezier(.22,.8,.24,1), opacity .24s ease !important;
+  transition: transform .18s cubic-bezier(.22,.8,.24,1), opacity .12s ease, box-shadow .18s ease !important;
+  will-change: transform, opacity;
 }
-nav.sticky.navbar-hidden { transform: translate(-50%, -150%) !important; opacity: 0; pointer-events: none; }
+nav.sticky.navbar-hidden { transform: translate(-50%, -110%) !important; opacity: 0; pointer-events: none; }
 nav.sticky > .navbar-shell {
   border-color: rgba(226,232,240,.95) !important;
   background: rgba(255,255,255,.97) !important;
   box-shadow: 0 12px 28px rgba(15,23,42,.1) !important;
-  backdrop-filter: blur(12px);
+  backdrop-filter: none;
 }
 nav.sticky > .navbar-shell .navbar-brand,
 nav.sticky > .navbar-shell .navbar-brand span { color: #0f172a !important; }
@@ -487,7 +488,7 @@ nav.sticky > .navbar-shell .nav-main-menu > li > a::after,
 nav.sticky > .navbar-shell .nav-main-menu > li > button::after { background: #ea580c; }
 
 @media (max-width: 1279px) {
-  nav.sticky.navbar-hidden { transform: translateY(-150%) !important; }
+  nav.sticky.navbar-hidden { transform: translateY(-110%) !important; }
   nav.sticky > .navbar-shell { background: rgba(255,255,255,.97) !important; }
   nav.sticky > .navbar-shell > button { color: #334155 !important; }
 }

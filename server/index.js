@@ -47,6 +47,7 @@ const PAGE_KEYS = [
 	,'subscription-computers-en'
 ];
 const LEAD_STATUSES = ['new', 'contacted', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
+const FEEDBACK_STATUSES = ['new', 'reviewed', 'published', 'archived'];
 // Keep the admin session active for a practical working period. The token is
 // persisted in the server data store, so a normal API restart does not log the
 // administrator out before this period ends.
@@ -148,6 +149,7 @@ const openApiDocument = {
 		{ name: 'Leads' },
 		{ name: 'Programs' },
 		{ name: 'Dashboard' },
+		{ name: 'Feedback' },
 		{ name: 'Wheel' }
 	],
 	components: {
@@ -157,6 +159,7 @@ const openApiDocument = {
 			WheelGift: { type: 'object', properties: { id: { type: 'string' }, label: { type: 'string' }, available: { type: 'boolean' } } },
 			Error: { type: 'object', properties: { message: { type: 'string' } } },
 			Program: { type: 'object', properties: { id: { type: 'string', format: 'uuid' }, name: { type: 'string' }, slug: { type: 'string' }, category: { type: 'string' }, language: { type: 'string' }, price: { type: 'number' }, features: { type: 'array', items: { type: 'string' } }, isActive: { type: 'boolean' }, enrollmentStatus: { type: 'string', enum: ['open', 'closed'] } } }
+			,Feedback: { type: 'object', properties: { id: { type: 'string', format: 'uuid' }, name: { type: 'string' }, university: { type: 'string' }, rating: { type: 'integer', minimum: 1, maximum: 5 }, message: { type: 'string' }, status: { type: 'string', enum: FEEDBACK_STATUSES }, createdAt: { type: 'string', format: 'date-time' }, updatedAt: { type: 'string', format: 'date-time' } } }
 		}
 	},
 	paths: {
@@ -169,6 +172,9 @@ const openApiDocument = {
 		'/api/admin/leads': { get: { tags: ['Leads'], summary: 'List and filter leads', security: [{ bearerAuth: [] }], parameters: [{ name: 'search', in: 'query', schema: { type: 'string' } }, { name: 'status', in: 'query', schema: { type: 'string', enum: LEAD_STATUSES } }, { name: 'source', in: 'query', schema: { type: 'string' } }, { name: 'platform', in: 'query', schema: { type: 'string' } }, { name: 'campaign', in: 'query', schema: { type: 'string' } }, { name: 'program', in: 'query', schema: { type: 'string' } }, { name: 'from', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'to', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } }, { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } }], responses: { 200: { description: 'Paginated leads' }, 401: { description: 'Unauthorized' } } } },
 		'/api/admin/leads/export': { get: { tags: ['Leads'], summary: 'Export filtered leads as CSV for Excel', security: [{ bearerAuth: [] }], parameters: [{ name: 'search', in: 'query', schema: { type: 'string' } }, { name: 'status', in: 'query', schema: { type: 'string', enum: LEAD_STATUSES } }, { name: 'source', in: 'query', schema: { type: 'string' } }, { name: 'platform', in: 'query', schema: { type: 'string' } }, { name: 'campaign', in: 'query', schema: { type: 'string' } }, { name: 'program', in: 'query', schema: { type: 'string' } }, { name: 'from', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'to', in: 'query', schema: { type: 'string', format: 'date' } }], responses: { 200: { description: 'CSV export' }, 401: { description: 'Unauthorized' } } } },
 		'/api/leads': { post: { tags: ['Leads'], summary: 'Create a public lead', requestBody: { required: true, content: { 'application/json': { schema: { '$ref': '#/components/schemas/Lead' } } } }, responses: { 201: { description: 'Lead created' }, 400: { description: 'Validation error' } } } },
+		'/api/feedback': { post: { tags: ['Feedback'], summary: 'Submit public feedback', requestBody: { required: true, content: { 'application/json': { schema: { '$ref': '#/components/schemas/Feedback' } } } }, responses: { 201: { description: 'Feedback created' }, 400: { description: 'Validation error' } } } },
+		'/api/admin/feedback': { get: { tags: ['Feedback'], summary: 'List feedback submissions', security: [{ bearerAuth: [] }], responses: { 200: { description: 'Paginated feedback' }, 403: { description: 'Full admin required' } } } },
+		'/api/admin/feedback/{id}': { patch: { tags: ['Feedback'], summary: 'Update feedback status', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['status'], properties: { status: { type: 'string', enum: FEEDBACK_STATUSES } } } } } }, responses: { 200: { description: 'Updated feedback' }, 404: { description: 'Feedback not found' } } } },
 		'/api/admin/leads/{id}': { get: { tags: ['Leads'], summary: 'Get one lead', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], responses: { 200: { description: 'Lead details' }, 404: { description: 'Lead not found' } } }, patch: { tags: ['Leads'], summary: 'Update a lead', security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], requestBody: { content: { 'application/json': { schema: { '$ref': '#/components/schemas/Lead' } } } }, responses: { 200: { description: 'Updated lead' }, 404: { description: 'Lead not found' } } } },
 		'/api/admin/audit-logs': { get: { tags: ['Dashboard'], summary: 'List admin activity logs', security: [{ bearerAuth: [] }], responses: { 200: { description: 'Activity logs' }, 401: { description: 'Unauthorized' } } } },
 		'/api/programs': { get: { tags: ['Programs'], summary: 'List active programs', responses: { 200: { description: 'Active programs' } } } },
@@ -242,11 +248,22 @@ async function writeStore(store) {
 	return storeWriteQueue;
 }
 
-async function issueToken(role = 'admin') {
+function hashAdminPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
+	return { salt, hash: crypto.scryptSync(password, salt, 64).toString('hex') };
+}
+
+function verifyAdminPassword(password, user) {
+	try {
+		const hash = crypto.scryptSync(password, user.passwordSalt, 64).toString('hex');
+		return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(user.passwordHash, 'hex'));
+	} catch { return false; }
+}
+
+async function issueToken(role = 'admin', username = '', permissions = ['*']) {
 	const token = crypto.randomBytes(24).toString('hex');
 	const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
-	await database.createAdminSession(token, expiresAt, role);
-	return { token, expiresAt, role };
+	await database.createAdminSession(token, expiresAt, role, username, permissions);
+	return { token, expiresAt, role, username, permissions };
 }
 
 async function requireAdmin(req, res, next) {
@@ -261,6 +278,8 @@ async function requireAdmin(req, res, next) {
 			return res.status(401).json({ message: 'Session expired' });
 		}
 		req.adminRole = session.role || 'admin';
+		req.adminUsername = session.username || '';
+		req.adminPermissions = Array.isArray(session.permissions) ? session.permissions : [];
 		next();
 	} catch (error) {
 		next(error);
@@ -269,7 +288,8 @@ async function requireAdmin(req, res, next) {
 
 function requirePermission(permission) {
 	return (req, res, next) => {
-		if (req.adminRole === 'admin' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission))) return next();
+		const hasGroupedPermission = permission.startsWith('leads:') ? req.adminPermissions.includes('leads') : permission.startsWith('wheel:') ? req.adminPermissions.includes('wheel') : false;
+		if (req.adminRole === 'admin' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission)) || req.adminPermissions.includes(permission) || hasGroupedPermission) return next();
 		return res.status(403).json({ message: 'ليس لديك صلاحية للوصول إلى هذا القسم.' });
 	};
 }
@@ -280,7 +300,7 @@ function requireFullAdmin(req, res, next) {
 }
 
 function requirePagePermission(req, res, next) {
-	if (req.adminRole === 'admin' || (req.adminRole === 'leads' && req.params.pageKey === 'batch-2027')) return next();
+	if (req.adminRole === 'admin' || (req.adminRole === 'leads' && req.params.pageKey === 'batch-2027') || req.adminPermissions.includes('*') || req.adminPermissions.includes(req.params.pageKey)) return next();
 	return res.status(403).json({ message: 'ليس لديك صلاحية تعديل هذه الصفحة.' });
 }
 
@@ -363,12 +383,15 @@ app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000,
 
 	const isFullAdmin = username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
 	const isLeadsAdmin = LEADS_ADMIN_USERNAME && LEADS_ADMIN_PASSWORD && username === LEADS_ADMIN_USERNAME && password === LEADS_ADMIN_PASSWORD;
-	if (!isFullAdmin && !isLeadsAdmin) {
+	let databaseUser = null;
+	if (!isFullAdmin && !isLeadsAdmin && typeof username === 'string') databaseUser = await database.findAdminUser(username.trim());
+	if (!isFullAdmin && !isLeadsAdmin && (!databaseUser || !databaseUser.isActive || !verifyAdminPassword(String(password || ''), databaseUser))) {
 		return res.status(401).json({ message: 'Invalid credentials' });
 	}
 
 	try {
-		const session = await issueToken(isFullAdmin ? 'admin' : 'leads');
+		const role = isFullAdmin ? 'admin' : isLeadsAdmin ? 'leads' : (databaseUser.role || 'editor');
+		const session = await issueToken(role, isFullAdmin ? ADMIN_USERNAME : isLeadsAdmin ? LEADS_ADMIN_USERNAME : databaseUser.username, isFullAdmin ? ['*'] : isLeadsAdmin ? ['leads:read', 'leads:update', 'wheel:read', 'batch-2027'] : databaseUser.permissions);
 		res.json(session);
 	} catch (error) {
 		next(error);
@@ -376,7 +399,7 @@ app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000,
 });
 
 app.get('/api/auth/me', requireAdmin, (req, res) => {
-	res.json({ username: req.adminRole === 'leads' ? LEADS_ADMIN_USERNAME : ADMIN_USERNAME, role: req.adminRole, permissions: req.adminRole === 'leads' ? ['leads:read', 'leads:update', 'wheel:read'] : ['*'] });
+	res.json({ username: req.adminUsername || (req.adminRole === 'leads' ? LEADS_ADMIN_USERNAME : ADMIN_USERNAME), role: req.adminRole, permissions: req.adminPermissions });
 });
 
 app.post('/api/auth/logout', requireAdmin, async (req, res, next) => {
@@ -544,6 +567,24 @@ app.post('/api/leads', rateLimit({ name: 'leads', windowMs: 15 * 60 * 1000, max:
 	res.status(201).json(lead);
 });
 
+app.post('/api/feedback', rateLimit({ name: 'feedback', windowMs: 15 * 60 * 1000, max: 8 }), async (req, res) => {
+	const name = String(req.body?.name || '').trim();
+	const university = String(req.body?.university || '').trim();
+	const message = String(req.body?.message || '').trim();
+	const rating = Number(req.body?.rating);
+	if (name.length < 2 || name.length > 120) return res.status(400).json({ message: 'Name must be between 2 and 120 characters' });
+	if (university.length > 160) return res.status(400).json({ message: 'University must be 160 characters or less' });
+	if (!Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ message: 'Rating must be an integer between 1 and 5' });
+	if (message.length < 3 || message.length > 2000) return res.status(400).json({ message: 'Message must be between 3 and 2000 characters' });
+	const feedback = { id: crypto.randomUUID(), name, university, rating, message, status: 'new', createdAt: getNowIso(), updatedAt: null };
+	await database.createFeedback(feedback);
+	res.status(201).json({ ok: true, id: feedback.id });
+});
+
+app.get('/api/feedback/published', async (_req, res) => {
+	res.json({ data: await database.listPublishedFeedback() });
+});
+
 app.get('/api/admin/leads', requireAdmin, requirePermission('leads:read'), async (req, res) => {
 	const store = await readStore();
 	const search = String(req.query.search || '').trim().toLowerCase();
@@ -628,6 +669,89 @@ app.patch('/api/admin/leads/:id', requireAdmin, requirePermission('leads:update'
 	addAuditLog(store, 'updated', 'lead', lead.id, req);
 	await writeStore(store);
 	res.json(lead);
+});
+
+app.get('/api/admin/feedback', requireAdmin, requireFullAdmin, async (req, res) => {
+	const store = await readStore();
+	const search = String(req.query.search || '').trim().toLowerCase();
+	const status = String(req.query.status || '').trim();
+	const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+	const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
+	if (status && !FEEDBACK_STATUSES.includes(status)) return res.status(400).json({ message: 'Invalid feedback status' });
+	let feedbacks = Array.isArray(store.feedbacks) ? store.feedbacks : [];
+	if (status) feedbacks = feedbacks.filter(item => item.status === status);
+	if (search) feedbacks = feedbacks.filter(item => [item.name, item.university, item.message].some(value => String(value || '').toLowerCase().includes(search)));
+	const total = feedbacks.length;
+	res.json({ data: feedbacks.slice((page - 1) * limit, page * limit), pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+});
+
+app.patch('/api/admin/feedback/:id', requireAdmin, requireFullAdmin, async (req, res) => {
+	const store = await readStore();
+	const feedback = (store.feedbacks || []).find(item => item.id === req.params.id);
+	if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
+	const status = String(req.body?.status || '').trim();
+	if (!FEEDBACK_STATUSES.includes(status)) return res.status(400).json({ message: 'Invalid feedback status' });
+	feedback.status = status;
+	feedback.updatedAt = getNowIso();
+	addAuditLog(store, 'updated', 'feedback', feedback.id, req);
+	await database.updateFeedback(feedback.id, { status, updatedAt: feedback.updatedAt });
+	await writeStore(store);
+	res.json(feedback);
+});
+
+function normalizeUserPermissions(value) {
+	if (!Array.isArray(value)) return [];
+	const allowed = new Set([...PAGE_KEYS, 'leads', 'wheel']);
+	return [...new Set(value.map(item => String(item || '').trim()).filter(item => allowed.has(item)))];
+}
+
+app.get('/api/admin/users', requireAdmin, requireFullAdmin, async (_req, res) => {
+	res.json({ data: await database.listAdminUsers() });
+});
+
+app.post('/api/admin/users', requireAdmin, requireFullAdmin, async (req, res, next) => {
+	const username = String(req.body?.username || '').trim();
+	const password = String(req.body?.password || '');
+	const permissions = normalizeUserPermissions(req.body?.permissions);
+	if (!/^[a-zA-Z0-9._-]{3,40}$/.test(username)) return res.status(400).json({ message: 'اسم المستخدم يجب أن يكون من 3 إلى 40 حرفاً إنجليزياً أو أرقاماً.' });
+	if (password.length < 10 || password.length > 200) return res.status(400).json({ message: 'كلمة المرور يجب ألا تقل عن 10 أحرف.' });
+	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(409).json({ message: 'اسم المستخدم محجوز.' });
+	try {
+		const { salt, hash } = hashAdminPassword(password);
+		await database.createAdminUser({ username, passwordHash: hash, passwordSalt: salt, role: 'editor', permissions, createdAt: getNowIso() });
+		res.status(201).json({ username, role: 'editor', permissions });
+	} catch (error) {
+		if (String(error.message || '').toLowerCase().includes('unique')) return res.status(409).json({ message: 'اسم المستخدم مستخدم بالفعل.' });
+		next(error);
+	}
+});
+
+app.patch('/api/admin/users/:username', requireAdmin, requireFullAdmin, async (req, res, next) => {
+	const username = String(req.params.username || '').trim();
+	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(400).json({ message: 'الحسابات الأساسية يتم ضبطها من متغيرات السيرفر.' });
+	const user = await database.findAdminUser(username);
+	if (!user) return res.status(404).json({ message: 'الحساب غير موجود.' });
+	const changes = { updatedAt: getNowIso() };
+	if (req.body?.permissions !== undefined) changes.permissions = normalizeUserPermissions(req.body.permissions);
+	if (req.body?.isActive !== undefined) changes.isActive = Boolean(req.body.isActive);
+	if (req.body?.password !== undefined) {
+		const password = String(req.body.password || '');
+		if (password.length < 10 || password.length > 200) return res.status(400).json({ message: 'كلمة المرور يجب ألا تقل عن 10 أحرف.' });
+		const { salt, hash } = hashAdminPassword(password);
+		changes.passwordSalt = salt;
+		changes.passwordHash = hash;
+	}
+	try {
+		await database.updateAdminUser(username, changes);
+		if (changes.passwordHash || changes.isActive === false) await database.deleteAdminSessionsForUsername(username);
+		res.json({ username, role: user.role, permissions: changes.permissions || user.permissions, isActive: changes.isActive ?? user.isActive });
+	} catch (error) { next(error); }
+});
+
+app.delete('/api/admin/users/:username', requireAdmin, requireFullAdmin, async (req, res, next) => {
+	const username = String(req.params.username || '').trim();
+	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(400).json({ message: 'لا يمكن حذف الحساب الأساسي.' });
+	try { await database.deleteAdminUser(username); res.sendStatus(204); } catch (error) { next(error); }
 });
 
 app.get('/api/admin/audit-logs', requireAdmin, requireFullAdmin, async (req, res) => {

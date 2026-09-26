@@ -28,6 +28,11 @@ db.exec(`
     id TEXT PRIMARY KEY, action TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL,
     actor TEXT DEFAULT '', ip TEXT DEFAULT '', created_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS feedbacks (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, university TEXT DEFAULT '',
+    rating INTEGER NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new',
+    created_at TEXT NOT NULL, updated_at TEXT
+  );
   CREATE TABLE IF NOT EXISTS wheel_state (
     id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT NOT NULL
   );
@@ -35,15 +40,23 @@ db.exec(`
     filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BLOB NOT NULL, created_at TEXT NOT NULL
   );
   CREATE TABLE IF NOT EXISTS admin_sessions (
-    token TEXT PRIMARY KEY, expires_at TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'admin'
+    token TEXT PRIMARY KEY, expires_at TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'admin',
+    username TEXT NOT NULL DEFAULT '', permissions TEXT NOT NULL DEFAULT '[]'
+  );
+  CREATE TABLE IF NOT EXISTS admin_users (
+    username TEXT PRIMARY KEY, password_hash TEXT NOT NULL, password_salt TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'editor', permissions TEXT NOT NULL DEFAULT '[]',
+    is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT
   );
 `);
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
+try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN username TEXT NOT NULL DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
+try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN permissions TEXT NOT NULL DEFAULT '[]'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE leads ADD COLUMN attribution TEXT DEFAULT '{}'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 
 function migrateLegacyStore() {
   if (db.prepare('SELECT value FROM metadata WHERE key = ?').get('legacy-json-migrated')) return;
-  let legacy = { pages: {}, leads: [], programs: [], auditLogs: [] };
+  let legacy = { pages: {}, leads: [], programs: [], auditLogs: [], feedbacks: [] };
   try { legacy = JSON.parse(fs.readFileSync(legacyStoreFile, 'utf8')); } catch {}
   const insert = db.transaction(() => {
     const pageInsert = db.prepare('INSERT OR REPLACE INTO pages(key, data, updated_at) VALUES (?, ?, ?)');
@@ -54,6 +67,8 @@ function migrateLegacyStore() {
     for (const program of Array.isArray(legacy.programs) ? legacy.programs : []) programInsert.run(program.id, program.name || '', program.slug || '', program.category || '', program.language || 'ar', Number(program.price || 0), JSON.stringify(program.features || []), program.isActive === false ? 0 : 1, program.enrollmentStatus || 'open', program.createdAt || new Date().toISOString(), program.updatedAt || null);
     const auditInsert = db.prepare('INSERT OR IGNORE INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES (?,?,?,?,?,?,?)');
     for (const log of Array.isArray(legacy.auditLogs) ? legacy.auditLogs : []) auditInsert.run(log.id || `${log.createdAt || Date.now()}-${Math.random()}`, log.action || '', log.entityType || '', log.entityId || '', log.actor || '', log.ip || '', log.createdAt || new Date().toISOString());
+    const feedbackInsert = db.prepare('INSERT OR IGNORE INTO feedbacks(id,name,university,rating,message,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)');
+    for (const feedback of Array.isArray(legacy.feedbacks) ? legacy.feedbacks : []) feedbackInsert.run(feedback.id, feedback.name || '', feedback.university || '', Number(feedback.rating || 0), feedback.message || '', feedback.status || 'new', feedback.createdAt || new Date().toISOString(), feedback.updatedAt || null);
     db.prepare('INSERT INTO metadata(key,value) VALUES (?,?)').run('legacy-json-migrated', new Date().toISOString());
   });
   insert();
@@ -71,7 +86,8 @@ function readStore() {
 	const leads = db.prepare('SELECT id,name,whatsapp,school,student_type AS studentType,program,source,status,notes,attribution,created_at AS createdAt,updated_at AS updatedAt FROM leads ORDER BY created_at DESC').all().map(lead => { try { lead.attribution = JSON.parse(lead.attribution || '{}'); } catch { lead.attribution = {}; } return lead; });
   const programs = db.prepare('SELECT id,name,slug,category,language,price,features,is_active AS isActive,enrollment_status AS enrollmentStatus,created_at AS createdAt,updated_at AS updatedAt FROM programs ORDER BY created_at DESC').all().map(item => ({ ...item, isActive: Boolean(item.isActive), features: JSON.parse(item.features || '[]') }));
   const auditLogs = db.prepare('SELECT id,action,entity_type AS entityType,entity_id AS entityId,actor,ip,created_at AS createdAt FROM audit_logs ORDER BY created_at DESC').all();
-  return { pages, leads, programs, auditLogs };
+  const feedbacks = db.prepare('SELECT id,name,university,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks ORDER BY created_at DESC').all();
+  return { pages, leads, programs, auditLogs, feedbacks };
 }
 
 function writeStore(store) {
@@ -88,6 +104,9 @@ function writeStore(store) {
     db.prepare('DELETE FROM audit_logs').run();
     const auditInsert = db.prepare('INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES (?,?,?,?,?,?,?)');
     for (const log of store.auditLogs || []) auditInsert.run(log.id || `${log.createdAt || Date.now()}-${Math.random()}`, log.action || '', log.entityType || '', log.entityId || '', log.actor || '', log.ip || '', log.createdAt || new Date().toISOString());
+    db.prepare('DELETE FROM feedbacks').run();
+    const feedbackInsert = db.prepare('INSERT INTO feedbacks(id,name,university,rating,message,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)');
+    for (const feedback of store.feedbacks || []) feedbackInsert.run(feedback.id, feedback.name || '', feedback.university || '', Number(feedback.rating || 0), feedback.message || '', feedback.status || 'new', feedback.createdAt || new Date().toISOString(), feedback.updatedAt || null);
   });
   transaction();
 }
@@ -110,17 +129,53 @@ function readAsset(filename) {
 	return row || null;
 }
 
-function createAdminSession(token, expiresAt, role = 'admin') {
-	db.prepare('INSERT INTO admin_sessions(token, expires_at, role) VALUES (?, ?, ?)').run(token, expiresAt, role);
+function createAdminSession(token, expiresAt, role = 'admin', username = '', permissions = []) {
+	db.prepare('INSERT INTO admin_sessions(token, expires_at, role, username, permissions) VALUES (?, ?, ?, ?, ?)').run(token, expiresAt, role, username, JSON.stringify(permissions));
 }
 
 function getAdminSession(token) {
-	const row = db.prepare('SELECT expires_at AS expiresAt, role FROM admin_sessions WHERE token = ?').get(token);
-	return row || null;
+	const row = db.prepare('SELECT expires_at AS expiresAt, role, username, permissions FROM admin_sessions WHERE token = ?').get(token);
+	if (!row) return null;
+	try { row.permissions = JSON.parse(row.permissions || '[]'); } catch { row.permissions = []; }
+	return row;
 }
 
 function deleteAdminSession(token) {
 	db.prepare('DELETE FROM admin_sessions WHERE token = ?').run(token);
 }
+function deleteAdminSessionsForUsername(username) { db.prepare('DELETE FROM admin_sessions WHERE username = ?').run(username); }
 
-module.exports = { readStore, writeStore, readWheelState, writeWheelState, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, databaseFile };
+function findAdminUser(username) {
+	const row = db.prepare('SELECT username,password_hash AS passwordHash,password_salt AS passwordSalt,role,permissions,is_active AS isActive FROM admin_users WHERE username = ?').get(username);
+	if (!row) return null;
+	try { row.permissions = JSON.parse(row.permissions || '[]'); } catch { row.permissions = []; }
+	row.isActive = Boolean(row.isActive);
+	return row;
+}
+
+function listAdminUsers() {
+	return db.prepare('SELECT username,role,permissions,is_active AS isActive,created_at AS createdAt,updated_at AS updatedAt FROM admin_users ORDER BY created_at DESC').all().map(row => { try { row.permissions = JSON.parse(row.permissions || '[]'); } catch { row.permissions = []; } row.isActive = Boolean(row.isActive); return row; });
+}
+
+function createAdminUser(user) {
+	db.prepare('INSERT INTO admin_users(username,password_hash,password_salt,role,permissions,is_active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)').run(user.username, user.passwordHash, user.passwordSalt, user.role || 'editor', JSON.stringify(user.permissions || []), user.isActive === false ? 0 : 1, user.createdAt, user.updatedAt || null);
+}
+
+function updateAdminUser(username, changes) {
+	const fields = [];
+	const values = [];
+	if (changes.passwordHash) { fields.push('password_hash = ?', 'password_salt = ?'); values.push(changes.passwordHash, changes.passwordSalt); }
+	if (changes.permissions) { fields.push('permissions = ?'); values.push(JSON.stringify(changes.permissions)); }
+	if (changes.isActive !== undefined) { fields.push('is_active = ?'); values.push(changes.isActive ? 1 : 0); }
+	if (changes.updatedAt) { fields.push('updated_at = ?'); values.push(changes.updatedAt); }
+	if (!fields.length) return;
+	values.push(username);
+	db.prepare(`UPDATE admin_users SET ${fields.join(', ')} WHERE username = ?`).run(...values);
+}
+
+function deleteAdminUser(username) { db.prepare('DELETE FROM admin_users WHERE username = ?').run(username); }
+function createFeedback(feedback) { db.prepare('INSERT INTO feedbacks(id,name,university,rating,message,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)').run(feedback.id, feedback.name, feedback.university || '', feedback.rating, feedback.message, feedback.status || 'new', feedback.createdAt, feedback.updatedAt || null); }
+function updateFeedback(id, changes) { const fields = []; const values = []; if (changes.status) { fields.push('status = ?'); values.push(changes.status); } if (changes.updatedAt) { fields.push('updated_at = ?'); values.push(changes.updatedAt); } if (!fields.length) return; values.push(id); db.prepare(`UPDATE feedbacks SET ${fields.join(', ')} WHERE id = ?`).run(...values); }
+function listPublishedFeedback() { return db.prepare("SELECT id,name,university,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks WHERE status = 'published' ORDER BY created_at DESC LIMIT 50").all(); }
+
+module.exports = { readStore, writeStore, readWheelState, writeWheelState, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, createFeedback, updateFeedback, listPublishedFeedback, databaseFile };

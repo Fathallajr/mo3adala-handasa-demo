@@ -1,50 +1,20 @@
-import { animate, query, stagger, state, style, transition, trigger, group, keyframes } from '@angular/animations';
+import { animate, query, stagger, state, style, transition, trigger } from '@angular/animations';
 
 // انيميشن التنقلات بين الصفحات - محسن مع تأثيرات سلسة
 export const pageTransition = trigger('pageTransition', [
   transition('* => *', [
-    // إخفاء الصفحة الحالية
-    query(':leave', [
-      style({ 
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        opacity: 1,
-        transform: 'translateX(0) scale(1)'
-      })
-    ], { optional: true }),
-    
-    // إظهار الصفحة الجديدة
     query(':enter', [
       style({ 
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
         opacity: 0,
-        transform: 'translateX(30px) scale(0.95)'
+        transform: 'translateY(10px)'
       })
     ], { optional: true }),
-    
-    // تنفيذ الانيميشن
-    group([
-      // إخفاء الصفحة الحالية
-      query(':leave', [
-        animate('400ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
-          opacity: 0,
-          transform: 'translateX(-30px) scale(0.95)'
-        }))
-      ], { optional: true }),
-      
-      // إظهار الصفحة الجديدة
-      query(':enter', [
-        animate('400ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
-          opacity: 1,
-          transform: 'translateX(0) scale(1)'
-        }))
-      ], { optional: true })
-    ])
+    query(':enter', [
+      animate('220ms cubic-bezier(0.22, 1, 0.36, 1)', style({
+        opacity: 1,
+        transform: 'translateY(0)'
+      }))
+    ], { optional: true })
   ])
 ]);
 
@@ -56,7 +26,7 @@ export const homePageTransition = trigger('homePageTransition', [
         opacity: 0,
         transform: 'translateY(50px) scale(0.9)'
       }),
-      animate('600ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
+      animate('240ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
         opacity: 1,
         transform: 'translateY(0) scale(1)'
       }))
@@ -72,7 +42,7 @@ export const subPageTransition = trigger('subPageTransition', [
         opacity: 0,
         transform: 'translateY(40px)'
       }),
-      animate('500ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
+      animate('220ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
         opacity: 1,
         transform: 'translateY(0)'
       }))
@@ -87,7 +57,7 @@ export const cardAnimation = trigger('cardAnimation', [
       opacity: 0,
       transform: 'translateY(30px) scale(0.9)'
     }),
-    animate('500ms cubic-bezier(0.68, -0.55, 0.265, 1.55)', style({
+    animate('220ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
       opacity: 1,
       transform: 'translateY(0) scale(1)'
     }))
@@ -116,8 +86,8 @@ export const cascadeAnimation = trigger('cascadeAnimation', [
         opacity: 0,
         transform: 'translateY(20px)'
       }),
-      stagger(150, [
-        animate('400ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
+      stagger(24, [
+        animate('180ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
           opacity: 1,
           transform: 'translateY(0)'
         }))
@@ -134,7 +104,7 @@ export const fadeInUp = trigger('fadeInUp', [
       transform: 'translateY(20px)',
       ['will-change']: 'opacity, transform'
     }),
-    animate('400ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({ 
+    animate('180ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({ 
       opacity: 1, 
       transform: 'translateY(0)',
       ['will-change']: 'auto'
@@ -151,7 +121,7 @@ export const staggerList = trigger('staggerList', [
         transform: 'translateY(15px)',
         ['will-change']: 'opacity, transform'
       }),
-      stagger(80, animate('350ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({ 
+      stagger(24, animate('180ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({ 
         opacity: 1, 
         transform: 'translateY(0)',
         ['will-change']: 'auto'
@@ -174,7 +144,7 @@ export const expandCollapse = trigger('expandCollapse', [
     overflow: 'hidden',
     ['will-change']: 'auto'
   })),
-  transition('void <=> *', animate('300ms cubic-bezier(0.25, 0.8, 0.25, 1)')),
+  transition('void <=> *', animate('180ms cubic-bezier(0.25, 0.8, 0.25, 1)')),
 ]);
 
 // انيميشن للأزرار - تأثير الضغط
@@ -193,7 +163,7 @@ export const imageZoom = trigger('imageZoom', [
       opacity: 0,
       transform: 'scale(1.1)'
     }),
-    animate('600ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
+    animate('240ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
       opacity: 1,
       transform: 'scale(1)'
     }))
@@ -207,7 +177,7 @@ export const textReveal = trigger('textReveal', [
       opacity: 0,
       transform: 'translateY(10px)'
     }),
-    animate('400ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
+    animate('180ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
       opacity: 1,
       transform: 'translateY(0)'
     }))
@@ -218,7 +188,7 @@ export const textReveal = trigger('textReveal', [
 export const progressBar = trigger('progressBar', [
   transition(':enter', [
     style({ width: '0%' }),
-    animate('800ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({ width: '*' }))
+    animate('220ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({ width: '*' }))
   ])
 ]);
 
@@ -229,13 +199,13 @@ export const notification = trigger('notification', [
       opacity: 0,
       transform: 'translateX(100%) scale(0.8)'
     }),
-    animate('400ms cubic-bezier(0.68, -0.55, 0.265, 1.55)', style({
+    animate('180ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
       opacity: 1,
       transform: 'translateX(0) scale(1)'
     }))
   ]),
   transition(':leave', [
-    animate('300ms ease-in', style({
+    animate('160ms ease-in', style({
       opacity: 0,
       transform: 'translateX(100%) scale(0.8)'
     }))
@@ -249,11 +219,9 @@ export const waveAnimation = trigger('waveAnimation', [
       opacity: 0,
       transform: 'translateY(20px) scale(0.9)'
     }),
-    animate('500ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
+    animate('220ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({
       opacity: 1,
       transform: 'translateY(0) scale(1)'
     }))
   ])
 ]);
-
-

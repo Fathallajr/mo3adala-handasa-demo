@@ -36,6 +36,22 @@ export class RequirementsPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // جهّز المحتوى الافتراضي قبل أول رسم حتى لا تظهر الأقسام فارغة أثناء انتظار الـ API.
+    const defaults = cmsPageDefaults.requirements as {
+      title: string;
+      description: string;
+      engineeringConditions: string[];
+      computersConditions: string[];
+      documents: string[];
+      steps: Array<{ title: string; description: string }>;
+    };
+    this.pageTitle = defaults.title;
+    this.pageDescription = defaults.description;
+    this.engineeringConditions = [...defaults.engineeringConditions];
+    this.computersConditions = [...defaults.computersConditions];
+    this.documents = [...defaults.documents];
+    this.steps = defaults.steps.map(step => ({ ...step }));
+
     if (typeof window !== 'undefined') {
       const siteUrl = (window as any)['NG_SITE_URL'] || 'https://www.appmo3adla.com';
       const title = 'شروط التقديم - ابلكيشن معادلة كلية هندسة';
@@ -52,10 +68,18 @@ export class RequirementsPageComponent implements OnInit {
 		this.isPageVisible = content?.visible !== false;
 		this.pageTitle = content?.title || this.pageTitle;
 		this.pageDescription = content?.description || this.pageDescription;
-		this.engineeringConditions = content?.engineeringConditions || [];
-		this.computersConditions = content?.computersConditions || [];
-		this.documents = content?.documents || [];
-		this.steps = content?.steps || [];
+		if (Array.isArray(content?.engineeringConditions) && content.engineeringConditions.length) {
+			this.engineeringConditions = content.engineeringConditions;
+		}
+		if (Array.isArray(content?.computersConditions) && content.computersConditions.length) {
+			this.computersConditions = content.computersConditions;
+		}
+		if (Array.isArray(content?.documents) && content.documents.length) {
+			this.documents = content.documents;
+		}
+		if (Array.isArray(content?.steps) && content.steps.length) {
+			this.steps = content.steps;
+		}
 	});
   }
 

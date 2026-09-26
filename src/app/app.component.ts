@@ -1,6 +1,6 @@
-import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, Router, NavigationEnd, NavigationStart } from '@angular/router';
+import { RouterOutlet, RouterLink, Router, NavigationEnd, NavigationStart, NavigationCancel, NavigationError } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
@@ -27,9 +27,9 @@ declare global {
 })
 export class AppComponent implements OnInit, OnDestroy {
 	title = 'mo3adala-handasa';
-	currentRoute = '';
 	showLoading = true;
-	routeTransitioning = false;
+	routeLoading = false;
+	currentRoute = '';
 	showLaunchOffer = false;
 	showSubscriptionChoices = false;
 	offerSubmitted = false;
@@ -59,9 +59,8 @@ export class AppComponent implements OnInit, OnDestroy {
 	countdownMinutes = 0;
 	countdownSeconds = 0;
 	private offerCountdownTimer?: ReturnType<typeof setInterval>;
-	private routeTransitionTimer?: ReturnType<typeof setTimeout>;
 
-	constructor(private router: Router, private viewportScroller: ViewportScroller, private seo: SeoService) {
+	constructor(private router: Router, private viewportScroller: ViewportScroller, private seo: SeoService, private cdr: ChangeDetectorRef) {
 		if ('scrollRestoration' in history) {
 			history.scrollRestoration = 'manual';
 		}
@@ -71,13 +70,20 @@ export class AppComponent implements OnInit, OnDestroy {
 				// Set the route class before the new view is rendered, preventing
 				// internal pages from briefly appearing beneath the fixed navbar.
 				if (event instanceof NavigationStart) {
+					this.routeLoading = true;
 					this.currentRoute = event.url;
 					this.seo.setRobots(event.url.startsWith('/admin') ? 'noindex, nofollow, noarchive' : 'index, follow');
 				}
 				if (event instanceof NavigationEnd) {
+					this.routeLoading = false;
 					this.currentRoute = event.urlAfterRedirects;
-					this.playRouteTransition();
 					this.scrollToTop();
+				}
+				if (event instanceof NavigationCancel || event instanceof NavigationError) {
+					this.routeLoading = false;
+				}
+				if (event instanceof NavigationStart || event instanceof NavigationEnd || event instanceof NavigationCancel || event instanceof NavigationError) {
+					this.cdr.detectChanges();
 				}
 			});
 	}
@@ -85,12 +91,11 @@ export class AppComponent implements OnInit, OnDestroy {
 	ngOnInit() {
 		// التمرير إلى الأعلى عند تحميل الصفحة لأول مرة
 		this.scrollToTop();
-		this.playRouteTransition();
-		
-		// Give the initial shell a little time to settle before hiding the loader.
 		setTimeout(() => {
 			this.showLoading = false;
-		}, 700);
+			this.cdr.detectChanges();
+		}, 260);
+		
 		if ((this.currentRoute === '/' || this.currentRoute === '') && typeof window !== 'undefined' && !localStorage.getItem('launch-offer-submitted')) {
 			setTimeout(() => this.showLaunchOffer = true, 650);
 		}
@@ -99,21 +104,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy() {
 		if (this.offerCountdownTimer) clearInterval(this.offerCountdownTimer);
-		if (this.routeTransitionTimer) clearTimeout(this.routeTransitionTimer);
-	}
-
-	private playRouteTransition(): void {
-		if (typeof window === 'undefined') return;
-
-		this.routeTransitioning = false;
-		if (this.routeTransitionTimer) clearTimeout(this.routeTransitionTimer);
-
-		requestAnimationFrame(() => {
-			this.routeTransitioning = true;
-			this.routeTransitionTimer = setTimeout(() => {
-				this.routeTransitioning = false;
-			}, 650);
-		});
 	}
 
 	private startOfferCountdown() {

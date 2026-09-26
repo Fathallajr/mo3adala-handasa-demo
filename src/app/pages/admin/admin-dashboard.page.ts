@@ -6,7 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CmsPageKey, cmsPageDefaults, cmsPageOptions } from '../../core/cms-page.registry';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
-import { AdminApiService, DashboardSummary, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
+import { AdminApiService, AdminUser, DashboardSummary, Feedback, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
 import { SeoService } from '../../core/seo.service';
 import { ContactFormComponent } from './forms/contact-form.component';
 import { FaqFormComponent } from './forms/faq-form.component';
@@ -53,11 +53,29 @@ interface PageOption {
 })
 export class AdminDashboardPageComponent implements OnInit {
 	sidebarOpen = false;
-	activeView: 'overview' | 'leads' | 'programs' | 'wheel' | 'cms' = 'leads';
+	activeView: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms' = 'overview';
 	dashboard: DashboardSummary | null = null;
 	leads: Lead[] = [];
 	programs: Program[] = [];
 	wheelClaims: WheelClaim[] = [];
+	feedbacks: Feedback[] = [];
+	feedbackTotal = 0;
+	feedbackSearch = '';
+	feedbackStatus = '';
+	readonly feedbackStatuses: Feedback['status'][] = ['new', 'reviewed', 'published', 'archived'];
+	readonly feedbackStatusLabels: Record<string, string> = { new: 'جديد', reviewed: 'تمت المراجعة', published: 'منشور', archived: 'مؤرشف' };
+	isLoadingFeedback = false;
+	adminUsers: AdminUser[] = [];
+	adminUserDraft = { username: '', password: '', permissions: [] as string[] };
+	showAdminUserPassword = false;
+	adminUserFormError = '';
+	adminUserPasswordDraft: Record<string, string> = {};
+	adminUserPasswordVisibility: Record<string, boolean> = {};
+	adminUserPermissionDraft: Record<string, string[]> = {};
+	adminPermissionEdit: Record<string, boolean> = {};
+	isLoadingAdminUsers = false;
+	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
+	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'wheel', title: 'نتائج العجلة' }];
 	wheelSearch = '';
 	wheelGift = '';
 	wheelProgram = '';
@@ -127,14 +145,26 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.activeView = 'cms';
 				this.pendingCmsNavigation = false;
 			} else {
-				this.activeView = 'leads';
-				this.loadLeads();
+				if (this.auth.getRole() === 'admin') {
+					this.activeView = 'overview';
+					this.loadOverview();
+				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('wheel')) {
+					this.activeView = 'leads';
+					if (this.auth.canAccessFeature('leads')) this.loadLeads();
+					else if (this.auth.canAccessFeature('wheel')) { this.activeView = 'wheel'; this.loadWheelClaims(); }
+				} else {
+					this.activeView = 'cms';
+				}
 			}
 			this.loadPage(pageKey);
 		});
 	}
 
-	setView(view: 'overview' | 'leads' | 'programs' | 'wheel' | 'cms'): void {
+	setView(view: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms'): void {
+		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
+		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
+		if (view !== 'cms' && view !== 'leads' && view !== 'wheel' && this.auth.getRole() !== 'admin') return;
+		this.sidebarOpen = false;
 		this.activeView = view;
 		this.statusMessage = '';
 		this.errorMessage = '';
@@ -142,7 +172,51 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (view === 'leads') this.loadLeads();
 		if (view === 'programs') this.loadPrograms();
 		if (view === 'wheel') this.loadWheelClaims();
+		if (view === 'feedback') this.loadFeedback();
+		if (view === 'admins') this.loadAdminUsers();
 	}
+	loadAdminUsers(): void {
+		this.isLoadingAdminUsers = true;
+		this.adminApi.listAdminUsers().subscribe({ next: result => { this.adminUsers = result.data; this.adminUserPermissionDraft = Object.fromEntries(result.data.map(user => [user.username, [...user.permissions]])); this.isLoadingAdminUsers = false; }, error: err => { this.isLoadingAdminUsers = false; this.handleApiError(err); } });
+	}
+	createAdminUser(): void {
+		const username = this.adminUserDraft.username.trim();
+		const password = this.adminUserDraft.password;
+		this.adminUserFormError = '';
+		if (!/^[a-zA-Z0-9._-]{3,40}$/.test(username)) { this.adminUserFormError = 'اسم المستخدم يجب أن يكون 3 أحرف أو أكثر وبالإنجليزية أو الأرقام فقط.'; return; }
+		if (password.length < 10) { this.adminUserFormError = 'كلمة المرور يجب أن تكون 10 أحرف على الأقل.'; return; }
+		this.adminApi.createAdminUser({ ...this.adminUserDraft, username }).subscribe({ next: user => { this.adminUsers = [user, ...this.adminUsers]; this.adminUserDraft = { username: '', password: '', permissions: [] }; this.statusMessage = 'تم إنشاء الحساب بدون تخزين كلمة المرور كنص مكشوف.'; }, error: err => this.handleApiError(err) });
+	}
+	toggleAdminPermission(target: string[] | null, pageKey: string): void { if (!target) return; const index = target.indexOf(pageKey); if (index >= 0) target.splice(index, 1); else target.push(pageKey); }
+	setAdminPassword(user: AdminUser): void {
+		const password = this.adminUserPasswordDraft[user.username] || '';
+		if (!password) { this.errorMessage = 'اكتب كلمة المرور الجديدة أولاً.'; return; }
+		this.adminApi.updateAdminUser(user.username, { password }).subscribe({ next: () => { this.adminUserPasswordDraft[user.username] = ''; this.statusMessage = 'تم تغيير كلمة المرور.'; }, error: err => this.handleApiError(err) });
+	}
+	saveAdminPermissions(user: AdminUser): void {
+		this.adminApi.updateAdminUser(user.username, { permissions: this.adminUserPermissionDraft[user.username] || user.permissions }).subscribe({ next: updated => { user.permissions = updated.permissions; this.adminPermissionEdit[user.username] = false; this.statusMessage = 'تم تحديث الصفحات المسموحة.'; }, error: err => this.handleApiError(err) });
+	}
+	toggleAdminPermissionEdit(username: string): void { this.adminPermissionEdit[username] = !this.adminPermissionEdit[username]; }
+	cancelAdminPermissionEdit(user: AdminUser): void { this.adminUserPermissionDraft[user.username] = [...user.permissions]; this.adminPermissionEdit[user.username] = false; }
+	getAdminPermissionLabels(user: AdminUser): string[] {
+		const keys = this.adminUserPermissionDraft[user.username] || user.permissions;
+		return [...this.adminFeatureOptions.map(item => ({ key: item.key, title: item.title })), ...this.adminPageOptions.map(item => ({ key: item.key, title: item.title }))].filter(item => keys.includes(item.key)).map(item => item.title);
+	}
+	removeAdminUser(user: AdminUser): void {
+		if (!window.confirm(`حذف حساب ${user.username}؟`)) return;
+		this.adminApi.deleteAdminUser(user.username).subscribe({ next: () => { this.adminUsers = this.adminUsers.filter(item => item.username !== user.username); this.statusMessage = 'تم حذف الحساب.'; }, error: err => this.handleApiError(err) });
+	}
+	loadFeedback(): void {
+		this.isLoadingFeedback = true;
+		this.adminApi.listFeedback(this.feedbackSearch.trim(), this.feedbackStatus).subscribe({
+			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.isLoadingFeedback = false; },
+			error: err => { this.isLoadingFeedback = false; this.handleApiError(err); }
+		});
+	}
+	updateFeedbackStatus(feedback: Feedback, status: Feedback['status']): void {
+		this.adminApi.updateFeedback(feedback.id, status).subscribe({ next: updated => { feedback.status = updated.status; this.statusMessage = 'تم تحديث حالة الرأي.'; }, error: err => this.handleApiError(err) });
+	}
+	formatFeedbackStatus(status?: string): string { return this.feedbackStatusLabels[status || ''] || status || 'غير محدد'; }
 
 	loadOverview(): void { this.adminApi.getSummary().subscribe({ next: value => { this.dashboard = value; this.leadProgramOptions = Array.from(new Set([...this.defaultLeadProgramOptions, ...Object.keys(value.byProgram || {})])).sort((a, b) => a.localeCompare(b, 'ar')); }, error: err => this.handleApiError(err) }); }
 	loadLeads(): void {
@@ -351,6 +425,10 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	private resolvePageKey(value: string | null): CmsPageKey {
 		if (this.auth.isLeadsOnly()) return 'batch-2027';
+		if (this.auth.getRole() !== 'admin') {
+			const permitted = this.pageOptions.find(item => this.auth.canAccessPage(item.key));
+			return permitted?.key || 'batch-2027';
+		}
 		const page = this.pageOptions.find(item => item.key === value);
 		return page?.key || 'batch-2027';
 	}
@@ -358,4 +436,10 @@ export class AdminDashboardPageComponent implements OnInit {
 	get leadsOnlyAccount(): boolean {
 		return this.auth.isLeadsOnly();
 	}
+
+	get fullAdminAccount(): boolean { return this.auth.getRole() === 'admin'; }
+
+	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
+
+	canAccessFeature(feature: 'leads' | 'wheel'): boolean { return this.auth.canAccessFeature(feature); }
 }

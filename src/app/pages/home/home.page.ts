@@ -10,6 +10,7 @@ import { WhatIsEquationComponent } from '../../shared/components/what-is-equatio
 import { cmsPageDefaults } from '../../core/cms-page.registry';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
 import { SubscriptionChoiceTriggerComponent } from '../../shared/components/subscription-choice-trigger/subscription-choice-trigger.component';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
 	selector: 'app-home-page',
@@ -30,6 +31,9 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	activeHomeVideoId: string | null = null;
 	showFinalSubscriptionChoices = false;
 	showFinalTeacherChoices = false;
+	publishedFeedbacks: Array<{ name: string; university?: string; rating: number; message: string }> = [];
+	private readonly feedbackEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api/feedback/published' : '/api/feedback/published';
+	private readonly refreshPublishedFeedbacksOnFocus = () => this.loadPublishedFeedbacks();
 
 	homeVideos = [
 		{
@@ -159,7 +163,8 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 		private canonical: CanonicalService,
 		private jsonld: JsonLdService,
 		private contentService: MonthlyContentService,
-		private sanitizer: DomSanitizer
+		private sanitizer: DomSanitizer,
+		private http: HttpClient
 	) {
 		const siteUrl = (typeof window !== 'undefined' ? (window as any)['NG_SITE_URL'] : process.env['NG_SITE_URL']) || 'https://www.appmo3adla.com';
 		const title = 'ابلكيشن معادلة كلية هندسة';
@@ -194,6 +199,12 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.applyCmsState(content);
 			this.startDescriptionAnimation();
 		});
+		this.loadPublishedFeedbacks();
+		if (typeof window !== 'undefined') window.addEventListener('focus', this.refreshPublishedFeedbacksOnFocus, { passive: true });
+	}
+
+	private loadPublishedFeedbacks(): void {
+		this.http.get<{ data: Array<{ name: string; university?: string; rating: number; message: string }> }>(this.feedbackEndpoint).subscribe({ next: response => { this.publishedFeedbacks = response.data || []; }, error: () => undefined });
 	}
 
 	private applyCmsState(content: unknown): void {
@@ -293,6 +304,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 	
 	ngOnDestroy() {
+		if (typeof window !== 'undefined') window.removeEventListener('focus', this.refreshPublishedFeedbacksOnFocus);
 		if (this.descriptionInterval) {
 			clearInterval(this.descriptionInterval);
 		}

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { EMPTY, Observable, catchError, map, of, switchMap, timer } from 'rxjs';
+import { EMPTY, Observable, catchError, map, startWith, switchMap, timer } from 'rxjs';
 import { AdminAuthService } from './admin-auth.service';
 import { CmsPageKey } from '../cms-page.registry';
 
@@ -39,7 +39,9 @@ export class MonthlyContentService {
 
 	loadPageState<T>(pageKey: CmsPageKey, fallback: T): Observable<T> {
 		return this.http.get<T>(`${this.apiBase}/content/${pageKey}`).pipe(
-			catchError(() => of(fallback))
+			// اعرض نسخة الفرونت فورًا، ثم حدّثها من الـ CMS في الخلفية.
+			startWith(fallback),
+			catchError(() => EMPTY)
 		);
 	}
 

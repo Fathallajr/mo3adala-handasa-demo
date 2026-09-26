@@ -227,8 +227,21 @@ export class NewsEquationPageComponent implements OnInit {
 	ngOnInit(): void {
 		this.monthlyContent.loadPageState('news-equation', { visible: true, title: 'أخبار المعادلة', items: this.newsItems }).subscribe((state: any) => {
 			if (state?.visible === false) return;
-			if (Array.isArray(state?.items) && state.items.length) {
-				this.newsItems = state.items.map((item: any, index: number) => this.normalizeNewsItem(item, index));
+			if (Array.isArray(state?.items)) {
+				const merged = [...this.newsItems];
+				state.items.forEach((item: any, index: number) => {
+					const normalized = this.normalizeNewsItem(item, index);
+					const itemKey = normalized.slug || normalized.title;
+					const existingIndex = merged.findIndex(existing =>
+						(existing.slug || existing.title) === itemKey || existing.title === normalized.title
+					);
+					if (existingIndex >= 0) {
+						merged[existingIndex] = { ...merged[existingIndex], ...normalized };
+					} else {
+						merged.push(normalized);
+					}
+				});
+				this.newsItems = merged;
 			}
 		});
 		if (typeof window !== 'undefined') {

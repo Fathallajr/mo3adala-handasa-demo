@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, ViewportScroller } from '@angular/common';
 import { filter } from 'rxjs/operators';
@@ -14,6 +14,7 @@ export class NavbarComponent implements OnInit {
 	scrolled = false;
 	navbarHidden = false;
 	private lastScrollY = 0;
+	private scrollFrame: number | null = null;
 	showSocial = false;
 	currentRoute = '';
 	showFollowUpButton = false;
@@ -30,7 +31,7 @@ export class NavbarComponent implements OnInit {
 	isMobileEngineersDropdownOpen = false;
 	isMobile = false;
 
-	constructor(private router: Router, private viewportScroller: ViewportScroller) {
+	constructor(private router: Router, private viewportScroller: ViewportScroller, private cdr: ChangeDetectorRef) {
 		if (typeof window !== 'undefined') {
 			this.checkScreenSize();
 			window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
@@ -42,16 +43,22 @@ export class NavbarComponent implements OnInit {
 
 	private handleScroll(): void {
 		if (typeof window === 'undefined') return;
-		const currentScrollY = window.scrollY;
-		this.scrolled = currentScrollY > 8;
-		if (currentScrollY <= 24) {
-			this.navbarHidden = false;
-		} else if (!this.isMobileMenuOpen && currentScrollY > this.lastScrollY + 4) {
-			this.navbarHidden = true;
-		} else if (currentScrollY < this.lastScrollY - 4) {
-			this.navbarHidden = false;
-		}
-		this.lastScrollY = currentScrollY;
+		if (this.scrollFrame !== null) return;
+		this.scrollFrame = window.requestAnimationFrame(() => {
+			this.scrollFrame = null;
+			const currentScrollY = window.scrollY;
+			this.scrolled = currentScrollY > 8;
+			const wasHidden = this.navbarHidden;
+			if (currentScrollY <= 24) {
+				this.navbarHidden = false;
+			} else if (!this.isMobileMenuOpen && currentScrollY > this.lastScrollY) {
+				this.navbarHidden = true;
+			} else if (currentScrollY < this.lastScrollY) {
+				this.navbarHidden = false;
+			}
+			this.lastScrollY = currentScrollY;
+			if (wasHidden !== this.navbarHidden) this.cdr.detectChanges();
+		});
 	}
 
 	checkScreenSize() {

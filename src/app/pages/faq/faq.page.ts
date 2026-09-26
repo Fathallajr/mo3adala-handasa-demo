@@ -54,6 +54,8 @@ export class FaqPageComponent implements OnInit {
 	}
 
 	ngOnInit() {
+		// الأسئلة الأساسية موجودة محليًا؛ لا نحجب الصفحة بسبب CMS أو API بطيء.
+		this.isLoading = false;
 		this.contentService.loadPageState('faq', { ...(cmsPageDefaults.faq as object), faqs: this.faqs }).subscribe(content => {
 			const state = content as { faqs?: Array<{ q: string; a: string }> };
 			if (Array.isArray(state.faqs)) {
@@ -64,11 +66,6 @@ export class FaqPageComponent implements OnInit {
 				];
 			}
 		});
-
-		// محاكاة تحميل البيانات لإظهار الـ animations بشكل صحيح
-		setTimeout(() => {
-			this.isLoading = false;
-		}, 300);
 	}
 	toggle(i: number) { this.openIndex = this.openIndex === i ? null : i; }
   filteredFaqs() {
