@@ -65,6 +65,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	readonly feedbackStatuses: Feedback['status'][] = ['new', 'reviewed', 'published', 'archived'];
 	readonly feedbackStatusLabels: Record<string, string> = { new: 'جديد', reviewed: 'تمت المراجعة', published: 'منشور', archived: 'مؤرشف' };
 	isLoadingFeedback = false;
+	private feedbackLoaded = false;
 	adminUsers: AdminUser[] = [];
 	adminUserDraft = { username: '', password: '', permissions: [] as string[] };
 	showAdminUserPassword = false;
@@ -148,6 +149,7 @@ export class AdminDashboardPageComponent implements OnInit {
 				if (this.auth.getRole() === 'admin') {
 					this.activeView = 'overview';
 					this.loadOverview();
+					this.loadFeedback();
 				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('wheel')) {
 					this.activeView = 'leads';
 					if (this.auth.canAccessFeature('leads')) this.loadLeads();
@@ -210,10 +212,11 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (!window.confirm(`حذف حساب ${user.username}؟`)) return;
 		this.adminApi.deleteAdminUser(user.username).subscribe({ next: () => { this.adminUsers = this.adminUsers.filter(item => item.username !== user.username); this.statusMessage = 'تم حذف الحساب.'; }, error: err => this.handleApiError(err) });
 	}
-	loadFeedback(): void {
+	loadFeedback(force = false): void {
+		if (this.isLoadingFeedback || (this.feedbackLoaded && !force)) return;
 		this.isLoadingFeedback = true;
 		this.adminApi.listFeedback(this.feedbackSearch.trim(), this.feedbackStatus).subscribe({
-			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.isLoadingFeedback = false; },
+			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.feedbackLoaded = true; this.isLoadingFeedback = false; },
 			error: err => { this.isLoadingFeedback = false; this.handleApiError(err); }
 		});
 	}
