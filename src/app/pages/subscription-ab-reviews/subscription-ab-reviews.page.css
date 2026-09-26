@@ -27,6 +27,26 @@
 .review-page--computers .review-benefits article > span { color: #cbd1da; }
 .review-page--computers .review-benefits article > strong { color: #14244b; }
 
+/* Keep the six benefit cards consistent across every subscription page. */
+.review-page .review-benefits {
+	border: 1px solid #e2e8f0;
+	background: linear-gradient(145deg, #fff, #f8fafc);
+}
+
+.review-page .review-benefits .review-chapter h2 { color: #14244b; }
+.review-page .review-benefits .review-chapter p { color: #687697; }
+
+.review-page .review-benefits article {
+	min-height: 154px;
+	border: 1px solid #e2e8f0;
+	border-top-width: 3px;
+	background: linear-gradient(160deg, #fff, #f8fafc);
+	box-shadow: 0 10px 24px rgba(16, 24, 39, .08);
+}
+
+.review-page .review-benefits article > span { color: #cbd1da; }
+.review-page .review-benefits article > strong { color: #14244b; }
+
 * {
 	box-sizing: border-box;
 }
@@ -2963,8 +2983,8 @@
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 1.2rem;
-	margin-top: 0;
-	transform: translateY(-.45rem);
+	margin-top: 1.25rem;
+	transform: none;
 	align-items: stretch;
 }
 
