@@ -26,7 +26,8 @@
 			<article class="teacher-card" [@cardAnimation] role="button" tabindex="0" (click)="viewTeacherDetails(5)" (keydown.enter)="viewTeacherDetails(5)"><div class="teacher-card__image"><img src="assets/teacher2.png" alt="د/ عمر أحمد عبد الفتاح" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"><span>إنجليزي</span></div><div class="teacher-card__body"><h3>د/ عمر أحمد عبد الفتاح</h3><p>أستاذ اللغة الإنجليزية</p><div class="teacher-card__link">عرض الملف الشخصي <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></div></div></article>
 		</div>
 		<div class="teachers-grid teachers-grid--english" *ngIf="isEnglish">
-			<article class="teacher-card teacher-card--static" *ngFor="let teacher of englishTeachers">
+			<article class="teacher-card teacher-card--english" *ngFor="let teacher of englishTeachers">
+				<div class="teacher-card__image"><img [src]="teacher.image" [alt]="teacher.name" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"><span>{{ teacher.subject }}</span></div>
 				<div class="teacher-card__body"><h3>{{ teacher.name }}</h3><p>{{ teacher.subject }}</p></div>
 			</article>
 		</div>

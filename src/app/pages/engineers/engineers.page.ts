@@ -26,11 +26,11 @@ export class EngineersPageComponent implements OnInit {
 		{ id: 5, image: 'assets/teacher2.png', alt: 'د/ عمر أحمد عبد الفتاح', subject: 'English', description: 'أستاذ اللغة الإنجليزية' }
   ];
   englishTeachers = [
-    { name: 'المهندس أحمد علي', subject: 'Math 1 / Math 2' },
-    { name: 'المهندس محمد أشرف', subject: 'Mechanics' },
-    { name: 'المهندس محمد نبيل', subject: 'Chemistry' },
-		{ name: 'المهندس أحمد عبد المنعم', subject: 'Physics' },
-		{ name: 'المهندس محمود الطرابيشي', subject: 'English' }
+    { name: 'المهندس أحمد علي', subject: 'Math 1 / Math 2', image: 'assets/teacher-english-ahmed-abdelmonem.png' },
+    { name: 'المهندس محمود الطرابيشي', subject: 'English', image: 'assets/teacher-english-mohamed-nabil.png' },
+    { name: 'المهندس محمد أشرف', subject: 'Mechanics', image: 'assets/teacher-english-mohamed-ashraf.png' },
+    { name: 'المهندس محمد نبيل', subject: 'Chemistry', image: 'assets/teacher-english-tarabishi.png' },
+    { name: 'المهندس أحمد عبد المنعم', subject: 'Physics', image: 'assets/teacher-english-ahmed-ali.png' }
   ];
   constructor(
     private router: Router,
@@ -46,9 +46,13 @@ export class EngineersPageComponent implements OnInit {
     this.monthlyContent.loadPageState('engineers', { visible: true, teachers: this.teachers, englishTeachers: this.englishTeachers }).subscribe((state: any) => {
       if (state?.visible === false) return;
       if (Array.isArray(state?.teachers) && state.teachers.length) this.teachers = state.teachers.map((teacher: any) => teacher.id === 5 ? { ...teacher, alt: 'د/ عمر أحمد عبد الفتاح' } : teacher);
-      if (Array.isArray(state?.englishTeachers) && state.englishTeachers.length) this.englishTeachers = state.englishTeachers;
-      if (!this.englishTeachers.some((teacher: any) => teacher.subject === 'English' || String(teacher.name || '').includes('محمود الطرابيشي'))) {
-        this.englishTeachers = [...this.englishTeachers, { name: 'المهندس محمود الطرابيشي', subject: 'English' }];
+      if (Array.isArray(state?.englishTeachers) && state.englishTeachers.length) {
+        const savedTeachers = new Map(state.englishTeachers.map((teacher: any) => [teacher.name, teacher]));
+        this.englishTeachers = this.englishTeachers.map((teacher: any) => ({
+          ...teacher,
+          ...(savedTeachers.get(teacher.name) || {}),
+          image: teacher.image
+        }));
       }
     });
     if (typeof window !== 'undefined') {
