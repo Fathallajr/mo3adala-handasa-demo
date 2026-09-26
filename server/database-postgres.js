@@ -104,6 +104,24 @@ async function writeStore(store) {
 	}
 }
 
+async function createLead(lead, auditLog) {
+	await ensureSchema();
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+		await client.query(`INSERT INTO leads(id,name,whatsapp,school,student_type,program,source,status,notes,attribution,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12)`, [lead.id, lead.name, lead.whatsapp, lead.school, lead.studentType, lead.program, lead.source, lead.status, lead.notes, JSON.stringify(lead.attribution || {}), lead.createdAt, lead.updatedAt]);
+		await client.query(`INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)`, [auditLog.id, auditLog.action, auditLog.entityType, auditLog.entityId, auditLog.actor || '', auditLog.ip || '', auditLog.createdAt]);
+		await client.query('COMMIT');
+	} catch (error) {
+		await client.query('ROLLBACK');
+		if (error?.code === '23505') { error.code = 'DUPLICATE_PHONE'; }
+		throw error;
+	} finally {
+		client.release();
+	}
+	return lead;
+}
+
 async function readWheelState() {
 	await ensureSchema();
 	const result = await pool.query('SELECT data FROM wheel_state WHERE id = 1');
@@ -154,4 +172,4 @@ async function deleteAdminSession(token) {
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, readWheelState, writeWheelState, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, createFeedback, updateFeedback, listPublishedFeedback, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, createLead, readWheelState, writeWheelState, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, createFeedback, updateFeedback, listPublishedFeedback, databaseFile: null, pool, ensureSchema };

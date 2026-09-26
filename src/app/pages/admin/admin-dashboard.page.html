@@ -43,7 +43,6 @@
 		<main class="admin-editor">
 			<section *ngIf="activeView === 'overview'" class="data-view">
 				<h2 class="editor-title">إحصائيات جديدة</h2><p class="editor-subtitle">ملخص سريع لأداء المنصة والعملاء الجدد.</p>
-				<div *ngIf="isLoadingOverview && !dashboard" class="cms-loading"><div class="cms-loading__spinner"></div><span>جاري تحميل الإحصائيات...</span></div>
 				<div class="metric-grid" *ngIf="dashboard">
 					<div class="metric-card"><span>إجمالي العملاء</span><strong>{{ dashboard.totalLeads }}</strong></div>
 					<div class="metric-card"><span>عملاء اليوم</span><strong>{{ dashboard.todayLeads }}</strong></div>

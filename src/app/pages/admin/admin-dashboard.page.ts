@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -55,7 +55,15 @@ interface PageOption {
 export class AdminDashboardPageComponent implements OnInit {
 	sidebarOpen = false;
 	activeView: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms' = 'overview';
-	dashboard: DashboardSummary | null = null;
+	dashboard: DashboardSummary | null = {
+		totalLeads: 0,
+		todayLeads: 0,
+		wheelClaimsCount: 0,
+		byStatus: {},
+		byProgram: {},
+		recentLeads: [],
+		recentActivity: []
+	};
 	leads: Lead[] = [];
 	programs: Program[] = [];
 	wheelClaims: WheelClaim[] = [];
@@ -80,6 +88,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	isLoadingPrograms = false;
 	isLoadingWheelClaims = false;
 	private overviewLoaded = false;
+	private overviewRequestId = 0;
 	private leadsLoaded = false;
 	private programsLoaded = false;
 	private wheelClaimsLoaded = false;
@@ -142,8 +151,13 @@ export class AdminDashboardPageComponent implements OnInit {
 		private adminApi: AdminApiService,
 		private router: Router,
 		private route: ActivatedRoute,
-		private seo: SeoService
+		private seo: SeoService,
+		private changeDetector: ChangeDetectorRef
 	) {}
+
+	private refreshView(): void {
+		this.changeDetector.detectChanges();
+	}
 
 	ngOnInit(): void {
 		this.seo.setTitle('لوحة تحكم الإدارة');
@@ -162,6 +176,10 @@ export class AdminDashboardPageComponent implements OnInit {
 					// Preload every admin data section after login so switching views
 					// only changes the visible panel and never triggers the first fetch.
 					this.loadOverview();
+					// Login navigation can finish in the same tick as the token write.
+					// Retry once after the auth state has settled so the first screen
+					// never needs a second click to populate its metrics.
+					setTimeout(() => this.loadOverview(true), 300);
 					this.loadFeedback();
 					this.loadLeads();
 					this.loadPrograms();
@@ -203,7 +221,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	loadAdminUsers(force = false): void {
 		if (this.isLoadingAdminUsers || (this.adminUsersLoaded && !force)) return;
 		this.isLoadingAdminUsers = true;
-		this.adminApi.listAdminUsers().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingAdminUsers = false; })).subscribe({ next: result => { this.adminUsers = result.data; this.adminUserPermissionDraft = Object.fromEntries(result.data.map(user => [user.username, [...user.permissions]])); this.adminUsersLoaded = true; }, error: err => this.handleApiError(err) });
+		this.adminApi.listAdminUsers().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingAdminUsers = false; this.refreshView(); })).subscribe({ next: result => { this.adminUsers = result.data; this.adminUserPermissionDraft = Object.fromEntries(result.data.map(user => [user.username, [...user.permissions]])); this.adminUsersLoaded = true; this.refreshView(); }, error: err => { this.handleApiError(err); this.refreshView(); } });
 	}
 	createAdminUser(): void {
 		const username = this.adminUserDraft.username.trim();
@@ -239,10 +257,10 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.errorMessage = '';
 		this.adminApi.listFeedback(this.feedbackSearch.trim(), this.feedbackStatus).pipe(
 			timeout({ each: 15000 }),
-			finalize(() => { this.isLoadingFeedback = false; })
+			finalize(() => { this.isLoadingFeedback = false; this.refreshView(); })
 		).subscribe({
-			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.feedbackLoaded = true; this.statusMessage = 'تم تحديث الآراء بنجاح.'; },
-			error: err => { this.handleApiError(err); }
+			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.feedbackLoaded = true; this.statusMessage = 'تم تحديث الآراء بنجاح.'; this.refreshView(); },
+			error: err => { this.handleApiError(err); this.refreshView(); }
 		});
 	}
 	updateFeedbackStatus(feedback: Feedback, status: Feedback['status']): void {
@@ -250,14 +268,28 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 	formatFeedbackStatus(status?: string): string { return this.feedbackStatusLabels[status || ''] || status || 'غير محدد'; }
 
-	loadOverview(force = false): void { if (this.isLoadingOverview || (this.overviewLoaded && !force)) return; this.isLoadingOverview = true; this.adminApi.getSummary().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingOverview = false; })).subscribe({ next: value => { this.dashboard = value; this.overviewLoaded = true; this.leadProgramOptions = Array.from(new Set([...this.defaultLeadProgramOptions, ...Object.keys(value.byProgram || {})])).sort((a, b) => a.localeCompare(b, 'ar')); }, error: err => this.handleApiError(err) }); }
+	loadOverview(force = false): void {
+		if ((this.isLoadingOverview && !force) || (this.overviewLoaded && !force)) return;
+		const requestId = ++this.overviewRequestId;
+		this.isLoadingOverview = true;
+		this.adminApi.getSummary().pipe(timeout({ each: 15000 }), finalize(() => { if (requestId === this.overviewRequestId) this.isLoadingOverview = false; this.refreshView(); })).subscribe({
+			next: value => {
+				if (requestId !== this.overviewRequestId) return;
+				this.dashboard = value;
+				this.overviewLoaded = true;
+				this.leadProgramOptions = Array.from(new Set([...this.defaultLeadProgramOptions, ...Object.keys(value.byProgram || {})])).sort((a, b) => a.localeCompare(b, 'ar'));
+				this.refreshView();
+			},
+			error: err => { if (requestId === this.overviewRequestId) this.handleApiError(err); this.refreshView(); }
+		});
+	}
 	loadLeads(force = false): void {
 		if ((this.isLoadingLeads && !force) || (this.leadsLoaded && !force)) return;
 		const requestId = ++this.leadsRequestId;
 		this.isLoadingLeads = true;
 		this.statusMessage = '';
 		this.errorMessage = '';
-		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage, 20, this.leadPlatform.trim(), this.leadCampaign.trim()).pipe(timeout({ each: 15000 }), finalize(() => { if (requestId === this.leadsRequestId) this.isLoadingLeads = false; })).subscribe({
+		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage, 20, this.leadPlatform.trim(), this.leadCampaign.trim()).pipe(timeout({ each: 15000 }), finalize(() => { if (requestId === this.leadsRequestId) this.isLoadingLeads = false; this.refreshView(); })).subscribe({
 			next: result => {
 				if (requestId !== this.leadsRequestId) return;
 				this.leads = result.data;
@@ -266,11 +298,13 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.leadsLoaded = true;
 				this.isLoadingLeads = false;
 				this.statusMessage = 'تم تحديث بيانات الليدز بنجاح.';
+				this.refreshView();
 			},
 			error: err => {
 				if (requestId !== this.leadsRequestId) return;
 				this.isLoadingLeads = false;
 				this.handleApiError(err);
+				this.refreshView();
 			}
 		});
 	}
@@ -295,7 +329,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	updateLeadStatus(lead: Lead, status: string): void {
 		this.adminApi.updateLead(lead.id, { status }).subscribe({ next: updated => { lead.status = updated.status; this.statusMessage = 'تم تحديث حالة العميل.'; }, error: err => this.handleApiError(err) });
 	}
-	loadPrograms(force = false): void { if (this.isLoadingPrograms || (this.programsLoaded && !force)) return; this.isLoadingPrograms = true; this.adminApi.listPrograms().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingPrograms = false; })).subscribe({ next: result => { this.programs = result.data; this.programsLoaded = true; }, error: err => this.handleApiError(err) }); }
+	loadPrograms(force = false): void { if (this.isLoadingPrograms || (this.programsLoaded && !force)) return; this.isLoadingPrograms = true; this.adminApi.listPrograms().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingPrograms = false; this.refreshView(); })).subscribe({ next: result => { this.programs = result.data; this.programsLoaded = true; this.refreshView(); }, error: err => { this.handleApiError(err); this.refreshView(); } }); }
 	editProgram(program: Program): void { this.editingProgramId = program.id; this.programDraft = { ...program, features: [...(program.features || [])] }; }
 	newProgram(): void { this.editingProgramId = null; this.programDraft = { name: '', slug: '', category: '', language: 'ar', price: 0, enrollmentStatus: 'open', isActive: true }; }
 	saveProgram(): void {
@@ -305,9 +339,9 @@ export class AdminDashboardPageComponent implements OnInit {
 	loadWheelClaims(force = false): void {
 		if (this.isLoadingWheelClaims || (this.wheelClaimsLoaded && !force)) return;
 		this.isLoadingWheelClaims = true;
-		this.adminApi.listWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo }).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingWheelClaims = false; })).subscribe({
-			next: result => { this.wheelClaims = result.data; this.wheelClaimsLoaded = true; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; },
-			error: err => this.handleApiError(err)
+		this.adminApi.listWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo }).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingWheelClaims = false; this.refreshView(); })).subscribe({
+			next: result => { this.wheelClaims = result.data; this.wheelClaimsLoaded = true; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; this.refreshView(); },
+			error: err => { this.handleApiError(err); this.refreshView(); }
 		});
 	}
 	searchWheelClaims(): void { this.loadWheelClaims(true); }

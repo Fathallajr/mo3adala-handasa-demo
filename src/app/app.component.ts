@@ -51,13 +51,16 @@ export class AppComponent implements OnInit, OnDestroy {
 	offerSourceOptions = ['فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
 	offerSubmitting = false;
 	offerError = '';
-	private readonly fallbackLaunchOfferEndpoint = '/api/launch-offer';
+	private readonly fallbackLaunchOfferEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+		? 'http://localhost:3001/api/launch-offer'
+		: '/api/launch-offer';
 	private readonly leadAttribution: LeadAttribution = captureLeadAttribution();
 	countdownDays = 15;
 	countdownHours = 0;
 	countdownMinutes = 0;
 	countdownSeconds = 0;
 	private offerCountdownTimer?: ReturnType<typeof setInterval>;
+	private offerOpenTimer?: ReturnType<typeof setTimeout>;
 
 	constructor(private router: Router, private viewportScroller: ViewportScroller, private seo: SeoService, private cdr: ChangeDetectorRef) {
 		if ('scrollRestoration' in history) {
@@ -96,13 +99,19 @@ export class AppComponent implements OnInit, OnDestroy {
 		}, 260);
 		
 		if ((this.currentRoute === '/' || this.currentRoute === '') && typeof window !== 'undefined' && !localStorage.getItem('launch-offer-submitted')) {
-			setTimeout(() => this.showLaunchOffer = true, 650);
+			// Open just after the short app splash ends instead of waiting for the
+			// page content or any API request to finish.
+			this.offerOpenTimer = setTimeout(() => {
+				this.showLaunchOffer = true;
+				this.cdr.detectChanges();
+			}, 300);
 		}
 		this.startOfferCountdown();
 	}
 
 	ngOnDestroy() {
 		if (this.offerCountdownTimer) clearInterval(this.offerCountdownTimer);
+		if (this.offerOpenTimer) clearTimeout(this.offerOpenTimer);
 	}
 
 	private startOfferCountdown() {
@@ -191,9 +200,10 @@ export class AppComponent implements OnInit, OnDestroy {
 		try {
 			// Read the API endpoint at submit time so static deployments can override
 			// the API base without rebuilding the Angular bundle.
-			const launchOfferEndpoint = typeof window !== 'undefined'
-				? window.NG_LAUNCH_OFFER_ENDPOINT || this.fallbackLaunchOfferEndpoint
-				: this.fallbackLaunchOfferEndpoint;
+			const configuredEndpoint = typeof window !== 'undefined' ? window.NG_LAUNCH_OFFER_ENDPOINT : undefined;
+			const launchOfferEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost' && (!configuredEndpoint || configuredEndpoint.startsWith('/api/'))
+				? this.fallbackLaunchOfferEndpoint
+				: configuredEndpoint || this.fallbackLaunchOfferEndpoint;
 			const result = await fetch(launchOfferEndpoint, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
@@ -227,6 +237,9 @@ export class AppComponent implements OnInit, OnDestroy {
 		} finally {
 			clearTimeout(timeout);
 			this.offerSubmitting = false;
+			// Keep the popup button in sync when a native fetch resolves outside
+			// Angular's normal change-detection turn.
+			this.cdr.detectChanges();
 		}
 	}
 

@@ -111,6 +111,15 @@ function writeStore(store) {
   transaction();
 }
 
+function createLead(lead, auditLog) {
+	const insert = db.transaction(() => {
+		db.prepare(`INSERT INTO leads(id,name,whatsapp,school,student_type,program,source,status,notes,attribution,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(lead.id, lead.name, lead.whatsapp, lead.school, lead.studentType, lead.program, lead.source, lead.status, lead.notes, JSON.stringify(lead.attribution || {}), lead.createdAt, lead.updatedAt);
+		db.prepare('INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES (?,?,?,?,?,?,?)').run(auditLog.id, auditLog.action, auditLog.entityType, auditLog.entityId, auditLog.actor || '', auditLog.ip || '', auditLog.createdAt);
+	});
+	try { insert(); } catch (error) { if (String(error.message).includes('UNIQUE constraint failed: leads.whatsapp')) error.code = 'DUPLICATE_PHONE'; throw error; }
+	return lead;
+}
+
 function readWheelState() {
 	const row = db.prepare('SELECT data FROM wheel_state WHERE id = 1').get();
 	try { return row ? JSON.parse(row.data) : { spins: {}, claims: {} }; } catch { return { spins: {}, claims: {} }; }
@@ -178,4 +187,4 @@ function createFeedback(feedback) { db.prepare('INSERT INTO feedbacks(id,name,un
 function updateFeedback(id, changes) { const fields = []; const values = []; if (changes.status) { fields.push('status = ?'); values.push(changes.status); } if (changes.updatedAt) { fields.push('updated_at = ?'); values.push(changes.updatedAt); } if (!fields.length) return; values.push(id); db.prepare(`UPDATE feedbacks SET ${fields.join(', ')} WHERE id = ?`).run(...values); }
 function listPublishedFeedback() { return db.prepare("SELECT id,name,university,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks WHERE status = 'published' ORDER BY created_at DESC LIMIT 50").all(); }
 
-module.exports = { readStore, writeStore, readWheelState, writeWheelState, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, createFeedback, updateFeedback, listPublishedFeedback, databaseFile };
+module.exports = { readStore, writeStore, createLead, readWheelState, writeWheelState, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, createFeedback, updateFeedback, listPublishedFeedback, databaseFile };

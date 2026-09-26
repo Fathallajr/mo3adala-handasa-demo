@@ -107,7 +107,9 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	offerSubmitting = false;
 	offerSubmitted = false;
 	offerError = '';
-	private readonly launchOfferEndpoint = '/api/launch-offer';
+	private readonly launchOfferEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+		? 'http://localhost:3001/api/launch-offer'
+		: '/api/launch-offer';
 	private readonly giftWhatsAppNumber = '201080681865';
 	private readonly leadAttribution: LeadAttribution = captureLeadAttribution();
 
@@ -322,7 +324,9 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				return;
 		} catch (error) {
 			this.wheelClaimError = error instanceof Error ? error.message : 'تعذر تسجيل هدية العجلة.';
+		} finally {
 			this.wheelClaimSubmitting = false;
+			this.changeDetector.detectChanges();
 		}
 	}
 
@@ -413,14 +417,15 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 
 	private async postLead(data: Record<string, string>): Promise<{ success?: boolean; localSaved?: boolean; alreadyRegistered?: boolean; message?: string }> {
 		const controller = new AbortController();
-		const timeout = window.setTimeout(() => controller.abort(), 70000);
-		const response = await fetch(this.launchOfferEndpoint, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-			body: new URLSearchParams(data).toString(),
-			signal: controller.signal
-		});
+		const timeout = window.setTimeout(() => controller.abort(), 15000);
 		try {
+			const response = await fetch(this.launchOfferEndpoint, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', Accept: 'application/json' },
+				body: new URLSearchParams(data).toString(),
+				cache: 'no-store',
+				signal: controller.signal
+			});
 			const responseText = await response.text();
 			let payload: { success?: boolean; alreadyRegistered?: boolean; message?: string };
 			try {
@@ -469,6 +474,9 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				: 'حصلت مشكلة بسيطة في الاتصال. حاول تاني من فضلك.';
 		} finally {
 			this.offerSubmitting = false;
+			// fetch/async callbacks can finish outside Angular's change-detection
+			// turn. Always repaint here so the submit button cannot stay loading.
+			this.changeDetector.detectChanges();
 		}
 	}
 

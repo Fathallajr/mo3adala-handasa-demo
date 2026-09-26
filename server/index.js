@@ -311,15 +311,7 @@ function normalizeAttribution(value) {
 }
 
 async function createLead(input, req, options = {}) {
-	const store = await readStore();
 	const normalizedWhatsapp = normalizePhone(input.whatsapp);
-	const existing = findLeadByPhone(store, normalizedWhatsapp);
-	if (existing && !options.allowDuplicate) {
-		const error = new Error('A lead with this WhatsApp number already exists');
-		error.code = 'DUPLICATE_PHONE';
-		error.existingLead = existing;
-		throw error;
-	}
 	const now = getNowIso();
 	const lead = {
 		id: crypto.randomUUID(),
@@ -335,6 +327,25 @@ async function createLead(input, req, options = {}) {
 		createdAt: now,
 		updatedAt: now
 	};
+	if (typeof database.createLead === 'function' && !options.allowDuplicate) {
+		const auditLog = { id: crypto.randomUUID(), action: 'created', entityType: 'lead', entityId: lead.id, ip: req.ip, createdAt: now };
+		try {
+			return await database.createLead(lead, auditLog);
+		} catch (error) {
+			if (error.code === 'DUPLICATE_PHONE') {
+				error.message = 'A lead with this WhatsApp number already exists';
+			}
+			throw error;
+		}
+	}
+	const store = await readStore();
+	const existing = findLeadByPhone(store, normalizedWhatsapp);
+	if (existing && !options.allowDuplicate) {
+		const error = new Error('A lead with this WhatsApp number already exists');
+		error.code = 'DUPLICATE_PHONE';
+		error.existingLead = existing;
+		throw error;
+	}
 	store.leads.unshift(lead);
 	addAuditLog(store, 'created', 'lead', lead.id, req);
 	await writeStore(store);
@@ -470,14 +481,12 @@ app.post('/api/launch-offer', rateLimit({ name: 'launch-offer', windowMs: 15 * 6
 	if (!LAUNCH_OFFER_PROGRAMS.includes(program)) {
 		return res.status(400).json({ success: false, message: 'اختار نوع معادلة صحيح في فورم العرض.' });
 	}
-	const currentStore = await readStore();
-	if (findLeadByPhone(currentStore, cleanWhatsapp)) {
-		return res.status(409).json({ success: false, alreadyRegistered: true, message: 'الرقم ده مسجل بالفعل في فورم العرض أو الخصم.' });
-	}
-
 	try {
 		await createLead({ name, whatsapp: cleanWhatsapp, school, studentType, program, source, attribution: normalizedAttribution }, req);
 	} catch (error) {
+		if (error.code === 'DUPLICATE_PHONE') {
+			return res.status(409).json({ success: false, alreadyRegistered: true, message: 'الرقم ده مسجل بالفعل في فورم العرض أو الخصم.' });
+		}
 		console.error('Failed to save lead locally', error);
 		return res.status(500).json({ success: false, localSaved: false, message: 'تعذر حفظ البيانات محليًا. حاول مرة أخرى.' });
 	}
