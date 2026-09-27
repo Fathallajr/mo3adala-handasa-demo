@@ -264,7 +264,11 @@ async function requireAdmin(req, res, next) {
 
 function requirePermission(permission) {
 	return (req, res, next) => {
-		const hasGroupedPermission = permission.startsWith('leads:') ? req.adminPermissions.includes('leads') : permission.startsWith('wheel:') ? req.adminPermissions.includes('wheel') : false;
+		const hasGroupedPermission = permission.startsWith('leads:')
+			? req.adminPermissions.includes('leads')
+			: permission.startsWith('wheel:')
+				? req.adminPermissions.includes('wheel')
+				: permission.startsWith('feedback:') ? req.adminPermissions.includes('feedback') : false;
 		if (req.adminRole === 'admin' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission)) || req.adminPermissions.includes(permission) || hasGroupedPermission) return next();
 		return res.status(403).json({ message: 'ليس لديك صلاحية للوصول إلى هذا القسم.' });
 	};
@@ -677,7 +681,7 @@ app.patch('/api/admin/leads/:id', requireAdmin, requirePermission('leads:update'
 	res.json(lead);
 });
 
-app.get('/api/admin/feedback', requireAdmin, requireFullAdmin, async (req, res) => {
+app.get('/api/admin/feedback', requireAdmin, requirePermission('feedback:read'), async (req, res) => {
 	const search = String(req.query.search || '').trim().toLowerCase();
 	const status = String(req.query.status || '').trim();
 	const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
@@ -690,7 +694,7 @@ app.get('/api/admin/feedback', requireAdmin, requireFullAdmin, async (req, res) 
 	res.json({ data: feedbacks.slice((page - 1) * limit, page * limit), pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
 });
 
-app.patch('/api/admin/feedback/:id', requireAdmin, requireFullAdmin, async (req, res) => {
+app.patch('/api/admin/feedback/:id', requireAdmin, requirePermission('feedback:update'), async (req, res) => {
 	const feedback = await database.getFeedback(req.params.id);
 	if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
 	const status = String(req.body?.status || '').trim();

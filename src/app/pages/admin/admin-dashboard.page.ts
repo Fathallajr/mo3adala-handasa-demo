@@ -96,7 +96,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	private wheelClaimsLoaded = false;
 	private adminUsersLoaded = false;
 	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
-	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'wheel', title: 'نتائج العجلة' }];
+	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }];
 	wheelSearch = '';
 	wheelGift = '';
 	wheelProgram = '';
@@ -226,6 +226,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	setView(view: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms'): void {
 		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
+		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
 		if (view !== 'cms' && view !== 'leads' && view !== 'wheel' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
 			this.sidebarOpen = false;
@@ -540,7 +541,8 @@ export class AdminDashboardPageComponent implements OnInit {
 		const allowed: AdminDataView[] = ['overview', 'leads', 'feedback', 'programs', 'wheel', 'admins'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
-		if (view === 'overview' || view === 'feedback' || view === 'programs' || view === 'admins') {
+		if (view === 'feedback') return this.auth.canAccessFeature('feedback') ? view : null;
+		if (view === 'overview' || view === 'programs' || view === 'admins') {
 			return this.auth.getRole() === 'admin' ? view : null;
 		}
 		return this.auth.canAccessFeature(view) ? view : null;
@@ -554,5 +556,5 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
 
-	canAccessFeature(feature: 'leads' | 'wheel'): boolean { return this.auth.canAccessFeature(feature); }
+	canAccessFeature(feature: 'leads' | 'wheel' | 'feedback'): boolean { return this.auth.canAccessFeature(feature); }
 }

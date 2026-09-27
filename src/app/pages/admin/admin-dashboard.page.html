@@ -19,7 +19,7 @@
 			<div class="sidebar-tools">
 				<button *ngIf="fullAdminAccount" type="button" [class.page-item--active]="activeView === 'overview'" (click)="setView('overview')">إحصائيات جديدة</button>
 				<button *ngIf="canAccessFeature('leads')" type="button" [class.page-item--active]="activeView === 'leads'" (click)="setView('leads')">الليدز</button>
-				<button *ngIf="!leadsOnlyAccount" type="button" [class.page-item--active]="activeView === 'feedback'" (click)="setView('feedback')">آراء الطلاب</button>
+				<button *ngIf="canAccessFeature('feedback')" type="button" [class.page-item--active]="activeView === 'feedback'" (click)="setView('feedback')">آراء الطلاب</button>
 				<button *ngIf="canAccessFeature('wheel')" type="button" [class.page-item--active]="activeView === 'wheel'" (click)="setView('wheel')">نتائج العجلة</button>
 				<button *ngIf="fullAdminAccount" type="button" [class.page-item--active]="activeView === 'admins'" (click)="setView('admins')">حسابات الأدمن</button>
 			</div>
