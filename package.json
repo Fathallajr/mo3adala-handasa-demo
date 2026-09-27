@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "node server/index.js",
     "api": "node server/index.js",
     "test:api": "node server/api-smoke-test.js",
     "test:demo": "node server/api-demo-test.js",
