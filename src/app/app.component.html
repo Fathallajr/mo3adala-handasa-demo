@@ -4,7 +4,7 @@
   </div>
 </div>
 <div *ngIf="siteMaintenance && !showLaunchOffer && !currentRoute.startsWith('/admin')" class="site-maintenance-overlay" role="dialog" aria-modal="true">
-  <main class="site-maintenance-card"><div class="site-maintenance-icon">🛠️</div><h1>الموقع تحت التحديث</h1><p>بنجهز الموقع حاليًا. هنرجع نفتح الموقع قريبًا، شكرًا لانتظاركم.</p></main>
+  <main class="site-maintenance-card"><div class="site-maintenance-icon">🛠️</div><h1>الموقع تحت التحديث</h1><p>بنجهز الموقع حاليًا، ولسه تفاصيل الاشتراك للسنة الجديدة هنعلن عنها قريبًا.<br>من فضلك متعملش Refresh؛ إحنا قافلين الموقع مؤقتًا وبنحدّثه.<br>شكرًا لانتظاركم.</p></main>
 </div>
 <div *ngIf="routeLoading" class="route-loading-bar" role="status" aria-label="جاري تحميل الصفحة"><span></span></div>
 <app-navbar *ngIf="!currentRoute.startsWith('/admin')"></app-navbar>
