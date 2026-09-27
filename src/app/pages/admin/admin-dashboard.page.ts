@@ -121,6 +121,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	readonly defaultLeadProgramOptions = ['', 'معادلة هندسة', 'معادلة حاسبات', 'معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
 	leadProgramOptions = [...this.defaultLeadProgramOptions];
 	leadsPage = 1;
+	copiedLeadWhatsapp = '';
 	leadsPages = 1;
 	leadsTotal = 0;
 	leadStatuses = ['new', 'contacted', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
@@ -367,6 +368,28 @@ export class AdminDashboardPageComponent implements OnInit {
 	changeLeadPage(delta: number): void { this.leadsPage = Math.min(Math.max(this.leadsPage + delta, 1), this.leadsPages); this.loadLeads(true); }
 	updateLeadStatus(lead: Lead, status: string): void {
 		this.adminApi.updateLead(lead.id, { status }).subscribe({ next: updated => { lead.status = updated.status; this.statusMessage = 'تم تحديث حالة العميل.'; }, error: err => this.handleApiError(err) });
+	}
+	async copyLeadWhatsapp(whatsapp: string): Promise<void> {
+		if (!whatsapp) return;
+		try {
+			if (navigator.clipboard?.writeText) {
+				await navigator.clipboard.writeText(whatsapp);
+			} else {
+				const input = document.createElement('textarea');
+				input.value = whatsapp;
+				input.style.position = 'fixed';
+				input.style.opacity = '0';
+				document.body.appendChild(input);
+				input.focus();
+				input.select();
+				document.execCommand('copy');
+				input.remove();
+			}
+			this.copiedLeadWhatsapp = whatsapp;
+			window.setTimeout(() => { if (this.copiedLeadWhatsapp === whatsapp) this.copiedLeadWhatsapp = ''; }, 1600);
+		} catch {
+			this.errorMessage = 'تعذر نسخ الرقم، حاول مرة أخرى.';
+		}
 	}
 	loadPrograms(force = false): void { if (this.isLoadingPrograms || (this.programsLoaded && !force)) return; this.isLoadingPrograms = true; this.adminApi.listPrograms().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingPrograms = false; this.refreshView(); })).subscribe({ next: result => { this.programs = result.data; this.programsLoaded = true; this.refreshView(); }, error: err => { this.handleApiError(err); this.refreshView(); } }); }
 	editProgram(program: Program): void { this.editingProgramId = program.id; this.programDraft = { ...program, features: [...(program.features || [])] }; }

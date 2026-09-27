@@ -164,3 +164,4 @@ tbody tr:hover { background:#faf9ff; }
 .wheel-view .editor-toolbar .editor-actions > button:nth-child(2) {
 	display: none;
 }
+.whatsapp-cell { white-space:nowrap; }.copy-whatsapp-btn { margin-inline-start:6px; padding:4px 7px; border:1px solid #cfc5ff; border-radius:7px; color:#6241df; background:#f4f1ff; font:inherit; font-size:10px; font-weight:800; cursor:pointer; }.copy-whatsapp-btn:hover { background:#e9e3ff; }.copy-whatsapp-btn.is-copied { color:#08734e; border-color:#84ddb8; background:#e5faf1; }
