@@ -371,6 +371,9 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 	async copyLeadWhatsapp(whatsapp: string): Promise<void> {
 		if (!whatsapp) return;
+		this.copiedLeadWhatsapp = whatsapp;
+		this.errorMessage = '';
+		this.changeDetector.detectChanges();
 		try {
 			if (navigator.clipboard?.writeText) {
 				await navigator.clipboard.writeText(whatsapp);
@@ -385,9 +388,9 @@ export class AdminDashboardPageComponent implements OnInit {
 				document.execCommand('copy');
 				input.remove();
 			}
-			this.copiedLeadWhatsapp = whatsapp;
 			window.setTimeout(() => { if (this.copiedLeadWhatsapp === whatsapp) this.copiedLeadWhatsapp = ''; }, 1600);
 		} catch {
+			this.copiedLeadWhatsapp = '';
 			this.errorMessage = 'تعذر نسخ الرقم، حاول مرة أخرى.';
 		}
 	}
