@@ -51,9 +51,9 @@ export const cmsPageOptions: CmsPageOption[] = [
 	{ key: 'engineers', route: '/engineers-ar', title: 'المهندسين والمدرسين', description: 'بيانات المدرسين والمواد والصور', group: 'المحتوى' },
 	{ key: 'schools', route: '/schools', title: 'المدارس والمعاهد', description: 'دليل المدارس والمعاهد والتصنيفات', group: 'المحتوى' },
 	{ key: 'subscription-engineering-ar', route: '/subscription-engineering-ar', title: 'اشتراك هندسة عربي — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
-	{ key: 'subscription-engineering-en', route: '/subscription-engineering-en', title: 'اشتراك هندسة إنجليزي — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
+	{ key: 'subscription-engineering-en', route: '/subscription-engineering-en', title: 'اشتراك هندسة لغات — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
 	{ key: 'subscription-computers-ar', route: '/subscription-computers-ar', title: 'اشتراك حاسبات عربي — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
-	{ key: 'subscription-computers-en', route: '/subscription-computers-en', title: 'اشتراك حاسبات إنجليزي — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
+	{ key: 'subscription-computers-en', route: '/subscription-computers-en', title: 'اشتراك حاسبات لغات — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
 	{ key: 'subscription-intensive', route: '/subscription-intensive', title: 'الاشتراك المكثف', description: 'خطط المكثف والدفع والفودافون كاش', group: 'الاشتراكات' },
 ];
 
@@ -73,7 +73,7 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 				{ text: 'أكبر فريق مساعدين في مصر لطلاب المعادلة', highlight: ['أكبر فريق مساعدين', 'مصر', 'طلاب المعادلة'] },
 				{ text: 'بنجهزك لإجتياز معادلة هندسة بسهولة', highlight: ['بنجهزك', 'معادلة هندسة', 'بسهولة'] },
 				{ text: 'بنجهزك لإجتياز معادلة حاسبات بسهولة', highlight: ['بنجهزك', 'معادلة حاسبات', 'بسهولة'] },
-				{ text: 'معادلة هندسة وحاسبات بالعربي والإنجليزي', highlight: ['معادلة هندسة وحاسبات', 'بالعربي والإنجليزي'] },
+				{ text: 'معادلة هندسة وحاسبات بالعربي واللغات', highlight: ['معادلة هندسة وحاسبات', 'بالعربي واللغات'] },
 				{ text: 'دعم ومتابعة علي مدار اليوم', highlight: ['دعم ومتابعة', 'مدار اليوم'] },
 				{ text: 'طاقم هندسي علي أعلي مستوي', highlight: ['طاقم هندسي', 'أعلي مستوي'] }
 			]

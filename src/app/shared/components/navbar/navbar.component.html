@@ -183,7 +183,7 @@
 							<div class="font-semibold">مهندسين المعادلة عربي</div>
 						</a>
 						<a routerLink="/engineers-en" (click)="closeEngineersDropdown()" class="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors border-t border-gray-100">
-							<div class="font-semibold">مهندسين المعادلة انجليزي</div>
+							<div class="font-semibold">مهندسين المعادلة لغات</div>
 						</a>
 					</div>
 				</div>
@@ -225,8 +225,8 @@
 					<a *ngFor="let plan of [
 						{ path: '/subscription-engineering-ar', name: 'معادلة هندسة عربي' },
 						{ path: '/subscription-computers-ar', name: 'معادلة حاسبات عربي' },
-						{ path: '/subscription-engineering-en', name: 'معادلة هندسة انجليزي' },
-						{ path: '/subscription-computers-en', name: 'معادلة حاسبات انجليزي' }
+						{ path: '/subscription-engineering-en', name: 'معادلة هندسة لغات' },
+						{ path: '/subscription-computers-en', name: 'معادلة حاسبات لغات' }
 						]" [routerLink]="plan.path" (click)="closeSubscriptionDropdown()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors border-t border-gray-100" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
 						<div class="font-semibold">{{ plan.name }}</div>
 					</a>
@@ -355,7 +355,7 @@
 				</button>
 				<div *ngIf="isMobileEngineersDropdownOpen" class="mt-2 space-y-1">
 					<a routerLink="/engineers-ar" (click)="closeMobileEngineersDropdown(); closeMobileMenu()" class="block px-4 py-3 rounded-lg text-base font-medium hover:bg-orange-50 transition-all duration-300 mobile-menu-link">مهندسين المعادلة عربي</a>
-					<a routerLink="/engineers-en" (click)="closeMobileEngineersDropdown(); closeMobileMenu()" class="block px-4 py-3 rounded-lg text-base font-medium hover:bg-blue-50 transition-all duration-300 mobile-menu-link">مهندسين المعادلة انجليزي</a>
+					<a routerLink="/engineers-en" (click)="closeMobileEngineersDropdown(); closeMobileMenu()" class="block px-4 py-3 rounded-lg text-base font-medium hover:bg-blue-50 transition-all duration-300 mobile-menu-link">مهندسين المعادلة لغات</a>
 				</div>
 			</div>
 			<a routerLink="/success-story" 
@@ -405,11 +405,11 @@
 			</a>
 					<a routerLink="/subscription-engineering-en" (click)="closeMobileSubscriptionDropdown(); closeMobileMenu()" class="flex items-center gap-3 px-4 py-3 rounded-xl border border-blue-100 bg-blue-50 hover:bg-blue-100 transition-all duration-300" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
 						<div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0"><span class="text-white font-bold">EN</span></div>
-						<div><div class="font-bold text-blue-800 text-base">معادلة هندسة انجليزي</div></div>
+						<div><div class="font-bold text-blue-800 text-base">معادلة هندسة لغات</div></div>
 			</a>
 			<a routerLink="/subscription-computers-en" (click)="closeMobileSubscriptionDropdown(); closeMobileMenu()" class="flex items-center gap-3 px-4 py-3 rounded-xl border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-all duration-300" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
 				<div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0"><span class="text-white font-bold">EN</span></div>
-						<div><div class="font-bold text-orange-800 text-base">معادلة حاسبات انجليزي</div></div>
+						<div><div class="font-bold text-orange-800 text-base">معادلة حاسبات لغات</div></div>
 			</a>
 		</div>
 		</div>

@@ -4,6 +4,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SeoService } from '../../core/seo.service';
 import { CanonicalService } from '../../core/canonical.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
+import { displayProgramLabel } from '../../core/program-labels';
 import { CmsPageKey } from '../../core/cms-page.registry';
 import { Subscription } from 'rxjs';
 
@@ -221,7 +222,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		const pathname = typeof window !== 'undefined' ? window.location.pathname : '/subscription-engineering-ar';
 		this.isComputersSubscription = pathname.includes('computers');
 		this.isEnglishSubscription = pathname.endsWith('-en');
-		this.subscriptionProgramLabel = `معادلة ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'انجليزي' : 'عربي'}`;
+		this.subscriptionProgramLabel = `معادلة ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'لغات' : 'عربي'}`;
 		this.applySubscriptionProgram();
 		this.restoreCountdownState();
 		if (typeof window !== 'undefined') {
@@ -281,7 +282,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			scheduleImages: this.subscriptionDetails.scheduleImages.length
 				? this.subscriptionDetails.scheduleImages
 				: [{
-					group: `جدول شهر أكتوبر ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'انجليزي' : 'عربي'}`,
+				group: `جدول شهر أكتوبر ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'لغات' : 'عربي'}`,
 					src: this.isComputersSubscription ? '/assets/جداول مراجعات شهر 8/جدول جروب C.png' : '/assets/جداول مراجعات شهر 8/جدول جروب A-B.png',
 					alt: `جدول شهر أكتوبر ${this.subscriptionProgramLabel}`,
 					note: 'اضغط على الصورة للتكبير'
@@ -432,7 +433,8 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	getForm(): ReviewFormConfig {
-		return this.subscriptionDetails.googleForm as ReviewFormConfig;
+		const form = this.subscriptionDetails.googleForm as ReviewFormConfig;
+		return { ...form, label: displayProgramLabel(form.label), description: displayProgramLabel(form.description), buttonText: displayProgramLabel(form.buttonText) };
 	}
 
 	getPrice(): string {
@@ -440,20 +442,20 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	getReviewName(): string {
-		return this.subscriptionDetails.review.name;
+		return displayProgramLabel(this.subscriptionDetails.review.name);
 	}
 
 	getSelectedSchedules(): ScheduleImage[] {
 		if (!this.subscriptionDetails.scheduleImages.length) {
 			return [{
-				group: `جدول شهر أكتوبر ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'انجليزي' : 'عربي'}`,
+				group: `جدول شهر أكتوبر ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'لغات' : 'عربي'}`,
 				src: this.isComputersSubscription ? '/assets/جداول مراجعات شهر 8/جدول جروب C.png' : '/assets/جداول مراجعات شهر 8/جدول جروب A-B.png',
 				alt: `جدول شهر أكتوبر ${this.subscriptionProgramLabel}`,
 				note: 'اضغط على الصورة للتكبير'
 			}];
 		}
 
-		return this.subscriptionDetails.scheduleImages.slice(0, 1);
+		return this.subscriptionDetails.scheduleImages.slice(0, 1).map(schedule => ({ ...schedule, group: displayProgramLabel(schedule.group), alt: displayProgramLabel(schedule.alt) }));
 	}
 
 	onNumberCardClick(number: string): void {

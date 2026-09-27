@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, Input, forwardRef } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { displayProgramLabel } from '../../../core/program-labels';
 
 @Component({
 	selector: 'app-styled-select',
@@ -27,6 +28,10 @@ export class StyledSelectComponent implements ControlValueAccessor {
 	private onTouched: () => void = () => {};
 
 	constructor(private elementRef: ElementRef<HTMLElement>) {}
+
+	displayOption(option: string): string {
+		return displayProgramLabel(option);
+	}
 
 	writeValue(value: string | null): void {
 		this.value = value || '';

@@ -7,7 +7,7 @@
 		aria-haspopup="listbox"
 		[disabled]="isDisabled"
 		(click)="toggle()">
-		<span [class.is-placeholder]="!value">{{ value || placeholder }}</span>
+		<span [class.is-placeholder]="!value">{{ value ? displayOption(value) : placeholder }}</span>
 		<span class="styled-select__chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m6 9 6 6 6-6" /></svg></span>
 	</button>
 	<div *ngIf="isOpen" class="styled-select__menu" role="listbox">
@@ -18,7 +18,7 @@
 			[attr.aria-selected]="value === option"
 			[class.is-selected]="value === option"
 			(click)="select(option)">
-			<span>{{ option }}</span><b *ngIf="value === option" aria-hidden="true">✓</b>
+			<span>{{ displayOption(option) }}</span><b *ngIf="value === option" aria-hidden="true">✓</b>
 		</button>
 	</div>
 </div>

@@ -5,6 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs';
 import { CmsPageKey, cmsPageDefaults, cmsPageOptions } from '../../core/cms-page.registry';
+import { displayProgramLabel } from '../../core/program-labels';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
 import { AdminApiService, AdminUser, DashboardSummary, Feedback, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
@@ -21,6 +22,7 @@ import { SuccessStoriesFormComponent } from './forms/success-stories-form.compon
 import { Batch2027FormComponent } from './forms/batch-2027-form.component';
 import { RequirementsFormComponent } from './forms/requirements-form.component';
 import { SchoolsFormComponent } from './forms/schools-form.component';
+import { ProgramLabelPipe } from '../../shared/pipes/program-label.pipe';
 
 interface PageOption {
 	key: CmsPageKey;
@@ -49,7 +51,8 @@ type AdminDataView = 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 
 		SuccessStoriesFormComponent,
 		Batch2027FormComponent,
 		RequirementsFormComponent,
-		SchoolsFormComponent
+		SchoolsFormComponent,
+		ProgramLabelPipe
 	],
 	templateUrl: './admin-dashboard.page.html',
 	styleUrls: ['./admin-dashboard.page.css']
@@ -114,6 +117,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadDateFrom = '';
 	leadDateTo = '';
 	readonly leadSourceOptions = ['', 'فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
+	displayProgramLabel(value: string): string { return displayProgramLabel(value); }
 	readonly defaultLeadProgramOptions = ['', 'معادلة هندسة', 'معادلة حاسبات', 'معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
 	leadProgramOptions = [...this.defaultLeadProgramOptions];
 	leadsPage = 1;
