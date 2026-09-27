@@ -681,6 +681,12 @@ app.patch('/api/admin/leads/:id', requireAdmin, requirePermission('leads:update'
 	res.json(lead);
 });
 
+app.delete('/api/admin/leads/:id', requireAdmin, requirePermission('leads:delete'), async (req, res) => {
+	const deleted = await database.deleteLead(req.params.id);
+	if (!deleted) return res.status(404).json({ message: 'Lead not found' });
+	res.status(204).send();
+});
+
 app.get('/api/admin/feedback', requireAdmin, requirePermission('feedback:read'), async (req, res) => {
 	const search = String(req.query.search || '').trim().toLowerCase();
 	const status = String(req.query.status || '').trim();

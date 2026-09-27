@@ -369,6 +369,19 @@ export class AdminDashboardPageComponent implements OnInit {
 	updateLeadStatus(lead: Lead, status: string): void {
 		this.adminApi.updateLead(lead.id, { status }).subscribe({ next: updated => { lead.status = updated.status; this.statusMessage = 'تم تحديث حالة العميل.'; }, error: err => this.handleApiError(err) });
 	}
+	deleteLead(lead: Lead): void {
+		if (!window.confirm(`حذف تسجيل ${lead.name} ورقم ${lead.whatsapp} نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
+		this.adminApi.deleteLead(lead.id).subscribe({
+			next: () => {
+				this.leads = this.leads.filter(item => item.id !== lead.id);
+				this.leadsTotal = Math.max(0, this.leadsTotal - 1);
+				this.statusMessage = 'تم حذف التسجيل نهائيًا.';
+				this.errorMessage = '';
+				this.refreshView();
+			},
+			error: err => this.handleApiError(err)
+		});
+	}
 	async copyLeadWhatsapp(whatsapp: string): Promise<void> {
 		if (!whatsapp) return;
 		this.copiedLeadWhatsapp = whatsapp;

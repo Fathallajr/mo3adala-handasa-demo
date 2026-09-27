@@ -46,6 +46,7 @@ export class AdminApiService {
 		return this.http.get(`${this.base}/admin/leads/export`, { params, responseType: 'blob' });
 	}
 	updateLead(id: string, payload: Partial<Lead>): Observable<Lead> { return this.http.patch<Lead>(`${this.base}/admin/leads/${id}`, payload); }
+	deleteLead(id: string): Observable<void> { return this.http.delete<void>(`${this.base}/admin/leads/${id}`); }
 	listFeedback(search = '', status = '', page = 1, limit = 20): Observable<{ data: Feedback[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
 		let params = new HttpParams().set('page', page).set('limit', limit);
 		if (search) params = params.set('search', search);

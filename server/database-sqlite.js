@@ -127,6 +127,10 @@ function createLead(lead, auditLog) {
 	return lead;
 }
 
+function deleteLead(id) {
+	return db.prepare('DELETE FROM leads WHERE id = ?').run(id).changes > 0;
+}
+
 function readWheelState() {
 	const row = db.prepare('SELECT data FROM wheel_state WHERE id = 1').get();
 	let state;
@@ -206,4 +210,4 @@ function createWheelClaim(claim) { try { db.prepare('INSERT INTO wheel_claims(to
 function listWheelClaims() { readWheelState(); return db.prepare('SELECT token,name,whatsapp,program,gift,claimed_at AS claimedAt FROM wheel_claims ORDER BY claimed_at DESC').all(); }
 function countWheelClaims() { listWheelClaims(); return db.prepare('SELECT COUNT(*) AS count FROM wheel_claims').get().count; }
 
-module.exports = { readStore, writeStore, savePage, createLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, listPublishedFeedback, databaseFile };
+module.exports = { readStore, writeStore, savePage, createLead, deleteLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, listPublishedFeedback, databaseFile };

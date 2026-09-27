@@ -132,6 +132,12 @@ async function createLead(lead, auditLog) {
 	return lead;
 }
 
+async function deleteLead(id) {
+	await ensureSchema();
+	const result = await pool.query('DELETE FROM leads WHERE id = $1 RETURNING id', [id]);
+	return result.rowCount > 0;
+}
+
 async function readWheelState() {
 	await ensureSchema();
 	const result = await pool.query('SELECT data FROM wheel_state WHERE id = 1');
@@ -200,4 +206,4 @@ async function deleteAdminSession(token) {
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, savePage, createLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, listPublishedFeedback, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, savePage, createLead, deleteLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, listPublishedFeedback, databaseFile: null, pool, ensureSchema };
