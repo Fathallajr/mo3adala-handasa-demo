@@ -22,28 +22,31 @@ export class SchoolsPageComponent {
   pageSize = 24;
   displayedCount = this.pageSize;
   
-  filterOptions = [
-    'الكل',
-    'المعاهد الفنية',
+	filterOptions = [
+		'الكل',
+		'معادلة هندسة',
+		'معادلة حاسبات',
+		'المعاهد الفنية',
     'مدارس الثانوية الصناعية نظام 3 سنوات',
     'مدارس الثانوية الصناعية نظام 5 سنوات',
     'مدارس تكنولوجية نظام 3 سنوات',
     'مدارس تكنولوجية نظام 5 سنوات'
   ];
 
-  allSchools = [] as Array<{ id: number; name: string; type: string; category: string; logo: string }>;
+	allSchools = [] as Array<{ id: number; name: string; type: string; category: string; logo: string; programs: Array<'engineering' | 'computers'> }>;
 
   private nextId = 1;
 
-  private addSchool(name: string, category: string, logo?: string, typeOverride?: string) {
-    this.allSchools.push({
+	private addSchool(name: string, category: string, logo?: string, typeOverride?: string, programs: Array<'engineering' | 'computers'> = ['engineering']) {
+		this.allSchools.push({
       id: this.nextId++,
       name,
       type: typeOverride || (category.includes('تكنولوجية') ? 'مدرسة تكنولوجية' : (category === 'المعاهد الفنية' ? 'معهد فني' : 'مدرسة صناعية')),
-      category,
-      logo: logo || '/assets/schools/tech-school.png'
-    });
-  }
+			category,
+			logo: logo || '/assets/schools/tech-school.png',
+			programs
+		});
+	}
 
   ngOnInit() {
     const category3 = 'مدارس الثانوية الصناعية نظام 3 سنوات';
@@ -476,13 +479,33 @@ export class SchoolsPageComponent {
     const tech5Schools: { name: string; logo?: string }[] = [
       { name: 'الفنية المتقدمة لتكنولوجيا الصيانة' }
     ];
-    tech5Schools.forEach(s => this.addSchool(s.name, tech5Category, s.logo));
+		tech5Schools.forEach(s => this.addSchool(s.name, tech5Category, s.logo));
 
-    this.monthlyContent.loadPageState('schools', { visible: true, title: 'المدارس والمعاهد', items: this.allSchools }).subscribe((state: any) => {
+		// مدارس الحاسبات تدخل اختبارات الحاسبات والذكاء الاصطناعي، ولها أيضًا
+		// حق التقدم لاختبارات معادلة الهندسة حسب الشروط المعلنة.
+		const computerAndEngineeringSchools = [
+			'المدرسة الفنية التجريبية المتقدمة لتكنولوجيا المعلومات بالإسماعيلية',
+			'مدرسة I-TECH للتكنولوجيا التطبيقية',
+			'مدارس التكنولوجيا التطبيقية (تخصصات تكنولوجيا المعلومات، الذكاء الاصطناعي، البرمجيات)',
+			'مدارس WE للتكنولوجيا التطبيقية'
+		];
+		computerAndEngineeringSchools.forEach(name => {
+			const existing = this.allSchools.find(school => school.name === name || (name === 'مدارس WE للتكنولوجيا التطبيقية' && school.name === 'WE'));
+			if (existing) {
+				if (name === 'مدارس WE للتكنولوجيا التطبيقية') existing.name = name;
+				if (!existing.programs.includes('computers')) existing.programs.push('computers');
+				return;
+			}
+			this.addSchool(name, tech3Category, undefined, 'مدرسة تكنولوجية', ['engineering', 'computers']);
+		});
+
+		this.monthlyContent.loadPageState('schools', { visible: true, title: 'المدارس والمعاهد', items: this.allSchools }).subscribe((state: any) => {
       if (state?.visible === false) return;
       if (Array.isArray(state?.items) && state.items.length) {
         const existingNames = new Set(this.allSchools.map(school => school.name.trim()));
-        const addedSchools = state.items.filter((school: any) => school && typeof school.name === 'string' && !existingNames.has(school.name.trim()));
+			const addedSchools = state.items
+				.filter((school: any) => school && typeof school.name === 'string' && !existingNames.has(school.name.trim()))
+				.map((school: any) => ({ ...school, programs: Array.isArray(school.programs) && school.programs.length ? school.programs : ['engineering'] }));
         this.allSchools = [...this.allSchools, ...addedSchools];
       }
     });
@@ -504,14 +527,7 @@ export class SchoolsPageComponent {
     let filteredSchools = this.allSchools;
 
     // Apply category filter
-    if (this.selectedFilter !== 'الكل') {
-      filteredSchools = filteredSchools.filter(school => {
-        if (this.selectedFilter === 'المعاهد الفنية') {
-          return school.category === 'المعاهد الفنية' || school.category.includes('معهد');
-        }
-        return school.category === this.selectedFilter;
-      });
-    }
+		filteredSchools = filteredSchools.filter(school => this.matchesSelectedFilter(school));
 
     // Apply search filter
     if (this.searchTerm.trim()) {
@@ -527,14 +543,7 @@ export class SchoolsPageComponent {
 
   get totalFilteredCount(): number {
     let filteredSchools = this.allSchools;
-    if (this.selectedFilter !== 'الكل') {
-      filteredSchools = filteredSchools.filter(school => {
-        if (this.selectedFilter === 'المعاهد الفنية') {
-          return school.category === 'المعاهد الفنية' || school.category.includes('معهد');
-        }
-        return school.category === this.selectedFilter;
-      });
-    }
+		filteredSchools = filteredSchools.filter(school => this.matchesSelectedFilter(school));
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase().trim();
       filteredSchools = filteredSchools.filter(school =>
@@ -583,13 +592,23 @@ export class SchoolsPageComponent {
     this.isFilterMenuOpen = false;
   }
 
-  getCountByCategory(category: string): number {
-    if (category === 'المعاهد الفنية') {
+	getCountByCategory(category: string): number {
+		if (category === 'معادلة هندسة') return this.allSchools.filter(school => school.programs.includes('engineering')).length;
+		if (category === 'معادلة حاسبات') return this.allSchools.filter(school => school.programs.includes('computers')).length;
+		if (category === 'المعاهد الفنية') {
       return this.allSchools.filter(school => 
         school.category === 'المعاهد الفنية' || school.category.includes('معهد')
       ).length;
     }
-    return this.allSchools.filter(school => school.category === category).length;
-  }
+		return this.allSchools.filter(school => school.category === category).length;
+	}
+
+	private matchesSelectedFilter(school: { category: string; programs: Array<'engineering' | 'computers'> }): boolean {
+		if (this.selectedFilter === 'الكل') return true;
+		if (this.selectedFilter === 'معادلة هندسة') return school.programs.includes('engineering');
+		if (this.selectedFilter === 'معادلة حاسبات') return school.programs.includes('computers');
+		if (this.selectedFilter === 'المعاهد الفنية') return school.category === 'المعاهد الفنية' || school.category.includes('معهد');
+		return school.category === this.selectedFilter;
+	}
 
 }

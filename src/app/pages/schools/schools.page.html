@@ -15,15 +15,15 @@
       <div class="schools-filter-grid">
         <label class="schools-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg><input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" placeholder="ابحث باسم المدرسة أو المعهد" aria-label="ابحث باسم المدرسة أو المعهد"><span *ngIf="searchTerm" class="schools-search__clear" (click)="searchTerm = ''; onSearchChange()">×</span></label>
         <div class="schools-select" [class.schools-select--open]="isFilterMenuOpen">
-          <span>فلترة حسب النوع</span>
+          <span>فلترة حسب النوع والمعادلة</span>
           <button type="button" class="schools-select__trigger" (click)="$event.stopPropagation(); toggleFilterMenu()" [attr.aria-expanded]="isFilterMenuOpen" aria-haspopup="listbox"><strong>{{ selectedFilter }}</strong><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg></button>
-          <div *ngIf="isFilterMenuOpen" class="schools-dropdown" role="listbox" [attr.aria-label]="'فلترة حسب النوع'">
+          <div *ngIf="isFilterMenuOpen" class="schools-dropdown" role="listbox" [attr.aria-label]="'فلترة حسب النوع والمعادلة'">
             <button *ngFor="let filter of filterOptions" type="button" class="schools-dropdown__option" role="option" [attr.aria-selected]="selectedFilter === filter" [class.schools-dropdown__option--active]="selectedFilter === filter" (click)="$event.stopPropagation(); selectFilter(filter)"><span>{{ filter }}</span><i *ngIf="selectedFilter === filter">✓</i></button>
           </div>
         </div>
         <button type="button" class="schools-clear" (click)="clearFilters()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.6m15.4 2a8 8 0 0 0-15.4-2m15.4 11v-5h-.6m-15.4-2a8 8 0 0 0 15.4 2"/></svg>مسح الفلاتر</button>
       </div>
-      <div class="schools-category-stats"><button type="button" (click)="onFilterChange('المعاهد الفنية')"><b>{{ getCountByCategory('المعاهد الفنية') }}</b><span>معاهد فنية</span></button><button type="button" (click)="onFilterChange('مدارس الثانوية الصناعية نظام 3 سنوات')"><b>{{ getCountByCategory('مدارس الثانوية الصناعية نظام 3 سنوات') }}</b><span>صناعي 3 سنوات</span></button><button type="button" (click)="onFilterChange('مدارس الثانوية الصناعية نظام 5 سنوات')"><b>{{ getCountByCategory('مدارس الثانوية الصناعية نظام 5 سنوات') }}</b><span>صناعي 5 سنوات</span></button><button type="button" (click)="onFilterChange('مدارس تكنولوجية نظام 3 سنوات')"><b>{{ getCountByCategory('مدارس تكنولوجية نظام 3 سنوات') }}</b><span>تكنولوجية 3 سنوات</span></button><button type="button" (click)="onFilterChange('مدارس تكنولوجية نظام 5 سنوات')"><b>{{ getCountByCategory('مدارس تكنولوجية نظام 5 سنوات') }}</b><span>تكنولوجية 5 سنوات</span></button></div>
+      <div class="schools-category-stats"><button type="button" class="schools-program-stat" (click)="onFilterChange('معادلة هندسة')"><b>{{ getCountByCategory('معادلة هندسة') }}</b><span>معادلة هندسة</span></button><button type="button" class="schools-program-stat schools-program-stat--computers" (click)="onFilterChange('معادلة حاسبات')"><b>{{ getCountByCategory('معادلة حاسبات') }}</b><span>معادلة حاسبات</span></button><button type="button" (click)="onFilterChange('المعاهد الفنية')"><b>{{ getCountByCategory('المعاهد الفنية') }}</b><span>معاهد فنية</span></button><button type="button" (click)="onFilterChange('مدارس الثانوية الصناعية نظام 3 سنوات')"><b>{{ getCountByCategory('مدارس الثانوية الصناعية نظام 3 سنوات') }}</b><span>صناعي 3 سنوات</span></button><button type="button" (click)="onFilterChange('مدارس الثانوية الصناعية نظام 5 سنوات')"><b>{{ getCountByCategory('مدارس الثانوية الصناعية نظام 5 سنوات') }}</b><span>صناعي 5 سنوات</span></button><button type="button" (click)="onFilterChange('مدارس تكنولوجية نظام 3 سنوات')"><b>{{ getCountByCategory('مدارس تكنولوجية نظام 3 سنوات') }}</b><span>تكنولوجية 3 سنوات</span></button><button type="button" (click)="onFilterChange('مدارس تكنولوجية نظام 5 سنوات')"><b>{{ getCountByCategory('مدارس تكنولوجية نظام 5 سنوات') }}</b><span>تكنولوجية 5 سنوات</span></button></div>
     </section>
 
     <section *ngIf="schools.length > 0" class="schools-results" @staggerList>
@@ -34,6 +34,7 @@
           <div class="school-card__logo"><img [src]="school.logo" [alt]="school.name" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"></div>
           <h3>{{ school.name }}</h3>
           <p>{{ school.category }}</p>
+          <div class="school-card__programs"><span *ngIf="school.programs.includes('engineering')">معادلة هندسة</span><span *ngIf="school.programs.includes('computers')">معادلة حاسبات</span></div>
           <div class="school-card__line"></div>
           <span class="school-card__status"><i></i> مؤهل للمعادلة</span>
         </article>
