@@ -149,6 +149,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	isSaving = false;
 	isLoading = false;
 	isLoadingLeads = false;
+	leadPendingDeletion: Lead | null = null;
 	pageSummaries: Record<string, { hasContent: boolean; updatedAt?: string }> = {};
 	private pendingCmsNavigation = false;
 	private leadsRequestId = 0;
@@ -370,7 +371,17 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.adminApi.updateLead(lead.id, { status }).subscribe({ next: updated => { lead.status = updated.status; this.statusMessage = 'تم تحديث حالة العميل.'; }, error: err => this.handleApiError(err) });
 	}
 	deleteLead(lead: Lead): void {
-		if (!window.confirm(`حذف تسجيل ${lead.name} ورقم ${lead.whatsapp} نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
+		this.leadPendingDeletion = lead;
+		this.refreshView();
+	}
+	closeDeleteLeadDialog(): void {
+		this.leadPendingDeletion = null;
+		this.refreshView();
+	}
+	confirmDeleteLead(): void {
+		const lead = this.leadPendingDeletion;
+		if (!lead) return;
+		this.leadPendingDeletion = null;
 		this.adminApi.deleteLead(lead.id).subscribe({
 			next: () => {
 				this.leads = this.leads.filter(item => item.id !== lead.id);

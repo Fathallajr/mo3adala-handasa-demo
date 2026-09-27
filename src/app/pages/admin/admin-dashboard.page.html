@@ -209,4 +209,16 @@
 			</section>
 		</main>
 	</div>
+	<div *ngIf="leadPendingDeletion" class="delete-dialog-backdrop" role="presentation" (click)="closeDeleteLeadDialog()">
+		<section class="delete-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title" (click)="$event.stopPropagation()">
+			<div class="delete-dialog__icon"><i class="bi bi-trash3"></i></div>
+			<h2 id="delete-dialog-title">تأكيد حذف التسجيل</h2>
+			<p>هل تريد حذف تسجيل <strong>{{ leadPendingDeletion.name }}</strong> نهائيًا؟</p>
+			<span>رقم الواتساب: {{ leadPendingDeletion.whatsapp }}</span>
+			<div class="delete-dialog__actions">
+				<button type="button" class="delete-dialog__cancel" (click)="closeDeleteLeadDialog()">إلغاء</button>
+				<button type="button" class="delete-dialog__confirm" (click)="confirmDeleteLead()"><i class="bi bi-trash3"></i> حذف نهائي</button>
+			</div>
+		</section>
+	</div>
 </div>
