@@ -259,7 +259,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		const username = this.adminUserDraft.username.trim();
 		const password = this.adminUserDraft.password;
 		this.adminUserFormError = '';
-		if (!/^[a-zA-Z0-9._-]{3,40}$/.test(username)) { this.adminUserFormError = 'اسم المستخدم يجب أن يكون 3 أحرف أو أكثر وبالإنجليزية أو الأرقام فقط.'; return; }
+		if (!/^[a-zA-Z0-9][a-zA-Z0-9._@+-]{2,79}$/.test(username)) { this.adminUserFormError = 'اسم المستخدم يجب أن يبدأ بحرف أو رقم، ومن 3 إلى 80 حرفاً، بدون مسافات.'; return; }
 		if (password.length < 10) { this.adminUserFormError = 'كلمة المرور يجب أن تكون 10 أحرف على الأقل.'; return; }
 		this.adminApi.createAdminUser({ ...this.adminUserDraft, username }).subscribe({ next: user => { this.adminUsers = [user, ...this.adminUsers]; this.adminUserDraft = { username: '', password: '', permissions: [] }; this.statusMessage = 'تم إنشاء الحساب بدون تخزين كلمة المرور كنص مكشوف.'; }, error: err => this.handleApiError(err) });
 	}

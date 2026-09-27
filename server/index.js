@@ -715,7 +715,7 @@ app.post('/api/admin/users', requireAdmin, requireFullAdmin, async (req, res, ne
 	const username = String(req.body?.username || '').trim();
 	const password = String(req.body?.password || '');
 	const permissions = normalizeUserPermissions(req.body?.permissions);
-	if (!/^[a-zA-Z0-9._-]{3,40}$/.test(username)) return res.status(400).json({ message: 'اسم المستخدم يجب أن يكون من 3 إلى 40 حرفاً إنجليزياً أو أرقاماً.' });
+	if (!/^[a-zA-Z0-9][a-zA-Z0-9._@+-]{2,79}$/.test(username)) return res.status(400).json({ message: 'اسم المستخدم يجب أن يبدأ بحرف أو رقم، ومن 3 إلى 80 حرفاً، بدون مسافات.' });
 	if (password.length < 10 || password.length > 200) return res.status(400).json({ message: 'كلمة المرور يجب ألا تقل عن 10 أحرف.' });
 	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(409).json({ message: 'اسم المستخدم محجوز.' });
 	try {
