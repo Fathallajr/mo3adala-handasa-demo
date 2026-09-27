@@ -261,14 +261,27 @@
 
 /* The English page uses the new engineering image as a clean editorial panel. */
 .engineers-page--en .eng-hero__visual {
+	min-height: 0;
+	height: auto;
+	aspect-ratio: 16 / 9;
 	border: 1px solid rgba(147, 197, 253, .35);
-	border-radius: 1.5rem 5rem 1.5rem 5rem;
+	border-radius: 1.5rem 3rem 1.5rem 3rem;
 	box-shadow: 0 26px 64px rgba(2, 12, 34, .42), 0 0 0 10px rgba(59, 130, 246, .08);
 	transform: none;
 }
 
 .engineers-page--en .eng-hero__visual img {
-	object-position: 24% center;
+	min-height: 0;
+	height: 100%;
+	object-fit: contain;
+	object-position: center;
+	background: #f8ead2;
+}
+
+.engineers-page--en .eng-hero__visual-shade,
+.engineers-page--en .eng-hero__visual-tag,
+.engineers-page--en .eng-hero__visual-caption {
+	display: none;
 }
 
 /* The Arabic team artwork is a wide group portrait; preserve its full composition. */
@@ -804,14 +817,16 @@
 	}
 	.engineers-page--en .eng-hero__visual {
 		order: -1;
-		min-height: 245px;
-		max-height: 245px;
-		border-radius: 1.25rem 3.5rem 1.25rem 3.5rem;
+		min-height: 0;
+		max-height: none;
+		aspect-ratio: 16 / 9;
+		border-radius: 1.25rem 2.5rem 1.25rem 2.5rem;
 		box-shadow: 0 18px 42px rgba(2, 12, 34, .34), 0 0 0 7px rgba(59, 130, 246, .07);
 	}
 	.engineers-page--en .eng-hero__visual img {
-		min-height: 245px;
-		object-position: 24% center;
+		min-height: 0;
+		height: 100%;
+		object-position: center;
 	}
 	.engineers-page--en .eng-hero__visual-tag {
 		top: .8rem;
