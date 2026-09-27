@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { EMPTY, Observable, catchError, map, startWith, switchMap, timer } from 'rxjs';
+import { EMPTY, Observable, catchError, map, startWith, switchMap, timer, timeout } from 'rxjs';
 import { AdminAuthService } from './admin-auth.service';
 import { CmsPageKey } from '../cms-page.registry';
 
@@ -55,7 +55,7 @@ export class MonthlyContentService {
 		const token = this.auth.getToken();
 		const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
 
-		return this.http.put<T>(`${this.apiBase}/content/${pageKey}`, state, { headers });
+		return this.http.put<T>(`${this.apiBase}/content/${pageKey}`, state, { headers }).pipe(timeout({ each: 15000 }));
 	}
 
 	uploadImage(file: File): Observable<string> {

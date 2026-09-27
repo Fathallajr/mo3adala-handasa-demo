@@ -991,12 +991,12 @@ app.put('/api/content/:pageKey', requireAdmin, requirePagePermission, async (req
 		return res.status(404).json({ message: 'Unknown page' });
 	}
 
+	if (typeof database.savePage === 'function') {
+		const saved = await database.savePage(pageKey, req.body, getNowIso());
+		return res.json(saved.data);
+	}
 	const store = await readStore();
-	store.pages[pageKey] = {
-		data: req.body,
-		updatedAt: getNowIso()
-	};
-
+	store.pages[pageKey] = { data: req.body, updatedAt: getNowIso() };
 	await writeStore(store);
 	res.json(store.pages[pageKey].data);
 });
