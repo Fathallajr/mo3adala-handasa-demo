@@ -31,6 +31,8 @@ interface ReviewFormConfig {
 	styleUrls: ['./subscription-ab-reviews.page.css']
 })
 export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
+	private readonly arabicEnrollmentFormLink = 'https://forms.gle/kHieqwyKbubsUZmPA';
+	private readonly englishEnrollmentFormLink = 'https://forms.gle/JZAvJqZcaPLKFR6f7';
 	private contentSubscription?: Subscription;
 	isComputersSubscription = false;
 	isEnglishSubscription = false;
@@ -129,7 +131,8 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				},
 				googleForm: {
 					...this.subscriptionDetails.googleForm,
-					...(legacyForm ?? {})
+					...(legacyForm ?? {}),
+					link: this.getEnrollmentFormLink()
 				},
 				vodafoneNumbers: loaded.vodafoneNumbers?.length
 					? loaded.vodafoneNumbers
@@ -270,6 +273,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			subtitle: `ابدأ طريقك في ${this.subscriptionProgramLabel} باشتراك كامل بسعر ${this.isComputersSubscription ? '600' : '800'} جنيه.`,
 			googleForm: {
 				...this.subscriptionDetails.googleForm,
+				link: this.getEnrollmentFormLink(),
 				label: this.subscriptionProgramLabel,
 				description: `فورم ${this.subscriptionProgramLabel}`,
 				buttonText: `سجل ${this.subscriptionProgramLabel}`
@@ -294,6 +298,10 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				}
 			}
 		};
+	}
+
+	private getEnrollmentFormLink(): string {
+		return this.isEnglishSubscription ? this.englishEnrollmentFormLink : this.arabicEnrollmentFormLink;
 	}
 
 	ngOnDestroy(): void {
