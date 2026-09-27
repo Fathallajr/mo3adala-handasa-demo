@@ -231,6 +231,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	setView(view: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms'): void {
+		this.statusMessage = '';
+		this.errorMessage = '';
 		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
 		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
@@ -338,6 +340,7 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.leadsLoaded = true;
 				this.isLoadingLeads = false;
 				this.statusMessage = 'تم تحديث بيانات الليدز بنجاح.';
+				this.errorMessage = '';
 				this.refreshView();
 			},
 			error: err => {
@@ -405,7 +408,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (this.isLoadingWheelClaims || (this.wheelClaimsLoaded && !force)) return;
 		this.isLoadingWheelClaims = true;
 		this.adminApi.listWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo }).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingWheelClaims = false; this.refreshView(); })).subscribe({
-			next: result => { this.wheelClaims = result.data; this.wheelClaimsLoaded = true; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; this.refreshView(); },
+			next: result => { this.wheelClaims = result.data; this.wheelClaimsLoaded = true; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; this.errorMessage = ''; this.refreshView(); },
 			error: err => { this.handleApiError(err); this.refreshView(); }
 		});
 	}
@@ -423,6 +426,7 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	private handleApiError(err: HttpErrorResponse): void {
 		if (err.status === 401) { this.handleSessionExpired(); return; }
+		this.statusMessage = '';
 		this.errorMessage = err.error?.message || 'تعذر تحميل البيانات من السيرفر.';
 	}
 
