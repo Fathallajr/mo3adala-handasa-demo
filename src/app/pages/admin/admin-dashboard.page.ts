@@ -118,7 +118,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadDateTo = '';
 	readonly leadSourceOptions = ['', 'فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
 	displayProgramLabel(value: string): string { return displayProgramLabel(value); }
-	readonly defaultLeadProgramOptions = ['', 'معادلة هندسة', 'معادلة حاسبات', 'معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
+	readonly defaultLeadProgramOptions = ['', 'معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
 	leadProgramOptions = [...this.defaultLeadProgramOptions];
 	leadsPage = 1;
 	copiedLeadWhatsapp = '';
