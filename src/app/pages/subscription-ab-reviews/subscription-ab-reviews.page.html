@@ -154,8 +154,8 @@
 						<button
 							(click)="openGoogleForm()"
 							class="review-primary-button"
-							[class.is-disabled]="(isEnrollmentClosed && !form.allowOpenWhenClosed) || (form.isClosed && !form.allowOpenWhenClosed)"
-							[attr.disabled]="((isEnrollmentClosed && !form.allowOpenWhenClosed) || (form.isClosed && !form.allowOpenWhenClosed)) ? '' : null">
+							[class.is-disabled]="isEnrollmentClosed || (form.isClosed && !form.allowOpenWhenClosed)"
+							[attr.disabled]="(isEnrollmentClosed || (form.isClosed && !form.allowOpenWhenClosed)) ? '' : null">
 							{{ form.buttonText }} <i class="bi bi-arrow-up-left"></i>
 						</button>
 					</div>
