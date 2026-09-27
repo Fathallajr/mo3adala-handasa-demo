@@ -38,6 +38,16 @@
 					</button>
 				</div>
 			</div>
+			<div class="site-maintenance-tool" *ngIf="fullAdminAccount">
+				<div class="site-maintenance-tool__title">تحديثات الموقع</div>
+				<div class="site-maintenance-tool__status" [class.is-active]="siteMaintenance">
+					<span class="site-maintenance-tool__dot"></span>
+					{{ siteMaintenance ? 'الموقع مقفول للزوار' : 'الموقع مفتوح للزوار' }}
+				</div>
+				<button type="button" class="site-maintenance-btn" [class.is-active]="siteMaintenance" (click)="toggleSiteMaintenance()" [disabled]="isSavingSiteMode">
+					{{ isSavingSiteMode ? 'جاري الحفظ...' : (siteMaintenance ? 'فتح الموقع للزوار' : 'قفل الموقع مؤقتًا') }}
+				</button>
+			</div>
 		</aside>
 
 		<main class="admin-editor">

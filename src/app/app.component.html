@@ -3,6 +3,9 @@
     <div class="loading-mark" aria-hidden="true"><span></span></div>
   </div>
 </div>
+<div *ngIf="siteMaintenance && !showLaunchOffer && !currentRoute.startsWith('/admin')" class="site-maintenance-overlay" role="dialog" aria-modal="true">
+  <main class="site-maintenance-card"><div class="site-maintenance-icon">🛠️</div><h1>الموقع تحت التحديث</h1><p>بنجهز الموقع حاليًا. هنرجع نفتح الموقع قريبًا، شكرًا لانتظاركم.</p></main>
+</div>
 <div *ngIf="routeLoading" class="route-loading-bar" role="status" aria-label="جاري تحميل الصفحة"><span></span></div>
 <app-navbar *ngIf="!currentRoute.startsWith('/admin')"></app-navbar>
 <main class="app-page-shell min-h-dvh relative overflow-hidden" [class.route-home]="currentRoute === '/' || currentRoute === ''">
@@ -12,7 +15,7 @@
 </main>
 <app-footer *ngIf="!currentRoute.startsWith('/admin')"></app-footer>
 
-<div *ngIf="!currentRoute.startsWith('/admin') && showLaunchOffer && (currentRoute === '/' || currentRoute === '')" class="launch-offer-backdrop" role="dialog" aria-modal="true" aria-labelledby="launch-offer-title">
+<div *ngIf="!currentRoute.startsWith('/admin') && showLaunchOffer && (siteMaintenance || currentRoute === '/' || currentRoute === '')" class="launch-offer-backdrop" role="dialog" aria-modal="true" aria-labelledby="launch-offer-title">
   <section class="launch-offer-modal">
     <button type="button" class="launch-offer-close" aria-label="إغلاق" (click)="closeLaunchOffer()">×</button>
     <div class="launch-offer-visual"><span class="launch-offer-orbit"></span><span class="launch-offer-campus" aria-hidden="true"><i></i><b></b><em></em></span><span class="launch-offer-helmet" aria-hidden="true"></span><span class="launch-offer-laptop" aria-hidden="true"></span><img src="assets/launch-offer-mascots.png" alt="شخصيتا أبلكيشن معادلة هندسة وحاسبات"></div>

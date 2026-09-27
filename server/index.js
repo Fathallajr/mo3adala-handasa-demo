@@ -280,6 +280,38 @@ function requirePagePermission(req, res, next) {
 	return res.status(403).json({ message: 'ليس لديك صلاحية تعديل هذه الصفحة.' });
 }
 
+const MAINTENANCE_KEY = 'site_maintenance';
+
+async function isSiteMaintenanceEnabled() {
+	return (await database.getMetadata(MAINTENANCE_KEY)) === 'true';
+}
+
+async function hasValidAdminSession(req) {
+	const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+	if (!token) return false;
+	const session = await database.getAdminSession(token);
+	return Boolean(session && Date.now() <= Date.parse(session.expiresAt));
+}
+
+function maintenanceResponse(res) {
+	return res.status(503).type('html').send(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>الموقع تحت التحديث</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f6f7fb;color:#172033;font-family:Arial,sans-serif}.card{width:min(560px,calc(100% - 40px));padding:42px 28px;text-align:center;background:#fff;border:1px solid #e6eaf1;border-radius:24px;box-shadow:0 18px 45px #20294518}h1{margin:0 0 14px;font-size:30px}p{margin:0;color:#718096;font-size:17px;line-height:1.9}.icon{font-size:48px;margin-bottom:12px}</style></head><body><main class="card"><div class="icon">🛠️</div><h1>الموقع تحت التحديث</h1><p>بنجهز الموقع حاليًا. هنرجع نفتح الموقع قريبًا، شكرًا لانتظاركم.</p></main></body></html>`);
+}
+
+// Keep the public website and public API unavailable while the administrator
+// is preparing the production domain. Admin routes and valid admin sessions
+// remain available so work can continue.
+app.use(async (req, res, next) => {
+	try {
+		if (!(await isSiteMaintenanceEnabled())) return next();
+		if (!req.path.startsWith('/api/') || req.path === '/api/health' || req.path === '/api/site-mode' || req.path === '/api/auth/login' || req.path === '/api/launch-offer' || req.path === '/api/openapi.json' || req.path.startsWith('/api/docs')) return next();
+		if (req.path.startsWith('/api/admin') && await hasValidAdminSession(req)) return next();
+		if (req.path.startsWith('/api/')) return res.status(503).json({ message: 'الموقع تحت التحديث حاليًا.' });
+		return next();
+	} catch (error) {
+		next(error);
+	}
+});
+
 function addAuditLog(store, action, entity, entityId, req) {
 	store.auditLogs.unshift({
 		id: crypto.randomUUID(),
@@ -362,6 +394,14 @@ app.get('/api/health', (req, res) => {
 	});
 });
 
+app.get('/api/site-mode', async (_req, res, next) => {
+	try {
+		res.json({ maintenance: await isSiteMaintenanceEnabled() });
+	} catch (error) {
+		next(error);
+	}
+});
+
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.get('/api/openapi.json', (req, res) => res.json(openApiDocument));
 
@@ -394,6 +434,24 @@ app.post('/api/auth/logout', requireAdmin, async (req, res, next) => {
 	try {
 		await database.deleteAdminSession(token);
 		res.sendStatus(204);
+	} catch (error) {
+		next(error);
+	}
+});
+
+app.get('/api/admin/site-mode', requireAdmin, requireFullAdmin, async (_req, res, next) => {
+	try {
+		res.json({ maintenance: await isSiteMaintenanceEnabled() });
+	} catch (error) {
+		next(error);
+	}
+});
+
+app.patch('/api/admin/site-mode', requireAdmin, requireFullAdmin, async (req, res, next) => {
+	try {
+		if (typeof req.body?.maintenance !== 'boolean') return res.status(400).json({ message: 'قيمة وضع الصيانة غير صحيحة.' });
+		await database.setMetadata(MAINTENANCE_KEY, req.body.maintenance ? 'true' : 'false');
+		res.json({ maintenance: req.body.maintenance });
 	} catch (error) {
 		next(error);
 	}

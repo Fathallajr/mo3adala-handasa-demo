@@ -27,6 +27,7 @@ declare global {
 export class AppComponent implements OnInit, OnDestroy {
 	title = 'mo3adala-handasa';
 	showLoading = true;
+	siteMaintenance = false;
 	routeLoading = false;
 	currentRoute = '';
 	showLaunchOffer = false;
@@ -91,6 +92,7 @@ export class AppComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit() {
+		this.loadSiteMode();
 		// التمرير إلى الأعلى عند تحميل الصفحة لأول مرة
 		this.scrollToTop();
 		setTimeout(() => {
@@ -114,6 +116,24 @@ export class AppComponent implements OnInit, OnDestroy {
 		if (this.offerOpenTimer) clearTimeout(this.offerOpenTimer);
 	}
 
+	private async loadSiteMode(): Promise<void> {
+		if (typeof window === 'undefined' || window.location.pathname.startsWith('/admin')) return;
+		try {
+			const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api';
+			const response = await fetch(`${apiBase}/site-mode`, { cache: 'no-store' });
+			if (response.ok) {
+				this.siteMaintenance = Boolean((await response.json())?.maintenance);
+				if (this.siteMaintenance) {
+					this.showLaunchOffer = true;
+					this.showLoading = false;
+				}
+			}
+			this.cdr.detectChanges();
+		} catch {
+			// Keep the public app available if the optional status check is unavailable.
+		}
+	}
+
 	private startOfferCountdown() {
 		if (typeof window === 'undefined') return;
 		const key = 'launch-offer-deadline';
@@ -135,6 +155,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 	closeLaunchOffer() {
 		this.showLaunchOffer = false;
+		this.cdr.detectChanges();
 	}
 
 	openSubscriptionChoices(event?: Event) {

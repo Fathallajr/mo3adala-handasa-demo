@@ -188,6 +188,8 @@ function updateAdminUser(username, changes) {
 }
 
 function deleteAdminUser(username) { db.prepare('DELETE FROM admin_users WHERE username = ?').run(username); }
+function getMetadata(key) { const row = db.prepare('SELECT value FROM metadata WHERE key = ?').get(key); return row?.value ?? null; }
+function setMetadata(key, value) { db.prepare('INSERT INTO metadata(key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, String(value)); }
 function createFeedback(feedback) { db.prepare('INSERT INTO feedbacks(id,name,university,rating,message,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)').run(feedback.id, feedback.name, feedback.university || '', feedback.rating, feedback.message, feedback.status || 'new', feedback.createdAt, feedback.updatedAt || null); }
 function listFeedback() { return db.prepare('SELECT id,name,university,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks ORDER BY created_at DESC').all(); }
 function getFeedback(id) { return db.prepare('SELECT id,name,university,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks WHERE id = ?').get(id) || null; }
@@ -198,4 +200,4 @@ function createWheelClaim(claim) { try { db.prepare('INSERT INTO wheel_claims(to
 function listWheelClaims() { readWheelState(); return db.prepare('SELECT token,name,whatsapp,program,gift,claimed_at AS claimedAt FROM wheel_claims ORDER BY claimed_at DESC').all(); }
 function countWheelClaims() { listWheelClaims(); return db.prepare('SELECT COUNT(*) AS count FROM wheel_claims').get().count; }
 
-module.exports = { readStore, writeStore, createLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, createFeedback, listFeedback, getFeedback, updateFeedback, listPublishedFeedback, databaseFile };
+module.exports = { readStore, writeStore, createLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, listPublishedFeedback, databaseFile };

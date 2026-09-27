@@ -18,6 +18,7 @@ export interface Program {
 export interface WheelClaim { token: string; name: string; whatsapp: string; program: string; gift: string; claimedAt: string; }
 export interface Feedback { id: string; name: string; university?: string; rating: number; message: string; status: 'new' | 'reviewed' | 'published' | 'archived'; createdAt: string; updatedAt?: string | null; }
 export interface AdminUser { username: string; role: string; permissions: string[]; isActive: boolean; createdAt?: string; updatedAt?: string; }
+export interface SiteMode { maintenance: boolean; }
 
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {
@@ -25,6 +26,8 @@ export class AdminApiService {
 	private readonly base = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api';
 
 	getSummary(): Observable<DashboardSummary> { return this.http.get<DashboardSummary>(`${this.base}/admin/dashboard/summary`); }
+	getSiteMode(): Observable<SiteMode> { return this.http.get<SiteMode>(`${this.base}/admin/site-mode`); }
+	setSiteMaintenance(maintenance: boolean): Observable<SiteMode> { return this.http.patch<SiteMode>(`${this.base}/admin/site-mode`, { maintenance }); }
 	listLeads(search = '', status = '', source = '', program = '', from = '', to = '', page = 1, limit = 20, platform = '', campaign = ''): Observable<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
 		let params = new HttpParams().set('page', page).set('limit', limit);
 		if (search) params = params.set('search', search);

@@ -139,6 +139,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	currentContent: unknown = null;
 	statusMessage = '';
 	errorMessage = '';
+	siteMaintenance = false;
+	isSavingSiteMode = false;
 	isSaving = false;
 	isLoading = false;
 	isLoadingLeads = false;
@@ -187,6 +189,7 @@ export class AdminDashboardPageComponent implements OnInit {
 					this.loadPrograms();
 					this.loadWheelClaims();
 					this.loadAdminUsers();
+					this.loadSiteMode();
 				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('wheel')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
@@ -198,6 +201,25 @@ export class AdminDashboardPageComponent implements OnInit {
 				}
 			}
 			if (!isCmsNavigation) this.loadPage(pageKey);
+		});
+	}
+
+	loadSiteMode(): void {
+		if (this.auth.getRole() !== 'admin') return;
+		this.adminApi.getSiteMode().subscribe({ next: value => { this.siteMaintenance = value.maintenance; this.refreshView(); }, error: err => this.handleApiError(err) });
+	}
+
+	toggleSiteMaintenance(): void {
+		if (this.isSavingSiteMode) return;
+		const nextValue = !this.siteMaintenance;
+		const message = nextValue
+			? 'سيتم إيقاف الموقع أمام الزوار وإظهار صفحة التحديثات. هل تريد المتابعة؟'
+			: 'سيتم فتح الموقع أمام الزوار مرة أخرى. هل تريد المتابعة؟';
+		if (!window.confirm(message)) return;
+		this.isSavingSiteMode = true;
+		this.adminApi.setSiteMaintenance(nextValue).pipe(finalize(() => { this.isSavingSiteMode = false; this.refreshView(); })).subscribe({
+			next: value => { this.siteMaintenance = value.maintenance; this.statusMessage = value.maintenance ? 'تم قفل الموقع أمام الزوار.' : 'تم فتح الموقع أمام الزوار.'; },
+			error: err => this.handleApiError(err)
 		});
 	}
 
