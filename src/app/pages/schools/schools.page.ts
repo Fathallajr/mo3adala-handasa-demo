@@ -514,7 +514,7 @@ export class SchoolsPageComponent {
   constructor(private seo: SeoService, private canonical: CanonicalService, private monthlyContent: MonthlyContentService) {
     const siteUrl = (typeof window !== 'undefined' ? (window as any)['NG_SITE_URL'] : process.env['NG_SITE_URL']) || 'https://www.appmo3adla.com';
     const title = 'دليل المدارس والمعاهد المعتمدة - معادلة كلية هندسة';
-    const description = 'ابحث عن المدارس والمعاهد التكنولوجية والصناعية المعتمدة والمناسبة للتقديم في معادلة كلية الهندسة.';
+		const description = 'ابحث عن المدارس والمعاهد التكنولوجية والصناعية المناسبة للتقديم في معادلة الهندسة والحاسبات.';
     const url = `${siteUrl}/schools`;
     this.seo.setTitle(title);
     this.seo.setDescription(description);
