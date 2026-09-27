@@ -481,20 +481,22 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.statusMessage = '';
 		this.isSaving = true;
 
-		this.contentService.savePageState(this.selectedPageKey, this.currentContent).subscribe({
+		this.contentService.savePageState(this.selectedPageKey, this.currentContent).pipe(finalize(() => {
+			this.isSaving = false;
+			this.refreshView();
+		})).subscribe({
 			next: saved => {
-				this.isSaving = false;
 				this.currentContent = saved;
 				this.statusMessage = 'تم الحفظ على السيرفر بنجاح ✓';
 				this.refreshSummaries();
 			},
 			error: (err: HttpErrorResponse) => {
-				this.isSaving = false;
 				if (err.status === 401) {
 					this.handleSessionExpired();
 					return;
 				}
-				this.errorMessage = 'فشل حفظ التعديلات على السيرفر.';
+				const errorName = (err as unknown as { name?: string }).name;
+				this.errorMessage = err.error?.message || (errorName === 'TimeoutError' ? 'انتهت مهلة الحفظ. تأكد من اتصال السيرفر.' : 'فشل حفظ التعديلات على السيرفر.');
 			}
 		});
 	}
