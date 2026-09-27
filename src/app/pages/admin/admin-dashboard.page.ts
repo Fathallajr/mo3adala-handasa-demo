@@ -180,21 +180,18 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.activeView = 'cms';
 				this.pendingCmsNavigation = false;
 			} else {
-				if (this.auth.getRole() === 'admin') {
-					this.activeView = this.resolveDataView(this.route.snapshot.queryParamMap.get('view')) || 'leads';
-					// Preload every admin data section after login so switching views
-					// only changes the visible panel and never triggers the first fetch.
-					this.loadOverview();
-					// Login navigation can finish in the same tick as the token write.
-					// Retry once after the auth state has settled so the first screen
-					// never needs a second click to populate its metrics.
-					setTimeout(() => this.loadOverview(true), 300);
-					this.loadFeedback();
-					this.loadLeads();
-					this.loadPrograms();
-					this.loadWheelClaims();
-					this.loadAdminUsers();
-					this.loadSiteMode();
+			if (this.auth.getRole() === 'admin') {
+				this.activeView = this.resolveDataView(this.route.snapshot.queryParamMap.get('view')) || 'leads';
+				// Load only the visible section. Loading every admin section at once
+				// exhausts the production database connection pool and makes one of
+				// the otherwise unrelated requests fail intermittently.
+				if (this.activeView === 'overview') this.loadOverview();
+				if (this.activeView === 'leads') this.loadLeads();
+				if (this.activeView === 'feedback') this.loadFeedback();
+				if (this.activeView === 'programs') this.loadPrograms();
+				if (this.activeView === 'wheel') this.loadWheelClaims();
+				if (this.activeView === 'admins') this.loadAdminUsers();
+				this.loadSiteMode();
 				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
