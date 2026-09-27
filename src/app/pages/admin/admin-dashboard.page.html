@@ -17,7 +17,6 @@
 		<div class="admin-sidebar-backdrop" *ngIf="sidebarOpen" (click)="toggleSidebar()"></div>
 		<aside class="admin-sidebar" [class.admin-sidebar--open]="sidebarOpen">
 			<div class="sidebar-tools">
-				<button *ngIf="fullAdminAccount" type="button" [class.page-item--active]="activeView === 'overview'" (click)="setView('overview')">إحصائيات جديدة</button>
 				<button *ngIf="canAccessFeature('leads')" type="button" [class.page-item--active]="activeView === 'leads'" (click)="setView('leads')">الليدز</button>
 				<button *ngIf="canAccessFeature('feedback')" type="button" [class.page-item--active]="activeView === 'feedback'" (click)="setView('feedback')">آراء الطلاب</button>
 				<button *ngIf="canAccessFeature('wheel')" type="button" [class.page-item--active]="activeView === 'wheel'" (click)="setView('wheel')">نتائج العجلة</button>
@@ -51,7 +50,7 @@
 		</aside>
 
 		<main class="admin-editor">
-			<section *ngIf="activeView === 'overview'" class="data-view">
+			<section *ngIf="false && activeView === 'overview'" class="data-view">
 				<h2 class="editor-title">إحصائيات جديدة</h2><p class="editor-subtitle">ملخص سريع لأداء المنصة والعملاء الجدد.</p>
 				<div class="metric-grid" *ngIf="dashboard">
 					<div class="metric-card"><span>إجمالي العملاء</span><strong>{{ dashboard.totalLeads }}</strong></div>

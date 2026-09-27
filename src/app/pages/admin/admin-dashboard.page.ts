@@ -56,7 +56,7 @@ type AdminDataView = 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 
 })
 export class AdminDashboardPageComponent implements OnInit {
 	sidebarOpen = false;
-	activeView: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms' = 'overview';
+	activeView: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,
 		todayLeads: 0,
@@ -176,7 +176,7 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.pendingCmsNavigation = false;
 			} else {
 				if (this.auth.getRole() === 'admin') {
-					this.activeView = this.resolveDataView(this.route.snapshot.queryParamMap.get('view')) || 'overview';
+					this.activeView = this.resolveDataView(this.route.snapshot.queryParamMap.get('view')) || 'leads';
 					// Preload every admin data section after login so switching views
 					// only changes the visible panel and never triggers the first fetch.
 					this.loadOverview();
@@ -190,12 +190,14 @@ export class AdminDashboardPageComponent implements OnInit {
 					this.loadWheelClaims();
 					this.loadAdminUsers();
 					this.loadSiteMode();
-				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('wheel')) {
+				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
-					this.activeView = canLoadLeads ? 'leads' : 'wheel';
+					const canLoadFeedback = this.auth.canAccessFeature('feedback');
+					this.activeView = canLoadLeads ? 'leads' : canLoadWheel ? 'wheel' : 'feedback';
 					if (canLoadLeads) this.loadLeads();
 					if (canLoadWheel) this.loadWheelClaims();
+					if (canLoadFeedback) this.loadFeedback();
 				} else {
 					this.activeView = 'cms';
 				}
@@ -227,7 +229,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
 		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
-		if (view !== 'cms' && view !== 'leads' && view !== 'wheel' && this.auth.getRole() !== 'admin') return;
+		if (view !== 'cms' && view !== 'leads' && view !== 'wheel' && view !== 'feedback' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
 			this.sidebarOpen = false;
 			return;
@@ -538,7 +540,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	private resolveDataView(value: string | null): AdminDataView | null {
-		const allowed: AdminDataView[] = ['overview', 'leads', 'feedback', 'programs', 'wheel', 'admins'];
+		const allowed: AdminDataView[] = ['leads', 'feedback', 'programs', 'wheel', 'admins'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
 		if (view === 'feedback') return this.auth.canAccessFeature('feedback') ? view : null;
