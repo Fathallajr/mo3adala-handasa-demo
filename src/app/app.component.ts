@@ -123,7 +123,10 @@ export class AppComponent implements OnInit, OnDestroy {
 			const response = await fetch(`${apiBase}/site-mode`, { cache: 'no-store' });
 			if (response.ok) {
 				this.siteMaintenance = Boolean((await response.json())?.maintenance);
-				if (this.siteMaintenance) {
+				// A visitor who already submitted the launch form should go straight
+				// to the maintenance screen on later visits, even while maintenance
+				// mode is still enabled.
+				if (this.siteMaintenance && !localStorage.getItem('launch-offer-submitted')) {
 					this.showLaunchOffer = true;
 					this.showLoading = false;
 				}
