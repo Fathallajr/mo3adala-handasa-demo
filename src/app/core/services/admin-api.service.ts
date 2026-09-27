@@ -66,6 +66,7 @@ export class AdminApiService {
 		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);
 		return this.http.get<{ data: WheelClaim[]; total: number }>(`${this.base}/admin/wheel/claims`, { params });
 	}
+	deleteWheelClaim(token: string): Observable<void> { return this.http.delete<void>(`${this.base}/admin/wheel/claims/${encodeURIComponent(token)}`); }
 	exportWheelClaims(filters: { search?: string; gift?: string; program?: string; from?: string; to?: string } = {}): Observable<Blob> {
 		let params = new HttpParams();
 		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);

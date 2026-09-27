@@ -150,6 +150,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	isLoading = false;
 	isLoadingLeads = false;
 	leadPendingDeletion: Lead | null = null;
+	wheelPendingDeletion: WheelClaim | null = null;
 	pageSummaries: Record<string, { hasContent: boolean; updatedAt?: string }> = {};
 	private pendingCmsNavigation = false;
 	private leadsRequestId = 0;
@@ -387,6 +388,28 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.leads = this.leads.filter(item => item.id !== lead.id);
 				this.leadsTotal = Math.max(0, this.leadsTotal - 1);
 				this.statusMessage = 'تم حذف التسجيل نهائيًا.';
+				this.errorMessage = '';
+				this.refreshView();
+			},
+			error: err => this.handleApiError(err)
+		});
+	}
+	deleteWheelClaim(claim: WheelClaim): void {
+		this.wheelPendingDeletion = claim;
+		this.refreshView();
+	}
+	closeDeleteWheelDialog(): void {
+		this.wheelPendingDeletion = null;
+		this.refreshView();
+	}
+	confirmDeleteWheelClaim(): void {
+		const claim = this.wheelPendingDeletion;
+		if (!claim) return;
+		this.wheelPendingDeletion = null;
+		this.adminApi.deleteWheelClaim(claim.token).subscribe({
+			next: () => {
+				this.wheelClaims = this.wheelClaims.filter(item => item.token !== claim.token);
+				this.statusMessage = 'تم حذف نتيجة العجلة نهائيًا.';
 				this.errorMessage = '';
 				this.refreshView();
 			},

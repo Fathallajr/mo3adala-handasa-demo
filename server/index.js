@@ -812,6 +812,12 @@ app.get('/api/admin/wheel/claims/export', requireAdmin, requirePermission('wheel
 	res.send(csv);
 });
 
+app.delete('/api/admin/wheel/claims/:token', requireAdmin, requirePermission('wheel:delete'), async (req, res) => {
+	const deleted = await database.deleteWheelClaim(req.params.token);
+	if (!deleted) return res.status(404).json({ message: 'Wheel claim not found' });
+	res.status(204).send();
+});
+
 function normalizeProgramInput(input, existing = {}) {
 	const program = {
 		...existing,
