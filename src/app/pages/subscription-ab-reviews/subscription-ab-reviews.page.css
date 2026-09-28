@@ -1426,7 +1426,8 @@
 	backdrop-filter: blur(8px);
 }
 
-.review-schedule__grid a {
+.review-schedule__grid a,
+.review-schedule__download {
 	display: inline-flex;
 	align-items: center;
 	gap: .5rem;
@@ -1439,6 +1440,9 @@
 	text-decoration: none;
 	font-size: .73rem;
 	font-weight: 900;
+	cursor: pointer;
+	font-family: inherit;
+	border: 0;
 }
 
 .review-modal {
@@ -1680,12 +1684,14 @@
 .review-support > small i { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(19, 185, 108, .1); }
 
 .review-primary-button,
-.review-schedule__grid a {
+.review-schedule__grid a,
+.review-schedule__download {
 	transition: transform .2s ease, box-shadow .2s ease;
 }
 
 .review-primary-button:hover,
-.review-schedule__grid a:hover {
+.review-schedule__grid a:hover,
+.review-schedule__download:hover {
 	transform: translateY(-2px);
 }
 
