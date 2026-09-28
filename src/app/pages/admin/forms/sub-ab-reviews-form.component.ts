@@ -34,8 +34,8 @@ export class SubAbReviewsFormComponent implements OnChanges {
 		sd.googleForm ??= {};
 		if (!sd.googleForm.link) {
 			sd.googleForm.link = this.pageKey.endsWith('-en')
-				? 'https://forms.gle/JZAvJqZcaPLKFR6f7'
-				: 'https://forms.gle/kHieqwyKbubsUZmPA';
+				? 'https://forms.gle/WFv9urJ1QDu3eE5y9'
+				: 'https://forms.gle/mhopqPdxUPxQEN9K8';
 		}
 		if (!sd.googleForm.link && sd.googleForms) {
 			sd.googleForm = { ...sd.googleForm, ...(sd.googleForms.groupA ?? sd.googleForms.groupB ?? {}) };

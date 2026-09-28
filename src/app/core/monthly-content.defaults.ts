@@ -100,7 +100,7 @@ export const monthlyContentDefaults = {
 				label: 'اشتراك الشهر الأول — دفعة 2027',
 				description: 'فورم اشتراك شهر أكتوبر',
 				buttonText: 'سجل فورم الاشتراك',
-				link: 'https://forms.gle/kHieqwyKbubsUZmPA',
+				link: 'https://forms.gle/mhopqPdxUPxQEN9K8',
 				isClosed: false
 			},
 			vodafoneNumbers: [
