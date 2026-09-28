@@ -26,11 +26,11 @@ export class EngineersPageComponent implements OnInit {
 		{ id: 5, image: 'assets/teacher2.png', alt: 'د/ عمر أحمد عبد الفتاح', subject: 'English', description: 'أستاذ اللغة الإنجليزية' }
   ];
   englishTeachers = [
-    { name: 'المهندس أحمد علي', subject: 'Math 1 / Math 2', image: 'assets/teacher-english-ahmed-abdelmonem.png' },
-    { name: 'المهندس محمود الطرابيشي', subject: 'English', image: 'assets/teacher-english-mohamed-nabil.png' },
-    { name: 'المهندس محمد أشرف', subject: 'Mechanics', image: 'assets/teacher-english-mohamed-ashraf.png' },
-    { name: 'المهندس محمد نبيل', subject: 'Chemistry', image: 'assets/teacher-english-tarabishi.png' },
-    { name: 'المهندس أحمد عبد المنعم', subject: 'Physics', image: 'assets/teacher-english-ahmed-ali.png' }
+    { name: 'المهندس/ أحمد علي', subject: 'Math 1 / Math 2', image: 'assets/teacher-english-ahmed-abdelmonem.png' },
+    { name: 'المهندس/ محمود الطرابيشي', subject: 'English', image: 'assets/teacher-english-mohamed-nabil.png' },
+    { name: 'المهندس/ محمد ماهر', subject: 'Mechanics', image: 'assets/teacher-english-mohamed-ashraf.png' },
+    { name: 'المهندس/ محمد نبيل', subject: 'Chemistry', image: 'assets/teacher-english-tarabishi.png' },
+    { name: 'المهندس/ أحمد عبد المنعم', subject: 'Physics', image: 'assets/teacher-english-ahmed-ali.png' }
   ];
   constructor(
     private router: Router,
