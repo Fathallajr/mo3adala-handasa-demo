@@ -1376,7 +1376,7 @@
 }
 
 .review-schedule__grid > article {
-	width: min(100%, 650px);
+	width: min(100%, 1000px);
 	padding: 1.2rem;
 	border-radius: 23px;
 	color: #fff;
@@ -2939,6 +2939,7 @@
 }
 
 .review-page--computers .computer-media-roadmap__schedule .review-schedule__grid > article {
+	width: 100%;
 	border-color: rgba(31, 255, 197, .18);
 	background: #102d36;
 }
