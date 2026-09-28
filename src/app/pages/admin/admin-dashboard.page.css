@@ -5,6 +5,7 @@
 .admin-topbar { min-height:76px; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:0 26px; margin-bottom:20px; background:#fff; border:1px solid var(--line); border-radius:20px; box-shadow:0 12px 35px rgba(30,42,70,.06); }
 .topbar-brand,.topbar-actions,.system-status,.sidebar-heading-row { display:flex; align-items:center; }
 .topbar-brand { gap:13px; }.brand-mark { display:grid; place-items:center; width:42px; height:42px; padding:4px; overflow:hidden; border-radius:13px; background:linear-gradient(135deg,#6d4aff,#a96cff); box-shadow:0 8px 16px #8060ff40; }.brand-mark img { width:100%; height:100%; object-fit:contain; border-radius:9px; }
+.admin-dashboard-shell--dialog-open { animation:none; transform:none; will-change:auto; }
 .admin-account-name { display:block; margin-top:3px; color:#8993a8; font-size:11px; font-weight:800; }
 .admin-kicker { color:#6d4aff; font-size:10px; font-weight:900; letter-spacing:1.6px; margin-bottom:2px; direction:ltr; text-align:right; }.admin-title { margin:0; font-size:24px; font-weight:900; }.topbar-actions { gap:10px; }
 .system-status { gap:7px; color:#2b9270; background:#effbf6; border:1px solid #ccefe1; border-radius:999px; padding:8px 12px; font-size:12px; font-weight:800; }.system-status i { width:7px; height:7px; border-radius:50%; background:#32c58a; box-shadow:0 0 0 4px #32c58a22; }
