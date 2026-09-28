@@ -19,18 +19,18 @@ export class EngineersPageComponent implements OnInit {
   language: 'ar' | 'en' = 'ar';
   isEnglish = false;
   teachers = [
-    { id: 1, image: 'assets/teacher.jpg', alt: 'المهندس أحمد فتح الله', subject: 'رياضيات', description: 'أستاذ الرياضيات العامة والخاصة' },
-    { id: 2, image: 'assets/teacher1.jpg', alt: 'المهندس أحمد أبو زيد', subject: 'ميكانيكا', description: 'أستاذ الميكانيكا' },
-    { id: 4, image: 'assets/teacher3.jpg', alt: 'المهندس أحمد الشامي', subject: 'فيزياء', description: 'أستاذ الفيزياء' },
-    { id: 3, image: 'assets/teacher4.jpg', alt: 'دكتور سعد العميري', subject: 'كيمياء', description: 'أستاذ الكيمياء' },
-		{ id: 5, image: 'assets/teacher2.png', alt: 'د/ عمر أحمد عبد الفتاح', subject: 'English', description: 'أستاذ اللغة الإنجليزية' }
+    { id: 1, image: 'assets/arabic-1.jpg', alt: 'المهندس أحمد فتح الله', subject: 'رياضيات', description: 'أستاذ الرياضيات العامة والخاصة' },
+    { id: 2, image: 'assets/arabic-2.jpg', alt: 'المهندس أحمد أبو زيد', subject: 'ميكانيكا', description: 'أستاذ الميكانيكا' },
+    { id: 4, image: 'assets/arabic-3.jpg', alt: 'المهندس أحمد الشامي', subject: 'فيزياء', description: 'أستاذ الفيزياء' },
+    { id: 3, image: 'assets/arabic-4.jpg', alt: 'دكتور سعد العميري', subject: 'كيمياء', description: 'أستاذ الكيمياء' },
+		{ id: 5, image: 'assets/arabic-5.jpg', alt: 'د/ عمر أحمد عبد الفتاح', subject: 'English', description: 'أستاذ اللغة الإنجليزية' }
   ];
   englishTeachers = [
-    { name: 'المهندس/ أحمد علي', subject: 'Math 1 / Math 2', image: 'assets/teacher-english-ahmed-abdelmonem.png' },
-    { name: 'المهندس/ محمود الطرابيشي', subject: 'English', image: 'assets/teacher-english-mohamed-nabil.png' },
-    { name: 'المهندس/ محمد ماهر', subject: 'Mechanics', image: 'assets/teacher-english-mohamed-ashraf.png' },
-    { name: 'المهندس/ محمد نبيل', subject: 'Chemistry', image: 'assets/teacher-english-tarabishi.png' },
-    { name: 'المهندس/ أحمد عبد المنعم', subject: 'Physics', image: 'assets/teacher-english-ahmed-ali.png' }
+    { name: 'المهندس/ أحمد علي', subject: 'Math 1 / Math 2', image: 'assets/english-6.jpg' },
+    { name: 'المهندس/ محمود الطرابيشي', subject: 'English', image: 'assets/english-7.jpg' },
+    { name: 'المهندس/ محمد ماهر', subject: 'Mechanics', image: 'assets/english-8.jpg' },
+    { name: 'المهندس/ محمد نبيل', subject: 'Chemistry', image: 'assets/english-9.jpg' },
+    { name: 'المهندس/ أحمد عبد المنعم', subject: 'Physics', image: 'assets/english-10.jpg' }
   ];
   constructor(
     private router: Router,
@@ -45,7 +45,11 @@ export class EngineersPageComponent implements OnInit {
     this.isEnglish = this.language === 'en';
     this.monthlyContent.loadPageState('engineers', { visible: true, teachers: this.teachers, englishTeachers: this.englishTeachers }).subscribe((state: any) => {
       if (state?.visible === false) return;
-      if (Array.isArray(state?.teachers) && state.teachers.length) this.teachers = state.teachers.map((teacher: any) => teacher.id === 5 ? { ...teacher, alt: 'د/ عمر أحمد عبد الفتاح' } : teacher);
+      if (Array.isArray(state?.teachers) && state.teachers.length) this.teachers = state.teachers.map((teacher: any) => ({
+        ...teacher,
+        image: this.teachers.find((defaultTeacher: any) => defaultTeacher.id === teacher.id)?.image || teacher.image,
+        ...(teacher.id === 5 ? { alt: 'د/ عمر أحمد عبد الفتاح' } : {})
+      }));
       if (Array.isArray(state?.englishTeachers) && state.englishTeachers.length) {
         const savedTeachers = new Map(state.englishTeachers.map((teacher: any) => [teacher.name, teacher]));
         this.englishTeachers = this.englishTeachers.map((teacher: any) => ({
