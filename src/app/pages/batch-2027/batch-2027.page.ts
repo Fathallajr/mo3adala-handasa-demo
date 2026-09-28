@@ -104,7 +104,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	joinDescription = 'سيب بياناتك واحجز أولوية التواصل قبل بداية الدفعة الجديدة.';
 	submitLabel = 'احصل على الخصم الآن';
 	isPageVisible = true;
-	wheelVisible = true;
+	wheelVisible = false;
+	cmsStateLoaded = false;
 	offerContactConsent = false;
 	offerSubmitting = false;
 	offerSubmitted = false;
@@ -402,12 +403,13 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.seo.setOgTags({ title, description, url });
 		this.seo.setTwitterTags({ title, description });
 		this.canonical.setCanonical(url);
-		this.contentService.loadPageState('batch-2027', cmsPageDefaults['batch-2027']).subscribe(content => this.applyCmsState(content));
+		this.contentService.loadPageState('batch-2027', cmsPageDefaults['batch-2027'], { emitFallback: false }).subscribe(content => this.applyCmsState(content));
 	}
 
 	private applyCmsState(raw: unknown): void {
 		const state = raw as any;
 		if (!state) return;
+		this.cmsStateLoaded = true;
 		this.isPageVisible = state.visible !== false;
 		this.wheelVisible = state.wheelVisible !== false;
 		this.heroEyebrow = state.eyebrow || this.heroEyebrow;

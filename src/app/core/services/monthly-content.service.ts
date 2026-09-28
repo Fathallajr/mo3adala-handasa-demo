@@ -50,12 +50,12 @@ export class MonthlyContentService {
 		return this.http.get<Array<{ key: CmsPageKey; hasContent: boolean; updatedAt?: string }>>(`${this.apiBase}/content`);
 	}
 
-	loadPageState<T>(pageKey: CmsPageKey, fallback: T): Observable<T> {
-		return this.http.get<T>(`${this.apiBase}/content/${pageKey}`).pipe(
+	loadPageState<T>(pageKey: CmsPageKey, fallback: T, options: { emitFallback?: boolean } = {}): Observable<T> {
+		const request$ = this.http.get<T>(`${this.apiBase}/content/${pageKey}`);
+		return (options.emitFallback === false ? request$ : request$.pipe(
 			// اعرض نسخة الفرونت فورًا، ثم حدّثها من الـ CMS في الخلفية.
-			startWith(fallback),
-			catchError(() => EMPTY)
-		);
+			startWith(fallback)
+		)).pipe(catchError(() => EMPTY));
 	}
 
 	watchPageState<T>(pageKey: CmsPageKey, refreshMs = 5000): Observable<T> {
