@@ -32,10 +32,25 @@ export class SubAbReviewsFormComponent implements OnChanges {
 		sd.requiredInfo ??= [];
 		sd.review ??= { name: 'مراجعات A-B', price: '800' };
 		sd.googleForm ??= {};
-		if (!sd.googleForm.link) {
+		// Keep the dedicated subscription pages from displaying or saving a
+		// legacy form link belonging to another language/program.
+		if (['subscription-engineering-ar', 'subscription-engineering-en', 'subscription-computers-ar', 'subscription-computers-en'].includes(this.pageKey)) {
 			sd.googleForm.link = this.pageKey.endsWith('-en')
 				? 'https://forms.gle/WFv9urJ1QDu3eE5y9'
 				: 'https://forms.gle/mhopqPdxUPxQEN9K8';
+		}
+		const routeScheduleDefaults: Record<string, string> = {
+			'subscription-engineering-ar': '/assets/schedule-engineering-ar.jpg',
+			'subscription-engineering-en': '/assets/schedule-engineering-en.jpg',
+			'subscription-computers-ar': '/assets/schedule-computers-ar.jpg',
+			'subscription-computers-en': '/assets/schedule-computers-en.jpg'
+		};
+		const defaultSchedule = routeScheduleDefaults[this.pageKey];
+		if (defaultSchedule && Array.isArray(sd.scheduleImages)) {
+			for (const schedule of sd.scheduleImages) {
+				const src = String(schedule?.src || '').trim();
+				if (src.startsWith('/assets/') && src !== defaultSchedule) schedule.src = defaultSchedule;
+			}
 		}
 		if (!sd.googleForm.link && sd.googleForms) {
 			sd.googleForm = { ...sd.googleForm, ...(sd.googleForms.groupA ?? sd.googleForms.groupB ?? {}) };

@@ -189,7 +189,7 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 	'subscription-computers': createSubscriptionPageDefault(computersArabicSchedule)
 	,
 	'subscription-engineering-ar': createSubscriptionPageDefault(engineeringArabicSchedule),
-	'subscription-engineering-en': createSubscriptionPageDefault(engineeringEnglishSchedule),
+	'subscription-engineering-en': createSubscriptionPageDefault(engineeringEnglishSchedule, 'https://forms.gle/WFv9urJ1QDu3eE5y9'),
 	'subscription-computers-ar': createSubscriptionPageDefault(computersArabicSchedule),
 	'subscription-computers-en': createSubscriptionPageDefault(computersEnglishSchedule, 'https://forms.gle/WFv9urJ1QDu3eE5y9'),
 	'batch-2027': {
