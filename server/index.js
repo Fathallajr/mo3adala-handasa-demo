@@ -65,6 +65,17 @@ const CORS_ORIGINS = new Set((process.env.CORS_ORIGINS || 'http://localhost:4200
 	.split(',')
 	.map(origin => origin.trim())
 	.filter(Boolean));
+const SUBSCRIPTION_PAGE_KEYS = [
+	'subscription-engineering-ar',
+	'subscription-engineering-en',
+	'subscription-computers-ar',
+	'subscription-computers-en'
+];
+const SUBSCRIPTION_VALIDITY_POINTS = [
+	'الكود شغال لغاية آخر الشهر فقط',
+	'مع انتهاء الشهر بيقفل المحتوى تلقائياً',
+	'عند تجديد الاشتراك الكود الجديد بيفتحلك كل المحتوى من الأول'
+];
 const rateBuckets = new Map();
 let storeWriteQueue = Promise.resolve();
 
@@ -1018,6 +1029,31 @@ function normalizeSubscriptionCmsContent(pageKey, content) {
 	return content;
 }
 
+async function migrateSubscriptionContentOnce() {
+	const migrationKey = 'subscription-content-policy-v3';
+	if (await database.getMetadata(migrationKey)) return;
+
+	const store = await readStore();
+	for (const pageKey of SUBSCRIPTION_PAGE_KEYS) {
+		const entry = store.pages[pageKey];
+		if (!entry?.data?.subscriptionDetails) continue;
+		const data = JSON.parse(JSON.stringify(entry.data));
+		const details = data.subscriptionDetails;
+		details.subscriptionWarnings ??= {};
+		details.subscriptionWarnings.validity = {
+			title: 'مدة صلاحية الاشتراك:',
+			points: [...SUBSCRIPTION_VALIDITY_POINTS]
+		};
+		if (pageKey.includes('computers')) {
+			details.review ??= {};
+			details.review.price = '600';
+		}
+		await database.savePage(pageKey, data, getNowIso());
+	}
+	await database.setMetadata(migrationKey, getNowIso());
+	console.log('Applied one-time subscription content migration.');
+}
+
 app.get('/api/content', async (req, res) => {
 	noCache(res);
 	const store = await readStore();
@@ -1164,6 +1200,13 @@ app.get('*', (req, res, next) => {
 	return res.status(404).send('Build the Angular app first.');
 });
 
-app.listen(PORT, () => {
-	console.log(`Admin API listening on http://localhost:${PORT}`);
-});
+(async () => {
+	try {
+		await migrateSubscriptionContentOnce();
+	} catch (error) {
+		console.error('Subscription content migration failed', error);
+	}
+	app.listen(PORT, () => {
+		console.log(`Admin API listening on http://localhost:${PORT}`);
+	});
+})();
