@@ -44,6 +44,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	activeScheduleImage: ScheduleImage | null = null;
 	isScheduleReady = false;
 	isEnrollmentClosed = false;
+	isCountdownEnabled = false;
 	enrollmentReopenMessage = 'سيتم فتح الاشتراك مع بداية الشهر القادم بإذن الله.';
 	shuffledVodafoneNumbers: { number: string; owner: string }[] = [];
 	isVideoLoaded = false;
@@ -67,8 +68,6 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 	private closingDate: Date | null = null;
 	private enrollmentExpiresAt = '';
-	private readonly closingDeadlineStorageKey = 'subscription-enrollment-deadline';
-	private readonly enrollmentClosedStorageKey = 'subscription-enrollment-closed';
 
 	private closingTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -92,32 +91,27 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		}
 		this.isScheduleReady = true;
 
-		const countdownClosed = typeof window !== 'undefined' && localStorage.getItem(this.enrollmentClosedStorageKey) === 'true';
 		const configuredExpiry = String(state.enrollmentWindow?.expiresAt || '');
 		const configuredExpiryTime = Date.parse(configuredExpiry);
-		const windowExpired = Number.isFinite(configuredExpiryTime) && configuredExpiryTime <= Date.now();
+		const hasConfiguredExpiry = Number.isFinite(configuredExpiryTime);
 		if (configuredExpiry) {
 			this.enrollmentExpiresAt = configuredExpiry;
-			this.closingDate = Number.isFinite(configuredExpiryTime) ? new Date(configuredExpiryTime) : null;
+			this.closingDate = hasConfiguredExpiry ? new Date(configuredExpiryTime) : null;
 		} else {
 			this.enrollmentExpiresAt = '';
+			this.closingDate = null;
 		}
+		this.isCountdownEnabled = hasConfiguredExpiry;
 		if (typeof state.isEnrollmentClosed === 'boolean') {
-			// The CMS value is authoritative, so reopening the subscription from
-			// the admin also reopens the public countdown immediately.
-			this.isEnrollmentClosed = state.isEnrollmentClosed || windowExpired;
-			if (typeof window !== 'undefined' && !state.isEnrollmentClosed && !windowExpired) {
-				localStorage.removeItem(this.enrollmentClosedStorageKey);
-			}
-			if (state.isEnrollmentClosed || windowExpired) {
+			this.isEnrollmentClosed = state.isEnrollmentClosed;
+			if (state.isEnrollmentClosed || !hasConfiguredExpiry) {
 				this.stopClosingTimer();
 			} else if (!this.closingTimer) {
-				this.closingDate = this.closingDate ?? this.getNextClosingDate();
 				this.updateClosingCountdown();
 				if (!this.isEnrollmentClosed) this.closingTimer = setInterval(() => this.updateClosingCountdown(), 1000);
 			}
 		} else {
-			this.isEnrollmentClosed = countdownClosed || this.isEnrollmentClosed;
+			this.stopClosingTimer();
 		}
 		this.enrollmentReopenMessage = state.enrollmentReopenMessage ?? this.enrollmentReopenMessage;
 
@@ -243,7 +237,6 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		this.isEnglishSubscription = pathname.endsWith('-en');
 		this.subscriptionProgramLabel = `معادلة ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'لغات' : 'عربي'}`;
 		this.applySubscriptionProgram();
-		this.restoreCountdownState();
 		if (typeof window !== 'undefined') {
 			const siteUrl = (window as any)['NG_SITE_URL'] || 'https://www.appmo3adla.com';
 			const title = `${this.subscriptionProgramLabel} | أبلكيشن معادلة كلية هندسة`;
@@ -264,15 +257,9 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 
 		this.shuffleVodafoneNumbers();
 		this.listenForVisibilityChange();
-		this.closingDate = this.getNextClosingDate();
-		this.updateClosingCountdown();
-		if (!this.isEnrollmentClosed) {
-			this.closingTimer = setInterval(() => this.updateClosingCountdown(), 1000);
-		}
-
 		const contentKey = this.getSubscriptionContentKey(pathname);
 		this.contentSubscription = this.monthlyContent
-			.watchPageState(contentKey)
+			.loadPageState(contentKey)
 			.subscribe(state => this.applyLoadedState(state));
 	}
 
@@ -350,41 +337,17 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	private getNextClosingDate(): Date {
+	private getNextClosingDate(): Date | null {
 		if (this.enrollmentExpiresAt) {
 			const configured = new Date(this.enrollmentExpiresAt);
 			if (!Number.isNaN(configured.getTime())) return configured;
 		}
-		if (typeof window !== 'undefined') {
-			const storedDeadline = Number(localStorage.getItem(this.closingDeadlineStorageKey));
-			if (storedDeadline > 0) {
-				return new Date(storedDeadline);
-			}
-		}
-
-		const now = new Date();
-		const closingDate = new Date(now.getFullYear(), now.getMonth(), 10, 22, 0, 0, 0);
-
-		if (now >= closingDate) {
-			closingDate.setMonth(closingDate.getMonth() + 1);
-		}
-
-		if (typeof window !== 'undefined') {
-			localStorage.setItem(this.closingDeadlineStorageKey, String(closingDate.getTime()));
-		}
-
-		return closingDate;
-	}
-
-	private restoreCountdownState(): void {
-		if (typeof window !== 'undefined' && localStorage.getItem(this.enrollmentClosedStorageKey) === 'true') {
-			this.isEnrollmentClosed = true;
-			this.enrollmentReopenMessage = 'انتهى وقت الاشتراك تلقائيًا، وسيتم فتح التسجيل مع بداية فترة الاشتراك القادمة.';
-		}
+		return null;
 	}
 
 	private updateClosingCountdown(): void {
 		const closingDate = this.closingDate ?? this.getNextClosingDate();
+		if (!closingDate) return;
 		this.closingDate = closingDate;
 		const remaining = closingDate.getTime() - Date.now();
 		this.closingDateLabel = new Intl.DateTimeFormat('ar-EG-u-nu-latn', {
@@ -399,9 +362,6 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			this.closingSeconds = 0;
 			this.isEnrollmentClosed = true;
 			this.enrollmentReopenMessage = 'انتهى وقت الاشتراك تلقائيًا، وسيتم فتح التسجيل مع بداية فترة الاشتراك القادمة.';
-			if (typeof window !== 'undefined') {
-				localStorage.setItem(this.enrollmentClosedStorageKey, 'true');
-			}
 			this.stopClosingTimer();
 			return;
 		}
