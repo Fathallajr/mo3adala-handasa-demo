@@ -1147,6 +1147,13 @@ app.get('/uploads/:filename', async (req, res, next) => {
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 if (fssync.existsSync(DIST_DIR)) {
+	app.use('/assets', (req, res, next) => {
+		if (req.query.download === '1') {
+			const filename = path.basename(req.path);
+			res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
+		}
+		next();
+	}, express.static(path.join(DIST_DIR, 'assets')));
 	app.use((req, res, next) => {
 		if (req.path === '/admin' || req.path.startsWith('/admin/')) {
 			res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');

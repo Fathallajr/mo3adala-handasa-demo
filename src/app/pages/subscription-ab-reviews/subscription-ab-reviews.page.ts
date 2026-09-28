@@ -135,7 +135,9 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 					...this.subscriptionDetails.review,
 					...(loaded.review ?? {}),
 					name: loaded.review?.name ?? this.subscriptionDetails.review.name,
-					price: loaded.review?.price ?? loaded.groupB?.price ?? loaded.groupA?.price ?? '800'
+					price: this.isComputersSubscription
+						? '650'
+						: (loaded.review?.price ?? loaded.groupB?.price ?? loaded.groupA?.price ?? '800')
 				},
 				googleForm: {
 					...this.subscriptionDetails.googleForm,
@@ -298,9 +300,9 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			review: {
 				...this.subscriptionDetails.review,
 				name: this.subscriptionProgramLabel,
-				price: this.isComputersSubscription ? '600' : '800'
+				price: this.isComputersSubscription ? '650' : '800'
 			},
-			subtitle: `ابدأ طريقك في ${this.subscriptionProgramLabel} باشتراك كامل بسعر ${this.isComputersSubscription ? '600' : '800'} جنيه.`,
+			subtitle: `ابدأ طريقك في ${this.subscriptionProgramLabel} باشتراك كامل بسعر ${this.isComputersSubscription ? '650' : '800'} جنيه.`,
 			googleForm: {
 				...this.subscriptionDetails.googleForm,
 				link: this.getEnrollmentFormLink(),
@@ -516,18 +518,15 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		event.stopPropagation();
 
 		try {
-			const downloadUrl = new URL(schedule.src, window.location.origin).toString();
-			const response = await fetch(downloadUrl, { credentials: 'same-origin' });
-			if (!response.ok) throw new Error(`Schedule download failed: ${response.status}`);
-			const blobUrl = URL.createObjectURL(await response.blob());
+			const downloadUrl = new URL(schedule.src, window.location.origin);
+			downloadUrl.searchParams.set('download', '1');
 			const link = document.createElement('a');
-			link.href = blobUrl;
+			link.href = downloadUrl.toString();
 			link.download = this.getScheduleFilename(schedule.src, schedule.alt);
 			link.rel = 'noopener';
 			document.body.appendChild(link);
 			link.click();
 			link.remove();
-			setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 		} catch (error) {
 			console.error('تعذر تحميل جدول الاشتراك', error);
 		}
