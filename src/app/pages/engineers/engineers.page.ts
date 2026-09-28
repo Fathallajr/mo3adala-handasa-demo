@@ -19,18 +19,18 @@ export class EngineersPageComponent implements OnInit {
   language: 'ar' | 'en' = 'ar';
   isEnglish = false;
   teachers = [
-    { id: 1, image: 'assets/arabic-1.jpg', alt: 'المهندس أحمد فتح الله', subject: 'رياضيات', description: 'أستاذ الرياضيات العامة والخاصة' },
-    { id: 2, image: 'assets/arabic-2.jpg', alt: 'المهندس أحمد أبو زيد', subject: 'ميكانيكا', description: 'أستاذ الميكانيكا' },
-    { id: 4, image: 'assets/arabic-3.jpg', alt: 'المهندس أحمد الشامي', subject: 'فيزياء', description: 'أستاذ الفيزياء' },
-    { id: 3, image: 'assets/arabic-4.jpg', alt: 'دكتور سعد العميري', subject: 'كيمياء', description: 'أستاذ الكيمياء' },
-		{ id: 5, image: 'assets/arabic-5.jpg', alt: 'د/ عمر أحمد عبد الفتاح', subject: 'English', description: 'أستاذ اللغة الإنجليزية' }
+    { id: 1, image: 'assets/arabic-2.jpg', alt: 'المهندس أحمد فتح الله', subject: 'رياضيات', description: 'أستاذ الرياضيات العامة والخاصة' },
+    { id: 2, image: 'assets/arabic-5.jpg', alt: 'المهندس أحمد أبو زيد', subject: 'ميكانيكا', description: 'أستاذ الميكانيكا' },
+    { id: 4, image: 'assets/arabic-4.jpg', alt: 'المهندس أحمد الشامي', subject: 'فيزياء', description: 'أستاذ الفيزياء' },
+    { id: 3, image: 'assets/arabic-1.jpg', alt: 'دكتور سعد العميري', subject: 'كيمياء', description: 'أستاذ الكيمياء' },
+		{ id: 5, image: 'assets/arabic-3.jpg', alt: 'د/ عمر أحمد عبد الفتاح', subject: 'English', description: 'أستاذ اللغة الإنجليزية' }
   ];
   englishTeachers = [
-    { name: 'المهندس/ أحمد علي', subject: 'Math 1 / Math 2', image: 'assets/english-6.jpg' },
-    { name: 'المهندس/ محمود الطرابيشي', subject: 'English', image: 'assets/english-7.jpg' },
-    { name: 'المهندس/ محمد ماهر', subject: 'Mechanics', image: 'assets/english-8.jpg' },
-    { name: 'المهندس/ محمد نبيل', subject: 'Chemistry', image: 'assets/english-9.jpg' },
-    { name: 'المهندس/ أحمد عبد المنعم', subject: 'Physics', image: 'assets/english-10.jpg' }
+    { name: 'المهندس/ أحمد علي', subject: 'Math 1 / Math 2', image: 'assets/english-7.jpg' },
+    { name: 'المهندس/ محمود الطرابيشي', subject: 'English', image: 'assets/english-10.jpg' },
+    { name: 'المهندس/ محمد ماهر', subject: 'Mechanics', image: 'assets/english-6.jpg' },
+    { name: 'المهندس/ محمد نبيل', subject: 'Chemistry', image: 'assets/english-8.jpg' },
+    { name: 'المهندس/ أحمد عبد المنعم', subject: 'Physics', image: 'assets/english-9.jpg' }
   ];
   constructor(
     private router: Router,
