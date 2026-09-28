@@ -35,14 +35,8 @@ export class SubAbReviewsFormComponent implements OnChanges {
 		if (!sd.googleForm.link && sd.googleForms) {
 			sd.googleForm = { ...sd.googleForm, ...(sd.googleForms.groupA ?? sd.googleForms.groupB ?? {}) };
 		}
-		sd.subscriptionWarnings ??= {};
-		sd.subscriptionWarnings.validity ??= { title: 'مدة صلاحية الاشتراك:', points: [] };
-		sd.subscriptionWarnings.refund ??= { title: 'سياسة الاسترداد:', points: [] };
 		raw.enrollmentWindow ??= { days: 0, hours: 0, minutes: 0, seconds: 0, startedAt: '', expiresAt: '' };
 		for (const unit of ['days', 'hours', 'minutes', 'seconds']) raw.enrollmentWindow[unit] = Math.max(0, Number(raw.enrollmentWindow[unit]) || 0);
-
-		if (!Array.isArray(sd.subscriptionWarnings.validity.points)) sd.subscriptionWarnings.validity.points = [];
-		if (!Array.isArray(sd.subscriptionWarnings.refund.points)) sd.subscriptionWarnings.refund.points = [];
 
 	this.data = raw;
 	}
@@ -76,12 +70,6 @@ export class SubAbReviewsFormComponent implements OnChanges {
 
 	addRequired(): void { this.data.subscriptionDetails.requiredInfo.push(''); }
 	removeRequired(i: number): void { this.data.subscriptionDetails.requiredInfo.splice(i, 1); }
-
-	addValidityPoint(): void { this.data.subscriptionDetails.subscriptionWarnings.validity.points.push(''); }
-	removeValidityPoint(i: number): void { this.data.subscriptionDetails.subscriptionWarnings.validity.points.splice(i, 1); }
-
-	addRefundPoint(): void { this.data.subscriptionDetails.subscriptionWarnings.refund.points.push(''); }
-	removeRefundPoint(i: number): void { this.data.subscriptionDetails.subscriptionWarnings.refund.points.splice(i, 1); }
 
 	uploadScheduleImage(index: number, event: Event): void {
 		const input = event.target as HTMLInputElement;

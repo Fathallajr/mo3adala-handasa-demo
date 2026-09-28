@@ -155,37 +155,4 @@
 		<button type="button" class="cms-add-btn" (click)="addRequired()">+ إضافة بيان</button>
 	</div>
 
-	<!-- التحذيرات -->
-	<div class="cms-section">
-		<div class="cms-section-title">التحذيرات والتنبيهات</div>
-		<div class="cms-subsection">
-			<div class="cms-subsection-title">صلاحية الاشتراك</div>
-			<div class="cms-field">
-				<label class="cms-label">عنوان القسم</label>
-				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.subscriptionWarnings.validity.title" />
-			</div>
-			<div class="cms-array-list">
-				<div class="cms-array-item" *ngFor="let p of data.subscriptionDetails.subscriptionWarnings.validity.points; let i = index">
-					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.subscriptionWarnings.validity.points[i]" placeholder="نقطة تنبيه..." style="flex:1" />
-					<button type="button" class="cms-array-item__del" (click)="removeValidityPoint(i)">×</button>
-				</div>
-			</div>
-			<button type="button" class="cms-add-btn" (click)="addValidityPoint()">+ إضافة نقطة</button>
-		</div>
-		<div class="cms-subsection" style="margin-bottom:0">
-			<div class="cms-subsection-title">سياسة الاسترداد</div>
-			<div class="cms-field">
-				<label class="cms-label">عنوان القسم</label>
-				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.subscriptionWarnings.refund.title" />
-			</div>
-			<div class="cms-array-list">
-				<div class="cms-array-item" *ngFor="let p of data.subscriptionDetails.subscriptionWarnings.refund.points; let i = index">
-					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.subscriptionWarnings.refund.points[i]" placeholder="نقطة تنبيه..." style="flex:1" />
-					<button type="button" class="cms-array-item__del" (click)="removeRefundPoint(i)">×</button>
-				</div>
-			</div>
-			<button type="button" class="cms-add-btn" (click)="addRefundPoint()">+ إضافة نقطة</button>
-		</div>
-	</div>
-
 </div>

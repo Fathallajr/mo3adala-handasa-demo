@@ -31,13 +31,6 @@ export class SubDetailsFormComponent implements OnChanges {
 		sd.groupC ??= { name: 'جروب C', price: '800' };
 		sd.googleForms ??= { groupC: {} };
 		sd.googleForms.groupC ??= {};
-		sd.subscriptionWarnings ??= {};
-		sd.subscriptionWarnings.validity ??= { title: 'مدة صلاحية الاشتراك:', points: [] };
-		sd.subscriptionWarnings.refund ??= { title: 'سياسة الاسترداد:', points: [] };
-
-		if (!Array.isArray(sd.subscriptionWarnings.validity.points)) sd.subscriptionWarnings.validity.points = [];
-		if (!Array.isArray(sd.subscriptionWarnings.refund.points)) sd.subscriptionWarnings.refund.points = [];
-
 		this.data = raw;
 	}
 
@@ -52,12 +45,6 @@ export class SubDetailsFormComponent implements OnChanges {
 
 	addRequired(): void { this.data.subscriptionDetails.requiredInfo.push(''); }
 	removeRequired(i: number): void { this.data.subscriptionDetails.requiredInfo.splice(i, 1); }
-
-	addValidityPoint(): void { this.data.subscriptionDetails.subscriptionWarnings.validity.points.push(''); }
-	removeValidityPoint(i: number): void { this.data.subscriptionDetails.subscriptionWarnings.validity.points.splice(i, 1); }
-
-	addRefundPoint(): void { this.data.subscriptionDetails.subscriptionWarnings.refund.points.push(''); }
-	removeRefundPoint(i: number): void { this.data.subscriptionDetails.subscriptionWarnings.refund.points.splice(i, 1); }
 
 	uploadScheduleImage(index: number, event: Event): void {
 		const file = (event.target as HTMLInputElement).files?.[0];

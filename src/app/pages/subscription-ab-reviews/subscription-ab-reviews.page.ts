@@ -140,12 +140,12 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				scheduleImages: loaded.scheduleImages ?? this.subscriptionDetails.scheduleImages,
 				subscriptionWarnings: {
 					validity: {
-						...this.subscriptionDetails.subscriptionWarnings.validity,
-						...(loaded.subscriptionWarnings?.validity ?? {})
+						title: 'مدة صلاحية الاشتراك:',
+						points: [...SUBSCRIPTION_VALIDITY_POINTS]
 					},
 					refund: {
-						...this.subscriptionDetails.subscriptionWarnings.refund,
-						...(loaded.subscriptionWarnings?.refund ?? {})
+						title: 'سياسة الاسترداد',
+						points: [...SUBSCRIPTION_REFUND_POINTS]
 					}
 				}
 			};
@@ -205,19 +205,12 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		whatsappNumber: '201554843745',
 		subscriptionWarnings: {
 			validity: {
-				title: 'مدة صلاحية الاشتراك:',
-				points: [
-					'الكود شغال لغاية آخر الشهر فقط',
-					'مع انتهاء الشهر بيقفل المحتوى تلقائياً',
-					'عند تجديد الاشتراك الكود الجديد بيفتحلك كل المحتوى من الأول'
-				]
+			title: 'مدة صلاحية الاشتراك:',
+				points: [...SUBSCRIPTION_VALIDITY_POINTS]
 			},
 			refund: {
 				title: 'سياسة الاسترداد',
-				points: [
-					'⚠️ السحب متاح خلال أسبوع من الاشتراك مع استرداد نصف المبلغ فقط.',
-					'بعد الأسبوع، لا يُمكن استرداد أي مبلغ.'
-				]
+				points: [...SUBSCRIPTION_REFUND_POINTS]
 			}
 		},
 		subtitle: 'أول خطوة في رحلة دفعة 2027 — أكتوبر'
@@ -286,12 +279,15 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				buttonText: `سجل ${this.subscriptionProgramLabel}`
 			},
 			scheduleImages: [this.getRouteSchedule()],
-				subscriptionWarnings: {
-					...this.subscriptionDetails.subscriptionWarnings,
-					validity: {
-						...this.subscriptionDetails.subscriptionWarnings.validity,
-						points: [...this.subscriptionDetails.subscriptionWarnings.validity.points]
-					}
+			subscriptionWarnings: {
+				validity: {
+					title: 'مدة صلاحية الاشتراك:',
+					points: [...SUBSCRIPTION_VALIDITY_POINTS]
+				},
+				refund: {
+					title: 'سياسة الاسترداد',
+					points: [...SUBSCRIPTION_REFUND_POINTS]
+				}
 			}
 		};
 		this.isScheduleReady = true;
@@ -547,3 +543,13 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 }
+
+const SUBSCRIPTION_VALIDITY_POINTS = [
+	'الكود شغال لغاية آخر الشهر فقط',
+	'مع انتهاء الشهر بيقفل المحتوى تلقائياً',
+	'عند تجديد الاشتراك الكود الجديد بيفتحلك كل المحتوى من الأول'
+];
+const SUBSCRIPTION_REFUND_POINTS = [
+	'⚠️ السحب متاح خلال أسبوع من الاشتراك مع استرداد نصف المبلغ فقط.',
+	'بعد الأسبوع، لا يُمكن استرداد أي مبلغ.'
+];
