@@ -214,15 +214,18 @@
 					<iframe *ngIf="isVideoLoaded" [src]="getVideoEmbedUrl()" title="فيديو توضيحي - اشتراك الشهر الأول" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 				</div>
 			</div>
-			<div class="computer-media-roadmap__schedule review-schedule" *ngIf="getSelectedSchedules().length">
+			<div class="subscription-schedule" *ngIf="isScheduleReady && getSelectedSchedules().length">
 				<header class="review-section-head">
 					<div class="review-section-icon"><i class="bi bi-calendar3"></i></div>
 					<div><h2>{{ getScheduleHeading() }}</h2></div>
 				</header>
-				<div class="review-schedule__grid">
+				<div class="subscription-schedule__grid">
 					<article *ngFor="let schedule of getSelectedSchedules()">
-						<button type="button" class="review-schedule__image" (click)="openImageModal(schedule); $event.stopPropagation()"><img [src]="schedule.src" [alt]="schedule.alt" loading="lazy"><span><i class="bi bi-arrows-fullscreen"></i> اضغط للتكبير</span></button>
-						<button type="button" class="review-schedule__download" (click)="downloadSchedule($event, schedule)"><i class="bi bi-download"></i> تحميل الجدول</button>
+						<button type="button" class="subscription-schedule__preview" (click)="openImageModal(schedule)" [attr.aria-label]="'فتح ' + schedule.alt">
+							<img [src]="schedule.src" [alt]="schedule.alt" loading="lazy">
+							<span><i class="bi bi-arrows-fullscreen"></i> اضغط للتكبير</span>
+						</button>
+						<button type="button" class="subscription-schedule__download" (click)="downloadSchedule($event, schedule)"><i class="bi bi-download"></i> تحميل الجدول</button>
 					</article>
 				</div>
 			</div>
@@ -250,24 +253,7 @@
 			</div>
 		</section>
 
-		<section class="review-schedule" *ngIf="false">
-			<header class="review-section-head">
-				<div class="review-section-icon"><i class="bi bi-calendar3"></i></div>
-				<div><span>YOUR ROADMAP</span><h2>جدول مراجعات الشهر</h2><p>الجدول الخاص بـ {{ getReviewName() }}</p></div>
-			</header>
-			<div class="review-schedule__grid">
-				<article *ngFor="let schedule of getSelectedSchedules()">
-					<h3>{{ schedule.group }}</h3>
-					<button type="button" class="review-schedule__image" (click)="openImageModal(schedule); $event.stopPropagation()">
-						<img [src]="schedule.src" [alt]="schedule.alt" loading="lazy">
-						<span><i class="bi bi-arrows-fullscreen"></i> اضغط للتكبير</span>
-					</button>
-					<button type="button" class="review-schedule__download" (click)="downloadSchedule($event, schedule)"><i class="bi bi-download"></i> تحميل الجدول</button>
-				</article>
-			</div>
-		</section>
-
-		<div class="review-modal" *ngIf="isImageModalOpen && activeScheduleImage as modalImage" (click)="closeImageModal()">
+		<div class="subscription-schedule__lightbox" *ngIf="isImageModalOpen && activeScheduleImage as modalImage" (click)="closeImageModal()">
 			<div (click)="$event.stopPropagation()">
 				<button type="button" (click)="closeImageModal()" aria-label="إغلاق"><i class="bi bi-x-lg"></i></button>
 				<img [src]="modalImage.src" [alt]="modalImage.alt || 'جدول المراجعة - مكبر'">

@@ -41,6 +41,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	copiedNumber: string | null = null;
 	isImageModalOpen = false;
 	activeScheduleImage: ScheduleImage | null = null;
+	isScheduleReady = false;
 	isEnrollmentClosed = false;
 	enrollmentReopenMessage = 'سيتم فتح الاشتراك مع بداية الشهر القادم بإذن الله.';
 	shuffledVodafoneNumbers: { number: string; owner: string }[] = [];
@@ -88,6 +89,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		if (!state) {
 			return;
 		}
+		this.isScheduleReady = true;
 
 		const countdownClosed = typeof window !== 'undefined' && localStorage.getItem(this.enrollmentClosedStorageKey) === 'true';
 		const configuredExpiry = String(state.enrollmentWindow?.expiresAt || '');
@@ -279,14 +281,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				description: `فورم ${this.subscriptionProgramLabel}`,
 				buttonText: `سجل ${this.subscriptionProgramLabel}`
 			},
-			scheduleImages: this.subscriptionDetails.scheduleImages.length
-				? this.subscriptionDetails.scheduleImages
-				: [{
-				group: `جدول شهر أكتوبر ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'لغات' : 'عربي'}`,
-					src: this.isComputersSubscription ? '/assets/جداول مراجعات شهر 8/جدول جروب C.png' : '/assets/جداول مراجعات شهر 8/جدول جروب A-B.png',
-					alt: `جدول شهر أكتوبر ${this.subscriptionProgramLabel}`,
-					note: 'اضغط على الصورة للتكبير'
-				}],
+			scheduleImages: [],
 			subscriptionWarnings: {
 				...this.subscriptionDetails.subscriptionWarnings,
 				validity: {
@@ -446,14 +441,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	getSelectedSchedules(): ScheduleImage[] {
-		if (!this.subscriptionDetails.scheduleImages.length) {
-			return [{
-				group: `جدول شهر أكتوبر ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'لغات' : 'عربي'}`,
-				src: this.isComputersSubscription ? '/assets/جداول مراجعات شهر 8/جدول جروب C.png' : '/assets/جداول مراجعات شهر 8/جدول جروب A-B.png',
-				alt: `جدول شهر أكتوبر ${this.subscriptionProgramLabel}`,
-				note: 'اضغط على الصورة للتكبير'
-			}];
-		}
+		if (!this.isScheduleReady) return [];
 
 		return this.subscriptionDetails.scheduleImages.slice(0, 1).map(schedule => ({
 			...schedule,
