@@ -1454,16 +1454,30 @@
 
 .review-modal > div {
 	position: relative;
+	display: grid;
+	place-items: center;
 	width: min(100%, 1100px);
-	max-height: 92vh;
+	max-width: calc(100vw - 2rem);
+	max-height: calc(100dvh - 2rem);
 }
 
 .review-modal img {
 	display: block;
-	width: 100%;
-	max-height: 88vh;
+	width: auto;
+	max-width: 100%;
+	max-height: calc(100dvh - 2rem);
 	object-fit: contain;
 	border-radius: 18px;
+}
+
+@supports not (height: 100dvh) {
+	.review-modal > div {
+		max-height: calc(100vh - 2rem);
+	}
+
+	.review-modal img {
+		max-height: calc(100vh - 2rem);
+	}
 }
 
 .review-modal button {
