@@ -22,6 +22,8 @@ export class AdminAuthService {
 	private readonly roleKey = `${this.tokenKey}-role`;
 	private readonly permissionsKey = `${this.tokenKey}-permissions`;
 	private readonly usernameKey = `${this.tokenKey}-username`;
+	private readonly loginAtKey = `${this.tokenKey}-login-at`;
+	private readonly sessionTtlMs = 6 * 60 * 60 * 1000;
 	private readonly apiBase = this.resolveApiBase();
 
 	private resolveApiBase(): string {
@@ -40,6 +42,7 @@ export class AdminAuthService {
 				localStorage.setItem(this.roleKey, response.role || 'admin');
 				localStorage.setItem(this.permissionsKey, JSON.stringify(response.permissions || (response.role === 'admin' ? ['*'] : [])));
 				localStorage.setItem(this.usernameKey, response.username || credentials.username);
+				localStorage.setItem(this.loginAtKey, String(Date.now()));
 			})
 		);
 	}
@@ -54,6 +57,7 @@ export class AdminAuthService {
 		localStorage.removeItem(this.roleKey);
 		localStorage.removeItem(this.permissionsKey);
 		localStorage.removeItem(this.usernameKey);
+		localStorage.removeItem(this.loginAtKey);
 	}
 
 	getToken(): string | null {
@@ -63,8 +67,10 @@ export class AdminAuthService {
 
 		const token = localStorage.getItem(this.tokenKey);
 		const expiresAt = localStorage.getItem(`${this.tokenKey}-expires`);
+		const loginAt = Number(localStorage.getItem(this.loginAtKey) || 0);
 
-		if (!token || !expiresAt) {
+		if (!token || !expiresAt || !loginAt || Date.now() - loginAt >= this.sessionTtlMs) {
+			if (token || expiresAt || loginAt) this.logout();
 			return null;
 		}
 
