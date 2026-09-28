@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
 interface LoginResponse {
@@ -21,6 +21,7 @@ export class AdminAuthService {
 	private readonly tokenKey = 'mo3adala-admin-token';
 	private readonly roleKey = `${this.tokenKey}-role`;
 	private readonly permissionsKey = `${this.tokenKey}-permissions`;
+	private readonly usernameKey = `${this.tokenKey}-username`;
 	private readonly apiBase = this.resolveApiBase();
 
 	private resolveApiBase(): string {
@@ -38,6 +39,7 @@ export class AdminAuthService {
 				localStorage.setItem(`${this.tokenKey}-expires`, response.expiresAt);
 				localStorage.setItem(this.roleKey, response.role || 'admin');
 				localStorage.setItem(this.permissionsKey, JSON.stringify(response.permissions || (response.role === 'admin' ? ['*'] : [])));
+				localStorage.setItem(this.usernameKey, response.username || credentials.username);
 			})
 		);
 	}
@@ -51,6 +53,7 @@ export class AdminAuthService {
 		localStorage.removeItem(`${this.tokenKey}-expires`);
 		localStorage.removeItem(this.roleKey);
 		localStorage.removeItem(this.permissionsKey);
+		localStorage.removeItem(this.usernameKey);
 	}
 
 	getToken(): string | null {
@@ -81,6 +84,20 @@ export class AdminAuthService {
 		if (typeof localStorage === 'undefined') return 'admin';
 		const role = localStorage.getItem(this.roleKey);
 		return role === 'leads' || role === 'editor' ? role : 'admin';
+	}
+
+	getUsername(): string {
+		if (typeof localStorage === 'undefined') return '';
+		return localStorage.getItem(this.usernameKey) || '';
+	}
+
+	loadCurrentUser(): Observable<LoginResponse> {
+		const token = this.getToken();
+		return this.http.get<LoginResponse>(`${this.apiBase}/auth/me`, {
+			headers: new HttpHeaders({ Authorization: `Bearer ${token || ''}` })
+		}).pipe(tap(response => {
+			if (response.username) localStorage.setItem(this.usernameKey, response.username);
+		}));
 	}
 
 	isLeadsOnly(): boolean {

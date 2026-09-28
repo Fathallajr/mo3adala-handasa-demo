@@ -144,6 +144,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	currentContent: unknown = null;
 	statusMessage = '';
 	errorMessage = '';
+	adminUsername = '';
 	siteMaintenance = false;
 	isSavingSiteMode = false;
 	isSaving = false;
@@ -171,6 +172,10 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	ngOnInit(): void {
+		this.adminUsername = this.auth.getUsername();
+		if (this.auth.isAuthenticated()) {
+			this.auth.loadCurrentUser().subscribe({ next: user => { this.adminUsername = user.username || this.adminUsername; } });
+		}
 		this.seo.setTitle('لوحة تحكم الإدارة');
 		this.seo.setRobots('noindex, nofollow, noarchive');
 		this.refreshSummaries();
