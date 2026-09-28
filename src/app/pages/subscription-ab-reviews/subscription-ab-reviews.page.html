@@ -222,7 +222,7 @@
 				<div class="review-schedule__grid">
 					<article *ngFor="let schedule of getSelectedSchedules()">
 						<button type="button" class="review-schedule__image" (click)="openImageModal(schedule)"><img [src]="schedule.src" [alt]="schedule.alt" loading="lazy"><span><i class="bi bi-arrows-fullscreen"></i> اضغط للتكبير</span></button>
-						<a [href]="schedule.src" download><i class="bi bi-download"></i> تحميل الجدول</a>
+						<a [href]="schedule.src" download (click)="downloadSchedule($event, schedule)"><i class="bi bi-download"></i> تحميل الجدول</a>
 					</article>
 				</div>
 			</div>
@@ -262,7 +262,7 @@
 						<img [src]="schedule.src" [alt]="schedule.alt" loading="lazy">
 						<span><i class="bi bi-arrows-fullscreen"></i> اضغط للتكبير</span>
 					</button>
-					<a [href]="schedule.src" download><i class="bi bi-download"></i> تحميل الجدول</a>
+						<a [href]="schedule.src" download (click)="downloadSchedule($event, schedule)"><i class="bi bi-download"></i> تحميل الجدول</a>
 				</article>
 			</div>
 		</section>
