@@ -34,7 +34,7 @@
           <div class="school-card__logo"><img [src]="school.logo" [alt]="school.name" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"></div>
           <h3>{{ school.name }}</h3>
           <p>{{ school.category }}</p>
-          <div class="school-card__programs"><span *ngIf="school.programs.includes('engineering')">معادلة هندسة</span><span *ngIf="school.programs.includes('computers')">معادلة حاسبات</span></div>
+          <div class="school-card__programs" [class.school-card__programs--single]="school.programs.length === 1"><span *ngIf="school.programs.includes('engineering')">معادلة هندسة</span><span *ngIf="school.programs.includes('computers')">معادلة حاسبات</span></div>
           <div class="school-card__line"></div>
           <span class="school-card__status"><i></i> مؤهل للمعادلة</span>
         </article>

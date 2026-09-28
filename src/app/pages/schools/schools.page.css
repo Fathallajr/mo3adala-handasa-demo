@@ -89,5 +89,6 @@
 .schools-program-stat { border-color: #d8cdfd !important; background: #f6f2ff !important; }
 .schools-program-stat--computers { border-color: #bfe4e2 !important; background: #effcfb !important; }
 .school-card__programs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.school-card__programs--single { justify-content: center; }
 .school-card__programs span { padding: 4px 8px; border-radius: 999px; color: #5b3fc2; background: #f0ebff; font-size: 10px; font-weight: 800; }
 .school-card__programs span + span { color: #087d79; background: #e5faf8; }
