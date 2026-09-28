@@ -1027,6 +1027,9 @@ app.get('/uploads/:filename', async (req, res, next) => {
 	const asset = await database.readAsset(filename);
 	if (!asset) return next();
 	res.setHeader('Content-Type', asset.mimeType);
+	if (req.query.download === '1') {
+		res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
+	}
 	res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
 	res.send(asset.data);
 });

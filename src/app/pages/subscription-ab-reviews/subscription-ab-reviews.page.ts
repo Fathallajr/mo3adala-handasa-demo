@@ -468,31 +468,8 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			|| `جدول شهر أكتوبر ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'لغات' : 'عربي'}`;
 	}
 
-	async downloadSchedule(event: MouseEvent, schedule: ScheduleImage): Promise<void> {
-		event.preventDefault();
-		event.stopPropagation();
-
-		try {
-			const response = await fetch(schedule.src, { cache: 'no-store' });
-			if (!response.ok) throw new Error(`Schedule download failed: ${response.status}`);
-
-			const blob = await response.blob();
-			const extension = blob.type.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg';
-			const filename = `${schedule.group || 'جدول الاشتراك'}.${extension}`
-				.replace(/[\\/:*?"<>|]/g, '-')
-				.replace(/\s+/g, ' ')
-				.trim();
-			const objectUrl = URL.createObjectURL(blob);
-			const link = document.createElement('a');
-			link.href = objectUrl;
-			link.download = filename;
-			document.body.appendChild(link);
-			link.click();
-			link.remove();
-			URL.revokeObjectURL(objectUrl);
-		} catch {
-			window.open(schedule.src, '_blank', 'noopener');
-		}
+	getScheduleDownloadUrl(schedule: ScheduleImage): string {
+		return `${schedule.src}${schedule.src.includes('?') ? '&' : '?'}download=1`;
 	}
 
 	onNumberCardClick(number: string): void {
