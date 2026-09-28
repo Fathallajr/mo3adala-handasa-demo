@@ -12,7 +12,7 @@ export class MonthlyContentService {
 	private readonly serverBase = this.resolveServerBase();
 
 	private resolveApiBase(): string {
-		if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+		if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
 			return 'http://localhost:3001/api';
 		}
 
@@ -20,7 +20,7 @@ export class MonthlyContentService {
 	}
 
 	private resolveServerBase(): string {
-		if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+		if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
 			return 'http://localhost:3001';
 		}
 
