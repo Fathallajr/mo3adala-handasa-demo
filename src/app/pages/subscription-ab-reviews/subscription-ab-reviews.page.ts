@@ -133,7 +133,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				googleForm: {
 					...this.subscriptionDetails.googleForm,
 					...(legacyForm ?? {}),
-					link: legacyForm?.link || this.getEnrollmentFormLink()
+					link: this.getEnrollmentFormLink()
 				},
 				vodafoneNumbers: loaded.vodafoneNumbers?.length
 					? loaded.vodafoneNumbers
