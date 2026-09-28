@@ -34,6 +34,7 @@ interface ReviewFormConfig {
 export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	private readonly arabicEnrollmentFormLink = 'https://forms.gle/mhopqPdxUPxQEN9K8';
 	private readonly englishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
+	private readonly computersEnglishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
 	private contentSubscription?: Subscription;
 	isComputersSubscription = false;
 	isEnglishSubscription = false;
@@ -333,6 +334,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	private getEnrollmentFormLink(): string {
+		if (this.isComputersSubscription && this.isEnglishSubscription) return this.computersEnglishEnrollmentFormLink;
 		return this.isEnglishSubscription ? this.englishEnrollmentFormLink : this.arabicEnrollmentFormLink;
 	}
 

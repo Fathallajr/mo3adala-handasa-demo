@@ -57,9 +57,10 @@ export const cmsPageOptions: CmsPageOption[] = [
 	{ key: 'subscription-intensive', route: '/subscription-intensive', title: 'الاشتراك المكثف', description: 'خطط المكثف والدفع والفودافون كاش', group: 'الاشتراكات' },
 ];
 
-function createSubscriptionPageDefault(schedule: { group: string; src: string; alt: string; note: string }): unknown {
+function createSubscriptionPageDefault(schedule: { group: string; src: string; alt: string; note: string }, formLink?: string): unknown {
 	const page = JSON.parse(JSON.stringify(monthlyContentDefaults['subscription-ab-reviews'])) as any;
 	page.subscriptionDetails.scheduleImages = [schedule];
+	if (formLink) page.subscriptionDetails.googleForm.link = formLink;
 	return page;
 }
 
@@ -190,7 +191,7 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 	'subscription-engineering-ar': createSubscriptionPageDefault(engineeringArabicSchedule),
 	'subscription-engineering-en': createSubscriptionPageDefault(engineeringEnglishSchedule),
 	'subscription-computers-ar': createSubscriptionPageDefault(computersArabicSchedule),
-	'subscription-computers-en': createSubscriptionPageDefault(computersEnglishSchedule),
+	'subscription-computers-en': createSubscriptionPageDefault(computersEnglishSchedule, 'https://forms.gle/WFv9urJ1QDu3eE5y9'),
 	'batch-2027': {
 		visible: true,
 		wheelVisible: true,
