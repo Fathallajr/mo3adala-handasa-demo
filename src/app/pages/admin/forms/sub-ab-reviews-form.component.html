@@ -105,6 +105,7 @@
 
 	<div class="cms-section">
 		<div class="cms-section-title">جدول الاشتراك</div>
+		<div class="cms-help" *ngIf="uploadError" style="color:#b42318; margin-bottom:0.75rem">{{ uploadError }}</div>
 		<div class="cms-array-list">
 			<div class="cms-array-item" *ngFor="let img of data.subscriptionDetails.scheduleImages; let i = index">
 				<div style="flex:1">
@@ -118,14 +119,19 @@
 						<div class="cms-image-field">
 							<img *ngIf="img.src" [src]="resolveUrl(img.src)" class="cms-image-preview" [alt]="img.alt || ''" />
 							<div class="cms-image-actions">
-								<input class="cms-input" [(ngModel)]="img.src" placeholder="رابط الصورة أو ارفع ملف" dir="ltr" style="flex:1" />
+								<input class="cms-input" [(ngModel)]="img.src" (blur)="normalizeSchedulePath(img)" placeholder="مسار الصورة على السيرفر" dir="ltr" style="flex:1" />
 								<label class="cms-upload-btn">
 									📤 رفع صورة
-									<input type="file" accept="image/*" style="display:none" (change)="uploadScheduleImage(i, $event)" />
+									<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" (change)="uploadScheduleImage(i, $event)" />
 								</label>
 								<span *ngIf="uploadingField === 'schedule-' + i" class="cms-uploading">جاري الرفع...</span>
 							</div>
+							<div class="cms-help" *ngIf="img.src">يتم حفظها بهذا المسار: <code dir="ltr" style="unicode-bidi:plaintext">{{ img.src }}</code></div>
 						</div>
+					</div>
+					<div class="cms-field">
+						<label class="cms-label">وصف الصورة (للوصول)</label>
+						<input class="cms-input" [(ngModel)]="img.alt" placeholder="وصف واضح لمحتوى الجدول" />
 					</div>
 				</div>
 				<button type="button" class="cms-array-item__del" (click)="removeSchedule(i)">×</button>

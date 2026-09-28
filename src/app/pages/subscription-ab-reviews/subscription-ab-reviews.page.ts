@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SeoService } from '../../core/seo.service';
@@ -157,6 +157,9 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		}
 
 		this.shuffleVodafoneNumbers();
+		// The CMS refresh can complete outside the browser event cycle in some
+		// dev/proxy setups; render the schedule immediately without requiring a click.
+		this.changeDetector.detectChanges();
 	}
 
 	subscriptionDetails = {
@@ -217,7 +220,8 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		private seo: SeoService,
 		private canonical: CanonicalService,
 		private monthlyContent: MonthlyContentService,
-		private sanitizer: DomSanitizer
+		private sanitizer: DomSanitizer,
+		private changeDetector: ChangeDetectorRef
 	) {}
 
 	ngOnInit(): void {
@@ -443,7 +447,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	getSelectedSchedules(): ScheduleImage[] {
 		if (!this.isScheduleReady) return [];
 
-		return this.subscriptionDetails.scheduleImages.slice(0, 1).map(schedule => ({
+		return this.subscriptionDetails.scheduleImages.map(schedule => ({
 			...schedule,
 			src: this.monthlyContent.resolveAssetUrl(schedule.src),
 			group: displayProgramLabel(schedule.group),
@@ -461,26 +465,14 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		event.stopPropagation();
 
 		try {
-			const response = await fetch(schedule.src, { cache: 'no-store' });
-			if (!response.ok) {
-				throw new Error(`Unable to download schedule: ${response.status}`);
-			}
-
-			const blob = await response.blob();
-			const extension = blob.type.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg';
-			const filename = `${schedule.group || 'جدول الاشتراك'}.${extension}`
-				.replace(/[\\/:*?"<>|]/g, '-')
-				.replace(/\s+/g, ' ')
-				.trim();
-			const objectUrl = URL.createObjectURL(blob);
+			const downloadUrl = new URL(schedule.src, window.location.origin);
+			downloadUrl.searchParams.set('download', '1');
 			const link = document.createElement('a');
-			link.href = objectUrl;
-			link.download = filename;
+			link.href = downloadUrl.toString();
 			link.rel = 'noopener';
 			document.body.appendChild(link);
 			link.click();
 			link.remove();
-			setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 		} catch (error) {
 			console.error('تعذر تحميل جدول الاشتراك', error);
 		}

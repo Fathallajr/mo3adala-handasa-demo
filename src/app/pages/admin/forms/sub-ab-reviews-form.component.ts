@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { adminFormStyles } from './admin-form-styles';
@@ -16,8 +16,10 @@ export class SubAbReviewsFormComponent implements OnChanges {
 	@Input() content: unknown;
 	@Input() pageKey = '';
 	private readonly cms = inject(MonthlyContentService);
+	private readonly changeDetector = inject(ChangeDetectorRef);
 	data: any = null;
 	uploadingField: string | null = null;
+	uploadError = '';
 
 	ngOnChanges(): void {
 		const raw = this.content as any;
@@ -87,18 +89,41 @@ export class SubAbReviewsFormComponent implements OnChanges {
 	removeRefundPoint(i: number): void { this.data.subscriptionDetails.subscriptionWarnings.refund.points.splice(i, 1); }
 
 	uploadScheduleImage(index: number, event: Event): void {
-		const file = (event.target as HTMLInputElement).files?.[0];
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0];
 		if (!file) return;
+		input.value = '';
+		this.uploadError = '';
+		const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+		if (!allowedTypes.has(file.type)) {
+			this.uploadError = 'نوع الملف غير مدعوم. ارفع JPG أو PNG أو WEBP أو GIF.';
+			this.changeDetector.detectChanges();
+			return;
+		}
+		if (file.size > 8 * 1024 * 1024) {
+			this.uploadError = 'حجم الصورة أكبر من 8 ميجابايت.';
+			this.changeDetector.detectChanges();
+			return;
+		}
 		const key = 'schedule-' + index;
 		this.uploadingField = key;
 		this.cms.uploadImage(file).subscribe({
 			next: url => {
 				this.data.subscriptionDetails.scheduleImages[index].src = url;
 				this.uploadingField = null;
+				this.changeDetector.detectChanges();
 			},
-			error: () => { this.uploadingField = null; }
+			error: error => {
+				this.uploadingField = null;
+				this.uploadError = error?.error?.message || 'تعذر رفع الصورة. حاول مرة أخرى.';
+				this.changeDetector.detectChanges();
+			}
 		});
 	}
 
 	resolveUrl(url: string): string { return this.cms.resolveAssetUrl(url); }
+
+	normalizeSchedulePath(schedule: any): void {
+		if (schedule) schedule.src = this.cms.normalizeAssetPath(schedule.src);
+	}
 }

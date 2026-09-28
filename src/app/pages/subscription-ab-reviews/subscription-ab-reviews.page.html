@@ -222,7 +222,7 @@
 				<div class="subscription-schedule__grid">
 					<article *ngFor="let schedule of getSelectedSchedules()">
 						<button type="button" class="subscription-schedule__preview" (click)="openImageModal($event, schedule)" [attr.aria-label]="'فتح ' + schedule.alt">
-							<img [src]="schedule.src" [alt]="schedule.alt" loading="lazy">
+							<img [src]="schedule.src" [alt]="schedule.alt || 'صورة جدول الاشتراك'" loading="eager" fetchpriority="high" decoding="async">
 							<span><i class="bi bi-arrows-fullscreen"></i> اضغط للتكبير</span>
 						</button>
 						<button type="button" class="subscription-schedule__download" (click)="downloadSchedule($event, schedule)"><i class="bi bi-download"></i> تحميل الجدول</button>
@@ -252,13 +252,6 @@
 				</article>
 			</div>
 		</section>
-
-		<div class="subscription-schedule__lightbox" *ngIf="isImageModalOpen && activeScheduleImage as modalImage" role="dialog" aria-modal="true" (click)="closeImageModal()">
-			<div (click)="$event.stopPropagation()">
-				<button type="button" (click)="closeImageModal()" aria-label="إغلاق"><i class="bi bi-x-lg"></i></button>
-				<img [src]="modalImage.src" [alt]="modalImage.alt || 'جدول المراجعة - مكبر'">
-			</div>
-		</div>
 
 		<section class="review-farewell" aria-labelledby="farewell-title">
 			<div class="review-farewell__year">2027</div>
@@ -294,3 +287,11 @@
 		</section>
 	</div>
 </main>
+
+<!-- Keep the lightbox outside the animated page root so position: fixed is viewport-relative. -->
+<div class="subscription-schedule__lightbox" *ngIf="isImageModalOpen && activeScheduleImage as modalImage" role="dialog" aria-modal="true" (click)="closeImageModal()">
+	<div (click)="$event.stopPropagation()">
+		<button type="button" (click)="closeImageModal()" aria-label="إغلاق"><i class="bi bi-x-lg"></i></button>
+		<img [src]="modalImage.src" [alt]="modalImage.alt || 'جدول المراجعة - مكبر'" decoding="async">
+	</div>
+</div>

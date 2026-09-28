@@ -108,9 +108,50 @@ const upload = multer({
 	limits: { fileSize: 8 * 1024 * 1024 },
 	fileFilter: (_req, file, cb) => {
 		const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-		cb(null, allowed.includes(file.mimetype));
+		if (!allowed.includes(file.mimetype)) return cb(new Error('UNSUPPORTED_IMAGE_TYPE'));
+		cb(null, true);
 	}
 });
+
+function handleImageUpload(req, res, next) {
+	upload.single('file')(req, res, error => {
+		if (!error) return next();
+		if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
+			return res.status(413).json({ message: 'حجم الصورة يجب ألا يتجاوز 8 ميجابايت.' });
+		}
+		if (error.message === 'UNSUPPORTED_IMAGE_TYPE') {
+			return res.status(400).json({ message: 'نوع الصورة غير مدعوم. استخدم JPG أو PNG أو WEBP أو GIF.' });
+		}
+		return res.status(400).json({ message: 'تعذر قراءة ملف الصورة.' });
+	});
+}
+
+function validateScheduleImages(data) {
+	const schedules = data?.subscriptionDetails?.scheduleImages;
+	if (schedules === undefined) return null;
+	if (!Array.isArray(schedules)) return 'بيانات جداول الاشتراك غير صحيحة.';
+	for (const schedule of schedules) {
+		const src = normalizeStoredAssetPath(schedule?.src);
+		if (schedule && schedule.src !== src) schedule.src = src;
+		if (!src) return 'يجب رفع صورة لكل جدول قبل الحفظ.';
+		if (!/^https?:\/\//i.test(src) && !src.startsWith('/uploads/') && !src.startsWith('/assets/')) {
+			return 'مسار صورة الجدول غير صحيح.';
+		}
+	}
+	return null;
+}
+
+function normalizeStoredAssetPath(value) {
+	const raw = String(value || '').trim();
+	if (!raw) return '';
+	try {
+		const parsed = new URL(raw, 'http://localhost');
+		if (parsed.pathname.startsWith('/uploads/')) return parsed.pathname;
+	} catch {
+		// Preserve invalid values for the validator to reject with a clear message.
+	}
+	return raw.startsWith('uploads/') ? `/${raw}` : raw;
+}
 
 const openApiDocument = {
 	openapi: '3.0.3',
@@ -1000,6 +1041,8 @@ app.put('/api/content/:pageKey', requireAdmin, requirePagePermission, async (req
 	if (!PAGE_KEYS.includes(pageKey)) {
 		return res.status(404).json({ message: 'Unknown page' });
 	}
+	const scheduleError = validateScheduleImages(req.body);
+	if (scheduleError) return res.status(400).json({ message: scheduleError });
 
 	if (typeof database.savePage === 'function') {
 		const saved = await database.savePage(pageKey, req.body, getNowIso());
@@ -1011,15 +1054,18 @@ app.put('/api/content/:pageKey', requireAdmin, requirePagePermission, async (req
 	res.json(store.pages[pageKey].data);
 });
 
-app.post('/api/uploads', requireAdmin, requireFullAdmin, upload.single('file'), async (req, res) => {
+app.post('/api/uploads', requireAdmin, requireFullAdmin, handleImageUpload, async (req, res, next) => {
 	if (!req.file) {
 		return res.status(400).json({ message: 'No file uploaded or unsupported format' });
 	}
-
-	const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
-	const filename = Date.now() + '-' + crypto.randomBytes(4).toString('hex') + ext;
-	await database.writeAsset({ filename, mimeType: req.file.mimetype, data: req.file.buffer });
-	res.json({ url: `/uploads/${filename}` });
+	try {
+		const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+		const filename = Date.now() + '-' + crypto.randomBytes(4).toString('hex') + ext;
+		await database.writeAsset({ filename, mimeType: req.file.mimetype, data: req.file.buffer });
+		res.json({ url: `/uploads/${filename}` });
+	} catch (error) {
+		next(error);
+	}
 });
 
 app.get('/uploads/:filename', async (req, res, next) => {

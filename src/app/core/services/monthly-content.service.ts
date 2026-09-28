@@ -27,10 +27,23 @@ export class MonthlyContentService {
 		return '';
 	}
 
+	normalizeAssetPath(url: string): string {
+		const value = String(url || '').trim();
+		if (!value) return '';
+		try {
+			const parsed = new URL(value, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+			if (parsed.pathname.startsWith('/uploads/')) return parsed.pathname;
+		} catch {
+			// Keep non-URL values below so the admin can correct them visibly.
+		}
+		return value.startsWith('uploads/') ? `/${value}` : value;
+	}
+
 	resolveAssetUrl(url: string): string {
-		if (!url) return '';
-		if (url.startsWith('http')) return url;
-		return url.startsWith('/uploads/') ? this.serverBase + url : url;
+		const normalized = this.normalizeAssetPath(url);
+		if (!normalized) return '';
+		if (normalized.startsWith('http')) return normalized;
+		return normalized.startsWith('/uploads/') ? this.serverBase + normalized : normalized;
 	}
 
 	listPages(): Observable<Array<{ key: CmsPageKey; hasContent: boolean; updatedAt?: string }>> {
@@ -65,7 +78,7 @@ export class MonthlyContentService {
 		body.append('file', file);
 
 		return this.http.post<{ url: string }>(`${this.apiBase}/uploads`, body, { headers }).pipe(
-			map(res => res.url)
+			map(res => this.normalizeAssetPath(res.url))
 		);
 	}
 }
