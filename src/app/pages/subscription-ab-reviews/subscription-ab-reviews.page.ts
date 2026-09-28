@@ -142,10 +142,10 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				vodafoneNumbers: loaded.vodafoneNumbers?.length
 					? loaded.vodafoneNumbers
 					: this.subscriptionDetails.vodafoneNumbers,
-				// The public subscription route is the source of truth for its
-				// schedule. This prevents an older CMS record from showing another
-				// program's table after a deployment.
-				scheduleImages: Array.isArray(loaded.scheduleImages) && loaded.scheduleImages.some((schedule: ScheduleImage) => String(schedule?.src || '').trim())
+				// Keep each public subscription route isolated. Uploaded CMS assets
+				// are valid for the selected route, while a legacy /assets path from
+				// another page must not replace this route's default schedule.
+				scheduleImages: this.hasValidRouteSchedules(loaded.scheduleImages)
 					? loaded.scheduleImages
 					: this.subscriptionDetails.scheduleImages,
 				subscriptionWarnings: {
@@ -165,6 +165,17 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		// The CMS refresh can complete outside the browser event cycle in some
 		// dev/proxy setups; render the schedule immediately without requiring a click.
 		this.changeDetector.detectChanges();
+	}
+
+	private hasValidRouteSchedules(value: unknown): value is ScheduleImage[] {
+		if (!Array.isArray(value) || !value.length) return false;
+		const routeSchedule = this.getRouteSchedule();
+		return value.some((schedule: ScheduleImage) => {
+			const src = String(schedule?.src || '').trim();
+			if (!src) return false;
+			if (src.startsWith('/uploads/') || src.startsWith('uploads/')) return true;
+			return src === routeSchedule.src;
+		});
 	}
 
 	subscriptionDetails = {
