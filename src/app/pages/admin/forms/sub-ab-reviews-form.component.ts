@@ -107,7 +107,7 @@ export class SubAbReviewsFormComponent implements OnChanges {
 		}
 		const key = 'schedule-' + index;
 		this.uploadingField = key;
-		this.cms.uploadImage(file).subscribe({
+		this.cms.uploadImage(file, this.pageKey).subscribe({
 			next: url => {
 				this.data.subscriptionDetails.scheduleImages[index].src = url;
 				this.uploadingField = null;

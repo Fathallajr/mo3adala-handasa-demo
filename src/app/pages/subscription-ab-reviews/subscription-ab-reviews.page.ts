@@ -145,7 +145,9 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				// The public subscription route is the source of truth for its
 				// schedule. This prevents an older CMS record from showing another
 				// program's table after a deployment.
-				scheduleImages: [this.getRouteSchedule()],
+				scheduleImages: Array.isArray(loaded.scheduleImages) && loaded.scheduleImages.some((schedule: ScheduleImage) => String(schedule?.src || '').trim())
+					? loaded.scheduleImages
+					: this.subscriptionDetails.scheduleImages,
 				subscriptionWarnings: {
 					validity: {
 						...this.subscriptionDetails.subscriptionWarnings.validity,

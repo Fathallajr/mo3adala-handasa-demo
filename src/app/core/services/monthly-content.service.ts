@@ -71,11 +71,12 @@ export class MonthlyContentService {
 		return this.http.put<T>(`${this.apiBase}/content/${pageKey}`, state, { headers }).pipe(timeout({ each: 15000 }));
 	}
 
-	uploadImage(file: File): Observable<string> {
+	uploadImage(file: File, pageKey?: string): Observable<string> {
 		const token = this.auth.getToken();
 		const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
 		const body = new FormData();
 		body.append('file', file);
+		if (pageKey) body.append('pageKey', pageKey);
 
 		return this.http.post<{ url: string }>(`${this.apiBase}/uploads`, body, { headers }).pipe(
 			map(res => this.normalizeAssetPath(res.url))

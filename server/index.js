@@ -319,6 +319,19 @@ function requireFullAdmin(req, res, next) {
 	return res.status(403).json({ message: 'هذا القسم متاح للأدمن الرئيسي فقط.' });
 }
 
+function requireUploadPagePermission(req, res, next) {
+	const pageKey = String(req.body?.pageKey || '').trim();
+	if (!pageKey) {
+		// Keep existing full-admin uploads backwards compatible (news and other
+		// forms), while page editors must identify the page they are editing.
+		if (req.adminRole === 'admin') return next();
+		return res.status(400).json({ message: 'يجب تحديد صفحة الصورة قبل الرفع.' });
+	}
+	if (!PAGE_KEYS.includes(pageKey)) return res.status(400).json({ message: 'صفحة الصورة غير صحيحة.' });
+	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes(pageKey)) return next();
+	return res.status(403).json({ message: 'ليس لديك صلاحية رفع صورة لهذه الصفحة.' });
+}
+
 function requirePagePermission(req, res, next) {
 	if (req.adminRole === 'admin' || (req.adminRole === 'leads' && req.params.pageKey === 'batch-2027') || req.adminPermissions.includes('*') || req.adminPermissions.includes(req.params.pageKey)) return next();
 	return res.status(403).json({ message: 'ليس لديك صلاحية تعديل هذه الصفحة.' });
@@ -1055,7 +1068,7 @@ app.put('/api/content/:pageKey', requireAdmin, requirePagePermission, async (req
 	res.json(store.pages[pageKey].data);
 });
 
-app.post('/api/uploads', requireAdmin, requireFullAdmin, handleImageUpload, async (req, res, next) => {
+app.post('/api/uploads', requireAdmin, handleImageUpload, requireUploadPagePermission, async (req, res, next) => {
 	if (!req.file) {
 		return res.status(400).json({ message: 'No file uploaded or unsupported format' });
 	}
