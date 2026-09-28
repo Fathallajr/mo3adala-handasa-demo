@@ -33,8 +33,6 @@
 .condition-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
 .condition-card { display: flex; min-height: 5rem; align-items: center; gap: .8rem; padding: .9rem 1rem; border: 1px solid #fed7aa; border-radius: 1rem; background: #fffaf5; transition: transform .2s ease, box-shadow .2s ease; }
 .condition-card:hover { transform: translateY(-3px); box-shadow: 0 12px 22px rgba(249,115,22,.1); }
-.condition-card:last-child { grid-column: 1 / -1; }
-.condition-grid--computers .condition-card:last-child { grid-column: auto; }
 .condition-card > span { display: grid; width: 2.25rem; height: 2.25rem; flex: 0 0 auto; place-items: center; border-radius: .7rem; color: #fff; background: var(--req-orange); font-size: .72rem; font-weight: 900; }
 .condition-card p { margin: 0; color: #475569; font-size: .9rem; font-weight: 700; line-height: 1.75; }
 .documents-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; }
