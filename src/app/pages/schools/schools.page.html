@@ -30,7 +30,7 @@
       <div class="schools-results__heading"><div><span>النتائج المتاحة</span><h2>المؤسسات المؤهلة</h2></div><p>اضغط على نوع المؤسسة من الأعلى لتصفية القائمة.</p></div>
       <div class="schools-grid">
         <article *ngFor="let school of schools" class="school-card" [@cardAnimation]>
-          <div class="school-card__top"><span class="school-card__type">{{ school.type }}</span><span class="school-card__index">#{{ school.id.toString().padStart(2, '0') }}</span></div>
+          <div class="school-card__top"><span class="school-card__index">#{{ school.id.toString().padStart(2, '0') }}</span></div>
           <div class="school-card__logo"><img [src]="school.logo" [alt]="school.name" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"></div>
           <h3>{{ school.name }}</h3>
           <p>{{ school.category }}</p>
