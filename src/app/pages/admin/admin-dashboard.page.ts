@@ -374,7 +374,15 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 	changeLeadPage(delta: number): void { this.leadsPage = Math.min(Math.max(this.leadsPage + delta, 1), this.leadsPages); this.loadLeads(true); }
 	updateLeadStatus(lead: Lead, status: string): void {
-		this.adminApi.updateLead(lead.id, { status }).subscribe({ next: updated => { lead.status = updated.status; this.statusMessage = 'تم تحديث حالة العميل.'; }, error: err => this.handleApiError(err) });
+		const previousStatus = lead.status;
+		if (!this.leadStatuses.includes(status) || status === previousStatus) return;
+		lead.status = status;
+		this.statusMessage = '';
+		this.errorMessage = '';
+		this.adminApi.updateLead(lead.id, { status }).subscribe({
+			next: updated => { lead.status = updated.status; this.statusMessage = 'تم تحديث حالة العميل.'; this.refreshView(); },
+			error: err => { lead.status = previousStatus; this.handleApiError(err); this.refreshView(); }
+		});
 	}
 	deleteLead(lead: Lead): void {
 		this.leadPendingDeletion = lead;
