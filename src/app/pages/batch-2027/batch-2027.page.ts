@@ -96,6 +96,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	heroTitle = 'كلية هندسة';
 	heroHighlight = 'أقرب مما تتخيل';
 	heroFeatures: string[] = ['شرح مبسط وخطة واضحة', 'متابعة مستمرة معاك', 'محتوى متحدث لدفعة 2027'];
+	heroImageSrc = '/assets/11.jpg';
+	private heroImageFallbackUsed = false;
 	joinEyebrow = 'خليك أول واحد يعرف';
 	joinTitle = 'سجل دلوقتي';
 	joinHighlight = 'وخد أولوية العروض والخصومات';
@@ -119,6 +121,13 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		private contentService: MonthlyContentService,
 		private changeDetector: ChangeDetectorRef
 	) {}
+
+	handleHeroImageError(event: Event): void {
+		if (this.heroImageFallbackUsed) return;
+		this.heroImageFallbackUsed = true;
+		const image = event.target as HTMLImageElement | null;
+		if (image) image.src = '/assets/arabic-engineers-hero.png';
+	}
 
 	openGiftBox(): void {
 		this.showGiftResult = true;

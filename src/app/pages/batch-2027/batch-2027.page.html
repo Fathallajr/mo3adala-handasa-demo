@@ -7,7 +7,7 @@
 			</div>
 			<div class="batch-hero-ref__body">
 				<div class="batch-hero-ref__visual">
-					<img class="batch-hero-ref__art-image" src="assets/11.jpg" alt="كلية هندسة وحاسبات — أقرب مما تتخيل" decoding="async" fetchpriority="high" />
+					<img class="batch-hero-ref__art-image" [src]="heroImageSrc" alt="كلية هندسة وحاسبات — أقرب مما تتخيل" loading="eager" decoding="async" fetchpriority="high" (error)="handleHeroImageError($event)" />
 				</div>
 				<div class="batch-hero-ref__copy">
 					<span class="batch-hero-ref__eyebrow">{{ heroEyebrow }}</span>
@@ -28,7 +28,6 @@
 						</div>
 						<a href="https://app-mo3adlet-handsa.com/register.php" target="_blank" rel="noopener" class="batch-button batch-button--ghost">اعمل حساب على المنصة</a>
 					</div>
-					<a href="#join" class="batch-hero-ref__video"><span>▶</span> شاهد فيديو تعريفي عن المنصة</a>
 				</div>
 			</div>
 		</div>
