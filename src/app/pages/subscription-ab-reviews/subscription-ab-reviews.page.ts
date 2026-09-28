@@ -545,12 +545,14 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	openImageModal(image: ScheduleImage): void {
 		this.activeScheduleImage = image;
 		this.isImageModalOpen = true;
+		document.documentElement.style.overflow = 'hidden';
 		document.body.style.overflow = 'hidden';
 	}
 
 	closeImageModal(): void {
 		this.isImageModalOpen = false;
 		this.activeScheduleImage = null;
+		document.documentElement.style.overflow = '';
 		document.body.style.overflow = '';
 	}
 
