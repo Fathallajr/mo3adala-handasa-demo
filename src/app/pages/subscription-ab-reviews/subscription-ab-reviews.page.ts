@@ -516,17 +516,32 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		event.stopPropagation();
 
 		try {
-			const downloadUrl = new URL(schedule.src, window.location.origin);
-			downloadUrl.searchParams.set('download', '1');
+			const downloadUrl = new URL(schedule.src, window.location.origin).toString();
+			const response = await fetch(downloadUrl, { credentials: 'same-origin' });
+			if (!response.ok) throw new Error(`Schedule download failed: ${response.status}`);
+			const blobUrl = URL.createObjectURL(await response.blob());
 			const link = document.createElement('a');
-			link.href = downloadUrl.toString();
+			link.href = blobUrl;
+			link.download = this.getScheduleFilename(schedule.src, schedule.alt);
 			link.rel = 'noopener';
 			document.body.appendChild(link);
 			link.click();
 			link.remove();
+			setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 		} catch (error) {
 			console.error('تعذر تحميل جدول الاشتراك', error);
 		}
+	}
+
+	private getScheduleFilename(src: string, alt: string): string {
+		try {
+			const pathname = new URL(src, window.location.origin).pathname;
+			const filename = decodeURIComponent(pathname.split('/').pop() || '').trim();
+			if (filename && filename.includes('.')) return filename;
+		} catch {
+			// Use the accessible label below when the source is not a valid URL.
+		}
+		return `${String(alt || 'جدول الاشتراك').trim() || 'جدول الاشتراك'}.jpg`;
 	}
 
 	onNumberCardClick(number: string): void {
