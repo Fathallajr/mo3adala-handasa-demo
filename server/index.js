@@ -61,6 +61,7 @@ const SUBSCRIPTION_REFUND_POLICY = [
 	'⚠️ السحب متاح خلال أسبوع من الاشتراك مع استرداد نصف المبلغ فقط.',
 	'بعد الأسبوع، لا يُمكن استرداد أي مبلغ.'
 ];
+const SUBSCRIPTION_REQUIRED_FEATURE = 'سيستم متابعة';
 // Require a fresh admin login every six hours.
 const TOKEN_TTL_MS = 6 * 60 * 60 * 1000;
 const DATA_DIR = path.join(__dirname, 'data');
@@ -1047,6 +1048,10 @@ function normalizeSubscriptionCmsContent(pageKey, content) {
 		title: 'سياسة الاسترداد',
 		points: [...SUBSCRIPTION_REFUND_POLICY]
 	};
+	details.features = Array.isArray(details.features) ? details.features : [];
+	if (!details.features.some(feature => String(feature).trim() === SUBSCRIPTION_REQUIRED_FEATURE)) {
+		details.features.push(SUBSCRIPTION_REQUIRED_FEATURE);
+	}
 
 	const routeDefault = SUBSCRIPTION_SCHEDULE_DEFAULTS[pageKey];
 	if (routeDefault && Array.isArray(details.scheduleImages)) {
