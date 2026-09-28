@@ -511,9 +511,9 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.statusMessage = '';
 		this.errorMessage = '';
 		this.isLoading = true;
-		this.currentContent = structuredClone(cmsPageDefaults[pageKey]);
+		this.currentContent = null;
 
-		this.contentService.loadPageState(pageKey, cmsPageDefaults[pageKey]).pipe(timeout({ each: 15000 }), finalize(() => { if (requestId === this.pageLoadRequestId) this.isLoading = false; })).subscribe({
+		this.contentService.loadPageState(pageKey, cmsPageDefaults[pageKey], { emitFallback: false }).pipe(timeout({ each: 15000 }), finalize(() => { if (requestId === this.pageLoadRequestId) this.isLoading = false; })).subscribe({
 			next: content => {
 				if (requestId === this.pageLoadRequestId) this.currentContent = content;
 			},
@@ -542,6 +542,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	save(): void {
+		if (!this.currentContent || this.isLoading || this.isSaving) return;
 		this.errorMessage = '';
 		this.statusMessage = '';
 		this.isSaving = true;

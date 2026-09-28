@@ -52,10 +52,11 @@ export class MonthlyContentService {
 
 	loadPageState<T>(pageKey: CmsPageKey, fallback: T, options: { emitFallback?: boolean } = {}): Observable<T> {
 		const request$ = this.http.get<T>(`${this.apiBase}/content/${pageKey}`);
-		return (options.emitFallback === false ? request$ : request$.pipe(
+		if (options.emitFallback === false) return request$;
+		return request$.pipe(
 			// اعرض نسخة الفرونت فورًا، ثم حدّثها من الـ CMS في الخلفية.
 			startWith(fallback)
-		)).pipe(catchError(() => EMPTY));
+		).pipe(catchError(() => EMPTY));
 	}
 
 	watchPageState<T>(pageKey: CmsPageKey, refreshMs = 5000): Observable<T> {
