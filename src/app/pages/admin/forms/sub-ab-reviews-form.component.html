@@ -1,13 +1,13 @@
 <div class="cms-form" *ngIf="data">
 
 	<div class="cms-section">
-		<div class="cms-section-title">حالة المراجعات</div>
+		<div class="cms-section-title">حالة الاشتراك</div>
 		<div class="cms-toggle-wrap" style="margin-bottom:0.75rem">
 			<label class="cms-switch">
 				<input type="checkbox" [(ngModel)]="data.isEnrollmentClosed" />
 				<span class="cms-slider"></span>
 			</label>
-			<span class="cms-toggle-label">{{ data.isEnrollmentClosed ? 'المراجعات مغلقة' : 'المراجعات مفتوحة' }}</span>
+		<span class="cms-toggle-label">{{ data.isEnrollmentClosed ? (data.subscriptionDetails.review.name || 'الاشتراك') + ' مغلق' : (data.subscriptionDetails.review.name || 'الاشتراك') + ' مفتوح' }}</span>
 		</div>
 		<div class="cms-field" style="margin-bottom:0">
 			<label class="cms-label">رسالة إعادة الفتح (تظهر عند الإغلاق)</label>
@@ -31,7 +31,7 @@
 	</div>
 
 	<div class="cms-section">
-		<div class="cms-section-title">تفاصيل المراجعة</div>
+		<div class="cms-section-title">تفاصيل الاشتراك</div>
 		<div class="cms-row">
 			<div class="cms-field">
 				<label class="cms-label">العنوان / الشهر</label>
@@ -44,7 +44,7 @@
 		</div>
 		<div class="cms-row">
 			<div class="cms-field">
-				<label class="cms-label">اسم المراجعة</label>
+				<label class="cms-label">اسم الاشتراك</label>
 				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.review.name" placeholder="مراجعات A-B" />
 			</div>
 			<div class="cms-field">
@@ -59,12 +59,12 @@
 	</div>
 
 	<div class="cms-section">
-		<div class="cms-section-title">فورم المراجعة الموحد</div>
+	<div class="cms-section-title">فورم الاشتراك الموحد</div>
 		<div class="cms-subsection">
 			<div class="cms-row">
 				<div class="cms-field">
 					<label class="cms-label">رابط الفورم الموحد</label>
-					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.googleForm.link" placeholder="https://forms.gle/..." dir="ltr" readonly />
+					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.googleForm.link" placeholder="https://forms.gle/..." dir="ltr" />
 				</div>
 			</div>
 			<div class="cms-row">
@@ -104,7 +104,7 @@
 	</div>
 
 	<div class="cms-section">
-		<div class="cms-section-title">جدول المراجعة</div>
+		<div class="cms-section-title">جدول الاشتراك</div>
 		<div class="cms-array-list">
 			<div class="cms-array-item" *ngFor="let img of data.subscriptionDetails.scheduleImages; let i = index">
 				<div style="flex:1">
@@ -145,7 +145,7 @@
 	</div>
 
 	<div class="cms-section">
-		<div class="cms-section-title">مميزات المراجعة</div>
+		<div class="cms-section-title">مميزات الاشتراك</div>
 		<div class="cms-array-list">
 			<div class="cms-array-item" *ngFor="let f of data.subscriptionDetails.features; let i = index">
 				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.features[i]" placeholder="ميزة..." style="flex:1" />

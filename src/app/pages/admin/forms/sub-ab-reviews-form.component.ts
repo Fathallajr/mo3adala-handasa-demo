@@ -30,9 +30,11 @@ export class SubAbReviewsFormComponent implements OnChanges {
 		sd.requiredInfo ??= [];
 		sd.review ??= { name: 'مراجعات A-B', price: '800' };
 		sd.googleForm ??= {};
-		sd.googleForm.link = this.pageKey.endsWith('-en')
-			? 'https://forms.gle/JZAvJqZcaPLKFR6f7'
-			: 'https://forms.gle/kHieqwyKbubsUZmPA';
+		if (!sd.googleForm.link) {
+			sd.googleForm.link = this.pageKey.endsWith('-en')
+				? 'https://forms.gle/JZAvJqZcaPLKFR6f7'
+				: 'https://forms.gle/kHieqwyKbubsUZmPA';
+		}
 		if (!sd.googleForm.link && sd.googleForms) {
 			sd.googleForm = { ...sd.googleForm, ...(sd.googleForms.groupA ?? sd.googleForms.groupB ?? {}) };
 		}
