@@ -10,7 +10,6 @@ export type CmsPageKey =
 	| 'news-detail'
 	| 'subscription-details'
 	| 'subscription-ab-reviews'
-	| 'subscription-intensive'
 	| 'social'
 	| 'engineers'
 	| 'teacher-details'
@@ -54,7 +53,6 @@ export const cmsPageOptions: CmsPageOption[] = [
 	{ key: 'subscription-engineering-en', route: '/subscription-engineering-en', title: 'اشتراك هندسة لغات — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
 	{ key: 'subscription-computers-ar', route: '/subscription-computers-ar', title: 'اشتراك حاسبات عربي — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
 	{ key: 'subscription-computers-en', route: '/subscription-computers-en', title: 'اشتراك حاسبات لغات — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
-	{ key: 'subscription-intensive', route: '/subscription-intensive', title: 'الاشتراك المكثف', description: 'خطط المكثف والدفع والفودافون كاش', group: 'الاشتراكات' },
 ];
 
 function createSubscriptionPageDefault(schedule: { group: string; src: string; alt: string; note: string }, formLink?: string): unknown {
@@ -185,7 +183,6 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 	},
 	'subscription-details': monthlyContentDefaults['subscription-details'],
 	'subscription-ab-reviews': monthlyContentDefaults['subscription-ab-reviews'],
-	'subscription-intensive': monthlyContentDefaults['subscription-intensive'],
 	'subscription-computers': createSubscriptionPageDefault(computersArabicSchedule)
 	,
 	'subscription-engineering-ar': createSubscriptionPageDefault(engineeringArabicSchedule),

@@ -1,4 +1,4 @@
-export type MonthlyContentPageKey = 'subscription-details' | 'subscription-ab-reviews' | 'subscription-intensive';
+export type MonthlyContentPageKey = 'subscription-details' | 'subscription-ab-reviews';
 
 export const monthlyContentDefaults = {
 	'subscription-details': {
@@ -136,44 +136,4 @@ export const monthlyContentDefaults = {
 			subtitle: 'أول خطوة في رحلة دفعة 2027 — أكتوبر'
 		}
 	},
-	'subscription-intensive': {
-		isEnrollmentClosed: true,
-		enrollmentReopenMessage: 'انتظروا التفاصيل قريباً بإذن الله 🔥',
-		subscriptionDetails: {
-			title: 'الاشتراك المكثف',
-			subtitle: 'كورس مكثف لكلية الهندسة - دفعة 2026',
-			googleFormLink: 'https://forms.gle/CYS6WCbAeX4W3E6Z7',
-			paymentPlans: {
-				installment2: { amount: '1600', label: 'القسط الثاني', note: 'ابتداءً من 7 أغسطس' }
-			},
-			currency: 'ج',
-			vodafoneNumbers: [
-				{ number: '01080594862', owner: 'Ahmed A*********' },
-				{ number: '01001793817', owner: 'Saad F*** S****' },
-				{ number: '01021069340', owner: 'Mona k***** A**' },
-				{ number: '01021201970', owner: 'Mona k***** A**' }
-			],
-			requiredInfo: [
-				'رقم الموبايل اللي حولت منه 📲',
-				'سكرين شوت بالتحويل 🖼',
-				'وقت وتاريخ التحويل ⏳'
-			],
-			whatsappNumber: '201554843745',
-			subscriptionWarnings: {
-				refund: {
-					title: 'سياسة الاسترداد:',
-					points: [
-						'لا يوجد استرداد أو سحب للاشتراك نهائيًا لأي سبب من الأسباب'
-					]
-				},
-				validity: {
-					title: 'مدة صلاحية الاشتراك:',
-					points: [
-						'الكود شغال لغاية آخر الامتحانات',
-						'مع انتهاء الامتحانات بيقفل المحتوى تلقائياً'
-					]
-				}
-			}
-		}
-	}
 } as const;

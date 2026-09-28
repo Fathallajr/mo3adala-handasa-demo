@@ -16,7 +16,6 @@ import { HomeFormComponent } from './forms/home-form.component';
 import { NewsFormComponent } from './forms/news-form.component';
 import { SubDetailsFormComponent } from './forms/sub-details-form.component';
 import { SubAbReviewsFormComponent } from './forms/sub-ab-reviews-form.component';
-import { SubIntensiveFormComponent } from './forms/sub-intensive-form.component';
 import { JsonContentFormComponent } from './forms/json-content-form.component';
 import { SuccessStoriesFormComponent } from './forms/success-stories-form.component';
 import { Batch2027FormComponent } from './forms/batch-2027-form.component';
@@ -46,7 +45,6 @@ type AdminDataView = 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 
 		NewsFormComponent,
 		SubDetailsFormComponent,
 		SubAbReviewsFormComponent,
-		SubIntensiveFormComponent,
 		JsonContentFormComponent,
 		SuccessStoriesFormComponent,
 		Batch2027FormComponent,
@@ -609,7 +607,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	get hasCustomForm(): boolean {
-		return ['home', 'faq', 'contact', 'subscription-details', 'subscription-engineering-ar', 'subscription-engineering-en', 'subscription-computers-ar', 'subscription-computers-en', 'subscription-intensive', 'news-app', 'news-equation'].includes(this.selectedPageKey);
+		return ['home', 'faq', 'contact', 'subscription-details', 'subscription-engineering-ar', 'subscription-engineering-en', 'subscription-computers-ar', 'subscription-computers-en', 'news-app', 'news-equation'].includes(this.selectedPageKey);
 	}
 
 	get groupedPageOptions(): Array<{ group: string; pages: PageOption[] }> {
