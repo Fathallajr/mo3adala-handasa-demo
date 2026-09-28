@@ -65,25 +65,25 @@ function createSubscriptionPageDefault(schedule: { group: string; src: string; a
 
 const engineeringArabicSchedule = {
 	group: 'جدول شهر أكتوبر هندسة عربي',
-	src: '/assets/جداول مراجعات شهر 8/جدول جروب A-B.png',
+	src: '/assets/schedule-engineering-ar.jpg',
 	alt: 'جدول شهر أكتوبر هندسة عربي',
 	note: 'اضغط على الصورة للتكبير'
 };
 const engineeringEnglishSchedule = {
 	group: 'جدول شهر أكتوبر هندسة لغات',
-	src: '/assets/جداول مراجعات شهر 8/جدول جروب A-B.png',
+	src: '/assets/schedule-engineering-en.jpg',
 	alt: 'جدول شهر أكتوبر هندسة لغات',
 	note: 'اضغط على الصورة للتكبير'
 };
 const computersArabicSchedule = {
 	group: 'جدول شهر أكتوبر حاسبات عربي',
-	src: '/assets/جداول مراجعات شهر 8/جدول جروب C.png',
+	src: '/assets/schedule-computers-ar.jpg',
 	alt: 'جدول شهر أكتوبر حاسبات عربي',
 	note: 'اضغط على الصورة للتكبير'
 };
 const computersEnglishSchedule = {
 	group: 'جدول شهر أكتوبر حاسبات لغات',
-	src: '/assets/جداول مراجعات شهر 8/جدول جروب C.png',
+	src: '/assets/schedule-computers-en.jpg',
 	alt: 'جدول شهر أكتوبر حاسبات لغات',
 	note: 'اضغط على الصورة للتكبير'
 };

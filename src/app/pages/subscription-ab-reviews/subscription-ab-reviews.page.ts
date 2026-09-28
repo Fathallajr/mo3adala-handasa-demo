@@ -32,8 +32,8 @@ interface ReviewFormConfig {
 	styleUrls: ['./subscription-ab-reviews.page.css']
 })
 export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
-	private readonly arabicEnrollmentFormLink = 'https://forms.gle/kHieqwyKbubsUZmPA';
-	private readonly englishEnrollmentFormLink = 'https://forms.gle/JZAvJqZcaPLKFR6f7';
+	private readonly arabicEnrollmentFormLink = 'https://forms.gle/mhopqPdxUPxQEN9K8';
+	private readonly englishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
 	private contentSubscription?: Subscription;
 	isComputersSubscription = false;
 	isEnglishSubscription = false;
@@ -135,14 +135,17 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				googleForm: {
 					...this.subscriptionDetails.googleForm,
 					...(legacyForm ?? {}),
-					link: legacyForm?.link || this.getEnrollmentFormLink()
+					// The form is determined by this route. Do not let an old CMS
+					// record reuse another program's form link.
+					link: this.getEnrollmentFormLink()
 				},
 				vodafoneNumbers: loaded.vodafoneNumbers?.length
 					? loaded.vodafoneNumbers
 					: this.subscriptionDetails.vodafoneNumbers,
-				scheduleImages: loaded.scheduleImages?.length
-					? loaded.scheduleImages
-					: this.subscriptionDetails.scheduleImages,
+				// The public subscription route is the source of truth for its
+				// schedule. This prevents an older CMS record from showing another
+				// program's table after a deployment.
+				scheduleImages: [this.getRouteSchedule()],
 				subscriptionWarnings: {
 					validity: {
 						...this.subscriptionDetails.subscriptionWarnings.validity,
@@ -237,8 +240,8 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			const description = `اشترك في ${this.subscriptionProgramLabel} بخطة واضحة للمذاكرة والمراجعة والمتابعة المستمرة.`;
 			const slug = pathname.replace(/^\//, '');
 			const imagePath = this.isComputersSubscription
-				? '/assets/جداول مراجعات شهر 8/جدول جروب C.png'
-				: '/assets/جداول مراجعات شهر 8/جدول جروب A-B.png';
+				? (this.isEnglishSubscription ? '/assets/schedule-computers-en.jpg' : '/assets/schedule-computers-ar.jpg')
+				: (this.isEnglishSubscription ? '/assets/schedule-engineering-en.jpg' : '/assets/schedule-engineering-ar.jpg');
 			const url = `${siteUrl}/${slug}`;
 			const image = `${siteUrl.replace(/\/$/, '')}${encodeURI(imagePath)}`;
 
@@ -285,7 +288,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				description: `فورم ${this.subscriptionProgramLabel}`,
 				buttonText: `سجل ${this.subscriptionProgramLabel}`
 			},
-			scheduleImages: [],
+			scheduleImages: [this.getRouteSchedule()],
 			subscriptionWarnings: {
 				...this.subscriptionDetails.subscriptionWarnings,
 				validity: {
@@ -297,6 +300,22 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 					]
 				}
 			}
+		};
+		this.isScheduleReady = true;
+	}
+
+	private getRouteSchedule(): ScheduleImage {
+		const program = this.isComputersSubscription ? 'حاسبات' : 'هندسة';
+		const language = this.isEnglishSubscription ? 'لغات' : 'عربي';
+		const asset = this.isComputersSubscription
+			? (this.isEnglishSubscription ? 'schedule-computers-en.jpg' : 'schedule-computers-ar.jpg')
+			: (this.isEnglishSubscription ? 'schedule-engineering-en.jpg' : 'schedule-engineering-ar.jpg');
+
+		return {
+			group: `جدول شهر أكتوبر ${program} ${language}`,
+			src: `/assets/${asset}`,
+			alt: `جدول شهر أكتوبر ${program} ${language}`,
+			note: 'اضغط على الصورة للتكبير'
 		};
 	}
 
