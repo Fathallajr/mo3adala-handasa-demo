@@ -511,12 +511,18 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.isLoading = true;
 		this.currentContent = null;
 
-		this.contentService.loadPageState(pageKey, cmsPageDefaults[pageKey], { emitFallback: false }).pipe(timeout({ each: 15000 }), finalize(() => { if (requestId === this.pageLoadRequestId) this.isLoading = false; })).subscribe({
+		this.contentService.loadPageState(pageKey, cmsPageDefaults[pageKey], { emitFallback: false }).pipe(timeout({ each: 15000 }), finalize(() => {
+			if (requestId === this.pageLoadRequestId) this.isLoading = false;
+			this.refreshView();
+		})).subscribe({
 			next: content => {
-				if (requestId === this.pageLoadRequestId) this.currentContent = content;
+				if (requestId !== this.pageLoadRequestId) return;
+				this.currentContent = content;
+				this.refreshView();
 			},
 			error: () => {
 				this.errorMessage = 'تعذر تحميل المحتوى من السيرفر، تم عرض القالب الافتراضي.';
+				this.refreshView();
 			}
 		});
 	}
