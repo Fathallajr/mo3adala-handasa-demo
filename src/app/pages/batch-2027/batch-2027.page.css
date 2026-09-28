@@ -412,7 +412,7 @@
   .batch-page .batch-hero { min-height: auto !important; padding: 92px 0 44px !important; }
   .batch-hero-ref { width: min(100% - 28px, 560px); }
   .batch-hero-ref__topline { flex-direction: column; align-items: stretch; gap: 10px; padding-bottom: 14px; font-size: 12px; }
-  .batch-hero-ref__topline .batch-back { display: inline-flex; align-self: flex-start; padding: 7px 10px; border: 1px solid #dfe6f0; border-radius: 10px; background: #fff; color: #3f506f; }
+  .batch-hero-ref__topline .batch-back { display: inline-flex; align-self: flex-start; margin-top: 8px; padding: 7px 10px; border: 1px solid #dfe6f0; border-radius: 10px; background: #fff; color: #3f506f; }
   .batch-hero-ref__body { display: flex; flex-direction: column-reverse; gap: 10px; min-height: 0; }
   .batch-hero-ref__copy { padding: 28px 0 0; text-align: center; }
   .batch-hero-ref__eyebrow { font-size: 15px; }
