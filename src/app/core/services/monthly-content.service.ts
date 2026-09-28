@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { EMPTY, Observable, catchError, map, startWith, switchMap, timer, timeout } from 'rxjs';
+import { EMPTY, Observable, catchError, map, switchMap, timer, timeout } from 'rxjs';
 import { AdminAuthService } from './admin-auth.service';
 import { CmsPageKey } from '../cms-page.registry';
 
@@ -50,13 +50,11 @@ export class MonthlyContentService {
 		return this.http.get<Array<{ key: CmsPageKey; hasContent: boolean; updatedAt?: string }>>(`${this.apiBase}/content`);
 	}
 
-	loadPageState<T>(pageKey: CmsPageKey, fallback: T, options: { emitFallback?: boolean } = {}): Observable<T> {
+	loadPageState<T>(pageKey: CmsPageKey, _legacyFallback?: T, _options: { emitFallback?: boolean } = {}): Observable<T> {
 		const request$ = this.http.get<T>(`${this.apiBase}/content/${pageKey}`);
-		if (options.emitFallback === false) return request$;
-		return request$.pipe(
-			// اعرض نسخة الفرونت فورًا، ثم حدّثها من الـ CMS في الخلفية.
-			startWith(fallback)
-		).pipe(catchError(() => EMPTY));
+		// The CMS is the only source of page content. Never emit a local default
+		// while loading or after a missing/failed CMS request.
+		return request$.pipe(catchError(() => EMPTY));
 	}
 
 	watchPageState<T>(pageKey: CmsPageKey, refreshMs = 5000): Observable<T> {

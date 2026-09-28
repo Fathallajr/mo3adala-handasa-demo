@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs';
-import { CmsPageKey, cmsPageDefaults, cmsPageOptions } from '../../core/cms-page.registry';
+import { CmsPageKey, cmsPageOptions } from '../../core/cms-page.registry';
 import { displayProgramLabel } from '../../core/program-labels';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
@@ -511,7 +511,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.isLoading = true;
 		this.currentContent = null;
 
-		this.contentService.loadPageState(pageKey, cmsPageDefaults[pageKey], { emitFallback: false }).pipe(timeout({ each: 15000 }), finalize(() => {
+		this.contentService.loadPageState(pageKey).pipe(timeout({ each: 15000 }), finalize(() => {
 			if (requestId === this.pageLoadRequestId) this.isLoading = false;
 			this.refreshView();
 		})).subscribe({
@@ -521,7 +521,7 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.refreshView();
 			},
 			error: () => {
-				this.errorMessage = 'تعذر تحميل المحتوى من السيرفر، تم عرض القالب الافتراضي.';
+				this.errorMessage = 'لا يوجد محتوى محفوظ لهذه الصفحة أو تعذر تحميله من السيرفر.';
 				this.refreshView();
 			}
 		});
