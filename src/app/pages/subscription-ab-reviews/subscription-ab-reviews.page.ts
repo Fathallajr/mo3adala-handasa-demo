@@ -463,6 +463,11 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		}));
 	}
 
+	getScheduleHeading(): string {
+		return this.getSelectedSchedules()[0]?.group
+			|| `جدول شهر أكتوبر ${this.isComputersSubscription ? 'حاسبات' : 'هندسة'} ${this.isEnglishSubscription ? 'لغات' : 'عربي'}`;
+	}
+
 	onNumberCardClick(number: string): void {
 		if (this.isEnrollmentClosed) {
 			return;
