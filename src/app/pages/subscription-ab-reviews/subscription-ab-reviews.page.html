@@ -143,8 +143,8 @@
 						<div class="review-form__title">
 							<span><i class="bi bi-file-earmark-text"></i></span>
 							<div><strong>فورم {{ form.label }}</strong><small>{{ form.description }}</small></div>
-							<b [class.is-closed]="form.isClosed || isEnrollmentClosed">
-								{{ (form.isClosed || isEnrollmentClosed) ? 'مغلق مؤقتًا' : 'متاح الآن' }}
+							<b [class.is-closed]="isEnrollmentClosed">
+								{{ isEnrollmentClosed ? 'مغلق مؤقتًا' : 'متاح الآن' }}
 							</b>
 						</div>
 						<ul>
@@ -154,8 +154,8 @@
 						<button
 							(click)="openGoogleForm()"
 							class="review-primary-button"
-							[class.is-disabled]="isEnrollmentClosed || (form.isClosed && !form.allowOpenWhenClosed)"
-							[attr.disabled]="(isEnrollmentClosed || (form.isClosed && !form.allowOpenWhenClosed)) ? '' : null">
+							[class.is-disabled]="isEnrollmentClosed"
+							[attr.disabled]="isEnrollmentClosed ? '' : null">
 							{{ form.buttonText }} <i class="bi bi-arrow-up-left"></i>
 						</button>
 					</div>

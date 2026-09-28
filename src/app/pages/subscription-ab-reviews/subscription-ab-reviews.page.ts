@@ -133,7 +133,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				googleForm: {
 					...this.subscriptionDetails.googleForm,
 					...(legacyForm ?? {}),
-					link: this.getEnrollmentFormLink()
+					link: legacyForm?.link || this.getEnrollmentFormLink()
 				},
 				vodafoneNumbers: loaded.vodafoneNumbers?.length
 					? loaded.vodafoneNumbers
@@ -424,7 +424,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 
 	openGoogleForm(): void {
 		const form = this.getForm();
-		const isFormDisabled = this.isEnrollmentClosed || (form.isClosed && !form.allowOpenWhenClosed);
+		const isFormDisabled = this.isEnrollmentClosed;
 		if (isFormDisabled) {
 			return;
 		}

@@ -63,18 +63,8 @@
 		<div class="cms-subsection">
 			<div class="cms-row">
 				<div class="cms-field">
-					<label class="cms-label">رابط الفورم</label>
-					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.googleForm.link" placeholder="https://forms.gle/..." dir="ltr" />
-				</div>
-				<div class="cms-field" style="justify-content:flex-end">
-					<label class="cms-label">حالة التسجيل</label>
-					<div class="cms-toggle-wrap">
-						<label class="cms-switch">
-							<input type="checkbox" [(ngModel)]="data.subscriptionDetails.googleForm.isClosed" />
-							<span class="cms-slider"></span>
-						</label>
-						<span class="cms-toggle-label">{{ data.subscriptionDetails.googleForm.isClosed ? 'مغلق' : 'مفتوح' }}</span>
-					</div>
+					<label class="cms-label">رابط الفورم الموحد</label>
+					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.googleForm.link" placeholder="https://forms.gle/..." dir="ltr" readonly />
 				</div>
 			</div>
 			<div class="cms-row">

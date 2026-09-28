@@ -48,18 +48,8 @@
 			<div class="cms-subsection-title">جروب C</div>
 			<div class="cms-row">
 				<div class="cms-field">
-					<label class="cms-label">رابط الفورم</label>
+					<label class="cms-label">رابط الفورم الموحد</label>
 					<input class="cms-input" [(ngModel)]="data.subscriptionDetails.googleForms.groupC.link" placeholder="https://forms.gle/..." dir="ltr" />
-				</div>
-				<div class="cms-field" style="justify-content:flex-end">
-					<label class="cms-label">حالة التسجيل</label>
-					<div class="cms-toggle-wrap">
-						<label class="cms-switch">
-							<input type="checkbox" [(ngModel)]="data.subscriptionDetails.googleForms.groupC.isClosed" />
-							<span class="cms-slider"></span>
-						</label>
-						<span class="cms-toggle-label">{{ data.subscriptionDetails.googleForms.groupC.isClosed ? 'مغلق' : 'مفتوح' }}</span>
-					</div>
 				</div>
 			</div>
 			<div class="cms-row">

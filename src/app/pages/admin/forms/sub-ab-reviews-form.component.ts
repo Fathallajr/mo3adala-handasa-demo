@@ -14,6 +14,7 @@ import { subscriptionFormStyles } from './subscription-form-styles';
 })
 export class SubAbReviewsFormComponent implements OnChanges {
 	@Input() content: unknown;
+	@Input() pageKey = '';
 	private readonly cms = inject(MonthlyContentService);
 	data: any = null;
 	uploadingField: string | null = null;
@@ -29,6 +30,9 @@ export class SubAbReviewsFormComponent implements OnChanges {
 		sd.requiredInfo ??= [];
 		sd.review ??= { name: 'مراجعات A-B', price: '800' };
 		sd.googleForm ??= {};
+		sd.googleForm.link = this.pageKey.endsWith('-en')
+			? 'https://forms.gle/JZAvJqZcaPLKFR6f7'
+			: 'https://forms.gle/kHieqwyKbubsUZmPA';
 		if (!sd.googleForm.link && sd.googleForms) {
 			sd.googleForm = { ...sd.googleForm, ...(sd.googleForms.groupA ?? sd.googleForms.groupB ?? {}) };
 		}
