@@ -161,6 +161,8 @@ tbody tr:hover { background:#faf9ff; }
   .admin-sidebar .page-group { display:contents; }
   .admin-editor { height:auto; max-height:none; overflow:visible; }
 }
+.delete-dialog-backdrop { pointer-events: none; }
+.delete-dialog { pointer-events: auto; }
 .wheel-view .editor-toolbar .editor-actions > button:nth-child(2) {
 	display: none;
 }
