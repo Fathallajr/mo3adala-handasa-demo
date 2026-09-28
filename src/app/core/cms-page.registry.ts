@@ -57,6 +57,37 @@ export const cmsPageOptions: CmsPageOption[] = [
 	{ key: 'subscription-intensive', route: '/subscription-intensive', title: 'الاشتراك المكثف', description: 'خطط المكثف والدفع والفودافون كاش', group: 'الاشتراكات' },
 ];
 
+function createSubscriptionPageDefault(schedule: { group: string; src: string; alt: string; note: string }): unknown {
+	const page = JSON.parse(JSON.stringify(monthlyContentDefaults['subscription-ab-reviews'])) as any;
+	page.subscriptionDetails.scheduleImages = [schedule];
+	return page;
+}
+
+const engineeringArabicSchedule = {
+	group: 'جدول شهر أكتوبر هندسة عربي',
+	src: '/assets/جداول مراجعات شهر 8/جدول جروب A-B.png',
+	alt: 'جدول شهر أكتوبر هندسة عربي',
+	note: 'اضغط على الصورة للتكبير'
+};
+const engineeringEnglishSchedule = {
+	group: 'جدول شهر أكتوبر هندسة لغات',
+	src: '/assets/جداول مراجعات شهر 8/جدول جروب A-B.png',
+	alt: 'جدول شهر أكتوبر هندسة لغات',
+	note: 'اضغط على الصورة للتكبير'
+};
+const computersArabicSchedule = {
+	group: 'جدول شهر أكتوبر حاسبات عربي',
+	src: '/assets/جداول مراجعات شهر 8/جدول جروب C.png',
+	alt: 'جدول شهر أكتوبر حاسبات عربي',
+	note: 'اضغط على الصورة للتكبير'
+};
+const computersEnglishSchedule = {
+	group: 'جدول شهر أكتوبر حاسبات لغات',
+	src: '/assets/جداول مراجعات شهر 8/جدول جروب C.png',
+	alt: 'جدول شهر أكتوبر حاسبات لغات',
+	note: 'اضغط على الصورة للتكبير'
+};
+
 export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 	home: {
 		visible: true,
@@ -154,12 +185,12 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 	'subscription-details': monthlyContentDefaults['subscription-details'],
 	'subscription-ab-reviews': monthlyContentDefaults['subscription-ab-reviews'],
 	'subscription-intensive': monthlyContentDefaults['subscription-intensive'],
-	'subscription-computers': monthlyContentDefaults['subscription-ab-reviews']
+	'subscription-computers': createSubscriptionPageDefault(computersArabicSchedule)
 	,
-	'subscription-engineering-ar': monthlyContentDefaults['subscription-ab-reviews'],
-	'subscription-engineering-en': monthlyContentDefaults['subscription-ab-reviews'],
-	'subscription-computers-ar': monthlyContentDefaults['subscription-ab-reviews'],
-	'subscription-computers-en': monthlyContentDefaults['subscription-ab-reviews'],
+	'subscription-engineering-ar': createSubscriptionPageDefault(engineeringArabicSchedule),
+	'subscription-engineering-en': createSubscriptionPageDefault(engineeringEnglishSchedule),
+	'subscription-computers-ar': createSubscriptionPageDefault(computersArabicSchedule),
+	'subscription-computers-en': createSubscriptionPageDefault(computersEnglishSchedule),
 	'batch-2027': {
 		visible: true,
 		wheelVisible: true,
