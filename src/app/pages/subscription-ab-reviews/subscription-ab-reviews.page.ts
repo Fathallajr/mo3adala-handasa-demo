@@ -455,7 +455,12 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			}];
 		}
 
-		return this.subscriptionDetails.scheduleImages.slice(0, 1).map(schedule => ({ ...schedule, group: displayProgramLabel(schedule.group), alt: displayProgramLabel(schedule.alt) }));
+		return this.subscriptionDetails.scheduleImages.slice(0, 1).map(schedule => ({
+			...schedule,
+			src: this.monthlyContent.resolveAssetUrl(schedule.src),
+			group: displayProgramLabel(schedule.group),
+			alt: displayProgramLabel(schedule.alt)
+		}));
 	}
 
 	onNumberCardClick(number: string): void {

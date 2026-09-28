@@ -30,7 +30,7 @@ export class MonthlyContentService {
 	resolveAssetUrl(url: string): string {
 		if (!url) return '';
 		if (url.startsWith('http')) return url;
-		return this.serverBase + url;
+		return url.startsWith('/uploads/') ? this.serverBase + url : url;
 	}
 
 	listPages(): Observable<Array<{ key: CmsPageKey; hasContent: boolean; updatedAt?: string }>> {
