@@ -194,6 +194,7 @@
 					title="فيديو توضيحي - اشتراك الشهر الأول"
 					frameborder="0"
 					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+					referrerpolicy="strict-origin-when-cross-origin"
 					allowfullscreen>
 				</iframe>
 			</div>
@@ -211,7 +212,7 @@
 						<span><i class="bi bi-play-fill"></i></span>
 						<small>اضغط لمشاهدة الفيديو</small>
 					</button>
-					<iframe *ngIf="isVideoLoaded" [src]="getVideoEmbedUrl()" title="فيديو توضيحي - اشتراك الشهر الأول" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+					<iframe *ngIf="isVideoLoaded" [src]="getVideoEmbedUrl()" title="فيديو توضيحي - اشتراك الشهر الأول" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 				</div>
 			</div>
 			<div class="subscription-schedule" *ngIf="isScheduleReady && getSelectedSchedules().length">

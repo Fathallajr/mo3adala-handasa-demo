@@ -212,7 +212,8 @@ app.use(express.urlencoded({ extended: false, limit: '32kb' }));
 app.use((req, res, next) => {
 	res.setHeader('X-Content-Type-Options', 'nosniff');
 	res.setHeader('X-Frame-Options', 'DENY');
-	res.setHeader('Referrer-Policy', 'same-origin');
+	// YouTube embeds need the site's origin in the Referer header (otherwise they return Error 153).
+	res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 	if (req.path.startsWith('/api/')) res.setHeader('Cache-Control', 'no-store');
 	next();
 });

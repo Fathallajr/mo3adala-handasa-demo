@@ -391,13 +391,13 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	getVideoEmbedUrl(): SafeResourceUrl {
-		const videoId = 'H2_dh3SsfiI';
+		const videoId = 'T-5MVk5jq9Q';
 		const url = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
 		return this.sanitizer.bypassSecurityTrustResourceUrl(url);
 	}
 
 	getVideoThumbnail(): string {
-		const videoId = 'H2_dh3SsfiI';
+		const videoId = 'T-5MVk5jq9Q';
 		return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 	}
 
