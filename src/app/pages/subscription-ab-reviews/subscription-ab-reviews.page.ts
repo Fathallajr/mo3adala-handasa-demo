@@ -35,10 +35,6 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	private readonly arabicEnrollmentFormLink = 'https://forms.gle/mhopqPdxUPxQEN9K8';
 	private readonly englishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
 	private readonly computersEnglishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
-	private readonly refundPolicyPoints = [
-		'⚠️ السحب متاح خلال أسبوع من الاشتراك مع استرداد نصف المبلغ فقط.',
-		'بعد الأسبوع، لا يُمكن استرداد أي مبلغ.'
-	];
 	private contentSubscription?: Subscription;
 	isComputersSubscription = false;
 	isEnglishSubscription = false;
@@ -135,16 +131,11 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 					...this.subscriptionDetails.review,
 					...(loaded.review ?? {}),
 					name: loaded.review?.name ?? this.subscriptionDetails.review.name,
-					price: this.isComputersSubscription
-						? '650'
-						: (loaded.review?.price ?? loaded.groupB?.price ?? loaded.groupA?.price ?? '800')
+					price: loaded.review?.price ?? loaded.groupB?.price ?? loaded.groupA?.price ?? this.subscriptionDetails.review.price
 				},
 				googleForm: {
 					...this.subscriptionDetails.googleForm,
-					...(legacyForm ?? {}),
-					// The form is determined by this route. Do not let an old CMS
-					// record reuse another program's form link.
-					link: this.getEnrollmentFormLink()
+					...(legacyForm ?? {})
 				},
 				vodafoneNumbers: loaded.vodafoneNumbers?.length
 					? loaded.vodafoneNumbers
@@ -152,9 +143,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				// Keep each public subscription route isolated. Uploaded CMS assets
 				// are valid for the selected route, while a legacy /assets path from
 				// another page must not replace this route's default schedule.
-				scheduleImages: this.hasValidRouteSchedules(loaded.scheduleImages)
-					? loaded.scheduleImages
-					: this.subscriptionDetails.scheduleImages,
+				scheduleImages: loaded.scheduleImages ?? this.subscriptionDetails.scheduleImages,
 				subscriptionWarnings: {
 					validity: {
 						...this.subscriptionDetails.subscriptionWarnings.validity,
@@ -162,9 +151,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 					},
 					refund: {
 						...this.subscriptionDetails.subscriptionWarnings.refund,
-						...(loaded.subscriptionWarnings?.refund ?? {}),
-						title: 'سياسة الاسترداد',
-						points: [...this.refundPolicyPoints]
+						...(loaded.subscriptionWarnings?.refund ?? {})
 					}
 				}
 			};
@@ -226,8 +213,9 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			validity: {
 				title: 'مدة صلاحية الاشتراك:',
 				points: [
-					'الكود ساري حتى نهاية الشهر المشترك فيه',
-					'عند انتهاء الشهر، يتم إغلاق المحتوى تلقائياً، وعند تجديد الاشتراك يتم فتح المحتوى من جديد.'
+					'الكود شغال لغاية آخر الشهر فقط',
+					'مع انتهاء الشهر بيقفل المحتوى تلقائياً',
+					'عند تجديد الاشتراك الكود الجديد بيفتحلك كل المحتوى من الأول'
 				]
 			},
 			refund: {
@@ -311,16 +299,12 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				buttonText: `سجل ${this.subscriptionProgramLabel}`
 			},
 			scheduleImages: [this.getRouteSchedule()],
-			subscriptionWarnings: {
-				...this.subscriptionDetails.subscriptionWarnings,
-				validity: {
-					...this.subscriptionDetails.subscriptionWarnings.validity,
-					points: [
-						`المحتوى الخاص بـ ${this.subscriptionProgramLabel}`,
-						'الكود ساري حتى نهاية الشهر المشترك فيه',
-						'عند انتهاء الشهر، يتم إغلاق المحتوى تلقائياً، وعند تجديد الاشتراك يتم فتح المحتوى من جديد.'
-					]
-				}
+				subscriptionWarnings: {
+					...this.subscriptionDetails.subscriptionWarnings,
+					validity: {
+						...this.subscriptionDetails.subscriptionWarnings.validity,
+						points: [...this.subscriptionDetails.subscriptionWarnings.validity.points]
+					}
 			}
 		};
 		this.isScheduleReady = true;

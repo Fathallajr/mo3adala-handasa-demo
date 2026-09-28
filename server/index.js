@@ -40,27 +40,6 @@ const PAGE_KEYS = [
 ];
 const LEAD_STATUSES = ['new', 'contacted', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
 const FEEDBACK_STATUSES = ['new', 'reviewed', 'published', 'archived'];
-const SUBSCRIPTION_PAGE_KEYS = new Set([
-	'subscription-engineering-ar',
-	'subscription-engineering-en',
-	'subscription-computers-ar',
-	'subscription-computers-en'
-]);
-const SUBSCRIPTION_ENROLLMENT_FORMS = {
-	ar: 'https://forms.gle/mhopqPdxUPxQEN9K8',
-	en: 'https://forms.gle/WFv9urJ1QDu3eE5y9'
-};
-const SUBSCRIPTION_SCHEDULE_DEFAULTS = {
-	'subscription-engineering-ar': '/assets/schedule-engineering-ar.jpg',
-	'subscription-engineering-en': '/assets/schedule-engineering-en.jpg',
-	'subscription-computers-ar': '/assets/schedule-computers-ar.jpg',
-	'subscription-computers-en': '/assets/schedule-computers-en.jpg'
-};
-const SUBSCRIPTION_REFUND_POLICY = [
-	'⚠️ السحب متاح خلال أسبوع من الاشتراك مع استرداد نصف المبلغ فقط.',
-	'بعد الأسبوع، لا يُمكن استرداد أي مبلغ.'
-];
-const SUBSCRIPTION_REQUIRED_FEATURE = 'سيستم متابعة';
 // Require a fresh admin login every six hours.
 const TOKEN_TTL_MS = 6 * 60 * 60 * 1000;
 const DATA_DIR = path.join(__dirname, 'data');
@@ -1034,32 +1013,9 @@ function noCache(res) {
 }
 
 function normalizeSubscriptionCmsContent(pageKey, content) {
-	if (!SUBSCRIPTION_PAGE_KEYS.has(pageKey) || !content || typeof content !== 'object') return content;
-
-	const data = JSON.parse(JSON.stringify(content));
-	const details = data.subscriptionDetails ??= {};
-	details.googleForm ??= {};
-	details.googleForm.link = pageKey.endsWith('-en')
-		? SUBSCRIPTION_ENROLLMENT_FORMS.en
-		: SUBSCRIPTION_ENROLLMENT_FORMS.ar;
-	details.subscriptionWarnings ??= {};
-	details.subscriptionWarnings.refund = {
-		title: 'سياسة الاسترداد',
-		points: [...SUBSCRIPTION_REFUND_POLICY]
-	};
-	details.features = Array.isArray(details.features) ? details.features : [];
-	if (!details.features.some(feature => String(feature).trim() === SUBSCRIPTION_REQUIRED_FEATURE)) {
-		details.features.push(SUBSCRIPTION_REQUIRED_FEATURE);
-	}
-
-	const routeDefault = SUBSCRIPTION_SCHEDULE_DEFAULTS[pageKey];
-	if (routeDefault && Array.isArray(details.scheduleImages)) {
-		for (const schedule of details.scheduleImages) {
-			const src = String(schedule?.src || '').trim();
-			if (src.startsWith('/assets/') || src.startsWith('assets/')) schedule.src = routeDefault;
-		}
-	}
-	return data;
+	// CMS content is authoritative. Reading a page must never rewrite it or
+	// silently replace values that differ from what the dashboard shows.
+	return content;
 }
 
 app.get('/api/content', async (req, res) => {
