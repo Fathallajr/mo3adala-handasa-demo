@@ -18,6 +18,7 @@ export class SubAbReviewsFormComponent implements OnChanges {
 	private readonly cms = inject(MonthlyContentService);
 	private readonly changeDetector = inject(ChangeDetectorRef);
 	data: any = null;
+	enrollmentCloseAt = '';
 	uploadingField: string | null = null;
 	uploadError = '';
 
@@ -37,12 +38,25 @@ export class SubAbReviewsFormComponent implements OnChanges {
 		}
 		raw.enrollmentWindow ??= { days: 0, hours: 0, minutes: 0, seconds: 0, startedAt: '', expiresAt: '' };
 		for (const unit of ['days', 'hours', 'minutes', 'seconds']) raw.enrollmentWindow[unit] = Math.max(0, Number(raw.enrollmentWindow[unit]) || 0);
+		this.enrollmentCloseAt = this.toLocalDateTime(raw.enrollmentWindow.expiresAt);
 
 	this.data = raw;
 	}
 
 	startEnrollmentWindow(): void {
 		const window = this.data.enrollmentWindow;
+		if (this.enrollmentCloseAt) {
+			const closingDate = new Date(this.enrollmentCloseAt);
+			if (!Number.isNaN(closingDate.getTime()) && closingDate.getTime() > Date.now()) {
+				const startedAt = new Date();
+				window.startedAt = startedAt.toISOString();
+				window.expiresAt = closingDate.toISOString();
+				this.updateDurationFromDates(startedAt, closingDate);
+				this.data.isEnrollmentClosed = false;
+				return;
+			}
+			return;
+		}
 		const totalSeconds = (Number(window.days) || 0) * 86400
 			+ (Number(window.hours) || 0) * 3600
 			+ (Number(window.minutes) || 0) * 60
@@ -55,8 +69,39 @@ export class SubAbReviewsFormComponent implements OnChanges {
 	}
 
 	clearEnrollmentWindow(): void {
+		this.enrollmentCloseAt = '';
 		this.data.enrollmentWindow.startedAt = '';
 		this.data.enrollmentWindow.expiresAt = '';
+		this.data.enrollmentWindow.days = 0;
+		this.data.enrollmentWindow.hours = 0;
+		this.data.enrollmentWindow.minutes = 0;
+		this.data.enrollmentWindow.seconds = 0;
+	}
+
+	onEnrollmentCloseAtChange(value: string): void {
+		this.enrollmentCloseAt = value;
+		this.data.enrollmentWindow.startedAt = '';
+		this.data.enrollmentWindow.expiresAt = '';
+		const closingDate = new Date(value);
+		if (Number.isNaN(closingDate.getTime()) || closingDate.getTime() <= Date.now()) return;
+		this.updateDurationFromDates(new Date(), closingDate);
+	}
+
+	private updateDurationFromDates(start: Date, end: Date): void {
+		let totalSeconds = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
+		this.data.enrollmentWindow.days = Math.floor(totalSeconds / 86400);
+		totalSeconds %= 86400;
+		this.data.enrollmentWindow.hours = Math.floor(totalSeconds / 3600);
+		totalSeconds %= 3600;
+		this.data.enrollmentWindow.minutes = Math.floor(totalSeconds / 60);
+		this.data.enrollmentWindow.seconds = totalSeconds % 60;
+	}
+
+	private toLocalDateTime(value: string): string {
+		const date = new Date(value);
+		if (!value || Number.isNaN(date.getTime())) return '';
+		const pad = (part: number) => String(part).padStart(2, '0');
+		return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 	}
 
 	addVodafone(): void { this.data.subscriptionDetails.vodafoneNumbers.push({ number: '', owner: '' }); }

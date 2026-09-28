@@ -15,12 +15,10 @@
 		</div>
 		<div class="cms-subsection" style="margin-top:1rem">
 			<div class="cms-section-title">مدة فتح الاشتراك التلقائية</div>
-			<p class="cms-help">حدد المدة ثم اضغط بدء المدة، وبعدها اضغط حفظ التعديلات. عند وصول العداد للصفر يُغلق الاشتراك تلقائيًا.</p>
+			<p class="cms-help">اختار تاريخ ووقت الإغلاق، وسيتم حساب الأيام والساعات تلقائيًا. اضغط بدء المدة ثم احفظ التعديلات.</p>
 			<div class="cms-row">
-				<div class="cms-field"><label class="cms-label">الأيام</label><input class="cms-input" type="number" min="0" [(ngModel)]="data.enrollmentWindow.days" dir="ltr" /></div>
-				<div class="cms-field"><label class="cms-label">الساعات</label><input class="cms-input" type="number" min="0" max="23" [(ngModel)]="data.enrollmentWindow.hours" dir="ltr" /></div>
-				<div class="cms-field"><label class="cms-label">الدقائق</label><input class="cms-input" type="number" min="0" max="59" [(ngModel)]="data.enrollmentWindow.minutes" dir="ltr" /></div>
-				<div class="cms-field"><label class="cms-label">الثواني</label><input class="cms-input" type="number" min="0" max="59" [(ngModel)]="data.enrollmentWindow.seconds" dir="ltr" /></div>
+				<div class="cms-field"><label class="cms-label">موعد إغلاق الاشتراك</label><input class="cms-input" type="datetime-local" [ngModel]="enrollmentCloseAt" (ngModelChange)="onEnrollmentCloseAtChange($event)" dir="ltr" /></div>
+				<div class="cms-field"><label class="cms-label">المدة المحسوبة</label><div class="cms-help" dir="ltr">{{ data.enrollmentWindow.days }} يوم، {{ data.enrollmentWindow.hours }} ساعة، {{ data.enrollmentWindow.minutes }} دقيقة</div></div>
 			</div>
 			<div class="cms-row" style="align-items:center">
 				<button type="button" class="cms-button" (click)="startEnrollmentWindow()">بدء مدة الاشتراك</button>
