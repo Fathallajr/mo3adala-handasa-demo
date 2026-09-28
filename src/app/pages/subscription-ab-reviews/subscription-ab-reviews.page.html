@@ -197,6 +197,7 @@
 					referrerpolicy="strict-origin-when-cross-origin"
 					allowfullscreen>
 				</iframe>
+				<a class="review-video__fallback" [href]="getVideoWatchUrl()" target="_blank" rel="noopener noreferrer">لو الفيديو ما اشتغلش، افتحه على YouTube</a>
 			</div>
 		</section>
 
@@ -213,6 +214,7 @@
 						<small>اضغط لمشاهدة الفيديو</small>
 					</button>
 					<iframe *ngIf="isVideoLoaded" [src]="getVideoEmbedUrl()" title="فيديو توضيحي - اشتراك الشهر الأول" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+					<a class="review-video__fallback" *ngIf="isVideoLoaded" [href]="getVideoWatchUrl()" target="_blank" rel="noopener noreferrer">لو الفيديو ما اشتغلش، افتحه على YouTube</a>
 				</div>
 			</div>
 			<div class="subscription-schedule" *ngIf="isScheduleReady && getSelectedSchedules().length">

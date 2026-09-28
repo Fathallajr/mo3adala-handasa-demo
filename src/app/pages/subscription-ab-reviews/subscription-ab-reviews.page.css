@@ -1224,6 +1224,19 @@
 	border: 0;
 }
 
+.review-video__fallback {
+	display: block;
+	width: fit-content;
+	margin: .75rem auto 0;
+	color: #cbd5e1;
+	font-size: .78rem;
+	font-weight: 700;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.review-video__fallback:hover { color: #fff; }
+
 .review-video__cover {
 	position: relative;
 	display: block;
