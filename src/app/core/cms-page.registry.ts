@@ -58,6 +58,7 @@ export const cmsPageOptions: CmsPageOption[] = [
 function createSubscriptionPageDefault(schedule: { group: string; src: string; alt: string; note: string }, formLink?: string): unknown {
 	const page = JSON.parse(JSON.stringify(monthlyContentDefaults['subscription-ab-reviews'])) as any;
 	page.subscriptionDetails.scheduleImages = [schedule];
+	if (schedule.src.includes('computers')) page.subscriptionDetails.review.price = '600';
 	if (formLink) page.subscriptionDetails.googleForm.link = formLink;
 	return page;
 }

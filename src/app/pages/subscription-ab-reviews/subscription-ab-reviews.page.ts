@@ -288,9 +288,9 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			review: {
 				...this.subscriptionDetails.review,
 				name: this.subscriptionProgramLabel,
-				price: this.isComputersSubscription ? '650' : '800'
+				price: this.isComputersSubscription ? '600' : '800'
 			},
-			subtitle: `ابدأ طريقك في ${this.subscriptionProgramLabel} باشتراك كامل بسعر ${this.isComputersSubscription ? '650' : '800'} جنيه.`,
+			subtitle: `ابدأ طريقك في ${this.subscriptionProgramLabel} باشتراك كامل بسعر ${this.isComputersSubscription ? '600' : '800'} جنيه.`,
 			googleForm: {
 				...this.subscriptionDetails.googleForm,
 				link: this.getEnrollmentFormLink(),
