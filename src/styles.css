@@ -51,6 +51,12 @@ canvas {
   box-sizing: border-box;
 }
 
+/* Keep admin confirmation dialogs fixed to the actual viewport, not the animated route wrapper. */
+body:has(.delete-dialog-backdrop) .route-page-transition {
+  transform: none !important;
+  will-change: auto !important;
+}
+
 /* Each page opts into its own entrance animation; this does not depend on router animations. */
 .page-enter-animation {
   animation: page-enter-animation .32s cubic-bezier(.22, 1, .36, 1) both;
