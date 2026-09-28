@@ -460,25 +460,30 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		event.preventDefault();
 		event.stopPropagation();
 
-		const response = await fetch(schedule.src, { cache: 'no-store' });
-		if (!response.ok) {
-			throw new Error(`Unable to download schedule: ${response.status}`);
-		}
+		try {
+			const response = await fetch(schedule.src, { cache: 'no-store' });
+			if (!response.ok) {
+				throw new Error(`Unable to download schedule: ${response.status}`);
+			}
 
-		const blob = await response.blob();
-		const extension = blob.type.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg';
-		const filename = `${schedule.group || 'جدول الاشتراك'}.${extension}`
-			.replace(/[\\/:*?"<>|]/g, '-')
-			.replace(/\s+/g, ' ')
-			.trim();
-		const objectUrl = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = objectUrl;
-		link.download = filename;
-		document.body.appendChild(link);
-		link.click();
-		link.remove();
-		setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+			const blob = await response.blob();
+			const extension = blob.type.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg';
+			const filename = `${schedule.group || 'جدول الاشتراك'}.${extension}`
+				.replace(/[\\/:*?"<>|]/g, '-')
+				.replace(/\s+/g, ' ')
+				.trim();
+			const objectUrl = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = objectUrl;
+			link.download = filename;
+			link.rel = 'noopener';
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+		} catch (error) {
+			console.error('تعذر تحميل جدول الاشتراك', error);
+		}
 	}
 
 	onNumberCardClick(number: string): void {
@@ -528,18 +533,16 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		document.body.removeChild(textArea);
 	}
 
-	openImageModal(image: ScheduleImage): void {
+	openImageModal(event: MouseEvent, image: ScheduleImage): void {
+		event.preventDefault();
+		event.stopPropagation();
 		this.activeScheduleImage = image;
 		this.isImageModalOpen = true;
-		document.documentElement.style.overflow = 'hidden';
-		document.body.style.overflow = 'hidden';
 	}
 
 	closeImageModal(): void {
 		this.isImageModalOpen = false;
 		this.activeScheduleImage = null;
-		document.documentElement.style.overflow = '';
-		document.body.style.overflow = '';
 	}
 
 }

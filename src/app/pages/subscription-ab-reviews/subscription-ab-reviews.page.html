@@ -221,7 +221,7 @@
 				</header>
 				<div class="subscription-schedule__grid">
 					<article *ngFor="let schedule of getSelectedSchedules()">
-						<button type="button" class="subscription-schedule__preview" (click)="openImageModal(schedule)" [attr.aria-label]="'فتح ' + schedule.alt">
+						<button type="button" class="subscription-schedule__preview" (click)="openImageModal($event, schedule)" [attr.aria-label]="'فتح ' + schedule.alt">
 							<img [src]="schedule.src" [alt]="schedule.alt" loading="lazy">
 							<span><i class="bi bi-arrows-fullscreen"></i> اضغط للتكبير</span>
 						</button>
@@ -253,7 +253,7 @@
 			</div>
 		</section>
 
-		<div class="subscription-schedule__lightbox" *ngIf="isImageModalOpen && activeScheduleImage as modalImage" (click)="closeImageModal()">
+		<div class="subscription-schedule__lightbox" *ngIf="isImageModalOpen && activeScheduleImage as modalImage" role="dialog" aria-modal="true" (click)="closeImageModal()">
 			<div (click)="$event.stopPropagation()">
 				<button type="button" (click)="closeImageModal()" aria-label="إغلاق"><i class="bi bi-x-lg"></i></button>
 				<img [src]="modalImage.src" [alt]="modalImage.alt || 'جدول المراجعة - مكبر'">

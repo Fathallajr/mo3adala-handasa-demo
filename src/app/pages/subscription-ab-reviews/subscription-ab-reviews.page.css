@@ -61,7 +61,7 @@
 		radial-gradient(circle at 95% 70%, rgba(42, 91, 215, .07), transparent 28rem),
 		var(--paper);
 	font-family: 'TheYearofHandicrafts', sans-serif !important;
-	overflow: hidden;
+	overflow: visible;
 }
 
 .review-page button,
