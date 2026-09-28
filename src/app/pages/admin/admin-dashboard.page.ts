@@ -535,12 +535,6 @@ export class AdminDashboardPageComponent implements OnInit {
 		});
 	}
 
-	resetToDefaults(): void {
-		this.currentContent = structuredClone(cmsPageDefaults[this.selectedPageKey]);
-		this.statusMessage = 'تم الرجوع للقالب الافتراضي.';
-		this.errorMessage = '';
-	}
-
 	save(): void {
 		if (!this.currentContent || this.isLoading || this.isSaving) return;
 		this.errorMessage = '';

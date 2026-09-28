@@ -103,8 +103,6 @@
 				</div>
 				<div class="editor-actions">
 					<button type="button" class="secondary-btn" (click)="openPreview()">فتح الصفحة للمراجعة ↗</button>
-					<button type="button" class="secondary-btn" (click)="loadPage(selectedPageKey)" [disabled]="isLoading">تحميل آخر نسخة</button>
-					<button type="button" class="secondary-btn" (click)="resetToDefaults()">القالب الافتراضي</button>
 					<button type="button" class="primary-btn" (click)="save()" [disabled]="isSaving || isLoading">
 						{{ isSaving ? 'جاري الحفظ...' : 'حفظ على السيرفر' }}
 					</button>
