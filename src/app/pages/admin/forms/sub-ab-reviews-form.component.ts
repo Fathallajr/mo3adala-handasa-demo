@@ -38,6 +38,14 @@ export class SubAbReviewsFormComponent implements OnChanges {
 			sd.googleForm.link = this.pageKey.endsWith('-en')
 				? 'https://forms.gle/WFv9urJ1QDu3eE5y9'
 				: 'https://forms.gle/mhopqPdxUPxQEN9K8';
+			sd.subscriptionWarnings ??= {};
+			sd.subscriptionWarnings.refund = {
+				title: 'سياسة الاسترداد',
+				points: [
+					'⚠️ السحب متاح خلال أسبوع من الاشتراك مع استرداد نصف المبلغ فقط.',
+					'بعد الأسبوع، لا يُمكن استرداد أي مبلغ.'
+				]
+			};
 		}
 		const routeScheduleDefaults: Record<string, string> = {
 			'subscription-engineering-ar': '/assets/schedule-engineering-ar.jpg',

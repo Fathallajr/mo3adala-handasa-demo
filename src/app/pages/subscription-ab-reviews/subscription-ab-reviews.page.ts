@@ -35,6 +35,10 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	private readonly arabicEnrollmentFormLink = 'https://forms.gle/mhopqPdxUPxQEN9K8';
 	private readonly englishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
 	private readonly computersEnglishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
+	private readonly refundPolicyPoints = [
+		'⚠️ السحب متاح خلال أسبوع من الاشتراك مع استرداد نصف المبلغ فقط.',
+		'بعد الأسبوع، لا يُمكن استرداد أي مبلغ.'
+	];
 	private contentSubscription?: Subscription;
 	isComputersSubscription = false;
 	isEnglishSubscription = false;
@@ -156,7 +160,9 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 					},
 					refund: {
 						...this.subscriptionDetails.subscriptionWarnings.refund,
-						...(loaded.subscriptionWarnings?.refund ?? {})
+						...(loaded.subscriptionWarnings?.refund ?? {}),
+						title: 'سياسة الاسترداد',
+						points: [...this.refundPolicyPoints]
 					}
 				}
 			};
