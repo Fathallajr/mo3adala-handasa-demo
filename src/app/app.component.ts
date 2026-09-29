@@ -151,6 +151,7 @@ export class AppComponent implements OnInit, OnDestroy {
 			this.countdownHours = Math.floor((remaining % 86400000) / 3600000);
 			this.countdownMinutes = Math.floor((remaining % 3600000) / 60000);
 			this.countdownSeconds = Math.floor((remaining % 60000) / 1000);
+			this.cdr.detectChanges();
 		};
 		update();
 		this.offerCountdownTimer = setInterval(update, 1000);
