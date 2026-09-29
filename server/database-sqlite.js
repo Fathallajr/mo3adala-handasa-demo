@@ -132,6 +132,29 @@ function deleteLead(id) {
 	return db.prepare('DELETE FROM leads WHERE id = ?').run(id).changes > 0;
 }
 
+function updateLead(id, changes) {
+	const fields = [];
+	const values = [];
+	if (changes.status !== undefined) { fields.push('status = ?'); values.push(changes.status); }
+	if (changes.updatedAt !== undefined) { fields.push('updated_at = ?'); values.push(changes.updatedAt); }
+	if (!fields.length) return getLead(id);
+	values.push(id);
+	const result = db.prepare(`UPDATE leads SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+	if (!result.changes) return null;
+	return getLead(id);
+}
+
+function getLead(id) {
+	const lead = db.prepare('SELECT id,name,whatsapp,school,student_type AS studentType,program,source,status,notes,attribution,created_at AS createdAt,updated_at AS updatedAt FROM leads WHERE id = ?').get(id);
+	if (!lead) return null;
+	try { lead.attribution = JSON.parse(lead.attribution || '{}'); } catch { lead.attribution = {}; }
+	return lead;
+}
+
+function createAuditLog(log) {
+	db.prepare('INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES (?,?,?,?,?,?,?)').run(log.id, log.action || '', log.entityType || '', log.entityId || '', log.actor || '', log.ip || '', log.createdAt || new Date().toISOString());
+}
+
 function readWheelState() {
 	const row = db.prepare('SELECT data FROM wheel_state WHERE id = 1').get();
 	let state;
@@ -213,4 +236,4 @@ function listWheelClaims() { readWheelState(); return db.prepare('SELECT token,n
 function deleteWheelClaim(token) { return db.prepare('DELETE FROM wheel_claims WHERE token = ?').run(token).changes > 0; }
 function countWheelClaims() { listWheelClaims(); return db.prepare('SELECT COUNT(*) AS count FROM wheel_claims').get().count; }
 
-module.exports = { readStore, writeStore, savePage, createLead, deleteLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, setMissingFeedbackBatch, listPublishedFeedback, databaseFile };
+module.exports = { readStore, writeStore, savePage, createLead, getLead, updateLead, createAuditLog, deleteLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, setMissingFeedbackBatch, listPublishedFeedback, databaseFile };

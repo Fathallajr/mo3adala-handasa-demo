@@ -743,6 +743,14 @@ app.get('/api/admin/leads/:id', requireAdmin, requirePermission('leads:read'), a
 });
 
 app.patch('/api/admin/leads/:id', requireAdmin, requirePermission('leads:update'), async (req, res) => {
+	if (Object.keys(req.body || {}).every(key => key === 'status')) {
+		if (!LEAD_STATUSES.includes(req.body?.status)) return res.status(400).json({ message: 'Invalid lead status' });
+		const updatedAt = getNowIso();
+		const lead = await database.updateLead(req.params.id, { status: req.body.status, updatedAt });
+		if (!lead) return res.status(404).json({ message: 'Lead not found' });
+		await database.createAuditLog({ id: crypto.randomUUID(), action: 'updated', entityType: 'lead', entityId: lead.id, actor: req.adminUsername || '', ip: req.ip, createdAt: updatedAt });
+		return res.json(lead);
+	}
 	const store = await readStore();
 	const lead = store.leads.find(item => item.id === req.params.id);
 	if (!lead) return res.status(404).json({ message: 'Lead not found' });

@@ -139,6 +139,23 @@ async function deleteLead(id) {
 	return result.rowCount > 0;
 }
 
+async function getLead(id) {
+	await ensureSchema();
+	const result = await pool.query('SELECT id,name,whatsapp,school,student_type AS "studentType",program,source,status,notes,attribution,created_at AS "createdAt",updated_at AS "updatedAt" FROM leads WHERE id = $1', [id]);
+	return result.rows[0] || null;
+}
+
+async function updateLead(id, changes) {
+	await ensureSchema();
+	const result = await pool.query('UPDATE leads SET status = COALESCE($1,status), updated_at = COALESCE($2,updated_at) WHERE id = $3 RETURNING id,name,whatsapp,school,student_type AS "studentType",program,source,status,notes,attribution,created_at AS "createdAt",updated_at AS "updatedAt"', [changes.status || null, changes.updatedAt || null, id]);
+	return result.rows[0] || null;
+}
+
+async function createAuditLog(log) {
+	await ensureSchema();
+	await pool.query('INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)', [log.id, log.action || '', log.entityType || '', log.entityId || '', log.actor || '', log.ip || '', log.createdAt || new Date().toISOString()]);
+}
+
 async function readWheelState() {
 	await ensureSchema();
 	const result = await pool.query('SELECT data FROM wheel_state WHERE id = 1');
@@ -209,4 +226,4 @@ async function deleteAdminSession(token) {
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, savePage, createLead, deleteLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, setMissingFeedbackBatch, listPublishedFeedback, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, savePage, createLead, getLead, updateLead, createAuditLog, deleteLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, setMissingFeedbackBatch, listPublishedFeedback, databaseFile: null, pool, ensureSchema };
