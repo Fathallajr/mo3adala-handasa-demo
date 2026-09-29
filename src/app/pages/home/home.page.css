@@ -880,10 +880,7 @@ img {
 }
 
 /* Hero content over the background video */
-.hero-video-poster,
 .hero-background-video { pointer-events: none; }
-.hero-video-poster { z-index: 1; transition: opacity .35s ease; }
-.hero-video-poster--hidden { opacity: 0; }
 .hero-content { min-height: 100vh; display: grid; place-items: center; }
 .hero-content-inner {
   width: min(100%, 58rem);

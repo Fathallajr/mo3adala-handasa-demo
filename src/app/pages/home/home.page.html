@@ -2,13 +2,6 @@
 <section class="relative min-h-screen flex items-center justify-center overflow-hidden page-enter-animation">
     <!-- Background Video with Overlay -->
     <div class="absolute inset-0 z-0">
-        <img
-            src="assets/media-hero.jpg"
-            alt="طلاب معادلة كلية الهندسة"
-            class="hero-video-poster absolute inset-0 w-full h-full object-cover"
-            [class.hero-video-poster--hidden]="videoPlaying"
-            fetchpriority="high"
-            decoding="async">
         <video
 			*ngIf="shouldUseHeroVideo"
             #heroVideo
@@ -19,6 +12,7 @@
             playsinline
             preload="auto"
             poster="assets/media-hero.jpg"
+            fetchpriority="high"
             webkit-playsinline
             x5-playsinline
             style="pointer-events: none; z-index: 2;"
