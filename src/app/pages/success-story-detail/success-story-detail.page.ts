@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CanonicalService } from '../../core/canonical.service';
 import { SeoService } from '../../core/seo.service';
 import { fadeInUp } from '../../shared/animations';
-import { SuccessStory, successStories } from '../success-stories/success-stories.data';
+import { normalizeSuccessStories, SuccessStory, successStories } from '../success-stories/success-stories.data';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
 import { cmsPageDefaults } from '../../core/cms-page.registry';
 
@@ -29,7 +29,7 @@ export class SuccessStoryDetailPageComponent implements OnInit {
 	ngOnInit(): void {
 		const storyId = Number(this.route.snapshot.paramMap.get('id'));
 		this.contentService.loadPageState('success-stories', { ...(cmsPageDefaults['success-stories'] as object), stories: successStories }).subscribe(content => {
-			const stories = Array.isArray((content as any)?.stories) && (content as any).stories.length ? (content as any).stories as SuccessStory[] : successStories;
+			const stories = normalizeSuccessStories((content as any)?.stories);
 			this.story = stories.find(item => item.id === storyId);
 			if (!this.story) { this.setNotFoundSeo(); return; }
 			this.setStorySeo(this.story);

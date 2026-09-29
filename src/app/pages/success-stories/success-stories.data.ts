@@ -84,3 +84,26 @@ export const successStories: SuccessStory[] = storyInputs.map((story, index) => 
 			: ['البداية المبكرة', 'عدم تراكم المحتوى', 'الاستفادة من فترة المراجعة']
 	};
 });
+
+/**
+ * CMS responses can contain legacy stories where ids are strings or are
+ * missing altogether. Keep the public route ids stable and numeric so the
+ * list and detail pages always agree about which story is being opened.
+ */
+export function normalizeSuccessStories(value: unknown): SuccessStory[] {
+	if (!Array.isArray(value) || value.length === 0) return successStories;
+
+	return value.map((raw, index) => {
+		const fallback = successStories[index] || successStories[0];
+		const item = raw && typeof raw === 'object' ? raw as Partial<SuccessStory> : {};
+		const parsedId = Number(item.id);
+
+		return {
+			...fallback,
+			...item,
+			id: Number.isInteger(parsedId) && parsedId > 0 ? parsedId : index + 1,
+			videoUrls: Array.isArray(item.videoUrls) ? item.videoUrls : fallback.videoUrls,
+			details: Array.isArray(item.details) ? item.details : fallback.details
+		};
+	});
+}

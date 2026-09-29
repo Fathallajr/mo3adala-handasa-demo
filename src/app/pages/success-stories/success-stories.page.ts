@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { CanonicalService } from '../../core/canonical.service';
 import { SeoService } from '../../core/seo.service';
 import { fadeInUp, staggerList } from '../../shared/animations';
-import { SuccessStory, successStories } from './success-stories.data';
+import { normalizeSuccessStories, SuccessStory, successStories } from './success-stories.data';
 import { SubscriptionChoiceTriggerComponent } from '../../shared/components/subscription-choice-trigger/subscription-choice-trigger.component';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
 import { cmsPageDefaults } from '../../core/cms-page.registry';
@@ -53,7 +53,7 @@ export class SuccessStoriesPageComponent implements OnInit {
 			this.title = state?.title || this.title;
 			this.highlight = state?.highlight || this.highlight;
 			this.description = state?.description || this.description;
-			if (Array.isArray(state?.stories) && state.stories.length) this.stories = state.stories;
+			if (Array.isArray(state?.stories) && state.stories.length) this.stories = normalizeSuccessStories(state.stories);
 		});
 	}
 
