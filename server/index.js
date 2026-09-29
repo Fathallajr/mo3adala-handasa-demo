@@ -39,7 +39,7 @@ const PAGE_KEYS = [
 	,'subscription-computers-ar'
 	,'subscription-computers-en'
 ];
-const LEAD_STATUSES = ['new', 'contacted', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
+const LEAD_STATUSES = ['new', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
 const FEEDBACK_STATUSES = ['new', 'reviewed', 'published', 'archived'];
 // Require a fresh admin login every six hours.
 const TOKEN_TTL_MS = 6 * 60 * 60 * 1000;

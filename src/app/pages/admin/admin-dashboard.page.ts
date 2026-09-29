@@ -125,8 +125,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	copiedLeadWhatsapp = '';
 	leadsPages = 1;
 	leadsTotal = 0;
-	leadStatuses = ['new', 'contacted', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
-	readonly leadStatusLabels: Record<string, string> = { new: 'جديد', contacted: 'تم التواصل', interested: 'مهتم', registered: 'مسجل', not_interested: 'غير مهتم', follow_up: 'متابعة', closed: 'مغلق', converted: 'تم التحويل' };
+	leadStatuses = ['new', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
+	readonly leadStatusLabels: Record<string, string> = { new: 'جديد', contacted: 'تم التواصل', no_response: 'لم يرد', interested: 'مهتم', registered: 'مسجل', not_interested: 'غير مهتم', follow_up: 'متابعة', closed: 'مغلق', converted: 'تم التحويل' };
 	programDraft: Partial<Program> = { name: '', slug: '', category: '', language: 'ar', price: 0, enrollmentStatus: 'open', isActive: true };
 	editingProgramId: string | null = null;
 	private readonly hiddenAdminPageKeys = new Set<CmsPageKey>([
