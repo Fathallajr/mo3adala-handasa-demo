@@ -61,7 +61,7 @@ export class FeedbackPageComponent {
 		this.http.post(this.feedbackEndpoint, {
 					name: form.value.name,
 					university: form.value.university,
-					batch: form.value.batch,
+					batch: String(form.value.batch || '').trim(),
 					rating: form.value.rating,
 					message: form.value.message,
 			}).pipe(

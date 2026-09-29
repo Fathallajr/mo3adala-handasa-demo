@@ -649,7 +649,7 @@ app.post('/api/feedback', rateLimit({ name: 'feedback', windowMs: 15 * 60 * 1000
 	const rating = Number(req.body?.rating);
 	if (name.length < 2 || name.length > 120) return res.status(400).json({ message: 'Name must be between 2 and 120 characters' });
 	if (university.length > 160) return res.status(400).json({ message: 'University must be 160 characters or less' });
-	if (!/^\d{1,10}$/.test(batch)) return res.status(400).json({ message: 'Batch must contain numbers only' });
+	if (!/^\d{4}$/.test(batch)) return res.status(400).json({ message: 'Batch must be exactly four digits' });
 	if (!Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ message: 'Rating must be an integer between 1 and 5' });
 	if (message.length < 3 || message.length > 2000) return res.status(400).json({ message: 'Message must be between 3 and 2000 characters' });
 	const feedback = { id: crypto.randomUUID(), name, university, batch, rating, message, status: 'new', createdAt: getNowIso(), updatedAt: null };

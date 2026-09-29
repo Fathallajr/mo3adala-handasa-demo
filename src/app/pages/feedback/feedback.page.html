@@ -19,7 +19,8 @@
 				</div>
 				<div class="feedback-field">
 					<label for="batch">{{ batchLabel }}</label>
-					<input id="batch" name="batch" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="10" [placeholder]="batchPlaceholder" [required]="batchRequired" ngModel>
+					<input id="batch" name="batch" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" [placeholder]="batchPlaceholder" [required]="batchRequired" ngModel #batchField="ngModel">
+					<small *ngIf="batchField.invalid && (batchField.dirty || batchField.touched)" class="feedback-field-error">اكتب رقم الدفعة 4 أرقام، مثل 2027.</small>
 				</div>
 				<div class="feedback-field">
 					<label for="rating">تقييمك للتجربة</label>

@@ -12,6 +12,7 @@
 .feedback-field input, .feedback-field select, .feedback-field textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: .8rem; padding: .8rem 1rem; outline: none; background: #f8fafc; color: #0f172a; font: inherit; transition: border-color .2s, box-shadow .2s; }
 .feedback-field input:focus, .feedback-field select:focus, .feedback-field textarea:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,.12); }
 .feedback-field textarea { resize: vertical; }
+.feedback-field-error { display:block; margin-top:.4rem; color:#dc2626; font-size:.78rem; font-weight:700; }
 .feedback-submit { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; width: 100%; border: 0; border-radius: .8rem; padding: .9rem 1.25rem; background: #ea580c; color: #fff; font: inherit; font-weight: 700; cursor: pointer; transition: transform .2s, background .2s; }
 .feedback-submit:hover:not(:disabled) { transform: translateY(-2px); background: #c2410c; }
 .feedback-submit:disabled { cursor: not-allowed; opacity: .5; }
