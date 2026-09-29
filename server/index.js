@@ -1093,6 +1093,26 @@ async function migrateLaunchOfferOnce() {
 	console.log('Initialized launch offer CMS content once.');
 }
 
+async function migrateFeedbackPageOnce() {
+	const migrationKey = 'feedback-cms-v1';
+	if (await database.getMetadata(migrationKey)) return;
+
+	const store = await readStore();
+	if (!store.pages.feedback?.data) {
+		await database.savePage('feedback', {
+			visible: true,
+			eyebrow: 'صوتك يهمنا',
+			title: 'قول رأيك في الأبليكيشن',
+			description: 'رأيك بيساعدنا نطوّر المحتوى والمتابعة ونقدّم تجربة أفضل لكل طالب.',
+			batchLabel: 'الدفعة',
+			batchPlaceholder: 'مثال: 2027',
+			batchRequired: true
+		}, getNowIso());
+	}
+	await database.setMetadata(migrationKey, getNowIso());
+	console.log('Initialized feedback CMS content once.');
+}
+
 app.get('/api/content', async (req, res) => {
 	noCache(res);
 	const store = await readStore();
@@ -1243,6 +1263,7 @@ app.get('*', (req, res, next) => {
 	try {
 		await migrateSubscriptionContentOnce();
 		await migrateLaunchOfferOnce();
+		await migrateFeedbackPageOnce();
 	} catch (error) {
 		console.error('Subscription content migration failed', error);
 	}
