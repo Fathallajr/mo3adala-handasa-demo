@@ -2,16 +2,22 @@
 <section class="relative min-h-screen flex items-center justify-center overflow-hidden page-enter-animation">
     <!-- Background Video with Overlay -->
     <div class="absolute inset-0 z-0">
-        <!-- The hero intentionally has no image fallback or poster. -->
+        <img
+            src="assets/media-hero.jpg"
+            alt="طلاب معادلة كلية الهندسة"
+            class="hero-video-poster absolute inset-0 w-full h-full object-cover"
+            [class.hero-video-poster--hidden]="videoPlaying"
+            fetchpriority="high"
+            decoding="async">
         <video
 			*ngIf="shouldUseHeroVideo"
             #heroVideo
-            class="absolute inset-0 w-full h-full object-cover" 
+            class="hero-background-video absolute inset-0 w-full h-full object-cover"
             autoplay
             muted 
             loop 
             playsinline
-            preload="metadata"
+            preload="auto"
             poster="assets/media-hero.jpg"
             webkit-playsinline
             x5-playsinline
