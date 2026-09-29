@@ -598,6 +598,28 @@ img {
   overflow-wrap: anywhere;
   word-break: normal;
 }
+.student-reviews-section .feedback-read-more {
+  display:inline-flex;
+  align-items:center;
+  align-self:flex-start;
+  gap:.35rem;
+  margin-top:.8rem;
+  border:1px solid rgba(234,88,12,.28);
+  border-radius:999px;
+  padding:.42rem .8rem;
+  color:#c2410c;
+  background:#fff7ed;
+  font-size:.82rem;
+  font-weight:800;
+  line-height:1.2;
+  text-decoration:none;
+  transition:color .2s ease, background .2s ease, transform .2s ease;
+}
+.student-reviews-section .feedback-read-more:hover {
+  color:#fff;
+  background:#ea580c;
+  transform:translateY(-1px);
+}
 
 .student-reviews-section .carousel-figure:nth-child(3n + 1) { border-top: 3px solid #f97316 !important; }
 .student-reviews-section .carousel-figure:nth-child(3n + 2) { border-top: 3px solid #3b82f6 !important; }
