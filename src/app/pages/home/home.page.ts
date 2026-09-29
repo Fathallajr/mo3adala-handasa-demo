@@ -204,7 +204,22 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	private loadPublishedFeedbacks(): void {
-		this.http.get<{ data: Array<{ id: string; name: string; university?: string; rating: number; message: string }> }>(this.feedbackEndpoint).subscribe({ next: response => { this.publishedFeedbacks = response.data || []; }, error: () => undefined });
+		this.http.get<{ data: Array<{ id: string; name: string; university?: string; rating: number; message: string }> }>(this.feedbackEndpoint).subscribe({
+			next: response => {
+				this.publishedFeedbacks = response.data || [];
+				this.resetReviewsScrollPosition();
+			},
+			error: () => undefined
+		});
+	}
+
+	private resetReviewsScrollPosition(): void {
+		if (typeof window === 'undefined') return;
+		requestAnimationFrame(() => requestAnimationFrame(() => {
+			const track = this.reviewsTrack?.nativeElement;
+			if (!track) return;
+			track.scrollTo({ left: 0, behavior: 'auto' });
+		}));
 	}
 
 	feedbackPreview(message: string): string {
@@ -331,6 +346,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	ngAfterViewInit() {
+		this.resetReviewsScrollPosition();
 		// Setup video autoplay after view is initialized
 		this.setupVideoAutoplay();
 		this.setupPhotoAutoplay();

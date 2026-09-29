@@ -1113,6 +1113,15 @@ async function migrateFeedbackPageOnce() {
 	console.log('Initialized feedback CMS content once.');
 }
 
+async function migrateMissingFeedbackBatchOnce() {
+	const migrationKey = 'feedback-batch-2027-v1';
+	if (await database.getMetadata(migrationKey)) return;
+
+	const updatedCount = await database.setMissingFeedbackBatch('2027', getNowIso());
+	await database.setMetadata(migrationKey, getNowIso());
+	console.log(`Assigned batch 2027 to ${updatedCount} legacy feedback records.`);
+}
+
 app.get('/api/content', async (req, res) => {
 	noCache(res);
 	const store = await readStore();
@@ -1264,6 +1273,7 @@ app.get('*', (req, res, next) => {
 		await migrateSubscriptionContentOnce();
 		await migrateLaunchOfferOnce();
 		await migrateFeedbackPageOnce();
+		await migrateMissingFeedbackBatchOnce();
 	} catch (error) {
 		console.error('Subscription content migration failed', error);
 	}
