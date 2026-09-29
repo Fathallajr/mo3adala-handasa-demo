@@ -56,7 +56,8 @@ tbody tr:hover { background:#faf9ff; }
 .source-badge--wheel,.gift-badge { color:#8a5314; background:#fff3dc; }
 .status-badge { display:inline-flex; align-items:center; min-height:26px; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:900; }
 .status-badge--new { color:#345ca8; background:#edf4ff; }
-.status-badge--contacted,.status-badge--no_response,.status-badge--follow_up { color:#8a5c12; background:#fff6df; }
+.status-badge--contacted,.status-badge--follow_up { color:#8a5c12; background:#fff6df; }
+.status-badge--no_response { color:#475569; background:#eef2f7; }
 .status-badge--interested { color:#5540c9; background:#f0edff; }
 .status-badge--registered,.status-badge--converted { color:#147653; background:#effbf6; }
 .status-badge--not_interested,.status-badge--closed { color:#a43a50; background:#fff1f3; }
@@ -97,8 +98,8 @@ tbody tr:hover { background:#faf9ff; }
 .feedback-status-select--reviewed { color:#87530b; background:#fff5d9; border-color:#f2cf75; }
 .feedback-status-select--published { color:#08734e; background:#e5faf1; border-color:#84ddb8; }
 .feedback-status-select--archived { color:#6d2e3f; background:#f8e8ed; border-color:#d991a5; }
-.lead-status-select--no_response { color:#87530b; background:#fff5d9; border-color:#f2cf75; }
-.lead-status-select--no_response:focus { color:#87530b; background:#fff5d9; }
+.lead-status-select--no_response { color:#475569; background:#eef2f7; border-color:#aebdce; }
+.lead-status-select--no_response:focus { color:#475569; background:#eef2f7; }
 .admin-data-loading { padding:42px 15px!important; color:#718096; text-align:center!important; font-size:12px; font-weight:800; }
 .admin-data-loading__spinner { display:inline-block; width:18px; height:18px; margin-left:8px; vertical-align:middle; border:3px solid #e4e7ef; border-top-color:var(--purple); border-radius:50%; animation:spin .7s linear infinite; }
 .admin-global-loading { position: fixed; top: 78px; left: 50%; z-index: 40; display: inline-flex; align-items: center; gap: 8px; transform: translateX(-50%); padding: 8px 14px; border: 1px solid #ded5ff; border-radius: 999px; color: #5b43c9; background: rgba(255,255,255,.96); box-shadow: 0 8px 22px rgba(44,32,105,.12); font-size: 12px; font-weight: 800; }
