@@ -359,6 +359,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			this.isEnrollmentClosed = true;
 			this.enrollmentReopenMessage = 'انتهى وقت الاشتراك تلقائيًا، وسيتم فتح التسجيل مع بداية فترة الاشتراك القادمة.';
 			this.stopClosingTimer();
+			this.changeDetector.detectChanges();
 			return;
 		}
 		const totalSeconds = Math.floor(remaining / 1000);
@@ -366,6 +367,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		this.closingHours = Math.floor((totalSeconds % 86400) / 3600);
 		this.closingMinutes = Math.floor((totalSeconds % 3600) / 60);
 		this.closingSeconds = totalSeconds % 60;
+		this.changeDetector.detectChanges();
 	}
 
 	loadVideo(): void {
