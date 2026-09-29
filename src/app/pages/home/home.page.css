@@ -584,6 +584,10 @@ img {
 }
 
 .student-reviews-section .carousel-figure h4 { font-size: 1.05rem; font-weight: 700; }
+.student-reviews-section .carousel-figure > div > .flex.items-center { min-width: 0; }
+.student-reviews-section .carousel-figure > div > .flex.items-center > div:last-child { min-width: 0; flex: 1 1 auto; }
+.student-reviews-section .carousel-figure h4,
+.student-reviews-section .carousel-figure .text-sm { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
 .student-reviews-section .carousel-figure p { line-height: 1.85; }
 .student-reviews-section .carousel-figure > div > p {
   position: relative;
