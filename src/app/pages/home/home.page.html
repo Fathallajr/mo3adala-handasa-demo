@@ -225,7 +225,7 @@
 				<!-- Feedbacks approved from the admin dashboard appear first, newest first. -->
 				<div *ngFor="let feedback of publishedFeedbacks" class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
 					<div class="p-6">
-						<div class="flex items-center gap-4 mb-4"><div><h4 class="font-semibold text-slate-900">{{ feedback.name }}</h4><p class="text-sm text-slate-600">{{ feedback.university || 'طالب من طلابنا' }}</p><div class="flex mt-1"><span *ngFor="let star of [1,2,3,4,5]" class="text-yellow-400">{{ star <= feedback.rating ? '★' : '☆' }}</span></div></div></div>
+						<div class="flex items-center gap-4 mb-4"><div><h4 class="font-semibold text-slate-900">{{ feedback.name }}</h4><p class="text-sm text-slate-600">{{ feedback.university || 'طالب من طلابنا' }} · دفعة {{ feedback.batch || '2027' }}</p><div class="flex mt-1"><span *ngFor="let star of [1,2,3,4,5]" class="text-yellow-400">{{ star <= feedback.rating ? '★' : '☆' }}</span></div></div></div>
 						<p class="text-slate-700 leading-relaxed text-sm break-words hyphens-auto" style="line-height:1.6; word-wrap:break-word;">{{ feedbackPreview(feedback.message) }}</p>
 						<a *ngIf="isLongFeedback(feedback.message)" class="feedback-read-more" [routerLink]="['/feedback/view', feedback.id]">اقرأ بالكامل <span aria-hidden="true">←</span></a>
 					</div>

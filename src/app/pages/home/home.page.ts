@@ -31,7 +31,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	activeHomeVideoId: string | null = null;
 	showFinalSubscriptionChoices = false;
 	showFinalTeacherChoices = false;
-	publishedFeedbacks: Array<{ id: string; name: string; university?: string; rating: number; message: string }> = [];
+	publishedFeedbacks: Array<{ id: string; name: string; university?: string; batch?: string; rating: number; message: string }> = [];
 	private readonly feedbackEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api/feedback/published' : '/api/feedback/published';
 	private readonly refreshPublishedFeedbacksOnFocus = () => this.loadPublishedFeedbacks();
 
@@ -204,7 +204,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	private loadPublishedFeedbacks(): void {
-		this.http.get<{ data: Array<{ id: string; name: string; university?: string; rating: number; message: string; createdAt?: string }> }>(this.feedbackEndpoint).subscribe({
+		this.http.get<{ data: Array<{ id: string; name: string; university?: string; batch?: string; rating: number; message: string; createdAt?: string }> }>(this.feedbackEndpoint).subscribe({
 			next: response => {
 				// Always show the latest published feedback first in the carousel.
 				this.publishedFeedbacks = [...(response.data || [])].sort((left, right) => {
