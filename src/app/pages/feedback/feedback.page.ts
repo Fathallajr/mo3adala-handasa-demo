@@ -27,7 +27,7 @@ export class FeedbackPageComponent {
 	batchLabel = 'الدفعة';
 	batchPlaceholder = 'مثال: 2027';
 	batchRequired = true;
-	batchValue = '2027';
+	batchValue = '';
 	isPageVisible = true;
 	private readonly feedbackEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api/feedback' : '/api/feedback';
 
