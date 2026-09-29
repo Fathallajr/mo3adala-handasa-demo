@@ -206,13 +206,14 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	private loadPublishedFeedbacks(): void {
 		this.http.get<{ data: Array<{ id: string; name: string; university?: string; rating: number; message: string; createdAt?: string }> }>(this.feedbackEndpoint).subscribe({
 			next: response => {
-				// Keep the first published feedback as the first carousel item.
-				// New feedback is appended after it instead of replacing the opening card.
+				// Always show the latest published feedback first in the carousel.
 				this.publishedFeedbacks = [...(response.data || [])].sort((left, right) => {
 					const leftTime = Date.parse(left.createdAt || '');
 					const rightTime = Date.parse(right.createdAt || '');
-					if (!Number.isFinite(leftTime) || !Number.isFinite(rightTime)) return 0;
-					return leftTime - rightTime;
+					if (!Number.isFinite(leftTime) && !Number.isFinite(rightTime)) return 0;
+					if (!Number.isFinite(leftTime)) return 1;
+					if (!Number.isFinite(rightTime)) return -1;
+					return rightTime - leftTime;
 				});
 				this.resetReviewsScrollPosition();
 			},
