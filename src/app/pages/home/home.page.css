@@ -594,7 +594,7 @@ img {
   margin-inline:auto;
   color: #334155 !important;
   font-size: 0.95rem !important;
-  white-space: normal;
+  white-space: pre-line;
   overflow-wrap: anywhere;
   word-break: normal;
 }

@@ -210,7 +210,10 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	feedbackPreview(message: string): string {
 		const cleanMessage = (message || '').trim();
 		const words = cleanMessage ? cleanMessage.split(/\s+/) : [];
-		return words.length > 20 ? `${words.slice(0, 20).join(' ')}…` : cleanMessage;
+		const previewWords = words.length > 20 ? words.slice(0, 20) : words;
+		const lines: string[] = [];
+		for (let index = 0; index < previewWords.length; index += 8) lines.push(previewWords.slice(index, index + 8).join(' '));
+		return `${lines.join('\n')}${words.length > 20 ? '…' : ''}`;
 	}
 
 	isLongFeedback(message: string): boolean {
