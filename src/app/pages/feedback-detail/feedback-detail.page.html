@@ -1,11 +1,11 @@
 <main class="feedback-detail-page" dir="rtl">
 	<div class="feedback-detail-shell">
-		<a routerLink="/" class="feedback-detail-back">← الرجوع لآراء الطلاب</a>
+		<a routerLink="/" fragment="student-reviews" class="feedback-detail-back">← العودة لآراء الطلاب</a>
 		<div *ngIf="isLoading" class="feedback-detail-card feedback-detail-state">جاري تحميل الرأي...</div>
 		<div *ngIf="isNotFound" class="feedback-detail-card feedback-detail-state">
 			<h1>الرأي غير متاح</h1>
 			<p>الرأي ده لم يعد منشورًا حاليًا.</p>
-			<a routerLink="/" class="feedback-detail-button">العودة للرئيسية</a>
+			<a routerLink="/" fragment="student-reviews" class="feedback-detail-button">العودة لآراء الطلاب</a>
 		</div>
 		<article *ngIf="feedback && !isLoading" class="feedback-detail-card">
 			<span class="feedback-detail-kicker">تجربة طالب من طلابنا</span>
@@ -15,7 +15,7 @@
 				<span *ngFor="let star of [1,2,3,4,5]">{{ star <= feedback.rating ? '★' : '☆' }}</span>
 			</div>
 			<div class="feedback-detail-message">{{ feedback.message }}</div>
-			<a routerLink="/" class="feedback-detail-button">العودة للرئيسية <span aria-hidden="true">←</span></a>
+			<a routerLink="/" fragment="student-reviews" class="feedback-detail-button">العودة لآراء الطلاب <span aria-hidden="true">←</span></a>
 		</article>
 	</div>
 </main>
