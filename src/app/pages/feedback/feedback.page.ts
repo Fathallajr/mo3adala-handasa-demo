@@ -27,6 +27,7 @@ export class FeedbackPageComponent {
 	batchLabel = 'الدفعة';
 	batchPlaceholder = 'مثال: 2027';
 	batchRequired = true;
+	batchValue = '2027';
 	isPageVisible = true;
 	private readonly feedbackEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api/feedback' : '/api/feedback';
 
@@ -48,7 +49,7 @@ export class FeedbackPageComponent {
 			this.description = state?.description || this.description;
 			this.batchLabel = state?.batchLabel || this.batchLabel;
 			this.batchPlaceholder = state?.batchPlaceholder || this.batchPlaceholder;
-			this.batchRequired = state?.batchRequired !== false;
+			this.batchRequired = true;
 		});
 	}
 
@@ -61,7 +62,7 @@ export class FeedbackPageComponent {
 		this.http.post(this.feedbackEndpoint, {
 					name: form.value.name,
 					university: form.value.university,
-					batch: String(form.value.batch || '').trim(),
+					batch: String(form.value.batch || this.batchValue || '2027').trim(),
 					rating: form.value.rating,
 					message: form.value.message,
 			}).pipe(

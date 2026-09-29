@@ -644,10 +644,11 @@ app.post('/api/leads', rateLimit({ name: 'leads', windowMs: 15 * 60 * 1000, max:
 app.post('/api/feedback', rateLimit({ name: 'feedback', windowMs: 15 * 60 * 1000, max: 8 }), async (req, res) => {
 	const name = String(req.body?.name || '').trim();
 	const university = String(req.body?.university || '').trim();
-	const batch = String(req.body?.batch || '').trim();
+	const batch = String(req.body?.batch || '2027').trim();
 	const message = String(req.body?.message || '').trim();
 	const rating = Number(req.body?.rating);
 	if (name.length < 2 || name.length > 120) return res.status(400).json({ message: 'Name must be between 2 and 120 characters' });
+	if (!university) return res.status(400).json({ message: 'University is required' });
 	if (university.length > 160) return res.status(400).json({ message: 'University must be 160 characters or less' });
 	if (!/^\d{4}$/.test(batch)) return res.status(400).json({ message: 'Batch must be exactly four digits' });
 	if (!Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ message: 'Rating must be an integer between 1 and 5' });
