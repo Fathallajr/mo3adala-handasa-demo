@@ -21,7 +21,7 @@
     <div class="launch-offer-visual"><span class="launch-offer-orbit"></span><span class="launch-offer-campus" aria-hidden="true"><i></i><b></b><em></em></span><span class="launch-offer-helmet" aria-hidden="true"></span><span class="launch-offer-laptop" aria-hidden="true"></span><img src="assets/launch-offer-mascots.png" alt="شخصيتا أبلكيشن معادلة هندسة وحاسبات"></div>
     <div class="launch-offer-content" *ngIf="!offerSubmitted">
       <span class="launch-offer-badge"><i class="bi bi-stars"></i> عرض خاص للدفعة الجديدة</span>
-      <h2 id="launch-offer-title">سجل دلوقتي<br><b>خصم حصري لأول 200 مشترك بس</b></h2>
+      <h2 id="launch-offer-title">سجل دلوقتي<br><b>خصم حصري لأول 200 مشترك!</b></h2>
       <p>سيب بياناتك واحجز أولوية التواصل قبل بداية الدفعة الجديدة.</p>
       <div class="launch-offer-countdown"><div class="launch-offer-countdown-title"><i class="bi bi-alarm-fill"></i><span>الوقت المتبقي للحصول على الخصم</span></div><div class="launch-offer-countdown-grid"><div><strong>{{ countdownDays | number:'2.0' }}</strong><small>يوم</small></div><div><strong>{{ countdownHours | number:'2.0' }}</strong><small>ساعة</small></div><div><strong>{{ countdownMinutes | number:'2.0' }}</strong><small>دقيقة</small></div><div><strong>{{ countdownSeconds | number:'2.0' }}</strong><small>ثانية</small></div></div></div>
       <form (ngSubmit)="submitLaunchOffer()" class="launch-offer-form">
