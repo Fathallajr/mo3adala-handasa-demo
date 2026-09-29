@@ -1114,7 +1114,7 @@ async function migrateFeedbackPageOnce() {
 }
 
 async function migrateMissingFeedbackBatchOnce() {
-	const migrationKey = 'feedback-batch-2027-v1';
+	const migrationKey = 'feedback-batch-2027-v2';
 	if (await database.getMetadata(migrationKey)) return;
 
 	const updatedCount = await database.setMissingFeedbackBatch('2027', getNowIso());
