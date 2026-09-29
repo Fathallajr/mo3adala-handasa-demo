@@ -64,6 +64,11 @@
   
   <!-- PERFORMANCE OPTIMIZATIONS -->
   <link rel="preload" href="/assets/logo.png" as="image" type="image/png">
+  <link rel="preload" href="/assets/fonts/TheYearofHandicrafts-Regular.otf" as="font" type="font/otf" crossorigin>
+  <link rel="preload" href="/assets/fonts/TheYearofHandicrafts-Medium.otf" as="font" type="font/otf" crossorigin>
+  <link rel="preload" href="/assets/fonts/TheYearofHandicrafts-SemiBold.otf" as="font" type="font/otf" crossorigin>
+  <link rel="preload" href="/assets/fonts/TheYearofHandicrafts-Bold.otf" as="font" type="font/otf" crossorigin>
+  <link rel="preload" href="/assets/fonts/TheYearofHandicrafts-Black.otf" as="font" type="font/otf" crossorigin>
   
   <!-- DNS Prefetch for external resources -->
   
@@ -71,7 +76,7 @@
   
   <!-- Critical CSS for faster rendering -->
   <style>
-    body { font-family: 'TheYearofHandicrafts', sans-serif; margin: 0; padding: 0; }
+    body { font-family: 'TheYearofHandicrafts', Arial, sans-serif; margin: 0; padding: 0; font-synthesis: none; }
     app-root { display: block; min-height: 100vh; }
     .loading { display: flex; justify-content: center; align-items: center; height: 100vh; }
   </style>

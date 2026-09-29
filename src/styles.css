@@ -81,7 +81,8 @@ html {
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeSpeed;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -254,7 +255,7 @@ img {
   font-family: 'TheYearofHandicrafts';
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  font-display: block;
   src: url('./assets/fonts/TheYearofHandicrafts-Regular.otf') format('opentype');
 }
 
@@ -262,7 +263,7 @@ img {
   font-family: 'TheYearofHandicrafts';
   font-style: normal;
   font-weight: 500;
-  font-display: swap;
+  font-display: block;
   src: url('./assets/fonts/TheYearofHandicrafts-Medium.otf') format('opentype');
 }
 
@@ -270,7 +271,7 @@ img {
   font-family: 'TheYearofHandicrafts';
   font-style: normal;
   font-weight: 600;
-  font-display: swap;
+  font-display: block;
   src: url('./assets/fonts/TheYearofHandicrafts-SemiBold.otf') format('opentype');
 }
 
@@ -278,7 +279,7 @@ img {
   font-family: 'TheYearofHandicrafts';
   font-style: normal;
   font-weight: 700;
-  font-display: swap;
+  font-display: block;
   src: url('./assets/fonts/TheYearofHandicrafts-Bold.otf') format('opentype');
 }
 
@@ -286,7 +287,7 @@ img {
   font-family: 'TheYearofHandicrafts';
   font-style: normal;
   font-weight: 900;
-  font-display: swap;
+  font-display: block;
   src: url('./assets/fonts/TheYearofHandicrafts-Black.otf') format('opentype');
 }
 
