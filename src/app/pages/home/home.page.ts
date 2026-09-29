@@ -31,7 +31,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	activeHomeVideoId: string | null = null;
 	showFinalSubscriptionChoices = false;
 	showFinalTeacherChoices = false;
-	publishedFeedbacks: Array<{ name: string; university?: string; rating: number; message: string }> = [];
+	publishedFeedbacks: Array<{ id: string; name: string; university?: string; rating: number; message: string }> = [];
 	private readonly feedbackEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api/feedback/published' : '/api/feedback/published';
 	private readonly refreshPublishedFeedbacksOnFocus = () => this.loadPublishedFeedbacks();
 
@@ -204,7 +204,16 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	private loadPublishedFeedbacks(): void {
-		this.http.get<{ data: Array<{ name: string; university?: string; rating: number; message: string }> }>(this.feedbackEndpoint).subscribe({ next: response => { this.publishedFeedbacks = response.data || []; }, error: () => undefined });
+		this.http.get<{ data: Array<{ id: string; name: string; university?: string; rating: number; message: string }> }>(this.feedbackEndpoint).subscribe({ next: response => { this.publishedFeedbacks = response.data || []; }, error: () => undefined });
+	}
+
+	feedbackPreview(message: string): string {
+		const cleanMessage = (message || '').trim();
+		return cleanMessage.length > 220 ? `${cleanMessage.slice(0, 220).trim()}…` : cleanMessage;
+	}
+
+	isLongFeedback(message: string): boolean {
+		return (message || '').trim().length > 220;
 	}
 
 	private applyCmsState(content: unknown): void {

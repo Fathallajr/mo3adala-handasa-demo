@@ -659,6 +659,12 @@ app.get('/api/feedback/published', async (_req, res) => {
 	res.json({ data: await database.listPublishedFeedback() });
 });
 
+app.get('/api/feedback/published/:id', async (req, res) => {
+	const feedback = await database.getFeedback(req.params.id);
+	if (!feedback || feedback.status !== 'published') return res.status(404).json({ message: 'Feedback not found' });
+	res.json({ data: feedback });
+});
+
 app.get('/api/admin/leads', requireAdmin, requirePermission('leads:read'), async (req, res) => {
 	const store = await readStore();
 	const search = String(req.query.search || '').trim().toLowerCase();

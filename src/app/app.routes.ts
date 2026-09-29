@@ -10,6 +10,7 @@ export const routes: Routes = [
 	{ path: 'faq', loadComponent: () => import('./pages/faq/faq.page').then(m => m.FaqPageComponent) },
 	{ path: 'contact', redirectTo: 'social', pathMatch: 'full' },
 	{ path: 'feedback', loadComponent: () => import('./pages/feedback/feedback.page').then(m => m.FeedbackPageComponent) },
+	{ path: 'feedback/view/:id', loadComponent: () => import('./pages/feedback-detail/feedback-detail.page').then(m => m.FeedbackDetailPageComponent) },
 	{ path: 'news/equation', loadComponent: () => import('./pages/news-equation/news-equation.page').then(m => m.NewsEquationPageComponent) },
 	{ path: 'news/app', redirectTo: 'news/equation', pathMatch: 'full' },
 	{ path: 'news/detail/:id', loadComponent: () => import('./pages/news-detail/news-detail.page').then(m => m.NewsDetailPageComponent) },
