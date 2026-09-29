@@ -105,6 +105,9 @@ tbody tr:hover { background:#faf9ff; }
 @media (max-width:700px) { .filters-head-actions { flex-direction:column; align-items:flex-end; gap:4px; }.filter-toggle-btn { padding:6px 8px; font-size:10px; }.clear-filters-btn { font-size:10px; } }
 
 /* The sidebar is a page switcher only; keep it focused on page names. */
+.feedback-message-cell { min-width:240px; max-width:360px; white-space:normal!important; line-height:1.7; }
+.feedback-more-btn { display:inline-block; margin-inline-start:8px; padding:2px 7px; border:0; border-radius:6px; color:#6546dd; background:#f0edff; font:inherit; font-size:11px; font-weight:900; cursor:pointer; }
+.feedback-more-btn:hover { background:#e5dfff; }
 .admin-sidebar { padding:16px 12px; }
 .admin-sidebar .page-list .page-item--active { color:#fff; background:linear-gradient(90deg,#6d4aff,#5b43c9); border-color:transparent; box-shadow:0 8px 18px #6d4aff35; }
 .admin-sidebar .page-list .page-item:hover:not(.page-item--active) { color:#fff; background:#344267; border-color:#ffffff19; }

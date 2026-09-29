@@ -74,6 +74,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	wheelClaims: WheelClaim[] = [];
 	feedbacks: Feedback[] = [];
 	feedbackTotal = 0;
+	readonly expandedFeedbackIds = new Set<string>();
 	feedbackSearch = '';
 	feedbackStatus = '';
 	readonly feedbackStatuses: Feedback['status'][] = ['new', 'reviewed', 'published', 'archived'];
@@ -311,6 +312,19 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 	updateFeedbackStatus(feedback: Feedback, status: Feedback['status']): void {
 		this.adminApi.updateFeedback(feedback.id, status).subscribe({ next: updated => { feedback.status = updated.status; this.statusMessage = 'تم تحديث حالة الرأي.'; }, error: err => this.handleApiError(err) });
+	}
+	feedbackPreview(message: string): string {
+		return (message || '').trim().split(/\s+/).filter(Boolean).slice(0, 10).join(' ');
+	}
+	isLongFeedback(message: string): boolean {
+		return (message || '').trim().split(/\s+/).filter(Boolean).length > 10;
+	}
+	isFeedbackExpanded(id: string): boolean {
+		return this.expandedFeedbackIds.has(id);
+	}
+	toggleFeedbackMessage(id: string): void {
+		if (this.expandedFeedbackIds.has(id)) this.expandedFeedbackIds.delete(id);
+		else this.expandedFeedbackIds.add(id);
 	}
 	formatFeedbackStatus(status?: string): string { return this.feedbackStatusLabels[status || ''] || status || 'غير محدد'; }
 
