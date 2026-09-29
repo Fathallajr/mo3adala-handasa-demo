@@ -92,7 +92,7 @@ export class AppComponent implements OnInit, OnDestroy {
 				if (event instanceof NavigationEnd) {
 					this.routeLoading = false;
 					this.currentRoute = event.urlAfterRedirects;
-					this.scrollToTop();
+					this.scrollForNavigation(event.urlAfterRedirects);
 				}
 				if (event instanceof NavigationCancel || event instanceof NavigationError) {
 					this.routeLoading = false;
@@ -309,6 +309,27 @@ export class AppComponent implements OnInit, OnDestroy {
 			// Angular's normal change-detection turn.
 			this.cdr.detectChanges();
 		}
+	}
+
+	private scrollForNavigation(url: string): void {
+		const hash = url.split('#')[1] || '';
+		if (!hash) {
+			this.scrollToTop();
+			return;
+		}
+
+		const scrollToTarget = () => {
+			const target = document.getElementById(decodeURIComponent(hash));
+			if (!target) return;
+			const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - 84);
+			window.scrollTo({ top, left: 0, behavior: 'auto' });
+		};
+
+		// The home page is lazy-loaded, so the target can be unavailable on the
+		// first navigation tick. Retry after Angular and the browser finish layout.
+		requestAnimationFrame(() => requestAnimationFrame(scrollToTarget));
+		setTimeout(scrollToTarget, 120);
+		setTimeout(scrollToTarget, 300);
 	}
 
 	@HostListener('window:pageshow')
