@@ -223,11 +223,16 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	private resetReviewsScrollPosition(): void {
 		if (typeof window === 'undefined') return;
-		requestAnimationFrame(() => requestAnimationFrame(() => {
+		const reset = () => {
 			const track = this.reviewsTrack?.nativeElement;
 			if (!track) return;
+			// The feedback cards are rendered asynchronously. Reset after they are
+			// in the DOM so returning from a detail page cannot land on the old fallback cards.
+			track.scrollLeft = 0;
 			track.scrollTo({ left: 0, behavior: 'auto' });
-		}));
+		};
+		requestAnimationFrame(() => requestAnimationFrame(reset));
+		window.setTimeout(reset, 300);
 	}
 
 	feedbackPreview(message: string): string {
