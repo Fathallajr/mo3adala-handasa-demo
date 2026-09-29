@@ -127,7 +127,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		if (this.heroImageFallbackUsed) return;
 		this.heroImageFallbackUsed = true;
 		const image = event.target as HTMLImageElement | null;
-		if (image) image.src = '/assets/arabic-engineers-hero.png';
+		if (image) image.src = '/assets/arabic-engineers-hero.webp';
 	}
 
 	openGiftBox(): void {

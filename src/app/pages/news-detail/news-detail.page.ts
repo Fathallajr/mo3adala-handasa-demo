@@ -122,7 +122,7 @@ export class NewsDetailPageComponent implements OnInit {
 			title: 'كتاب أبلكيشن معادلة كلية الهندسة 📘💪',
 			content: `
 				<div class="mb-8 text-center">
-					<img src="/assets/خبر الكتاب.png" alt="كتاب أبلكيشن معادلة كلية الهندسة" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
+					<img src="/assets/خبر الكتاب.webp" alt="كتاب أبلكيشن معادلة كلية الهندسة" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
 				</div>
 
 				<div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-l-4 border-orange-500 p-6 mb-6 text-center">
@@ -197,8 +197,8 @@ export class NewsDetailPageComponent implements OnInit {
 			author: 'فريق الابلكيشن',
 			category: 'الكتب والمراجع',
 			important: true,
-			image: '/assets/خبر الكتاب.png',
-			images: ['/assets/خبر الكتاب.png']
+			image: '/assets/خبر الكتاب.webp',
+			images: ['/assets/خبر الكتاب.webp']
 		},
 		'group-2027-foundation': {
 			id: 'group-2027-foundation',
@@ -211,7 +211,7 @@ export class NewsDetailPageComponent implements OnInit {
 				</div>
 
 				<div class="mb-8 text-center">
-					<img src="/assets/جروب السنة الجديدة 2027.png" alt="فرصة التأسيس المبكر دفعة 2027" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
+					<img src="/assets/جروب السنة الجديدة 2027.webp" alt="فرصة التأسيس المبكر دفعة 2027" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
 				</div>
 
 				<div class="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6">
@@ -248,8 +248,8 @@ export class NewsDetailPageComponent implements OnInit {
 			author: 'فريق المعادلة',
 			category: 'الكورسات والدورات',
 			important: true,
-			image: '/assets/جروب السنة الجديدة 2027.png',
-			images: ['/assets/جروب السنة الجديدة 2027.png']
+			image: '/assets/جروب السنة الجديدة 2027.webp',
+			images: ['/assets/جروب السنة الجديدة 2027.webp']
 		},
 		'english-group-intensive-2026': {
 			id: 'english-group-intensive-2026',
@@ -711,8 +711,8 @@ export class NewsDetailPageComponent implements OnInit {
 			date: '2025-06-22',
 			author: 'فريق المعادلة',
 			category: 'شروط المعادلة',
-			image: '/assets/success.png',
-			images: ['/assets/success.png']
+			image: '/assets/success.webp',
+			images: ['/assets/success.webp']
 		},
 		'tech-schools-acceptance-2025': {
 			id: 'tech-schools-acceptance-2025',
@@ -879,7 +879,7 @@ export class NewsDetailPageComponent implements OnInit {
 				<p>ننصح جميع الطلاب الراغبين في الالتحاق بكليات الهندسة بمراجعة الشروط الجديدة والتأكد من استيفاء جميع المتطلبات قبل التقديم.</p>
 			`,
 			date: '2024-01-15',
-			image: '/assets/logo.png',
+			image: '/assets/logo.webp',
 			category: 'أخبار المعادلة',
 			author: 'فريق المعادلة'
 		},
@@ -910,7 +910,7 @@ export class NewsDetailPageComponent implements OnInit {
 				<p>هذا التوسع في قائمة المدارس المعتمدة سيساعد في توفير فرص أكثر للطلاب في مختلف المحافظات.</p>
 			`,
 			date: '2024-01-10',
-			image: '/assets/logo.png',
+			image: '/assets/logo.webp',
 			category: 'أخبار المعادلة',
 			author: 'فريق المعادلة'
 		},
@@ -948,7 +948,7 @@ export class NewsDetailPageComponent implements OnInit {
 				<p>ننصح جميع المستخدمين بتحديث التطبيق للاستفادة من الميزات الجديدة والتحسينات.</p>
 			`,
 			date: '2024-01-20',
-			image: '/assets/logo.png',
+			image: '/assets/logo.webp',
 			category: 'أخبار التطبيق',
 			author: 'فريق التطوير'
 		},
@@ -986,7 +986,7 @@ export class NewsDetailPageComponent implements OnInit {
 				<p>هذا النظام سيساعد الطلاب على تحقيق أفضل النتائج في دراستهم.</p>
 			`,
 			date: '2024-01-18',
-			image: '/assets/logo.png',
+			image: '/assets/logo.webp',
 			category: 'أخبار التطبيق',
 			author: 'فريق التطوير'
 		},
@@ -1025,7 +1025,7 @@ export class NewsDetailPageComponent implements OnInit {
 				<p>ننصح جميع الطلاب بالتسجيل مبكراً لتجنب الازدحام في الأيام الأخيرة.</p>
 			`,
 			date: '2024-01-05',
-			image: '/assets/logo.png',
+			image: '/assets/logo.webp',
 			category: 'أخبار المعادلة',
 			author: 'فريق المعادلة'
 		},
@@ -1064,7 +1064,7 @@ export class NewsDetailPageComponent implements OnInit {
 				<p>هذا التحديث سيساعد في تسهيل عملية التسجيل للطلاب.</p>
 			`,
 			date: '2024-01-01',
-			image: '/assets/logo.png',
+			image: '/assets/logo.webp',
 			category: 'أخبار المعادلة',
 			author: 'فريق المعادلة'
 		},
@@ -1106,7 +1106,7 @@ export class NewsDetailPageComponent implements OnInit {
 				<p>هذه الورش مجانية تماماً وتهدف لمساعدة الطلاب في تحقيق أفضل النتائج.</p>
 			`,
 			date: '2023-12-28',
-			image: '/assets/logo.png',
+			image: '/assets/logo.webp',
 			category: 'أخبار المعادلة',
 			author: 'فريق المعادلة'
 		},
@@ -1149,7 +1149,7 @@ export class NewsDetailPageComponent implements OnInit {
 				<p>نهنئ جميع الطلاب الناجحين ونتمنى لهم التوفيق في المرحلة القادمة.</p>
 			`,
 			date: '2023-12-20',
-			image: '/assets/logo.png',
+			image: '/assets/logo.webp',
 			category: 'أخبار المعادلة',
 			author: 'فريق المعادلة'
 		}
@@ -1215,7 +1215,7 @@ export class NewsDetailPageComponent implements OnInit {
 			const title = `${this.newsItem.title} - ابلكيشن معادلة كلية هندسة`;
 			const description = this.extractDescription(this.newsItem.content);
 			const url = `${siteUrl}/news/detail/${this.newsItem.id}`;
-			const image = this.toAbsoluteUrl(this.newsItem.image || '/assets/logo.png', siteUrl);
+			const image = this.toAbsoluteUrl(this.newsItem.image || '/assets/logo.webp', siteUrl);
 			
 			// Update page title
 			this.seo.setTitle(title);

@@ -18,7 +18,7 @@
 		<!-- Grid of Photos -->
 		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4" @staggerList>
 			<div *ngFor="let photo of studentPhotos2025" class="overflow-hidden rounded-lg md:rounded-xl shadow border border-slate-200 bg-white cursor-pointer active:scale-95 transition-transform" (click)="openPhoto(photo)">
-				<img [src]="'assets/' + photo" alt="طالب ناجح 2025" class="w-full h-40 sm:h-48 md:h-56 object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+				<img [src]="'assets/' + photo" alt="طالب ناجح 2025" class="w-full h-40 sm:h-48 md:h-56 object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.webp'">
 			</div>
 		</div>
 
@@ -32,7 +32,7 @@
 		<!-- Grid of Photos 2024 -->
 		<div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4" @staggerList>
 			<div *ngFor="let photo of studentPhotos2024" class="overflow-hidden rounded-lg md:rounded-xl shadow border border-slate-200 bg-white cursor-pointer active:scale-95 transition-transform" (click)="openPhoto(photo)">
-				<img [src]="'assets/' + photo" alt="طالب ناجح 2024" class="w-full h-40 sm:h-48 md:h-56 object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'">
+				<img [src]="'assets/' + photo" alt="طالب ناجح 2024" class="w-full h-40 sm:h-48 md:h-56 object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.webp'">
 			</div>
 		</div>
 

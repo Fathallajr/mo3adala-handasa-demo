@@ -18,7 +18,7 @@
 <div *ngIf="!currentRoute.startsWith('/admin') && showLaunchOffer && (siteMaintenance || currentRoute === '/' || currentRoute === '')" class="launch-offer-backdrop" role="dialog" aria-modal="true" aria-labelledby="launch-offer-title">
   <section class="launch-offer-modal">
     <button type="button" class="launch-offer-close" aria-label="إغلاق" (click)="closeLaunchOffer()">×</button>
-    <div class="launch-offer-visual"><span class="launch-offer-orbit"></span><span class="launch-offer-campus" aria-hidden="true"><i></i><b></b><em></em></span><span class="launch-offer-helmet" aria-hidden="true"></span><span class="launch-offer-laptop" aria-hidden="true"></span><img src="assets/launch-offer-mascots.png" alt="شخصيتا أبلكيشن معادلة هندسة وحاسبات"></div>
+    <div class="launch-offer-visual"><span class="launch-offer-orbit"></span><span class="launch-offer-campus" aria-hidden="true"><i></i><b></b><em></em></span><span class="launch-offer-helmet" aria-hidden="true"></span><span class="launch-offer-laptop" aria-hidden="true"></span><img src="assets/launch-offer-mascots.webp" alt="شخصيتا أبلكيشن معادلة هندسة وحاسبات"></div>
     <div class="launch-offer-content" *ngIf="!offerSubmitted">
       <span class="launch-offer-badge"><i class="bi bi-stars"></i> {{ launchOffer.eyebrow }}</span>
       <h2 id="launch-offer-title">{{ launchOffer.title }}<br><b>{{ launchOffer.highlight }}</b></h2>

@@ -45,6 +45,6 @@ export class SuccessStoriesFormComponent implements OnChanges {
 		if (this.content && typeof this.content === 'object') Object.assign(this.content, this.data);
 	}
 
-	add(): void { this.data?.stories.push({ id: Date.now(), name: '', honorific: 'البشمهندس', category: 'reviews', badge: 'مراجعات', image: '/assets/logo.png', result: '', summary: '', before: '', after: '', quote: '', message: '', videoUrls: [], details: [] }); }
+	add(): void { this.data?.stories.push({ id: Date.now(), name: '', honorific: 'البشمهندس', category: 'reviews', badge: 'مراجعات', image: '/assets/logo.webp', result: '', summary: '', before: '', after: '', quote: '', message: '', videoUrls: [], details: [] }); }
 	remove(index: number): void { this.data?.stories.splice(index, 1); }
 }

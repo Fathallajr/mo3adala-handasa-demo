@@ -13,7 +13,7 @@
 					<div class="review-countdown__clock" dir="ltr"><div><strong>{{ closingDays | number:'2.0-0' }}</strong><span>{{ isEnglishSubscription ? 'Days' : 'يوم' }}</span></div><i>:</i><div><strong>{{ closingHours | number:'2.0-0' }}</strong><span>{{ isEnglishSubscription ? 'Hours' : 'ساعة' }}</span></div><i>:</i><div><strong>{{ closingMinutes | number:'2.0-0' }}</strong><span>{{ isEnglishSubscription ? 'Minutes' : 'دقيقة' }}</span></div><i>:</i><div><strong>{{ closingSeconds | number:'2.0-0' }}</strong><span>{{ isEnglishSubscription ? 'Seconds' : 'ثانية' }}</span></div></div>
 				</section>
 			</div>
-			<aside class="review-hero__mascot" aria-hidden="true"><img src="assets/subscription-engineering-mascot.png" alt=""></aside>
+			<aside class="review-hero__mascot" aria-hidden="true"><img src="assets/subscription-engineering-mascot.webp" alt=""></aside>
 		</div>
 	</section>
 
@@ -28,7 +28,7 @@
 				<h1 id="computer-hero-title">{{ heroProgramLabel }} <em>{{ heroMonthLabel }}</em></h1>
 			<section *ngIf="!isEnrollmentClosed && isCountdownEnabled" class="computer-hero__countdown" aria-labelledby="computer-countdown-title" aria-live="polite"><div><small>REGISTRATION CLOSES IN</small><h2 id="computer-countdown-title">{{ isEnglishSubscription ? 'Registration closes on' : 'الإغلاق هيتم بتاريخ' }} <b>{{ heroClosingDateLabel }}</b> {{ isEnglishSubscription ? 'at' : 'الساعة' }} <b>{{ isEnglishSubscription ? '10 PM' : '10 مساءً' }}</b></h2></div><div class="computer-hero__clock" dir="ltr"><span><b>{{ closingDays | number:'2.0-0' }}</b><small>{{ isEnglishSubscription ? 'Days' : 'يوم' }}</small></span><i>:</i><span><b>{{ closingHours | number:'2.0-0' }}</b><small>{{ isEnglishSubscription ? 'Hours' : 'ساعة' }}</small></span><i>:</i><span><b>{{ closingMinutes | number:'2.0-0' }}</b><small>{{ isEnglishSubscription ? 'Minutes' : 'دقيقة' }}</small></span><i>:</i><span><b>{{ closingSeconds | number:'2.0-0' }}</b><small>{{ isEnglishSubscription ? 'Seconds' : 'ثانية' }}</small></span></div></section>
 			</div>
-			<aside class="computer-hero__mascot" aria-hidden="true"><img src="assets/subscription-computers-mascot.png" alt=""></aside>
+			<aside class="computer-hero__mascot" aria-hidden="true"><img src="assets/subscription-computers-mascot.webp" alt=""></aside>
 		</div>
 	</section>
 

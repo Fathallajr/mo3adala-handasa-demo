@@ -8,7 +8,7 @@ const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
   '/browserconfig.xml',
-  '/assets/logo.png',
+  '/assets/logo.webp',
 ];
 
 self.addEventListener('install', (event) => {

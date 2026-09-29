@@ -35,7 +35,7 @@
 		</div>
 		<div class="stories-grid" @staggerList>
 			<a *ngFor="let story of stories; let i = index" class="story-card" [routerLink]="['/success-stories', story.id]">
-				<div class="story-card__image"><img [src]="story.image" [alt]="'قصة نجاح ' + story.name" loading="lazy" decoding="async" onerror="this.src='/assets/logo.png'"><span class="story-card__number">{{ i + 1 }}</span></div>
+				<div class="story-card__image"><img [src]="story.image" [alt]="'قصة نجاح ' + story.name" loading="lazy" decoding="async" onerror="this.src='/assets/logo.webp'"><span class="story-card__number">{{ i + 1 }}</span></div>
 				<div class="story-card__body"><div class="story-card__meta"><span>{{ story.honorific }}</span><i></i><span>تجربة حقيقية</span></div><h3>{{ story.name }}</h3><p class="story-card__result">{{ story.result }}</p><p class="story-card__quote">{{ story.summary }}</p><span class="story-card__button">اقرأ قصته <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></span></div>
 			</a>
 		</div>
