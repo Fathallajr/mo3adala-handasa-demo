@@ -711,10 +711,15 @@ app.get('/api/admin/leads/export', requireAdmin, requirePermission('leads:read')
 	if (from) leads = leads.filter(lead => String(lead.createdAt || '').slice(0, 10) >= from);
 	if (to) leads = leads.filter(lead => String(lead.createdAt || '').slice(0, 10) <= to);
 	if (search) leads = leads.filter(lead => [lead.name, lead.whatsapp, lead.school, lead.program, lead.source, lead.attribution?.platform, lead.attribution?.campaign].some(value => String(value || '').toLowerCase().includes(search)));
+	leads.sort((a, b) => Date.parse(String(a.createdAt || '')) - Date.parse(String(b.createdAt || '')));
 	const escapeCsv = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+	const excelPhone = value => {
+		const phone = String(value ?? '').trim();
+		return phone ? `'${phone}` : '';
+	};
 	const rows = [
 		['الاسم', 'واتساب', 'المدرسة أو المعهد', 'نوع التعليم', 'البرنامج', 'المصدر', 'منصة الإعلان', 'الكامبين', 'مجموعة الإعلان', 'الإعلان', 'الحالة', 'ملاحظات', 'تاريخ التسجيل'],
-		...leads.map(lead => [lead.name, lead.whatsapp, lead.school, lead.studentType, lead.program, lead.source || 'غير محدد', lead.attribution?.platform || 'غير محدد', lead.attribution?.campaign || 'غير محدد', lead.attribution?.adSet || '', lead.attribution?.ad || '', lead.status, lead.notes, lead.createdAt])
+		...leads.map(lead => [lead.name, excelPhone(lead.whatsapp), lead.school, lead.studentType, lead.program, lead.source || 'غير محدد', lead.attribution?.platform || 'غير محدد', lead.attribution?.campaign || 'غير محدد', lead.attribution?.adSet || '', lead.attribution?.ad || '', lead.status, lead.notes, lead.createdAt])
 	];
 	const csv = '\uFEFF' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n');
 	res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="leads-${from || 'all'}-${to || 'all'}.csv"` });
@@ -869,8 +874,13 @@ app.get('/api/admin/wheel/claims/export', requireAdmin, requirePermission('wheel
 	if (program) data = data.filter(item => item.program === program);
 	if (from) data = data.filter(item => String(item.claimedAt || '').slice(0, 10) >= from);
 	if (to) data = data.filter(item => String(item.claimedAt || '').slice(0, 10) <= to);
+	data.sort((a, b) => Date.parse(String(a.claimedAt || '')) - Date.parse(String(b.claimedAt || '')));
 	const escapeCsv = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
-	const rows = [['الاسم', 'واتساب', 'البرنامج', 'الهدية', 'التاريخ'], ...data.map(item => [item.name, item.whatsapp, item.program, item.gift, item.claimedAt])];
+	const excelPhone = value => {
+		const phone = String(value ?? '').trim();
+		return phone ? `'${phone}` : '';
+	};
+	const rows = [['الاسم', 'واتساب', 'البرنامج', 'الهدية', 'التاريخ'], ...data.map(item => [item.name, excelPhone(item.whatsapp), item.program, item.gift, item.claimedAt])];
 	const csv = '\uFEFF' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n');
 	res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="wheel-claims-${from || 'all'}-${to || 'all'}.csv"` });
 	res.send(csv);
