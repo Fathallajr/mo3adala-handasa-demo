@@ -189,6 +189,11 @@
 						[content]="currentContent">
 					</app-batch-2027-form>
 
+					<app-launch-offer-form
+						*ngSwitchCase="'launch-offer'"
+						[content]="currentContent">
+					</app-launch-offer-form>
+
 					<app-requirements-form
 						*ngSwitchCase="'requirements'"
 						[content]="currentContent">

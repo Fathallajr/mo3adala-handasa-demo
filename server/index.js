@@ -30,6 +30,7 @@ const PAGE_KEYS = [
 	'requirements',
 	'schools'
 	,'batch-2027'
+	,'launch-offer'
 	,'success-stories'
 	,'feedback'
 	,'subscription-computers'
@@ -1054,6 +1055,25 @@ async function migrateSubscriptionContentOnce() {
 	console.log('Applied one-time subscription content migration.');
 }
 
+async function migrateLaunchOfferOnce() {
+	const migrationKey = 'launch-offer-cms-v1';
+	if (await database.getMetadata(migrationKey)) return;
+
+	const store = await readStore();
+	if (!store.pages['launch-offer']?.data) {
+		await database.savePage('launch-offer', {
+			visible: true,
+			eyebrow: 'عرض خاص للدفعة الجديدة',
+			title: 'سجل دلوقتي',
+			highlight: 'هنختار نعمل خصم لـ 200 مشترك!',
+			description: 'سيب بياناتك واحجز أولوية التواصل قبل بداية الدفعة الجديدة.',
+			expiresAt: '2026-10-08T19:00:00.000Z'
+		}, getNowIso());
+	}
+	await database.setMetadata(migrationKey, getNowIso());
+	console.log('Initialized launch offer CMS content once.');
+}
+
 app.get('/api/content', async (req, res) => {
 	noCache(res);
 	const store = await readStore();
@@ -1203,6 +1223,7 @@ app.get('*', (req, res, next) => {
 (async () => {
 	try {
 		await migrateSubscriptionContentOnce();
+		await migrateLaunchOfferOnce();
 	} catch (error) {
 		console.error('Subscription content migration failed', error);
 	}

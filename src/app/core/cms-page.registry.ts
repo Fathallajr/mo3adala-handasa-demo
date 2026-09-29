@@ -16,6 +16,7 @@ export type CmsPageKey =
 	| 'requirements'
 	| 'schools'
 	| 'batch-2027'
+	| 'launch-offer'
 	| 'success-stories'
 	| 'feedback'
 	| 'subscription-computers'
@@ -43,6 +44,7 @@ export const cmsPageOptions: CmsPageOption[] = [
 	{ key: 'contact', route: '/success-story', title: 'التواصل والسوشيال', description: 'أرقام الواتساب والتليفون وروابط التواصل التي تظهر في الموقع', group: 'صفحات أساسية' },
 	{ key: 'requirements', route: '/requirements', title: 'شروط المعادلة', description: 'الشروط والمستندات وخطوات التقديم للطلاب', group: 'الإصدار الحالي' },
 	{ key: 'batch-2027', route: '/batch-2027', title: 'دفعة 2027 والعجلة', description: 'الهيرو، خيارات المعادلة، بيانات التسجيل ورسائل العجلة', group: 'الإصدار الحالي' },
+	{ key: 'launch-offer', route: '/', title: 'بوب‑أب الخصم', description: 'فتح وإغلاق العرض وتاريخ انتهاء الكاونتر ونصوص البوب‑أب', group: 'الإصدار الحالي' },
 	{ key: 'success-stories', route: '/success-stories', title: 'قصص النجاح', description: 'عنوان الصفحة ووصفها وقائمة قصص الطلاب', group: 'الإصدار الحالي' },
 	{ key: 'feedback', route: '/feedback', title: 'آراء الطلاب', description: 'نصوص صفحة جمع آراء الطلاب', group: 'الإصدار الحالي' },
 	{ key: 'photos-2025', route: '/photos-2025', title: 'صور الطلاب', description: 'ألبومات وصور الطلاب الناجحين', group: 'المحتوى' },
@@ -205,6 +207,14 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 		joinHighlight: 'وخد أولوية العروض والخصومات',
 		joinDescription: 'سيب بياناتك واحجز أولوية التواصل قبل بداية الدفعة الجديدة.',
 		submitLabel: 'احصل على الخصم الآن'
+	},
+	'launch-offer': {
+		visible: true,
+		eyebrow: 'عرض خاص للدفعة الجديدة',
+		title: 'سجل دلوقتي',
+		highlight: 'هنختار نعمل خصم لـ 200 مشترك!',
+		description: 'سيب بياناتك واحجز أولوية التواصل قبل بداية الدفعة الجديدة.',
+		expiresAt: '2026-10-08T19:00:00.000Z'
 	},
 	'success-stories': {
 		visible: true,

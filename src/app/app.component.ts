@@ -9,6 +9,8 @@ import { ViewportScroller } from '@angular/common';
 import { SeoService } from './core/seo.service';
 import { StyledSelectComponent } from './shared/components/styled-select/styled-select.component';
 import { captureLeadAttribution, LeadAttribution } from './core/lead-attribution';
+import { MonthlyContentService } from './core/services/monthly-content.service';
+import { Subscription } from 'rxjs';
 
 declare global {
 	interface Window {
@@ -31,6 +33,15 @@ export class AppComponent implements OnInit, OnDestroy {
 	routeLoading = false;
 	currentRoute = '';
 	showLaunchOffer = false;
+	private launchOfferLoaded = false;
+	private launchOfferVisible = false;
+	private launchOfferExpiresAt = '';
+	launchOffer = {
+		eyebrow: '',
+		title: '',
+		highlight: '',
+		description: ''
+	};
 	showSubscriptionChoices = false;
 	offerSubmitted = false;
 	offerName = '';
@@ -62,8 +73,9 @@ export class AppComponent implements OnInit, OnDestroy {
 	countdownSeconds = 0;
 	private offerCountdownTimer?: ReturnType<typeof setInterval>;
 	private offerOpenTimer?: ReturnType<typeof setTimeout>;
+	private launchOfferSubscription?: Subscription;
 
-	constructor(private router: Router, private viewportScroller: ViewportScroller, private seo: SeoService, private cdr: ChangeDetectorRef) {
+	constructor(private router: Router, private viewportScroller: ViewportScroller, private seo: SeoService, private cdr: ChangeDetectorRef, private contentService: MonthlyContentService) {
 		if ('scrollRestoration' in history) {
 			history.scrollRestoration = 'manual';
 		}
@@ -100,20 +112,13 @@ export class AppComponent implements OnInit, OnDestroy {
 			this.cdr.detectChanges();
 		}, 260);
 		
-		if ((this.currentRoute === '/' || this.currentRoute === '') && typeof window !== 'undefined' && !localStorage.getItem('launch-offer-submitted')) {
-			// Open just after the short app splash ends instead of waiting for the
-			// page content or any API request to finish.
-			this.offerOpenTimer = setTimeout(() => {
-				this.showLaunchOffer = true;
-				this.cdr.detectChanges();
-			}, 300);
-		}
-		this.startOfferCountdown();
+		this.loadLaunchOffer();
 	}
 
 	ngOnDestroy() {
 		if (this.offerCountdownTimer) clearInterval(this.offerCountdownTimer);
 		if (this.offerOpenTimer) clearTimeout(this.offerOpenTimer);
+		this.launchOfferSubscription?.unsubscribe();
 	}
 
 	private async loadSiteMode(): Promise<void> {
@@ -126,7 +131,7 @@ export class AppComponent implements OnInit, OnDestroy {
 				// A visitor who already submitted the launch form should go straight
 				// to the maintenance screen on later visits, even while maintenance
 				// mode is still enabled.
-				if (this.siteMaintenance && !localStorage.getItem('launch-offer-submitted')) {
+				if (this.siteMaintenance && this.launchOfferLoaded && this.launchOfferVisible && !localStorage.getItem('launch-offer-submitted')) {
 					this.showLaunchOffer = true;
 					this.showLoading = false;
 				}
@@ -137,13 +142,47 @@ export class AppComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	private startOfferCountdown() {
+	private loadLaunchOffer(): void {
+		this.launchOfferSubscription = this.contentService.loadPageState<any>('launch-offer').subscribe({
+			next: state => {
+				this.launchOfferLoaded = true;
+				this.launchOfferVisible = state?.visible === true;
+				this.launchOffer = {
+					eyebrow: String(state?.eyebrow || ''),
+					title: String(state?.title || ''),
+					highlight: String(state?.highlight || ''),
+					description: String(state?.description || '')
+				};
+				this.launchOfferExpiresAt = String(state?.expiresAt || '');
+				this.startOfferCountdown(this.launchOfferExpiresAt);
+				if (this.launchOfferVisible && this.currentRoute === '/' && !localStorage.getItem('launch-offer-submitted')) {
+					this.offerOpenTimer = setTimeout(() => {
+						if (!this.launchOfferVisible) return;
+						this.showLaunchOffer = true;
+						this.cdr.detectChanges();
+					}, 300);
+				}
+				this.cdr.detectChanges();
+			},
+			error: () => {
+				this.launchOfferLoaded = true;
+				this.launchOfferVisible = false;
+				this.showLaunchOffer = false;
+				this.cdr.detectChanges();
+			}
+		});
+	}
+
+	private startOfferCountdown(expiresAt: string) {
 		if (typeof window === 'undefined') return;
-		const key = 'launch-offer-deadline';
-		let deadline = Number(localStorage.getItem(key));
-		if (!deadline || deadline <= Date.now()) {
-			deadline = Date.now() + 15 * 24 * 60 * 60 * 1000;
-			localStorage.setItem(key, String(deadline));
+		if (this.offerCountdownTimer) clearInterval(this.offerCountdownTimer);
+		const deadline = Date.parse(expiresAt || '');
+		if (!Number.isFinite(deadline)) {
+			this.countdownDays = 0;
+			this.countdownHours = 0;
+			this.countdownMinutes = 0;
+			this.countdownSeconds = 0;
+			return;
 		}
 		const update = () => {
 			const remaining = Math.max(0, deadline - Date.now());
@@ -151,6 +190,10 @@ export class AppComponent implements OnInit, OnDestroy {
 			this.countdownHours = Math.floor((remaining % 86400000) / 3600000);
 			this.countdownMinutes = Math.floor((remaining % 3600000) / 60000);
 			this.countdownSeconds = Math.floor((remaining % 60000) / 1000);
+			if (remaining <= 0) {
+				this.showLaunchOffer = false;
+				if (this.offerCountdownTimer) clearInterval(this.offerCountdownTimer);
+			}
 			this.cdr.detectChanges();
 		};
 		update();
