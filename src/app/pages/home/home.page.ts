@@ -209,11 +209,13 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	feedbackPreview(message: string): string {
 		const cleanMessage = (message || '').trim();
-		return cleanMessage.length > 220 ? `${cleanMessage.slice(0, 220).trim()}…` : cleanMessage;
+		const words = cleanMessage ? cleanMessage.split(/\s+/) : [];
+		return words.length > 20 ? `${words.slice(0, 20).join(' ')}…` : cleanMessage;
 	}
 
 	isLongFeedback(message: string): boolean {
-		return (message || '').trim().length > 220;
+		const cleanMessage = (message || '').trim();
+		return cleanMessage ? cleanMessage.split(/\s+/).length > 20 : false;
 	}
 
 	private applyCmsState(content: unknown): void {
