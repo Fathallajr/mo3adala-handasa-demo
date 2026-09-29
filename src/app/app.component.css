@@ -619,3 +619,8 @@ nav .font-extrabold {
 .site-maintenance-icon { margin-bottom:12px; font-size:48px; }
 .site-maintenance-card h1 { margin:0 0 14px; color:#172033; font-size:30px; }
 .site-maintenance-card p { margin:0; color:#718096; font-size:17px; line-height:1.9; }
+
+/* Keep the offer countdown separators inside the clock, between each value. */
+.launch-offer-countdown-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.launch-offer-countdown-grid div:not(:last-child)::after { content: none; }
+.launch-offer-countdown-grid > i { display: grid; place-items: center; color: #ed6b22; font-size: 1rem; font-style: normal; font-weight: 900; }
