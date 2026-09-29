@@ -589,8 +589,14 @@ img {
   position: relative;
   z-index: 1;
   margin-top: 1rem;
+  width:100%;
+  max-width:52rem;
+  margin-inline:auto;
   color: #334155 !important;
   font-size: 0.95rem !important;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .student-reviews-section .carousel-figure:nth-child(3n + 1) { border-top: 3px solid #f97316 !important; }
