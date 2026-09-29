@@ -28,11 +28,21 @@ export class SuccessStoryDetailPageComponent implements OnInit {
 
 	ngOnInit(): void {
 		const storyId = Number(this.route.snapshot.paramMap.get('id'));
+		// The list page has a local fallback, so direct links must use the same
+		// fallback when the CMS page is missing or temporarily unavailable.
+		this.story = successStories.find(item => item.id === storyId);
+		if (this.story) this.setStorySeo(this.story);
+		else this.setNotFoundSeo();
+
 		this.contentService.loadPageState('success-stories', { ...(cmsPageDefaults['success-stories'] as object), stories: successStories }).subscribe(content => {
 			const stories = normalizeSuccessStories((content as any)?.stories);
-			this.story = stories.find(item => item.id === storyId);
-			if (!this.story) { this.setNotFoundSeo(); return; }
-			this.setStorySeo(this.story);
+			const loadedStory = stories.find(item => item.id === storyId);
+			if (loadedStory) {
+				this.story = loadedStory;
+				this.setStorySeo(loadedStory);
+			} else if (!this.story) {
+				this.setNotFoundSeo();
+			}
 		});
 	}
 
