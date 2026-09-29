@@ -24,6 +24,9 @@ export class FeedbackPageComponent {
 	eyebrow = 'صوتك يهمنا';
 	title = 'قول رأيك في الأبليكيشن';
 	description = 'رأيك بيساعدنا نطوّر المحتوى والمتابعة ونقدّم تجربة أفضل لكل طالب.';
+	batchLabel = 'الدفعة';
+	batchPlaceholder = 'مثال: 2027';
+	batchRequired = true;
 	isPageVisible = true;
 	private readonly feedbackEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api/feedback' : '/api/feedback';
 
@@ -43,6 +46,9 @@ export class FeedbackPageComponent {
 			this.eyebrow = state?.eyebrow || this.eyebrow;
 			this.title = state?.title || this.title;
 			this.description = state?.description || this.description;
+			this.batchLabel = state?.batchLabel || this.batchLabel;
+			this.batchPlaceholder = state?.batchPlaceholder || this.batchPlaceholder;
+			this.batchRequired = state?.batchRequired !== false;
 		});
 	}
 
@@ -55,6 +61,7 @@ export class FeedbackPageComponent {
 		this.http.post(this.feedbackEndpoint, {
 					name: form.value.name,
 					university: form.value.university,
+					batch: form.value.batch,
 					rating: form.value.rating,
 					message: form.value.message,
 			}).pipe(

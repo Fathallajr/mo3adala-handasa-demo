@@ -18,6 +18,10 @@
 					<input id="university" name="university" type="text" placeholder="مثال: هندسة حلوان" required ngModel>
 				</div>
 				<div class="feedback-field">
+					<label for="batch">{{ batchLabel }}</label>
+					<input id="batch" name="batch" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="10" [placeholder]="batchPlaceholder" [required]="batchRequired" ngModel>
+				</div>
+				<div class="feedback-field">
 					<label for="rating">تقييمك للتجربة</label>
 					<select id="rating" name="rating" required ngModel>
 						<option value="" disabled>اختار التقييم</option>

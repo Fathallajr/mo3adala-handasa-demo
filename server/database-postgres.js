@@ -28,7 +28,7 @@ function ensureSchema() {
 				actor TEXT DEFAULT '', ip TEXT DEFAULT '', created_at TIMESTAMPTZ NOT NULL
 			);
 			CREATE TABLE IF NOT EXISTS feedbacks (
-				id TEXT PRIMARY KEY, name TEXT NOT NULL, university TEXT DEFAULT '',
+				id TEXT PRIMARY KEY, name TEXT NOT NULL, university TEXT DEFAULT '', batch TEXT DEFAULT '',
 				rating INTEGER NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new',
 				created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ
 			);
@@ -55,6 +55,7 @@ function ensureSchema() {
 			ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS username TEXT NOT NULL DEFAULT '';
 			ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS permissions JSONB NOT NULL DEFAULT '[]'::jsonb;
 			ALTER TABLE leads ADD COLUMN IF NOT EXISTS attribution JSONB NOT NULL DEFAULT '{}'::jsonb;
+			ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS batch TEXT DEFAULT '';
 		`);
 	}
 	return schemaPromise;
@@ -67,7 +68,7 @@ async function readStore() {
 		pool.query('SELECT id,name,whatsapp,school,student_type AS "studentType",program,source,status,notes,attribution,created_at AS "createdAt",updated_at AS "updatedAt" FROM leads ORDER BY created_at DESC'),
 		pool.query('SELECT id,name,slug,category,language,price,features,is_active AS "isActive",enrollment_status AS "enrollmentStatus",created_at AS "createdAt",updated_at AS "updatedAt" FROM programs ORDER BY created_at DESC'),
 		pool.query('SELECT id,action,entity_type AS "entityType",entity_id AS "entityId",actor,ip,created_at AS "createdAt" FROM audit_logs ORDER BY created_at DESC')
-		,pool.query('SELECT id,name,university,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks ORDER BY created_at DESC')
+		,pool.query('SELECT id,name,university,batch,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks ORDER BY created_at DESC')
 	]);
 	return {
 		pages: Object.fromEntries(pages.rows.map(row => [row.key, { data: row.data, updatedAt: row.updatedAt }])),
@@ -190,11 +191,11 @@ async function updateAdminUser(username, changes) { await ensureSchema(); const 
 async function deleteAdminUser(username) { await ensureSchema(); await pool.query('DELETE FROM admin_users WHERE username = $1', [username]); }
 async function getMetadata(key) { await ensureSchema(); const result = await pool.query('SELECT value FROM metadata WHERE key = $1', [key]); return result.rows[0]?.value ?? null; }
 async function setMetadata(key, value) { await ensureSchema(); await pool.query('INSERT INTO metadata(key,value) VALUES ($1,$2) ON CONFLICT(key) DO UPDATE SET value = EXCLUDED.value', [key, String(value)]); }
-async function createFeedback(feedback) { await ensureSchema(); await pool.query('INSERT INTO feedbacks(id,name,university,rating,message,status,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [feedback.id, feedback.name, feedback.university || '', feedback.rating, feedback.message, feedback.status || 'new', feedback.createdAt, feedback.updatedAt || null]); }
-async function listFeedback() { await ensureSchema(); const result = await pool.query('SELECT id,name,university,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks ORDER BY created_at DESC'); return result.rows; }
-async function getFeedback(id) { await ensureSchema(); const result = await pool.query('SELECT id,name,university,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks WHERE id = $1', [id]); return result.rows[0] || null; }
+async function createFeedback(feedback) { await ensureSchema(); await pool.query('INSERT INTO feedbacks(id,name,university,batch,rating,message,status,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)', [feedback.id, feedback.name, feedback.university || '', feedback.batch || '', feedback.rating, feedback.message, feedback.status || 'new', feedback.createdAt, feedback.updatedAt || null]); }
+async function listFeedback() { await ensureSchema(); const result = await pool.query('SELECT id,name,university,batch,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks ORDER BY created_at DESC'); return result.rows; }
+async function getFeedback(id) { await ensureSchema(); const result = await pool.query('SELECT id,name,university,batch,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks WHERE id = $1', [id]); return result.rows[0] || null; }
 async function updateFeedback(id, changes) { await ensureSchema(); await pool.query('UPDATE feedbacks SET status = COALESCE($1,status), updated_at = COALESCE($2,updated_at) WHERE id = $3', [changes.status || null, changes.updatedAt || null, id]); }
-async function listPublishedFeedback() { await ensureSchema(); const result = await pool.query(`SELECT id,name,university,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks WHERE status = 'published' ORDER BY created_at DESC LIMIT 50`); return result.rows; }
+async function listPublishedFeedback() { await ensureSchema(); const result = await pool.query(`SELECT id,name,university,batch,rating,message,status,created_at AS "createdAt",updated_at AS "updatedAt" FROM feedbacks WHERE status = 'published' ORDER BY created_at DESC LIMIT 50`); return result.rows; }
 async function findWheelClaimByPhone(whatsapp) { await ensureSchema(); const state = (await pool.query('SELECT data FROM wheel_state WHERE id = 1')).rows[0]?.data; if (state) await migrateWheelClaims(state); const result = await pool.query('SELECT token,name,whatsapp,program,gift,claimed_at AS "claimedAt" FROM wheel_claims WHERE whatsapp = $1', [whatsapp]); return result.rows[0] || null; }
 async function createWheelClaim(claim) { await ensureSchema(); try { await pool.query('INSERT INTO wheel_claims(token,name,whatsapp,program,gift,claimed_at) VALUES ($1,$2,$3,$4,$5,$6)', [claim.token, claim.name, claim.whatsapp, claim.program, claim.gift, claim.claimedAt]); } catch (error) { if (error?.code === '23505') error.code = 'DUPLICATE_WHEEL_CLAIM'; throw error; } }
 async function listWheelClaims() { await ensureSchema(); const state = (await pool.query('SELECT data FROM wheel_state WHERE id = 1')).rows[0]?.data; if (state) await migrateWheelClaims(state); const result = await pool.query('SELECT token,name,whatsapp,program,gift,claimed_at AS "claimedAt" FROM wheel_claims ORDER BY claimed_at DESC'); return result.rows; }

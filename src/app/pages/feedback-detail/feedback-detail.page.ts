@@ -9,6 +9,7 @@ interface PublishedFeedback {
 	id: string;
 	name: string;
 	university?: string;
+	batch?: string;
 	rating: number;
 	message: string;
 }

@@ -228,7 +228,10 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 		visible: true,
 		eyebrow: 'صوتك يهمنا',
 		title: 'قول رأيك في الأبليكيشن',
-		description: 'رأيك بيساعدنا نطوّر المحتوى والمتابعة ونقدّم تجربة أفضل لكل طالب.'
+		description: 'رأيك بيساعدنا نطوّر المحتوى والمتابعة ونقدّم تجربة أفضل لكل طالب.',
+		batchLabel: 'الدفعة',
+		batchPlaceholder: 'مثال: 2027',
+		batchRequired: true
 	}
 };
 

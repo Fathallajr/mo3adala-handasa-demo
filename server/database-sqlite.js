@@ -29,7 +29,7 @@ db.exec(`
     actor TEXT DEFAULT '', ip TEXT DEFAULT '', created_at TEXT NOT NULL
   );
   CREATE TABLE IF NOT EXISTS feedbacks (
-    id TEXT PRIMARY KEY, name TEXT NOT NULL, university TEXT DEFAULT '',
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, university TEXT DEFAULT '', batch TEXT DEFAULT '',
     rating INTEGER NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new',
     created_at TEXT NOT NULL, updated_at TEXT
   );
@@ -57,6 +57,7 @@ try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN role TEXT NOT NULL DEFAU
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN username TEXT NOT NULL DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN permissions TEXT NOT NULL DEFAULT '[]'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE leads ADD COLUMN attribution TEXT DEFAULT '{}'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
+try { db.prepare("ALTER TABLE feedbacks ADD COLUMN batch TEXT DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 
 function migrateLegacyStore() {
   if (db.prepare('SELECT value FROM metadata WHERE key = ?').get('legacy-json-migrated')) return;
@@ -71,8 +72,8 @@ function migrateLegacyStore() {
     for (const program of Array.isArray(legacy.programs) ? legacy.programs : []) programInsert.run(program.id, program.name || '', program.slug || '', program.category || '', program.language || 'ar', Number(program.price || 0), JSON.stringify(program.features || []), program.isActive === false ? 0 : 1, program.enrollmentStatus || 'open', program.createdAt || new Date().toISOString(), program.updatedAt || null);
     const auditInsert = db.prepare('INSERT OR IGNORE INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES (?,?,?,?,?,?,?)');
     for (const log of Array.isArray(legacy.auditLogs) ? legacy.auditLogs : []) auditInsert.run(log.id || `${log.createdAt || Date.now()}-${Math.random()}`, log.action || '', log.entityType || '', log.entityId || '', log.actor || '', log.ip || '', log.createdAt || new Date().toISOString());
-    const feedbackInsert = db.prepare('INSERT OR IGNORE INTO feedbacks(id,name,university,rating,message,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)');
-    for (const feedback of Array.isArray(legacy.feedbacks) ? legacy.feedbacks : []) feedbackInsert.run(feedback.id, feedback.name || '', feedback.university || '', Number(feedback.rating || 0), feedback.message || '', feedback.status || 'new', feedback.createdAt || new Date().toISOString(), feedback.updatedAt || null);
+    const feedbackInsert = db.prepare('INSERT OR IGNORE INTO feedbacks(id,name,university,batch,rating,message,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)');
+    for (const feedback of Array.isArray(legacy.feedbacks) ? legacy.feedbacks : []) feedbackInsert.run(feedback.id, feedback.name || '', feedback.university || '', feedback.batch || '', Number(feedback.rating || 0), feedback.message || '', feedback.status || 'new', feedback.createdAt || new Date().toISOString(), feedback.updatedAt || null);
     db.prepare('INSERT INTO metadata(key,value) VALUES (?,?)').run('legacy-json-migrated', new Date().toISOString());
   });
   insert();
@@ -90,7 +91,7 @@ function readStore() {
 	const leads = db.prepare('SELECT id,name,whatsapp,school,student_type AS studentType,program,source,status,notes,attribution,created_at AS createdAt,updated_at AS updatedAt FROM leads ORDER BY created_at DESC').all().map(lead => { try { lead.attribution = JSON.parse(lead.attribution || '{}'); } catch { lead.attribution = {}; } return lead; });
   const programs = db.prepare('SELECT id,name,slug,category,language,price,features,is_active AS isActive,enrollment_status AS enrollmentStatus,created_at AS createdAt,updated_at AS updatedAt FROM programs ORDER BY created_at DESC').all().map(item => ({ ...item, isActive: Boolean(item.isActive), features: JSON.parse(item.features || '[]') }));
   const auditLogs = db.prepare('SELECT id,action,entity_type AS entityType,entity_id AS entityId,actor,ip,created_at AS createdAt FROM audit_logs ORDER BY created_at DESC').all();
-  const feedbacks = db.prepare('SELECT id,name,university,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks ORDER BY created_at DESC').all();
+	const feedbacks = db.prepare('SELECT id,name,university,batch,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks ORDER BY created_at DESC').all();
   return { pages, leads, programs, auditLogs, feedbacks };
 }
 
@@ -200,11 +201,11 @@ function updateAdminUser(username, changes) {
 function deleteAdminUser(username) { db.prepare('DELETE FROM admin_users WHERE username = ?').run(username); }
 function getMetadata(key) { const row = db.prepare('SELECT value FROM metadata WHERE key = ?').get(key); return row?.value ?? null; }
 function setMetadata(key, value) { db.prepare('INSERT INTO metadata(key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, String(value)); }
-function createFeedback(feedback) { db.prepare('INSERT INTO feedbacks(id,name,university,rating,message,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)').run(feedback.id, feedback.name, feedback.university || '', feedback.rating, feedback.message, feedback.status || 'new', feedback.createdAt, feedback.updatedAt || null); }
-function listFeedback() { return db.prepare('SELECT id,name,university,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks ORDER BY created_at DESC').all(); }
-function getFeedback(id) { return db.prepare('SELECT id,name,university,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks WHERE id = ?').get(id) || null; }
+function createFeedback(feedback) { db.prepare('INSERT INTO feedbacks(id,name,university,batch,rating,message,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)').run(feedback.id, feedback.name, feedback.university || '', feedback.batch || '', feedback.rating, feedback.message, feedback.status || 'new', feedback.createdAt, feedback.updatedAt || null); }
+function listFeedback() { return db.prepare('SELECT id,name,university,batch,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks ORDER BY created_at DESC').all(); }
+function getFeedback(id) { return db.prepare('SELECT id,name,university,batch,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks WHERE id = ?').get(id) || null; }
 function updateFeedback(id, changes) { const fields = []; const values = []; if (changes.status) { fields.push('status = ?'); values.push(changes.status); } if (changes.updatedAt) { fields.push('updated_at = ?'); values.push(changes.updatedAt); } if (!fields.length) return; values.push(id); db.prepare(`UPDATE feedbacks SET ${fields.join(', ')} WHERE id = ?`).run(...values); }
-function listPublishedFeedback() { return db.prepare("SELECT id,name,university,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks WHERE status = 'published' ORDER BY created_at DESC LIMIT 50").all(); }
+function listPublishedFeedback() { return db.prepare("SELECT id,name,university,batch,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks WHERE status = 'published' ORDER BY created_at DESC LIMIT 50").all(); }
 function findWheelClaimByPhone(whatsapp) { readWheelState(); return db.prepare('SELECT token,name,whatsapp,program,gift,claimed_at AS claimedAt FROM wheel_claims WHERE whatsapp = ?').get(whatsapp) || null; }
 function createWheelClaim(claim) { try { db.prepare('INSERT INTO wheel_claims(token,name,whatsapp,program,gift,claimed_at) VALUES (?,?,?,?,?,?)').run(claim.token, claim.name, claim.whatsapp, claim.program, claim.gift, claim.claimedAt); } catch (error) { if (String(error.message).includes('UNIQUE constraint failed')) error.code = 'DUPLICATE_WHEEL_CLAIM'; throw error; } }
 function listWheelClaims() { readWheelState(); return db.prepare('SELECT token,name,whatsapp,program,gift,claimed_at AS claimedAt FROM wheel_claims ORDER BY claimed_at DESC').all(); }

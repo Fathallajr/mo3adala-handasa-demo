@@ -185,7 +185,7 @@ const openApiDocument = {
 			WheelGift: { type: 'object', properties: { id: { type: 'string' }, label: { type: 'string' }, available: { type: 'boolean' } } },
 			Error: { type: 'object', properties: { message: { type: 'string' } } },
 			Program: { type: 'object', properties: { id: { type: 'string', format: 'uuid' }, name: { type: 'string' }, slug: { type: 'string' }, category: { type: 'string' }, language: { type: 'string' }, price: { type: 'number' }, features: { type: 'array', items: { type: 'string' } }, isActive: { type: 'boolean' }, enrollmentStatus: { type: 'string', enum: ['open', 'closed'] } } }
-			,Feedback: { type: 'object', properties: { id: { type: 'string', format: 'uuid' }, name: { type: 'string' }, university: { type: 'string' }, rating: { type: 'integer', minimum: 1, maximum: 5 }, message: { type: 'string' }, status: { type: 'string', enum: FEEDBACK_STATUSES }, createdAt: { type: 'string', format: 'date-time' }, updatedAt: { type: 'string', format: 'date-time' } } }
+		,Feedback: { type: 'object', properties: { id: { type: 'string', format: 'uuid' }, name: { type: 'string' }, university: { type: 'string' }, batch: { type: 'string' }, rating: { type: 'integer', minimum: 1, maximum: 5 }, message: { type: 'string' }, status: { type: 'string', enum: FEEDBACK_STATUSES }, createdAt: { type: 'string', format: 'date-time' }, updatedAt: { type: 'string', format: 'date-time' } } }
 		}
 	},
 	paths: {
@@ -644,13 +644,15 @@ app.post('/api/leads', rateLimit({ name: 'leads', windowMs: 15 * 60 * 1000, max:
 app.post('/api/feedback', rateLimit({ name: 'feedback', windowMs: 15 * 60 * 1000, max: 8 }), async (req, res) => {
 	const name = String(req.body?.name || '').trim();
 	const university = String(req.body?.university || '').trim();
+	const batch = String(req.body?.batch || '').trim();
 	const message = String(req.body?.message || '').trim();
 	const rating = Number(req.body?.rating);
 	if (name.length < 2 || name.length > 120) return res.status(400).json({ message: 'Name must be between 2 and 120 characters' });
 	if (university.length > 160) return res.status(400).json({ message: 'University must be 160 characters or less' });
+	if (!/^\d{1,10}$/.test(batch)) return res.status(400).json({ message: 'Batch must contain numbers only' });
 	if (!Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ message: 'Rating must be an integer between 1 and 5' });
 	if (message.length < 3 || message.length > 2000) return res.status(400).json({ message: 'Message must be between 3 and 2000 characters' });
-	const feedback = { id: crypto.randomUUID(), name, university, rating, message, status: 'new', createdAt: getNowIso(), updatedAt: null };
+	const feedback = { id: crypto.randomUUID(), name, university, batch, rating, message, status: 'new', createdAt: getNowIso(), updatedAt: null };
 	await database.createFeedback(feedback);
 	res.status(201).json({ ok: true, id: feedback.id });
 });
@@ -770,7 +772,7 @@ app.get('/api/admin/feedback', requireAdmin, requirePermission('feedback:read'),
 	if (status && !FEEDBACK_STATUSES.includes(status)) return res.status(400).json({ message: 'Invalid feedback status' });
 	let feedbacks = await database.listFeedback();
 	if (status) feedbacks = feedbacks.filter(item => item.status === status);
-	if (search) feedbacks = feedbacks.filter(item => [item.name, item.university, item.message].some(value => String(value || '').toLowerCase().includes(search)));
+	if (search) feedbacks = feedbacks.filter(item => [item.name, item.university, item.batch, item.message].some(value => String(value || '').toLowerCase().includes(search)));
 	const total = feedbacks.length;
 	res.json({ data: feedbacks.slice((page - 1) * limit, page * limit), pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
 });

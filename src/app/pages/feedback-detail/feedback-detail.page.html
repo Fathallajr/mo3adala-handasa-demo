@@ -10,7 +10,7 @@
 		<article *ngIf="feedback && !isLoading" class="feedback-detail-card">
 			<span class="feedback-detail-kicker">تجربة طالب من طلابنا</span>
 			<h1>رأي {{ feedback.name }}</h1>
-			<p class="feedback-detail-university">{{ feedback.university || 'طالب من طلابنا' }}</p>
+			<p class="feedback-detail-university">{{ feedback.university || 'طالب من طلابنا' }}<span *ngIf="feedback.batch"> · دفعة {{ feedback.batch }}</span></p>
 			<div class="feedback-detail-stars" aria-label="التقييم من 5">
 				<span *ngFor="let star of [1,2,3,4,5]">{{ star <= feedback.rating ? '★' : '☆' }}</span>
 			</div>
