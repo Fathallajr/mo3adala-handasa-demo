@@ -274,7 +274,9 @@ export class NewsEquationPageComponent implements OnInit {
 	}
 
 	isInternalLink(item: any): boolean {
-		return typeof item?.link === 'string' && /^\/news\/detail\//.test(item.link);
+		// Static news items use `slug`, while CMS-created items may provide
+		// an explicit `/news/detail/...` link. Both should use Angular routing.
+		return Boolean(item?.slug) || (typeof item?.link === 'string' && /^\/news\/detail\//.test(item.link));
 	}
 
 	resolveAssetUrl(url: string): string {
