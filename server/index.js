@@ -45,6 +45,17 @@ const PAGE_KEYS = [
 	,'subscription-computers-en'
 ];
 const LEAD_STATUSES = ['new', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
+const LEAD_STATUS_LABELS = {
+	new: 'جديد',
+	contacted: 'تم التواصل',
+	no_response: 'لم يرد',
+	interested: 'مهتم',
+	registered: 'مسجل',
+	not_interested: 'غير مهتم',
+	follow_up: 'متابعة',
+	closed: 'مغلق',
+	converted: 'تم التحويل'
+};
 const FEEDBACK_STATUSES = ['new', 'reviewed', 'published', 'archived'];
 // Require a fresh admin login every six hours.
 const TOKEN_TTL_MS = 6 * 60 * 60 * 1000;
@@ -738,7 +749,7 @@ app.get('/api/admin/leads/export', requireAdmin, requirePermission('leads:read')
 	};
 	const rows = [
 		['الاسم', 'واتساب', 'المدرسة أو المعهد', 'نوع التعليم', 'البرنامج', 'المصدر', 'منصة الإعلان', 'الكامبين', 'مجموعة الإعلان', 'الإعلان', 'الحالة', 'ملاحظات', 'تاريخ التسجيل'],
-		...leads.map(lead => [lead.name, excelPhone(lead.whatsapp), lead.school, lead.studentType, lead.program, lead.source || 'غير محدد', lead.attribution?.platform || 'غير محدد', lead.attribution?.campaign || 'غير محدد', lead.attribution?.adSet || '', lead.attribution?.ad || '', lead.status, lead.notes, lead.createdAt])
+		...leads.map(lead => [lead.name, excelPhone(lead.whatsapp), lead.school, lead.studentType, lead.program, lead.source || 'غير محدد', lead.attribution?.platform || 'غير محدد', lead.attribution?.campaign || 'غير محدد', lead.attribution?.adSet || '', lead.attribution?.ad || '', LEAD_STATUS_LABELS[lead.status] || lead.status || 'غير محدد', lead.notes, lead.createdAt])
 	];
 	const csv = '\uFEFF' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n');
 	res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="leads-${from || 'all'}-${to || 'all'}.csv"` });
