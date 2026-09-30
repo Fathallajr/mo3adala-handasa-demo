@@ -1181,8 +1181,15 @@ export class NewsDetailPageComponent implements OnInit {
 					return;
 				}
 				this.newsItem = {
+					// Keep the built-in article media when CMS content only
+					// overrides the text fields for an existing news item.
+					...(this.newsItem || {}),
 					...dynamic,
 					id: this.newsId,
+					image: dynamic.image || this.newsItem?.image,
+					images: Array.isArray(dynamic.images) && dynamic.images.length
+						? dynamic.images
+						: (this.newsItem?.images?.length ? this.newsItem.images : (dynamic.image ? [dynamic.image] : [])),
 					content: dynamic.content || dynamic.description || dynamic.excerpt || '',
 					category: dynamic.category || 'أخبار المعادلة',
 					date: dynamic.date || new Date().toISOString(),

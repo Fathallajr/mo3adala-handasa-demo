@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SeoService } from '../../core/seo.service';
 import { CanonicalService } from '../../core/canonical.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
@@ -221,7 +221,8 @@ export class NewsEquationPageComponent implements OnInit {
 	constructor(
 		private seo: SeoService,
 		private canonical: CanonicalService,
-		private monthlyContent: MonthlyContentService
+		private monthlyContent: MonthlyContentService,
+		private router: Router
 	) {}
 
 	ngOnInit(): void {
@@ -277,6 +278,14 @@ export class NewsEquationPageComponent implements OnInit {
 		// Static news items use `slug`, while CMS-created items may provide
 		// an explicit `/news/detail/...` link. Both should use Angular routing.
 		return Boolean(item?.slug) || (typeof item?.link === 'string' && /^\/news\/detail\//.test(item.link));
+	}
+
+	openNews(item: any): void {
+		if (this.isInternalLink(item)) {
+			this.router.navigate(['/news/detail', item.slug]);
+			return;
+		}
+		if (item?.link) window.open(item.link, '_blank', 'noopener');
 	}
 
 	resolveAssetUrl(url: string): string {

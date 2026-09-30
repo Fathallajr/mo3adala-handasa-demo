@@ -21,6 +21,8 @@
 .news-count { padding: .45rem .75rem; border: 1px solid #fed7aa; border-radius: 999px; color: #c2410c; background: #fff7ed; font-size: .78rem; font-weight: 800; white-space: nowrap; }
 .news-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 .news-card { overflow: hidden; border: 1px solid rgba(148,163,184,.28); border-radius: 1.25rem; background: rgba(255,255,255,.9); box-shadow: 0 10px 25px rgba(15,23,42,.05); transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease; }
+.news-card--clickable { cursor: pointer; }
+.news-card--clickable:focus-visible { outline: 3px solid rgba(37,99,235,.45); outline-offset: 3px; }
 .news-card:hover { transform: translateY(-5px); border-color: #93c5fd; box-shadow: 0 18px 35px rgba(15,23,42,.12); }
 .news-card--important { border-color: #fdba74; }
 .news-card:first-child { grid-column: span 2; }
