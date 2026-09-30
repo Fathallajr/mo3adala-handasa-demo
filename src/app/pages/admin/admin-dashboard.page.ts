@@ -371,7 +371,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.isLoadingLeads = true;
 		this.statusMessage = '';
 		this.errorMessage = '';
-		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage, 20, this.leadPlatform.trim(), this.leadCampaign.trim()).pipe(timeout({ each: 15000 }), finalize(() => { if (requestId === this.leadsRequestId) this.isLoadingLeads = false; this.refreshView(); })).subscribe({
+		this.adminApi.listLeads(this.leadSearch.trim(), this.leadStatus, this.leadSource, this.leadProgram, this.leadDateFrom, this.leadDateTo, this.leadsPage, 10, this.leadPlatform.trim(), this.leadCampaign.trim()).pipe(timeout({ each: 15000 }), finalize(() => { if (requestId === this.leadsRequestId) this.isLoadingLeads = false; this.refreshView(); })).subscribe({
 			next: result => {
 				if (requestId !== this.leadsRequestId) return;
 				this.leads = result.data;
