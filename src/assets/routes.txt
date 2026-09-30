@@ -1,6 +1,7 @@
 /
 /faq
 /photos-2025
+/contact
 /feedback
 /news/equation
 /news/app
@@ -33,7 +34,6 @@
 /success-stories/4
 /success-stories/5
 /success-stories/6
-/success-story
 /subscription-ab-reviews
 /subscription-engineer
 /subscription-engineering-ar

@@ -41,7 +41,7 @@ export interface CmsPageOption {
 export const cmsPageOptions: CmsPageOption[] = [
 	{ key: 'home', route: '/', title: 'الرئيسية', description: 'الهيرو، المميزات، الصور، ونصوص الصفحة الرئيسية', group: 'صفحات أساسية' },
 	{ key: 'faq', route: '/faq', title: 'الأسئلة الشائعة', description: 'الأسئلة والإجابات وترتيب ظهورها', group: 'صفحات أساسية' },
-	{ key: 'contact', route: '/success-story', title: 'التواصل والسوشيال', description: 'أرقام الواتساب والتليفون وروابط التواصل التي تظهر في الموقع', group: 'صفحات أساسية' },
+	{ key: 'contact', route: '/contact', title: 'التواصل والسوشيال', description: 'أرقام الواتساب والتليفون وروابط التواصل التي تظهر في الموقع', group: 'صفحات أساسية' },
 	{ key: 'requirements', route: '/requirements', title: 'شروط المعادلة', description: 'الشروط والمستندات وخطوات التقديم للطلاب', group: 'الإصدار الحالي' },
 	{ key: 'batch-2027', route: '/batch-2027', title: 'دفعة 2027 والعجلة', description: 'الهيرو، خيارات المعادلة، بيانات التسجيل ورسائل العجلة', group: 'الإصدار الحالي' },
 	{ key: 'launch-offer', route: '/', title: 'بوب‑أب الخصم', description: 'فتح وإغلاق العرض وتاريخ انتهاء الكاونتر ونصوص البوب‑أب', group: 'الإصدار الحالي' },

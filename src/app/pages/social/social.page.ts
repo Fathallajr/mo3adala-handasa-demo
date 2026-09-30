@@ -25,7 +25,7 @@ export class SocialPageComponent implements OnInit {
 		const description = 'كل روابط حساباتنا وطرق التواصل معنا في مكان واحد.';
 		this.seo.setTitle(title);
 		this.seo.setDescription(description);
-		this.seo.setOgTags({ title, description, url: siteUrl.replace(/\/$/, '') + '/success-story' });
+		this.seo.setOgTags({ title, description, url: siteUrl.replace(/\/$/, '') + '/contact' });
 		this.seo.setTwitterTags({ title, description });
 		this.canonical.setCanonical();
 	}
