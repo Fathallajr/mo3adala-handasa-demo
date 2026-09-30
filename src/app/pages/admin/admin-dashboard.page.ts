@@ -33,6 +33,7 @@ interface PageOption {
 }
 
 type AdminDataView = 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins';
+type PaginationItem = number | '…';
 
 @Component({
 	selector: 'app-admin-dashboard-page',
@@ -74,12 +75,12 @@ export class AdminDashboardPageComponent implements OnInit {
 	wheelClaims: WheelClaim[] = [];
 	wheelPage = 1;
 	wheelPages = 1;
-	wheelPageNumbers = [1];
+	wheelPageNumbers: PaginationItem[] = [1];
 	wheelTotal = 0;
 	feedbacks: Feedback[] = [];
 	feedbackPage = 1;
 	feedbackPages = 1;
-	feedbackPageNumbers = [1];
+	feedbackPageNumbers: PaginationItem[] = [1];
 	feedbackTotal = 0;
 	readonly expandedFeedbackIds = new Set<string>();
 	feedbackSearch = '';
@@ -131,7 +132,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadsPage = 1;
 	copiedLeadWhatsapp = '';
 	leadsPages = 1;
-	leadPageNumbers = [1];
+	leadPageNumbers: PaginationItem[] = [1];
 	leadsTotal = 0;
 	leadStatuses = ['new', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
 	readonly leadStatusLabels: Record<string, string> = { new: 'جديد', contacted: 'تم التواصل', no_response: 'لم يرد', interested: 'مهتم', registered: 'مسجل', not_interested: 'غير مهتم', follow_up: 'متابعة', closed: 'مغلق', converted: 'تم التحويل' };
@@ -314,12 +315,23 @@ export class AdminDashboardPageComponent implements OnInit {
 			timeout({ each: 15000 }),
 			finalize(() => { this.isLoadingFeedback = false; this.refreshView(); })
 		).subscribe({
-			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.feedbackPages = result.pagination.pages || 1; this.feedbackPageNumbers = Array.from({ length: this.feedbackPages }, (_, index) => index + 1); this.feedbackLoaded = true; this.statusMessage = 'تم تحديث الآراء بنجاح.'; this.refreshView(); },
+			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.feedbackPages = result.pagination.pages || 1; this.feedbackPageNumbers = this.buildPaginationItems(this.feedbackPage, this.feedbackPages); this.feedbackLoaded = true; this.statusMessage = 'تم تحديث الآراء بنجاح.'; this.refreshView(); },
 			error: err => { this.handleApiError(err); this.refreshView(); }
 	});
 	}
 	searchFeedback(): void { this.feedbackPage = 1; this.loadFeedback(true); }
-	goToFeedbackPage(page: number): void { const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.feedbackPages); if (nextPage === this.feedbackPage && this.feedbackLoaded) return; this.feedbackPage = nextPage; this.loadFeedback(true); }
+	goToFeedbackPage(page: number | string): void { if (typeof page !== 'number') return; const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.feedbackPages); if (nextPage === this.feedbackPage && this.feedbackLoaded) return; this.feedbackPage = nextPage; this.loadFeedback(true); }
+	buildPaginationItems(currentPage: number, totalPages: number): PaginationItem[] {
+		if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1);
+		const items: PaginationItem[] = [1];
+		const start = Math.max(2, currentPage - 1);
+		const end = Math.min(totalPages - 1, currentPage + 1);
+		if (start > 2) items.push('…');
+		for (let page = start; page <= end; page++) items.push(page);
+		if (end < totalPages - 1) items.push('…');
+		items.push(totalPages);
+		return items;
+	}
 	updateFeedbackStatus(feedback: Feedback, status: Feedback['status']): void {
 		this.adminApi.updateFeedback(feedback.id, status).subscribe({ next: updated => { feedback.status = updated.status; this.statusMessage = 'تم تحديث حالة الرأي.'; }, error: err => this.handleApiError(err) });
 	}
@@ -364,7 +376,7 @@ export class AdminDashboardPageComponent implements OnInit {
 				if (requestId !== this.leadsRequestId) return;
 				this.leads = result.data;
 				this.leadsPages = result.pagination.pages || 1;
-				this.leadPageNumbers = Array.from({ length: this.leadsPages }, (_, index) => index + 1);
+				this.leadPageNumbers = this.buildPaginationItems(this.leadsPage, this.leadsPages);
 				this.leadsTotal = result.pagination.total;
 				this.leadsLoaded = true;
 				this.isLoadingLeads = false;
@@ -398,7 +410,8 @@ export class AdminDashboardPageComponent implements OnInit {
 		});
 	}
 	changeLeadPage(delta: number): void { this.goToLeadPage(this.leadsPage + delta); }
-	goToLeadPage(page: number): void {
+	goToLeadPage(page: number | string): void {
+		if (typeof page !== 'number') return;
 		const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.leadsPages);
 		if (nextPage === this.leadsPage && this.leadsLoaded) return;
 		this.leadsPage = nextPage;
@@ -496,12 +509,12 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (this.isLoadingWheelClaims || (this.wheelClaimsLoaded && !force)) return;
 		this.isLoadingWheelClaims = true;
 		this.adminApi.listWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo, page: this.wheelPage, limit: 20 }).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingWheelClaims = false; this.refreshView(); })).subscribe({
-			next: result => { this.wheelClaims = result.data; this.wheelTotal = result.pagination?.total ?? result.total; this.wheelPages = result.pagination?.pages || 1; this.wheelPageNumbers = Array.from({ length: this.wheelPages }, (_, index) => index + 1); this.wheelClaimsLoaded = true; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; this.errorMessage = ''; this.refreshView(); },
+			next: result => { this.wheelClaims = result.data; this.wheelTotal = result.pagination?.total ?? result.total; this.wheelPages = result.pagination?.pages || 1; this.wheelPageNumbers = this.buildPaginationItems(this.wheelPage, this.wheelPages); this.wheelClaimsLoaded = true; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; this.errorMessage = ''; this.refreshView(); },
 			error: err => { this.handleApiError(err); this.refreshView(); }
 		});
 	}
 	searchWheelClaims(): void { this.wheelPage = 1; this.loadWheelClaims(true); }
-	goToWheelPage(page: number): void { const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.wheelPages); if (nextPage === this.wheelPage && this.wheelClaimsLoaded) return; this.wheelPage = nextPage; this.loadWheelClaims(true); }
+	goToWheelPage(page: number | string): void { if (typeof page !== 'number') return; const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.wheelPages); if (nextPage === this.wheelPage && this.wheelClaimsLoaded) return; this.wheelPage = nextPage; this.loadWheelClaims(true); }
 	clearWheelFilters(): void { this.wheelSearch = ''; this.wheelGift = ''; this.wheelProgram = ''; this.wheelDateFrom = ''; this.wheelDateTo = ''; this.searchWheelClaims(); }
 	toggleWheelFilters(): void { this.wheelFiltersOpen = !this.wheelFiltersOpen; }
 	toggleLeadsFilters(): void { this.leadsFiltersOpen = !this.leadsFiltersOpen; }
