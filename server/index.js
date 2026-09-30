@@ -9,6 +9,7 @@ const swaggerUi = require('swagger-ui-express');
 const database = require('./database');
 
 const app = express();
+app.disable('x-powered-by');
 // Compress JSON, HTML, CSS and JavaScript responses before they leave Node.
 // compression skips already-compressed media such as images and videos.
 app.use(compression());
@@ -227,6 +228,9 @@ app.use(express.urlencoded({ extended: false, limit: '32kb' }));
 app.use((req, res, next) => {
 	res.setHeader('X-Content-Type-Options', 'nosniff');
 	res.setHeader('X-Frame-Options', 'DENY');
+	res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+	res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+	if (process.env.NODE_ENV === 'production') res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 	// YouTube embeds need the site's origin in the Referer header (otherwise they return Error 153).
 	res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 	if (req.path.startsWith('/api/')) res.setHeader('Cache-Control', 'no-store');
@@ -319,11 +323,13 @@ async function requireAdmin(req, res, next) {
 
 function requirePermission(permission) {
 	return (req, res, next) => {
-		const hasGroupedPermission = permission.startsWith('leads:')
-			? req.adminPermissions.includes('leads')
-			: permission.startsWith('wheel:')
-				? req.adminPermissions.includes('wheel')
-				: permission.startsWith('feedback:') ? req.adminPermissions.includes('feedback') : false;
+		const groupedReadWritePermissions = {
+			leads: new Set(['leads:read', 'leads:update']),
+			feedback: new Set(['feedback:read', 'feedback:update']),
+			wheel: new Set(['wheel:read'])
+		};
+		const [group] = permission.split(':');
+		const hasGroupedPermission = groupedReadWritePermissions[group]?.has(permission) && req.adminPermissions.includes(group);
 		if (req.adminRole === 'admin' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission)) || req.adminPermissions.includes(permission) || hasGroupedPermission) return next();
 		return res.status(403).json({ message: 'ليس لديك صلاحية للوصول إلى هذا القسم.' });
 	};
@@ -803,7 +809,7 @@ app.patch('/api/admin/feedback/:id', requireAdmin, requirePermission('feedback:u
 
 function normalizeUserPermissions(value) {
 	if (!Array.isArray(value)) return [];
-	const allowed = new Set([...PAGE_KEYS, 'leads', 'wheel']);
+	const allowed = new Set([...PAGE_KEYS, 'leads', 'wheel', 'feedback']);
 	return [...new Set(value.map(item => String(item || '').trim()).filter(item => allowed.has(item)))];
 }
 
@@ -1195,7 +1201,8 @@ app.post('/api/uploads', requireAdmin, handleImageUpload, requireUploadPagePermi
 		return res.status(400).json({ message: 'No file uploaded or unsupported format' });
 	}
 	try {
-		const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+		const extensionByMimeType = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };
+		const ext = extensionByMimeType[req.file.mimetype] || '.bin';
 		const filename = Date.now() + '-' + crypto.randomBytes(4).toString('hex') + ext;
 		await database.writeAsset({ filename, mimeType: req.file.mimetype, data: req.file.buffer });
 		res.json({ url: `/uploads/${filename}` });

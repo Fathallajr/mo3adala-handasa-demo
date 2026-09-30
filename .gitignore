@@ -38,6 +38,7 @@ testem.log
 /typings
 /server/data/wheel-state.json
 /server/data/wheel-secret.txt
+/server/data/tokens.json
 /server/data/*.db
 /server/data/*.db-*
 /.env
