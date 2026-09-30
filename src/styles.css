@@ -255,7 +255,7 @@ img {
   font-family: 'TheYearofHandicrafts';
   font-style: normal;
   font-weight: 400;
-  font-display: block;
+  font-display: swap;
   src: url('./assets/fonts/TheYearofHandicrafts-Regular.otf') format('opentype');
 }
 
@@ -263,7 +263,7 @@ img {
   font-family: 'TheYearofHandicrafts';
   font-style: normal;
   font-weight: 500;
-  font-display: block;
+  font-display: swap;
   src: url('./assets/fonts/TheYearofHandicrafts-Medium.otf') format('opentype');
 }
 
@@ -271,7 +271,7 @@ img {
   font-family: 'TheYearofHandicrafts';
   font-style: normal;
   font-weight: 600;
-  font-display: block;
+  font-display: swap;
   src: url('./assets/fonts/TheYearofHandicrafts-SemiBold.otf') format('opentype');
 }
 
@@ -279,7 +279,7 @@ img {
   font-family: 'TheYearofHandicrafts';
   font-style: normal;
   font-weight: 700;
-  font-display: block;
+  font-display: swap;
   src: url('./assets/fonts/TheYearofHandicrafts-Bold.otf') format('opentype');
 }
 
@@ -287,7 +287,7 @@ img {
   font-family: 'TheYearofHandicrafts';
   font-style: normal;
   font-weight: 900;
-  font-display: block;
+  font-display: swap;
   src: url('./assets/fonts/TheYearofHandicrafts-Black.otf') format('opentype');
 }
 
@@ -435,7 +435,8 @@ body {
     linear-gradient(var(--site-grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--site-grid-line) 1px, transparent 1px);
   background-size: 42px 42px;
-  background-attachment: fixed;
+  /* Fixed backgrounds force expensive repaint work while scrolling on mobile. */
+  background-attachment: scroll;
 }
 
 main.app-page-shell {

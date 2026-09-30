@@ -72,15 +72,20 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       (async () => {
         const cache = await caches.open(STATIC_CACHE);
+        const cached = await cache.match(request);
         const networkPromise = fetch(request)
           .then((response) => {
-            cache.put(request, response.clone()).catch(() => undefined);
+            if (response.ok) cache.put(request, response.clone()).catch(() => undefined);
             return response;
           })
-          .catch(async () => {
-            const cached = await cache.match(request);
-            return cached || Response.error();
-          });
+          .catch(() => cached || Response.error());
+
+        // Return cached assets immediately on repeat visits, while refreshing
+        // them in the background for the next visit.
+        if (cached) {
+          event.waitUntil(networkPromise.then(() => undefined));
+          return cached;
+        }
         return networkPromise;
       })()
     );

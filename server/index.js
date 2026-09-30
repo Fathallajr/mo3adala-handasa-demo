@@ -4,10 +4,14 @@ const fssync = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const multer = require('multer');
+const compression = require('compression');
 const swaggerUi = require('swagger-ui-express');
 const database = require('./database');
 
 const app = express();
+// Compress JSON, HTML, CSS and JavaScript responses before they leave Node.
+// compression skips already-compressed media such as images and videos.
+app.use(compression());
 const PORT = process.env.PORT || 3001;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'jr1';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'jr1';
@@ -1216,6 +1220,9 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 
 if (fssync.existsSync(DIST_DIR)) {
 	app.use('/assets', (req, res, next) => {
+		// Asset filenames are deployment-stable and the service worker also
+		// revalidates them. Cache them at the browser/CDN for repeat visits.
+		res.setHeader('Cache-Control', 'public, max-age=2592000');
 		if (req.query.download === '1') {
 			const filename = path.basename(req.path);
 			res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);

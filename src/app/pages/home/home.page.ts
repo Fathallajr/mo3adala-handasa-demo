@@ -192,7 +192,11 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 		// العودة إلى أعلى الصفحة عند تحميل الصفحة
 		if (typeof window !== 'undefined') {
 			window.scrollTo(0, 0);
-			this.shouldUseHeroVideo = !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !(navigator as any).connection?.saveData;
+			const connection = (navigator as any).connection;
+			const slowConnection = ['slow-2g', '2g', '3g'].includes(connection?.effectiveType);
+			this.shouldUseHeroVideo = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+				&& !connection?.saveData
+				&& !slowConnection;
 		}
 		
 		this.contentService.loadPageState('home', cmsPageDefaults.home).subscribe(content => {

@@ -268,7 +268,7 @@
 
 /* PERFORMANCE OPTIMIZATIONS */
 .hero-section {
-  background-attachment: fixed;
+  background-attachment: scroll;
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -451,7 +451,7 @@ img {
 
 /* Hero Section Enhancements */
 .hero-section {
-  background-attachment: fixed;
+  background-attachment: scroll;
 }
 
 /* YouTube Videos Styles */
