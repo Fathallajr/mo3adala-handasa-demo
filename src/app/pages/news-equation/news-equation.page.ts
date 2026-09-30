@@ -226,24 +226,12 @@ export class NewsEquationPageComponent implements OnInit {
 	) {}
 
 	ngOnInit(): void {
-		this.monthlyContent.loadPageState('news-equation', { visible: true, title: 'أخبار المعادلة', items: this.newsItems }).subscribe((state: any) => {
-			if (state?.visible === false) return;
-			if (Array.isArray(state?.items)) {
-				const merged = [...this.newsItems];
-				state.items.forEach((item: any, index: number) => {
-					const normalized = this.normalizeNewsItem(item, index);
-					const itemKey = normalized.slug || normalized.title;
-					const existingIndex = merged.findIndex(existing =>
-						(existing.slug || existing.title) === itemKey || existing.title === normalized.title
-					);
-					if (existingIndex >= 0) {
-						merged[existingIndex] = { ...merged[existingIndex], ...normalized };
-					} else {
-						merged.push(normalized);
-					}
-				});
-				this.newsItems = merged;
-			}
+		// CMS is the single source of truth. Do not merge with the old local list.
+		this.newsItems = [];
+		this.monthlyContent.loadPageState('news-equation', { items: [] }).subscribe((state: any) => {
+			this.newsItems = state?.visible === false || !Array.isArray(state?.items)
+				? []
+				: state.items.map((item: any, index: number) => this.normalizeNewsItem(item, index));
 		});
 		if (typeof window !== 'undefined') {
 			const siteUrl = (window as any)['NG_SITE_URL'] || 'https://www.appmo3adla.com';
@@ -262,7 +250,8 @@ export class NewsEquationPageComponent implements OnInit {
 	private normalizeNewsItem(item: any, index: number): any {
 		const link = typeof item?.link === 'string' ? item.link.trim() : '';
 		const linkedSlug = link.match(/^\/news\/detail\/([^/?#]+)/)?.[1];
-		const slug = item?.slug || linkedSlug || `news-${index + 1}`;
+		const titleSlug = String(item?.title || '').trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+		const slug = item?.slug || linkedSlug || titleSlug || `news-${index + 1}`;
 		return {
 			...item,
 			excerpt: item?.excerpt || item?.description || '',

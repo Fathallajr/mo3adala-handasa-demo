@@ -1159,37 +1159,24 @@ export class NewsDetailPageComponent implements OnInit {
 		this.route.params.subscribe(params => {
 			this.newsId = params['id'];
 			this.notFound = false;
-			// Try direct lookup by slug/key
-			this.newsItem = this.newsData[this.newsId];
-			// Fallback: try match by item's internal id property
-			if (!this.newsItem) {
-				const all = Object.values(this.newsData);
-				this.newsItem = all.find((n: any) => n.id === this.newsId) as any;
-			}
-			
-			// Update page title and SEO when news item is loaded
-			if (this.newsItem) {
-				this.updatePageTitle();
-			}
+			// Details are resolved from the same CMS collection as the listing.
+			this.newsItem = null;
 
 			this.monthlyContent.loadPageState('news-equation', { items: [] }).subscribe({
 				next: (state: any) => {
 				const items = Array.isArray(state?.items) ? state.items : [];
 				const dynamic = items.find((item: any, index: number) => this.getDynamicSlug(item, index) === this.newsId);
 				if (!dynamic) {
-					if (!this.newsItem) this.notFound = true;
+					this.notFound = true;
 					return;
 				}
 				this.newsItem = {
-					// Keep the built-in article media when CMS content only
-					// overrides the text fields for an existing news item.
-					...(this.newsItem || {}),
 					...dynamic,
 					id: this.newsId,
 					image: dynamic.image || this.newsItem?.image,
 					images: Array.isArray(dynamic.images) && dynamic.images.length
 						? dynamic.images
-						: (this.newsItem?.images?.length ? this.newsItem.images : (dynamic.image ? [dynamic.image] : [])),
+						: (dynamic.image ? [dynamic.image] : []),
 					content: dynamic.content || dynamic.description || dynamic.excerpt || '',
 					category: dynamic.category || 'أخبار المعادلة',
 					date: dynamic.date || new Date().toISOString(),
