@@ -124,6 +124,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadsPage = 1;
 	copiedLeadWhatsapp = '';
 	leadsPages = 1;
+	leadPageNumbers = [1];
 	leadsTotal = 0;
 	leadStatuses = ['new', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
 	readonly leadStatusLabels: Record<string, string> = { new: 'جديد', contacted: 'تم التواصل', no_response: 'لم يرد', interested: 'مهتم', registered: 'مسجل', not_interested: 'غير مهتم', follow_up: 'متابعة', closed: 'مغلق', converted: 'تم التحويل' };
@@ -354,6 +355,7 @@ export class AdminDashboardPageComponent implements OnInit {
 				if (requestId !== this.leadsRequestId) return;
 				this.leads = result.data;
 				this.leadsPages = result.pagination.pages || 1;
+				this.leadPageNumbers = Array.from({ length: this.leadsPages }, (_, index) => index + 1);
 				this.leadsTotal = result.pagination.total;
 				this.leadsLoaded = true;
 				this.isLoadingLeads = false;
@@ -386,7 +388,13 @@ export class AdminDashboardPageComponent implements OnInit {
 			error: err => this.handleApiError(err)
 		});
 	}
-	changeLeadPage(delta: number): void { this.leadsPage = Math.min(Math.max(this.leadsPage + delta, 1), this.leadsPages); this.loadLeads(true); }
+	changeLeadPage(delta: number): void { this.goToLeadPage(this.leadsPage + delta); }
+	goToLeadPage(page: number): void {
+		const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.leadsPages);
+		if (nextPage === this.leadsPage && this.leadsLoaded) return;
+		this.leadsPage = nextPage;
+		this.loadLeads(true);
+	}
 	updateLeadStatus(lead: Lead, status: string): void {
 		const previousStatus = lead.status;
 		if (!this.leadStatuses.includes(status) || status === previousStatus) return;
