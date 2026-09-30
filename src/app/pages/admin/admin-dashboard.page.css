@@ -206,3 +206,58 @@ tbody tr:hover { background:#faf9ff; }
   color:#172033;
   background:#fff;
 }
+
+/* Keep pagination usable on narrow screens: page numbers wrap inside the
+   pagination bar instead of widening the page or pushing buttons off-screen. */
+.pagination {
+  width:100%;
+  box-sizing:border-box;
+}
+
+.pagination__pages {
+  min-width:0;
+  max-width:100%;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+@media (max-width:700px) {
+  .pagination {
+    gap:8px;
+    padding:12px 4px 2px;
+  }
+
+  .pagination__pages {
+    flex:1 1 100%;
+    order:-1;
+    padding:2px 0;
+  }
+
+  .pagination__summary {
+    flex:1 1 auto;
+    text-align:center;
+  }
+
+  .pagination > .secondary-btn {
+    min-height:36px;
+    padding:8px 11px;
+    font-size:11px;
+  }
+}
+
+@media (max-width:430px) {
+  .pagination {
+    gap:6px;
+  }
+
+  .pagination-page {
+    min-width:32px;
+    height:32px;
+    padding:0 6px;
+    font-size:11px;
+  }
+
+  .pagination__summary {
+    font-size:11px;
+  }
+}
