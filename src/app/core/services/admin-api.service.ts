@@ -61,10 +61,10 @@ export class AdminApiService {
 	listPrograms(): Observable<{ data: Program[] }> { return this.http.get<{ data: Program[] }>(`${this.base}/admin/programs`); }
 	createProgram(payload: Partial<Program>): Observable<Program> { return this.http.post<Program>(`${this.base}/admin/programs`, payload); }
 	updateProgram(id: string, payload: Partial<Program>): Observable<Program> { return this.http.patch<Program>(`${this.base}/admin/programs/${id}`, payload); }
-	listWheelClaims(filters: { search?: string; gift?: string; program?: string; from?: string; to?: string } = {}): Observable<{ data: WheelClaim[]; total: number }> {
-		let params = new HttpParams();
+	listWheelClaims(filters: { search?: string; gift?: string; program?: string; from?: string; to?: string; page?: number; limit?: number } = {}): Observable<{ data: WheelClaim[]; total: number; pagination: { page: number; limit: number; total: number; pages: number } }> {
+		let params = new HttpParams().set('page', filters.page || 1).set('limit', filters.limit || 20);
 		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);
-		return this.http.get<{ data: WheelClaim[]; total: number }>(`${this.base}/admin/wheel/claims`, { params });
+		return this.http.get<{ data: WheelClaim[]; total: number; pagination: { page: number; limit: number; total: number; pages: number } }>(`${this.base}/admin/wheel/claims`, { params });
 	}
 	deleteWheelClaim(token: string): Observable<void> { return this.http.delete<void>(`${this.base}/admin/wheel/claims/${encodeURIComponent(token)}`); }
 	exportWheelClaims(filters: { search?: string; gift?: string; program?: string; from?: string; to?: string } = {}): Observable<Blob> {

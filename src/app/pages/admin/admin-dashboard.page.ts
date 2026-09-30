@@ -72,7 +72,14 @@ export class AdminDashboardPageComponent implements OnInit {
 	leads: Lead[] = [];
 	programs: Program[] = [];
 	wheelClaims: WheelClaim[] = [];
+	wheelPage = 1;
+	wheelPages = 1;
+	wheelPageNumbers = [1];
+	wheelTotal = 0;
 	feedbacks: Feedback[] = [];
+	feedbackPage = 1;
+	feedbackPages = 1;
+	feedbackPageNumbers = [1];
 	feedbackTotal = 0;
 	readonly expandedFeedbackIds = new Set<string>();
 	feedbackSearch = '';
@@ -303,14 +310,16 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.isLoadingFeedback = true;
 		this.statusMessage = '';
 		this.errorMessage = '';
-		this.adminApi.listFeedback(this.feedbackSearch.trim(), this.feedbackStatus).pipe(
+		this.adminApi.listFeedback(this.feedbackSearch.trim(), this.feedbackStatus, this.feedbackPage, 20).pipe(
 			timeout({ each: 15000 }),
 			finalize(() => { this.isLoadingFeedback = false; this.refreshView(); })
 		).subscribe({
-			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.feedbackLoaded = true; this.statusMessage = 'تم تحديث الآراء بنجاح.'; this.refreshView(); },
+			next: result => { this.feedbacks = result.data; this.feedbackTotal = result.pagination.total; this.feedbackPages = result.pagination.pages || 1; this.feedbackPageNumbers = Array.from({ length: this.feedbackPages }, (_, index) => index + 1); this.feedbackLoaded = true; this.statusMessage = 'تم تحديث الآراء بنجاح.'; this.refreshView(); },
 			error: err => { this.handleApiError(err); this.refreshView(); }
-		});
+	});
 	}
+	searchFeedback(): void { this.feedbackPage = 1; this.loadFeedback(true); }
+	goToFeedbackPage(page: number): void { const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.feedbackPages); if (nextPage === this.feedbackPage && this.feedbackLoaded) return; this.feedbackPage = nextPage; this.loadFeedback(true); }
 	updateFeedbackStatus(feedback: Feedback, status: Feedback['status']): void {
 		this.adminApi.updateFeedback(feedback.id, status).subscribe({ next: updated => { feedback.status = updated.status; this.statusMessage = 'تم تحديث حالة الرأي.'; }, error: err => this.handleApiError(err) });
 	}
@@ -486,13 +495,14 @@ export class AdminDashboardPageComponent implements OnInit {
 	loadWheelClaims(force = false): void {
 		if (this.isLoadingWheelClaims || (this.wheelClaimsLoaded && !force)) return;
 		this.isLoadingWheelClaims = true;
-		this.adminApi.listWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo }).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingWheelClaims = false; this.refreshView(); })).subscribe({
-			next: result => { this.wheelClaims = result.data; this.wheelClaimsLoaded = true; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; this.errorMessage = ''; this.refreshView(); },
+		this.adminApi.listWheelClaims({ search: this.wheelSearch.trim(), gift: this.wheelGift, program: this.wheelProgram, from: this.wheelDateFrom, to: this.wheelDateTo, page: this.wheelPage, limit: 20 }).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingWheelClaims = false; this.refreshView(); })).subscribe({
+			next: result => { this.wheelClaims = result.data; this.wheelTotal = result.pagination?.total ?? result.total; this.wheelPages = result.pagination?.pages || 1; this.wheelPageNumbers = Array.from({ length: this.wheelPages }, (_, index) => index + 1); this.wheelClaimsLoaded = true; this.statusMessage = 'تم تحديث نتائج العجلة بنجاح.'; this.errorMessage = ''; this.refreshView(); },
 			error: err => { this.handleApiError(err); this.refreshView(); }
 		});
 	}
-	searchWheelClaims(): void { this.loadWheelClaims(true); }
-	clearWheelFilters(): void { this.wheelSearch = ''; this.wheelGift = ''; this.wheelProgram = ''; this.wheelDateFrom = ''; this.wheelDateTo = ''; this.loadWheelClaims(true); }
+	searchWheelClaims(): void { this.wheelPage = 1; this.loadWheelClaims(true); }
+	goToWheelPage(page: number): void { const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.wheelPages); if (nextPage === this.wheelPage && this.wheelClaimsLoaded) return; this.wheelPage = nextPage; this.loadWheelClaims(true); }
+	clearWheelFilters(): void { this.wheelSearch = ''; this.wheelGift = ''; this.wheelProgram = ''; this.wheelDateFrom = ''; this.wheelDateTo = ''; this.searchWheelClaims(); }
 	toggleWheelFilters(): void { this.wheelFiltersOpen = !this.wheelFiltersOpen; }
 	toggleLeadsFilters(): void { this.leadsFiltersOpen = !this.leadsFiltersOpen; }
 	exportWheelClaims(): void {

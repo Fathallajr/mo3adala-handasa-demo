@@ -874,6 +874,8 @@ app.get('/api/admin/wheel/claims', requireAdmin, requirePermission('wheel:read')
 	const program = String(req.query.program || '').trim();
 	const from = String(req.query.from || '').trim();
 	const to = String(req.query.to || '').trim();
+	const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+	const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
 	if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) return res.status(400).json({ message: 'Invalid from date' });
 	if (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)) return res.status(400).json({ message: 'Invalid to date' });
 	if (from && to && from > to) return res.status(400).json({ message: 'From date must be before to date' });
@@ -883,7 +885,8 @@ app.get('/api/admin/wheel/claims', requireAdmin, requirePermission('wheel:read')
 	if (program) data = data.filter(item => item.program === program);
 	if (from) data = data.filter(item => String(item.claimedAt || '').slice(0, 10) >= from);
 	if (to) data = data.filter(item => String(item.claimedAt || '').slice(0, 10) <= to);
-	res.json({ data, total: data.length });
+	const total = data.length;
+	res.json({ data: data.slice((page - 1) * limit, page * limit), total, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
 });
 
 app.get('/api/admin/wheel/claims/export', requireAdmin, requirePermission('wheel:read'), async (req, res) => {
