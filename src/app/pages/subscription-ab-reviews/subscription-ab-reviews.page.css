@@ -1697,6 +1697,7 @@
 .support-problem-field span { color:#47705a; font-size:.68rem; font-weight:900; }
 .support-problem-field span b { color:#d9365f; }
 .support-problem-field input,.support-problem-field select,.support-problem-field textarea { width:100%; box-sizing:border-box; padding:.7rem .8rem; border:1px solid #bcebd0; border-radius:10px; color:#244332; background:rgba(255,255,255,.8); font:inherit; font-size:.72rem; line-height:1.6; outline:none; }
+.support-problem-field input[readonly] { color:#47705a; background:#e9f8ef; cursor:default; }
 .support-problem-field textarea { min-height:72px; resize:vertical; }
 .support-problem-field input:focus,.support-problem-field select:focus,.support-problem-field textarea:focus { border-color:#35b96f; box-shadow:0 0 0 3px rgba(53,185,111,.13); }
 .support-field-error { margin:-.15rem 0 .2rem; color:#c73557; font-size:.62rem; font-weight:900; }
