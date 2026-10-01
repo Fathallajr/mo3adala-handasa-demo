@@ -108,6 +108,8 @@ tbody tr:hover { background:#faf9ff; }
 .lead-status-select--not_interested:focus { color:#a32e4a; background:#fff0f3; }
 .lead-status-select--follow_up:focus { color:#8b4f0b; background:#fff0df; }
 .lead-status-select--closed:focus { color:#6d2e3f; background:#f8e8ed; }
+.lead-status-select--batch_28 { color:#7c3aed; background:#f3e8ff; border-color:#c084fc; }
+.lead-status-select--batch_28:focus { color:#7c3aed; background:#f3e8ff; }
 .feedback-status-select--new { color:#1555a8; background:#eaf3ff; border-color:#9bc5ff; }
 .feedback-status-select--reviewed { color:#87530b; background:#fff5d9; border-color:#f2cf75; }
 .feedback-status-select--published { color:#08734e; background:#e5faf1; border-color:#84ddb8; }
