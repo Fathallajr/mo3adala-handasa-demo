@@ -29,8 +29,8 @@
 		<ul *ngIf="!isMobile" class="nav-main-menu flex gap-1.5 xl:gap-2 text-sm items-center flex-nowrap" style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
 			<li class="relative group flex items-center">
 				<a routerLink="/news/equation"
-				   [class.text-orange-600]="isActiveRoute('/news/equation')"
-				   class="relative px-1.5 xl:px-2 py-1 text-gray-700 hover:text-orange-600 flex items-center btn-hover ripple whitespace-nowrap"
+				   (click)="scrollToTop()"
+				   [class]="isActiveRoute('/news/equation') ? 'nav-link active relative px-1.5 xl:px-2 py-1 flex items-center btn-hover ripple whitespace-nowrap' : 'nav-link relative px-1.5 xl:px-2 py-1 flex items-center btn-hover ripple whitespace-nowrap'"
 				   style="font-family: 'TheYearofHandicrafts', sans-serif !important;">
 					أخبار المعادلة
 				</a>
