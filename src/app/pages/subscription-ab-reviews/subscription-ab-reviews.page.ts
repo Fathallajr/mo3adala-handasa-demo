@@ -32,6 +32,7 @@ interface ReviewFormConfig {
 	styleUrls: ['./subscription-ab-reviews.page.css']
 })
 export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
+	private readonly defaultEnrollmentExpiresAt = '2026-10-10T19:00:00.000Z';
 	private readonly arabicEnrollmentFormLink = 'https://forms.gle/mhopqPdxUPxQEN9K8';
 	private readonly englishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
 	private readonly computersEnglishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
@@ -65,6 +66,11 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 
 	get heroClosingDateLabel(): string {
 		return this.isEnglishSubscription ? 'October 10' : this.closingDateLabel;
+	}
+
+	get supportWhatsAppUrl(): string {
+		const message = `أنا طالب ${this.subscriptionProgramLabel} وعندي مشكلة في التسجيل ومحتاج مساعدة`;
+		return `https://api.whatsapp.com/send/?phone=${this.subscriptionDetails.whatsappNumber}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
 	}
 	private closingDate: Date | null = null;
 	private enrollmentExpiresAt = '';
@@ -202,7 +208,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			'سكرين شوت بالتحويل',
 			'وقت وتاريخ التحويل'
 		],
-		whatsappNumber: '201554843745',
+		whatsappNumber: '201080681865',
 		subscriptionWarnings: {
 			validity: {
 			title: 'مدة صلاحية الاشتراك:',
@@ -262,6 +268,16 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	private applySubscriptionProgram(): void {
+		// Render the countdown with the hero on the first paint. The CMS value
+		// replaces this fallback as soon as it arrives, without inserting the
+		// section late and making it miss the hero animation.
+		this.enrollmentExpiresAt = this.defaultEnrollmentExpiresAt;
+		this.closingDate = new Date(this.defaultEnrollmentExpiresAt);
+		this.isCountdownEnabled = true;
+		this.updateClosingCountdown();
+		if (!this.closingTimer && !this.isEnrollmentClosed) {
+			this.closingTimer = setInterval(() => this.updateClosingCountdown(), 1000);
+		}
 		this.subscriptionDetails = {
 			...this.subscriptionDetails,
 			month: this.subscriptionProgramLabel,

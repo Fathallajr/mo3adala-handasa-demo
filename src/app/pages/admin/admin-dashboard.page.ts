@@ -161,6 +161,11 @@ export class AdminDashboardPageComponent implements OnInit {
 	isLoading = false;
 	isLoadingLeads = false;
 	leadPendingDeletion: Lead | null = null;
+	leadPendingNote: Lead | null = null;
+	leadPendingReadNote: Lead | null = null;
+	leadPendingView: Lead | null = null;
+	openLeadActionMenuId: string | null = null;
+	leadNoteDraft = '';
 	wheelPendingDeletion: WheelClaim | null = null;
 	pageSummaries: Record<string, { hasContent: boolean; updatedAt?: string }> = {};
 	private pendingCmsNavigation = false;
@@ -429,8 +434,43 @@ export class AdminDashboardPageComponent implements OnInit {
 		});
 	}
 	deleteLead(lead: Lead): void {
+		this.openLeadActionMenuId = null;
 		this.leadPendingDeletion = lead;
 		this.refreshView();
+	}
+	openLeadNote(lead: Lead): void {
+		this.openLeadActionMenuId = null;
+		this.leadPendingNote = lead;
+		this.leadNoteDraft = lead.notes || '';
+		this.refreshView();
+	}
+	closeLeadNote(): void {
+		this.leadPendingNote = null;
+		this.leadNoteDraft = '';
+		this.refreshView();
+	}
+	openLeadReadNote(lead: Lead): void { this.openLeadActionMenuId = null; this.leadPendingReadNote = lead; this.refreshView(); }
+	closeLeadReadNote(): void { this.leadPendingReadNote = null; this.refreshView(); }
+	openLeadView(lead: Lead): void { this.openLeadActionMenuId = null; this.leadPendingView = lead; this.refreshView(); }
+	closeLeadView(): void { this.leadPendingView = null; this.refreshView(); }
+	toggleLeadActionMenu(lead: Lead): void { this.openLeadActionMenuId = this.openLeadActionMenuId === lead.id ? null : lead.id; this.refreshView(); }
+	closeLeadActionMenu(): void { this.openLeadActionMenuId = null; this.refreshView(); }
+	editLeadNoteFromView(): void { const lead = this.leadPendingView; this.closeLeadView(); if (lead) this.openLeadNote(lead); }
+	editLeadNoteFromReadView(): void { const lead = this.leadPendingReadNote; this.closeLeadReadNote(); if (lead) this.openLeadNote(lead); }
+	saveLeadNote(): void {
+		const lead = this.leadPendingNote;
+		if (!lead) return;
+		const notes = this.leadNoteDraft.trim();
+		this.adminApi.updateLead(lead.id, { notes }).subscribe({
+			next: updated => {
+				lead.notes = updated.notes || '';
+				this.statusMessage = 'تم حفظ ملاحظة العميل.';
+				this.errorMessage = '';
+				this.closeLeadNote();
+				this.refreshView();
+			},
+			error: err => { this.handleApiError(err); this.refreshView(); }
+		});
 	}
 	closeDeleteLeadDialog(): void {
 		this.leadPendingDeletion = null;

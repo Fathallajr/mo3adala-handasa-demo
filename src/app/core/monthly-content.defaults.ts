@@ -56,7 +56,7 @@ export const monthlyContentDefaults = {
 				'سكرين شوت بالتحويل 🖼',
 				'وقت وتاريخ التحويل ⏳'
 			],
-			whatsappNumber: '201554843745',
+			whatsappNumber: '201080681865',
 			subscriptionWarnings: {
 				validity: {
 					title: 'مدة صلاحية الاشتراك:',
@@ -115,7 +115,7 @@ export const monthlyContentDefaults = {
 				'سكرين شوت بالتحويل 🖼',
 				'وقت وتاريخ التحويل ⏳'
 			],
-			whatsappNumber: '201554843745',
+			whatsappNumber: '201080681865',
 			subscriptionWarnings: {
 				refund: {
 					title: 'سياسة الاسترداد',
