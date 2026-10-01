@@ -1613,6 +1613,7 @@
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 1.2rem;
 	margin-top: 1.2rem;
+	align-items: stretch;
 }
 
 .review-actions > article {
@@ -1646,11 +1647,32 @@
 }
 
 .review-account {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 1rem;
+	position: relative;
+	overflow: hidden;
+	border: 1px solid rgba(255,255,255,.12);
 	color: #fff;
 	background:
 		radial-gradient(circle at 85% 5%, rgba(246, 183, 60, .18), transparent 16rem),
 		linear-gradient(145deg, #101827, #22324e);
 }
+
+.review-account::before {
+	content: '';
+	position: absolute;
+	width: 180px;
+	height: 180px;
+	top: -90px;
+	left: -55px;
+	border-radius: 50%;
+	background: rgba(255,255,255,.07);
+	filter: blur(2px);
+}
+
+.review-account > * { position: relative; }
 
 .review-account .review-actions__icon {
 	color: #ffd28f;
@@ -1676,7 +1698,7 @@
 
 .review-account a:first-child { background: var(--green); }
 .review-account a:last-child { background: var(--orange); }
-.review-account__help { display:grid; gap:.55rem; margin-top:1rem; }
+.review-account__help { display:grid; gap:.55rem; margin-top:auto; }
 .review-account__help a { min-height:42px; padding:.55rem .75rem; box-sizing:border-box; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.07); }
 .review-account__help a:first-child { color:#ffb7b0; }
 .review-account__help a:last-child { color:#9fd4ff; }
