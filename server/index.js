@@ -1150,6 +1150,53 @@ async function migrateFeedbackPageOnce() {
 	console.log('Initialized feedback CMS content once.');
 }
 
+async function migrateNewsEquationOnce() {
+	const migrationKey = 'news-equation-cms-recovery-v1';
+	if (await database.getMetadata(migrationKey)) return;
+
+	const store = await readStore();
+	const current = store.pages['news-equation']?.data;
+	// Recover only a missing/empty news page. Existing CMS content, including a
+	// deliberately hidden page, remains untouched.
+	if (!current || (current.visible !== false && (!Array.isArray(current.items) || current.items.length === 0))) {
+		await database.savePage('news-equation', {
+			visible: true,
+			title: 'أخبار المعادلة',
+			items: [
+				{
+					title: 'جدول اختبارات معادلة كلية الهندسة 2026',
+					description: 'أعلن المجلس الأعلى للجامعات جدول اختبارات معادلة كلية الهندسة للعام الجامعي 2026/2027.',
+					date: '2026-07-31',
+					image: '/assets/جدول اختبارات معادلة كلية الهندسة .jpeg',
+					link: '/news/detail/engineering-equation-exam-schedule-2026',
+					category: 'جداول الامتحانات',
+					important: true
+				},
+				{
+					title: 'فتح باب التقديم لاختبارات معادلة كلية الهندسة',
+					description: 'التسجيل متاح إلكترونيًا خلال الفترة المحددة للعام الجامعي 2026/2027.',
+					date: '2026-07-31',
+					image: '/assets/خبر فتح باب التقديم.jpeg',
+					link: '/news/detail/engineering-equation-application-open-2026',
+					category: 'التقديم والقبول',
+					important: true
+				},
+				{
+					title: 'فرصة واحدة فقط لاختبارات المعادلة لدفعة 2025',
+					description: 'أصبحت فرص التقدم لاختبارات المعادلة فرصة واحدة فقط خلال عامين متتاليين.',
+					date: '2025-06-22',
+					image: '/assets/success.webp',
+					link: '/news/detail/one-chance-only-2025',
+					category: 'شروط المعادلة',
+					important: false
+				}
+			]
+		}, getNowIso());
+		console.log('Recovered missing news-equation CMS content.');
+	}
+	await database.setMetadata(migrationKey, getNowIso());
+}
+
 async function migrateMissingFeedbackBatchOnce() {
 	const migrationKey = 'feedback-batch-2027-v2';
 	if (await database.getMetadata(migrationKey)) return;
@@ -1314,6 +1361,7 @@ app.get('*', (req, res, next) => {
 		await migrateSubscriptionContentOnce();
 		await migrateLaunchOfferOnce();
 		await migrateFeedbackPageOnce();
+		await migrateNewsEquationOnce();
 		await migrateMissingFeedbackBatchOnce();
 	} catch (error) {
 		console.error('Subscription content migration failed', error);
