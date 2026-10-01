@@ -1680,6 +1680,9 @@
 }
 
 .review-account p { color: #b9c3d2; }
+.review-account__instructions { display:grid; gap:.45rem; margin:0; padding:0; list-style:none; color:#c7d2e3; font-size:.72rem; line-height:1.65; text-align:right; }
+.review-account__instructions li { position:relative; padding-right:1rem; }
+.review-account__instructions li::before { content:'•'; position:absolute; right:0; color:#ffd28f; font-size:1rem; line-height:1.2; }
 .review-account > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
 .review-account a,
 .review-support > a {
@@ -1700,6 +1703,10 @@
 .review-account a:last-child { background: var(--orange); }
 .review-account > div:first-of-type { gap: .55rem; }
 .review-account > div:first-of-type a { min-height: 42px; padding: .55rem .65rem; border-radius: 10px; font-size: .68rem; }
+.review-account__flow { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.45rem; padding:.7rem .5rem; border:1px solid rgba(255,255,255,.12); border-radius:14px; background:rgba(255,255,255,.055); }
+.review-account__flow span { display:grid; justify-items:center; gap:.3rem; color:#b9c9dd; font-size:.6rem; text-align:center; }
+.review-account__flow i { color:#ffd28f; font-size:1rem; }
+.review-account__flow b { font-weight:800; }
 .review-account__help { display:grid; gap:.55rem; margin-top:auto; }
 .review-account__help a { min-height:42px; padding:.55rem .75rem; box-sizing:border-box; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.07); }
 .review-account__help a:first-child { color:#ffb7b0; }
