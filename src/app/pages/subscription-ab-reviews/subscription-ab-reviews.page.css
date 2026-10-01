@@ -1719,8 +1719,8 @@
 .review-account__flow em { color:#d6dfec; font-size:.68rem; font-style:normal; font-weight:800; }
 .review-account__help { display:grid; gap:.65rem; margin-top:0; }
 .review-account__help a { min-height:48px; padding:.65rem .8rem; box-sizing:border-box; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.07); font-size:.72rem; }
-.review-account__help a:first-child { color:#ffb7b0; }
-.review-account__help a:last-child { color:#9fd4ff; }
+.review-account__help a:first-child,
+.review-account__help a:last-child { color:#fff; }
 .review-account__help a:hover { background:rgba(255,255,255,.13); }
 .review-account__help i { font-size:1rem; }
 .review-account a:hover,
