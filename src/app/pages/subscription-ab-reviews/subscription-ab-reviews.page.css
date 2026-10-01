@@ -1711,6 +1711,7 @@
 .review-account__heading .review-actions__icon { flex:0 0 52px; margin:0; }
 .review-account__heading small { display:block; margin-bottom:.2rem; color:#9eacc0; font-size:.62rem; font-weight:800; }
 .review-account__heading h2 { margin:0; }
+.review-account__intro { margin:0; color:#e0e7f1; font-size:.82rem; line-height:1.8; font-weight:800; text-align:right; }
 .review-account__instructions { padding-block:.9rem; border-block:1px solid rgba(255,255,255,.1); }
 .review-account__flow { gap:.7rem; padding:1rem .7rem; border-color:rgba(255,255,255,.14); background:rgba(255,255,255,.08); }
 .review-account__flow span { gap:.35rem; }
