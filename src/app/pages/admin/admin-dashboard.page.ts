@@ -60,6 +60,7 @@ type PaginationItem = number | '…';
 })
 export class AdminDashboardPageComponent implements OnInit {
 	sidebarOpen = false;
+	sidebarCollapsed = false;
 	activeView: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,
@@ -590,6 +591,14 @@ export class AdminDashboardPageComponent implements OnInit {
 	toggleSidebar(): void {
 		this.sidebarOpen = !this.sidebarOpen;
 	}
+	toggleSidebarControl(): void {
+		if (window.innerWidth <= 1100) {
+			this.toggleSidebar();
+			return;
+		}
+		this.toggleDesktopSidebar();
+	}
+	toggleDesktopSidebar(): void { this.sidebarCollapsed = !this.sidebarCollapsed; this.refreshView(); }
 
 	loadPage(pageKey: CmsPageKey): void {
 		const requestId = ++this.pageLoadRequestId;
