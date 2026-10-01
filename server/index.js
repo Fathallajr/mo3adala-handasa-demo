@@ -44,9 +44,10 @@ const PAGE_KEYS = [
 	,'subscription-computers-ar'
 	,'subscription-computers-en'
 ];
-const LEAD_STATUSES = ['new', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
+const LEAD_STATUSES = ['new', 'batch_28', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
 const LEAD_STATUS_LABELS = {
 	new: 'جديد',
+	batch_28: 'دفعة 28',
 	contacted: 'تم التواصل',
 	no_response: 'لم يرد',
 	interested: 'مهتم',

@@ -71,6 +71,7 @@
             "type": "string",
             "enum": [
               "new",
+              "batch_28",
               "contacted",
               "interested",
               "registered",
@@ -359,6 +360,7 @@
               "type": "string",
               "enum": [
                 "new",
+                "batch_28",
                 "contacted",
                 "interested",
                 "registered",

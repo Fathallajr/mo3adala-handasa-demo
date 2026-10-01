@@ -135,8 +135,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadsPages = 1;
 	leadPageNumbers: PaginationItem[] = [1];
 	leadsTotal = 0;
-	leadStatuses = ['new', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
-	readonly leadStatusLabels: Record<string, string> = { new: 'جديد', contacted: 'تم التواصل', no_response: 'لم يرد', interested: 'مهتم', registered: 'مسجل', not_interested: 'غير مهتم', follow_up: 'متابعة', closed: 'مغلق', converted: 'تم التحويل' };
+	leadStatuses = ['new', 'batch_28', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
+	readonly leadStatusLabels: Record<string, string> = { new: 'جديد', batch_28: 'دفعة 28', contacted: 'تم التواصل', no_response: 'لم يرد', interested: 'مهتم', registered: 'مسجل', not_interested: 'غير مهتم', follow_up: 'متابعة', closed: 'مغلق', converted: 'تم التحويل' };
 	programDraft: Partial<Program> = { name: '', slug: '', category: '', language: 'ar', price: 0, enrollmentStatus: 'open', isActive: true };
 	editingProgramId: string | null = null;
 	private readonly hiddenAdminPageKeys = new Set<CmsPageKey>([
