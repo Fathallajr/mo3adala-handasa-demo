@@ -89,6 +89,7 @@ const SUBSCRIPTION_PAGE_KEYS = [
 	'subscription-computers-ar',
 	'subscription-computers-en'
 ];
+const SUPPORT_WHATSAPP_NUMBER = '201080681865';
 const SUBSCRIPTION_VALIDITY_POINTS = [
 	'الكود شغال لغاية آخر الشهر فقط',
 	'مع انتهاء الشهر بيقفل المحتوى تلقائياً',
@@ -1077,13 +1078,15 @@ function noCache(res) {
 }
 
 function normalizeSubscriptionCmsContent(pageKey, content) {
-	// CMS content is authoritative. Reading a page must never rewrite it or
-	// silently replace values that differ from what the dashboard shows.
-	return content;
+	const normalized = JSON.parse(JSON.stringify(content || {}));
+	if (SUBSCRIPTION_PAGE_KEYS.includes(pageKey) && normalized.subscriptionDetails) {
+		normalized.subscriptionDetails.whatsappNumber = SUPPORT_WHATSAPP_NUMBER;
+	}
+	return normalized;
 }
 
 async function migrateSubscriptionContentOnce() {
-	const migrationKey = 'subscription-content-policy-v3';
+	const migrationKey = 'subscription-content-policy-v4-support-whatsapp';
 	if (await database.getMetadata(migrationKey)) return;
 
 	const store = await readStore();
@@ -1092,6 +1095,7 @@ async function migrateSubscriptionContentOnce() {
 		if (!entry?.data?.subscriptionDetails) continue;
 		const data = JSON.parse(JSON.stringify(entry.data));
 		const details = data.subscriptionDetails;
+		details.whatsappNumber = SUPPORT_WHATSAPP_NUMBER;
 		details.subscriptionWarnings ??= {};
 		details.subscriptionWarnings.validity = {
 			title: 'مدة صلاحية الاشتراك:',

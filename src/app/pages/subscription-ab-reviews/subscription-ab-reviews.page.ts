@@ -127,6 +127,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			this.subscriptionDetails = {
 				...this.subscriptionDetails,
 				...loaded,
+				whatsappNumber: '201080681865',
 				review: {
 					...this.subscriptionDetails.review,
 					...(loaded.review ?? {}),
