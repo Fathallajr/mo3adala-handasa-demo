@@ -282,6 +282,10 @@
 				<span class="review-actions__icon"><i class="bi bi-headset"></i></span>
 				<h2>محتاج مساعدة؟</h2>
 				<p>فريقنا معاك لحل أي مشكلة في التسجيل أو التحويل</p>
+				<label class="support-problem-field">
+					<span>اكتب مشكلتك قبل التواصل</span>
+					<textarea [(ngModel)]="supportProblem" rows="3" maxlength="500" placeholder="مثال: حولت المبلغ ولسه الكود موصلنيش"></textarea>
+				</label>
 				<a [href]="supportWhatsAppUrl" target="_blank">
 					<i class="bi bi-whatsapp"></i> تواصل معنا الآن
 				</a>

@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SeoService } from '../../core/seo.service';
 import { CanonicalService } from '../../core/canonical.service';
@@ -27,7 +28,7 @@ interface ReviewFormConfig {
 @Component({
 	selector: 'app-subscription-ab-reviews',
 	standalone: true,
-	imports: [CommonModule],
+	imports: [CommonModule, FormsModule],
 	templateUrl: './subscription-ab-reviews.page.html',
 	styleUrls: ['./subscription-ab-reviews.page.css']
 })
@@ -69,9 +70,13 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	get supportWhatsAppUrl(): string {
-		const message = `أنا طالب ${this.subscriptionProgramLabel} وعندي مشكلة في التسجيل ومحتاج مساعدة`;
+		const problem = this.supportProblem.trim();
+		const message = problem
+			? `أنا طالب ${this.subscriptionProgramLabel} وعندي مشكلة: ${problem}`
+			: `أنا طالب ${this.subscriptionProgramLabel} وعندي مشكلة في التسجيل ومحتاج مساعدة`;
 		return `https://api.whatsapp.com/send/?phone=${this.subscriptionDetails.whatsappNumber}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
 	}
+	supportProblem = '';
 	private closingDate: Date | null = null;
 	private enrollmentExpiresAt = '';
 
