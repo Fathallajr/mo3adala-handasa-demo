@@ -282,13 +282,17 @@
 				<span class="review-actions__icon"><i class="bi bi-headset"></i></span>
 				<h2>محتاج مساعدة؟</h2>
 				<p>فريقنا معاك لحل أي مشكلة في التسجيل أو التحويل</p>
-				<label class="support-problem-field">
-					<span>اكتب مشكلتك قبل التواصل</span>
-					<textarea [(ngModel)]="supportProblem" rows="3" maxlength="500" placeholder="مثال: حولت المبلغ ولسه الكود موصلنيش"></textarea>
-				</label>
-				<a [href]="supportWhatsAppUrl" target="_blank">
-					<i class="bi bi-whatsapp"></i> تواصل معنا الآن
-				</a>
+				<form class="support-form" (ngSubmit)="submitSupportForm()" novalidate>
+					<label class="support-problem-field"><span>الاسم <b>*</b></span><input name="supportName" [(ngModel)]="supportName" required placeholder="اكتب اسمك"></label>
+					<small class="support-field-error" *ngIf="supportFormSubmitted && !supportName.trim()">الاسم مطلوب</small>
+					<label class="support-problem-field"><span>رقم الهاتف <b>*</b></span><input name="supportPhone" [(ngModel)]="supportPhone" type="tel" inputmode="tel" required placeholder="01xxxxxxxxx"></label>
+					<small class="support-field-error" *ngIf="supportFormSubmitted && !supportPhone.trim()">رقم الهاتف مطلوب</small>
+					<label class="support-problem-field"><span>نوع المعادلة <b>*</b></span><select name="supportEquationType" [(ngModel)]="supportEquationType" required><option value="">اختار نوع المعادلة</option><option value="هندسة عربي">هندسة عربي</option><option value="هندسة لغات">هندسة لغات</option><option value="حاسبات عربي">حاسبات عربي</option><option value="حاسبات لغات">حاسبات لغات</option></select></label>
+					<small class="support-field-error" *ngIf="supportFormSubmitted && !supportEquationType.trim()">نوع المعادلة مطلوب</small>
+					<label class="support-problem-field"><span>اكتب مشكلتك <b>*</b></span><textarea name="supportProblem" [(ngModel)]="supportProblem" rows="3" maxlength="500" required placeholder="مثال: حولت المبلغ ولسه الكود موصلنيش"></textarea></label>
+					<small class="support-field-error" *ngIf="supportFormSubmitted && !supportProblem.trim()">وصف المشكلة مطلوب</small>
+					<button type="submit"><i class="bi bi-whatsapp"></i> تواصل معنا الآن</button>
+				</form>
 				<small><i></i> متاح لحل جميع المشاكل</small>
 			</article>
 		</section>

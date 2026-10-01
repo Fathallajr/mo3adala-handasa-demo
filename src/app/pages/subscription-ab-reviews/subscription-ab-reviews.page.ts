@@ -70,13 +70,22 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	get supportWhatsAppUrl(): string {
+		const details = `الاسم: ${this.supportName.trim()}\nرقم الهاتف: ${this.supportPhone.trim()}\nنوع المعادلة: ${this.supportEquationType.trim()}\nالمشكلة: ${this.supportProblem.trim()}`;
 		const problem = this.supportProblem.trim();
-		const message = problem
-			? `أنا طالب ${this.subscriptionProgramLabel} وعندي مشكلة: ${problem}`
-			: `أنا طالب ${this.subscriptionProgramLabel} وعندي مشكلة في التسجيل ومحتاج مساعدة`;
+		const message = problem ? `أنا طالب ${this.subscriptionProgramLabel} وعندي مشكلة:\n${details}` : details;
 		return `https://api.whatsapp.com/send/?phone=${this.subscriptionDetails.whatsappNumber}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
 	}
+	supportName = '';
+	supportPhone = '';
+	supportEquationType = '';
 	supportProblem = '';
+	supportFormSubmitted = false;
+
+	submitSupportForm(): void {
+		this.supportFormSubmitted = true;
+		if (!this.supportName.trim() || !this.supportPhone.trim() || !this.supportEquationType.trim() || !this.supportProblem.trim()) return;
+		window.open(this.supportWhatsAppUrl, '_blank', 'noopener');
+	}
 	private closingDate: Date | null = null;
 	private enrollmentExpiresAt = '';
 

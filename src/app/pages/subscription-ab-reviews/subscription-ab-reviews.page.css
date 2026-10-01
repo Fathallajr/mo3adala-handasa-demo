@@ -1692,11 +1692,16 @@
 }
 
 .review-support p { color: #5d6e64; }
-.support-problem-field { display:grid; gap:.35rem; width:min(100%, 420px); margin:0 auto .8rem; text-align:right; }
+.support-form { display:grid; gap:.35rem; width:min(100%, 420px); margin:0 auto; text-align:right; }
+.support-problem-field { display:grid; gap:.35rem; margin:0; }
 .support-problem-field span { color:#47705a; font-size:.68rem; font-weight:900; }
-.support-problem-field textarea { width:100%; box-sizing:border-box; min-height:72px; resize:vertical; padding:.7rem .8rem; border:1px solid #bcebd0; border-radius:10px; color:#244332; background:rgba(255,255,255,.8); font:inherit; font-size:.72rem; line-height:1.6; outline:none; }
-.support-problem-field textarea:focus { border-color:#35b96f; box-shadow:0 0 0 3px rgba(53,185,111,.13); }
-.review-support > a { width: min(100%, 300px); margin: 0 auto; background: var(--green); }
+.support-problem-field span b { color:#d9365f; }
+.support-problem-field input,.support-problem-field select,.support-problem-field textarea { width:100%; box-sizing:border-box; padding:.7rem .8rem; border:1px solid #bcebd0; border-radius:10px; color:#244332; background:rgba(255,255,255,.8); font:inherit; font-size:.72rem; line-height:1.6; outline:none; }
+.support-problem-field textarea { min-height:72px; resize:vertical; }
+.support-problem-field input:focus,.support-problem-field select:focus,.support-problem-field textarea:focus { border-color:#35b96f; box-shadow:0 0 0 3px rgba(53,185,111,.13); }
+.support-field-error { margin:-.15rem 0 .2rem; color:#c73557; font-size:.62rem; font-weight:900; }
+.support-form > button { width:min(100%, 300px); min-height:48px; margin:.35rem auto 0; display:flex; align-items:center; justify-content:center; gap:.5rem; border:0; border-radius:12px; color:#fff; background:var(--green); font:inherit; font-size:.72rem; font-weight:900; cursor:pointer; }
+.support-form > button:hover { filter:saturate(1.1); transform:translateY(-2px); }
 .review-support > small { display: flex; align-items: center; justify-content: center; gap: .4rem; margin-top: .75rem; color: #47705a; font-size: .6rem; }
 .review-support > small i { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(19, 185, 108, .1); }
 
