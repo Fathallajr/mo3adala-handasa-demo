@@ -292,6 +292,8 @@
 					<label class="support-problem-field"><span>رقم الهاتف <b>*</b></span><input name="supportPhone" [(ngModel)]="supportPhone" type="tel" inputmode="tel" required placeholder="01xxxxxxxxx"></label>
 					<small class="support-field-error" *ngIf="supportFormSubmitted && !supportPhone.trim()">رقم الهاتف مطلوب</small>
 					<label class="support-problem-field"><span>نوع المعادلة</span><input name="supportEquationType" [ngModel]="subscriptionProgramLabel" readonly aria-readonly="true"></label>
+					<label class="support-problem-field"><span>سجلت الفورم؟ <b>*</b></span><select name="supportRegistered" [(ngModel)]="supportRegistered" required><option value="" disabled>اختار الإجابة</option><option value="نعم">نعم</option><option value="لا">لا</option></select></label>
+					<small class="support-field-error" *ngIf="supportFormSubmitted && !supportRegistered">اختار نعم أو لا</small>
 					<label class="support-problem-field"><span>اكتب مشكلتك <b>*</b></span><textarea name="supportProblem" [(ngModel)]="supportProblem" rows="3" maxlength="500" required placeholder="مثال: حولت المبلغ ولسه الكود موصلنيش"></textarea></label>
 					<small class="support-field-error" *ngIf="supportFormSubmitted && !supportProblem.trim()">وصف المشكلة مطلوب</small>
 					<button type="submit"><i class="bi bi-whatsapp"></i> تواصل معنا الآن</button>
