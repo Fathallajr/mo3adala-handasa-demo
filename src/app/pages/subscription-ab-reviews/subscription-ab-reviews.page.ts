@@ -158,16 +158,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				// are valid for the selected route, while a legacy /assets path from
 				// another page must not replace this route's default schedule.
 				scheduleImages: loaded.scheduleImages ?? this.subscriptionDetails.scheduleImages,
-				subscriptionWarnings: {
-					validity: {
-						title: 'مدة صلاحية الاشتراك:',
-						points: [...SUBSCRIPTION_VALIDITY_POINTS]
-					},
-					refund: {
-						title: 'سياسة الاسترداد',
-						points: [...SUBSCRIPTION_REFUND_POINTS]
-					}
-				}
+				subscriptionWarnings: this.mergeSubscriptionWarnings(loaded.subscriptionWarnings)
 			};
 		}
 
@@ -175,6 +166,19 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		// The CMS refresh can complete outside the browser event cycle in some
 		// dev/proxy setups; render the schedule immediately without requiring a click.
 		this.changeDetector.detectChanges();
+	}
+
+	private mergeSubscriptionWarnings(loadedWarnings: any = {}) {
+		return {
+			validity: {
+				...this.subscriptionDetails.subscriptionWarnings.validity,
+				...(loadedWarnings?.validity ?? {})
+			},
+			refund: {
+				...this.subscriptionDetails.subscriptionWarnings.refund,
+				...(loadedWarnings?.refund ?? {})
+			}
+		};
 	}
 
 	private hasValidRouteSchedules(value: unknown): value is ScheduleImage[] {
