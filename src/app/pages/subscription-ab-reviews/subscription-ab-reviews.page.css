@@ -1698,6 +1698,8 @@
 
 .review-account a:first-child { background: var(--green); }
 .review-account a:last-child { background: var(--orange); }
+.review-account > div:first-of-type { gap: .55rem; }
+.review-account > div:first-of-type a { min-height: 42px; padding: .55rem .65rem; border-radius: 10px; font-size: .68rem; }
 .review-account__help { display:grid; gap:.55rem; margin-top:auto; }
 .review-account__help a { min-height:42px; padding:.55rem .75rem; box-sizing:border-box; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.07); }
 .review-account__help a:first-child { color:#ffb7b0; }
