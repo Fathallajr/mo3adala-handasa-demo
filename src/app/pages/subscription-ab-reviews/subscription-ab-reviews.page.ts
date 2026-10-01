@@ -71,8 +71,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 
 	get supportWhatsAppUrl(): string {
 		const details = `الاسم: ${this.supportName.trim()}\nرقم الهاتف: ${this.supportPhone.trim()}\nنوع المعادلة: ${this.subscriptionProgramLabel}\nالمشكلة: ${this.supportProblem.trim()}`;
-		const problem = this.supportProblem.trim();
-		const message = problem ? `أنا طالب ${this.subscriptionProgramLabel} وعندي مشكلة:\n${details}` : details;
+		const message = details;
 		return `https://api.whatsapp.com/send/?phone=${this.subscriptionDetails.whatsappNumber}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
 	}
 	supportName = '';
