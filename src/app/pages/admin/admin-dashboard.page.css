@@ -479,3 +479,8 @@ tbody tr:hover { background:#faf9ff; }
     flex:1 1 100%;
   }
 }
+
+/* The wheel results heading is self-explanatory; keep the toolbar clean. */
+.wheel-view > .editor-toolbar .editor-subtitle {
+  display: none;
+}
