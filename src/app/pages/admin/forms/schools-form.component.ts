@@ -2,6 +2,7 @@ import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { adminFormStyles } from './admin-form-styles';
+import { DEFAULT_SCHOOLS } from '../../../core/schools.defaults';
 
 interface SchoolItem {
 	id: number;
@@ -17,7 +18,7 @@ interface SchoolItem {
 		@media(max-width:700px){.school-card__fields{grid-template-columns:1fr}}
 	`],
 	template: `
-		<div class="cms-form" *ngIf="content">
+		<div class="cms-form schools-cms-form" *ngIf="content">
 			<div class="cms-section">
 				<div class="cms-section-title"><span>دليل المدارس والمعاهد</span><span class="schools-count">{{ items.length }} مؤسسة</span></div>
 				<p class="schools-help">أضف المدرسة أو المعهد من هنا، وحدد التصنيف المناسب ليظهر تلقائيًا في صفحة المدارس مع الفلترة الصحيحة.</p>
@@ -39,18 +40,12 @@ interface SchoolItem {
 			<p class="cms-error" *ngIf="errorMessage">{{ errorMessage }}</p>
 			</div>
 
-			<div class="cms-section">
-				<div class="cms-section-title">المؤسسات المضافة</div>
-				<div class="schools-list" *ngIf="items.length; else emptyState">
-					<div class="school-card" *ngFor="let item of items; let i = index">
-						<div class="school-card__fields">
-							<label class="cms-field"><span class="cms-label">اسم المؤسسة</span><input class="cms-input" [(ngModel)]="item.name"></label>
-							<label class="cms-field"><span class="cms-label">النوع</span><select class="cms-select" [(ngModel)]="item.type"><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></label>
-							<label class="cms-field"><span class="cms-label">التصنيف</span><select class="cms-select" [(ngModel)]="item.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></label>
-							<label class="cms-field"><span class="cms-label">رابط الصورة</span><input class="cms-input" [(ngModel)]="item.logo"></label>
-						</div>
-						<button type="button" class="school-card__del" (click)="removeItem(i)">حذف</button>
-					</div>
+			<div class="cms-section schools-table-section">
+				<div class="cms-section-title"><span>كل المدارس والمعاهد</span><span class="schools-count">{{ items.length }} مؤسسة</span></div>
+				<div class="schools-table-wrap" *ngIf="items.length; else emptyState">
+					<table class="schools-table"><thead><tr><th>#</th><th>اسم المؤسسة</th><th>النوع</th><th>التصنيف</th><th>رابط الصورة</th><th>إجراء</th></tr></thead><tbody>
+						<tr *ngFor="let item of items; let i = index"><td class="schools-table__index">{{ i + 1 }}</td><td><input class="cms-input" [(ngModel)]="item.name"></td><td><select class="cms-select" [(ngModel)]="item.type"><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></td><td><select class="cms-select" [(ngModel)]="item.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></td><td><input class="cms-input" [(ngModel)]="item.logo" dir="ltr"></td><td><button type="button" class="school-card__del" (click)="removeItem(i)" aria-label="حذف المؤسسة">حذف</button></td></tr>
+					</tbody></table>
 				</div>
 				<ng-template #emptyState><div class="schools-empty">لا توجد مؤسسات محفوظة حاليًا.</div></ng-template>
 			</div>
@@ -66,7 +61,7 @@ export class SchoolsFormComponent implements OnChanges {
 
 	ngOnChanges(): void {
 		if (!this.content || typeof this.content !== 'object') return;
-		if (!Array.isArray(this.content.items)) this.content.items = [];
+		if (!Array.isArray(this.content.items) || !this.content.items.length) this.content.items = DEFAULT_SCHOOLS.map((item, index) => ({ ...item, id: item.id ?? index + 1 }));
 		this.items = this.content.items;
 		this.draft = this.emptyDraft();
 	}

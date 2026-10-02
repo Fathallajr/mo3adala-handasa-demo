@@ -66,4 +66,22 @@ export const adminFormStyles = `
 .news-cms-form .cms-image-preview { width:104px; height:78px; border-radius:10px; }
 .news-cms-form .cms-toggle-wrap { padding:.25rem 0 .4rem; }
 @media (max-width:640px) { .news-cms-form .cms-section { padding:1rem; } .news-cms-form .news-editor-item { grid-template-columns:1fr auto; padding:.9rem; } .news-cms-form .news-editor-item > .cms-array-item__del { grid-column:2; grid-row:1; } }
+.schools-cms-form { gap:1.25rem; }
+.schools-cms-form .cms-section { padding:1.3rem; border-radius:20px; background:linear-gradient(145deg,#fbfcff,#f7f8fc); box-shadow:0 10px 24px rgba(30,42,70,.045); }
+.schools-cms-form .cms-section-title { color:#202b42; font-size:1rem; }
+.schools-cms-form .schools-help { max-width:760px; padding:.75rem .9rem; border-radius:11px; background:#f1f5ff; color:#64718a; }
+.schools-cms-form .cms-button { min-height:42px; padding-inline:1.2rem; box-shadow:0 7px 16px #6d4aff22; }
+.schools-table-section { overflow:hidden; }
+.schools-table-wrap { overflow:auto; margin:0 -.25rem; border:1px solid #e4e8f1; border-radius:14px; background:#fff; }
+.schools-table { width:100%; min-width:980px; border-collapse:collapse; }
+.schools-table th,.schools-table td { padding:.7rem .65rem; border-bottom:1px solid #edf0f5; text-align:right; vertical-align:middle; }
+.schools-table th { color:#7c879c; background:#f8f9fc; font-size:.72rem; white-space:nowrap; }
+.schools-table td { color:#465269; font-size:.78rem; }
+.schools-table tr:last-child td { border-bottom:0; }
+.schools-table tbody tr:hover { background:#fbfaff; }
+.schools-table .cms-input,.schools-table .cms-select { min-height:2.35rem; padding:.5rem .65rem; font-size:.75rem; }
+.schools-table__index { width:42px; color:#7965df!important; font-weight:900; text-align:center!important; }
+.schools-table .school-card__del { min-width:48px; padding:.5rem .65rem; }
+.schools-cms-form .schools-count { padding:.3rem .6rem; border-radius:999px; color:#5540c9; background:#f0edff; }
+@media (max-width:640px) { .schools-cms-form .cms-section { padding:1rem; } .schools-table th,.schools-table td { padding:.55rem; } }
 `;
