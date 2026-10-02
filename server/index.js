@@ -393,13 +393,18 @@ function maintenanceResponse(res) {
 // remain available so work can continue.
 app.use(async (req, res, next) => {
 	try {
+		// The admin shell and health endpoint must remain reachable while the
+		// database is restarting; the page/API can then show its own auth/data
+		// error instead of turning the whole production site into HTTP 500.
+		if (req.path === '/api/health' || req.path === '/admin' || req.path.startsWith('/admin/')) return next();
 		if (!(await isSiteMaintenanceEnabled())) return next();
 		if (!req.path.startsWith('/api/') || req.path === '/api/health' || req.path === '/api/site-mode' || req.path === '/api/auth/login' || req.path === '/api/launch-offer' || req.path === '/api/openapi.json' || req.path.startsWith('/api/docs')) return next();
 		if (req.path.startsWith('/api/admin') && await hasValidAdminSession(req)) return next();
 		if (req.path.startsWith('/api/')) return res.status(503).json({ message: 'الموقع تحت التحديث حاليًا.' });
 		return next();
 	} catch (error) {
-		next(error);
+		console.error('Maintenance check failed; continuing request:', error);
+		next();
 	}
 });
 
