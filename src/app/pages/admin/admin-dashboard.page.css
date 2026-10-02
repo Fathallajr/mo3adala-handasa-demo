@@ -738,6 +738,7 @@ tbody tr:hover { background:#faf9ff; }
 .admin-actions-cell{position:relative;white-space:nowrap}.admin-actions-cell .lead-actions-menu__panel{right:0;left:auto;}
 .admin-users-view{position:relative}
 .admin-actions-popover{position:absolute;z-index:30;top:9.5rem;right:1rem;display:grid;min-width:150px;gap:3px;padding:5px;border:1px solid #d9d3ff;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16)}
-.admin-actions-popover button{padding:8px 9px;border:0;border-radius:7px;color:#6241df;background:#f4f1ff;font:inherit;font-size:11px;font-weight:800;text-align:right;cursor:pointer}
-.admin-actions-popover button:hover{background:#e9e3ff}
-.admin-actions-popover .lead-actions-menu__delete{color:#c33f5d;background:#fff0f3}
+.admin-actions-popover button{display:flex;align-items:center;gap:7px;width:100%;padding:8px 9px;border:0;border-radius:7px;color:#526078;background:transparent;font:inherit;font-size:11px;font-weight:800;text-align:right;cursor:pointer}
+.admin-actions-popover button:hover{background:#f4f1ff;color:#6241df}
+.admin-actions-popover .lead-actions-menu__delete{color:#c33f5d}
+.admin-actions-popover .lead-actions-menu__delete:hover{background:#fff0f3;color:#b33b57}
