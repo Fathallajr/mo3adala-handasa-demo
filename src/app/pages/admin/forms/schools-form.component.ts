@@ -127,6 +127,7 @@ export class SchoolsFormComponent implements OnChanges {
 		this.content.items = this.items;
 		this.errorMessage = '';
 		this.draft = this.emptyDraft();
+		this.persistSchoolsChanges();
 	}
 
 	removeItem(index: number): void { this.items.splice(index, 1); }
@@ -149,10 +150,10 @@ export class SchoolsFormComponent implements OnChanges {
 	}
 	startEdit(item: SchoolItem): void { this.openItemActionId = null; this.editingItem = item; this.editDraft = { ...item, programs: [...item.programs] }; }
 	cancelEdit(): void { this.editingItem = null; this.editDraft = null; }
-	saveEdit(): void { if (!this.editingItem || !this.editDraft) return; Object.assign(this.editingItem, this.editDraft, { category: this.editDraft.type }); this.cancelEdit(); }
+	saveEdit(): void { if (!this.editingItem || !this.editDraft) return; Object.assign(this.editingItem, this.editDraft, { category: this.editDraft.type }); this.cancelEdit(); this.content.items = this.items; this.persistSchoolsChanges(); }
 	confirmDelete(item: SchoolItem): void { this.openItemActionId = null; this.pendingDeleteItem = item; }
 	cancelDelete(): void { this.pendingDeleteItem = null; }
-	deleteItem(): void { if (!this.pendingDeleteItem) return; this.items = this.items.filter(item => item.id !== this.pendingDeleteItem?.id); this.content.items = this.items; this.pendingDeleteItem = null; }
+	deleteItem(): void { if (!this.pendingDeleteItem) return; this.items = this.items.filter(item => item.id !== this.pendingDeleteItem?.id); this.content.items = this.items; this.pendingDeleteItem = null; this.persistSchoolsChanges(); }
 	clearTableFilters(): void { this.tableSearch = ''; this.tableType = ''; this.tableProgram = ''; }
 	schoolLogoUrl(logo: string): string { const value = String(logo || '').trim(); if (!value) return '/assets/logo.webp'; return /^https?:\/\//i.test(value) || value.startsWith('/') ? value : `/${value}`; }
 	handleSchoolLogoError(event: Event): void { const image = event.target as HTMLImageElement; if (!image.dataset['fallback']) { image.dataset['fallback'] = 'true'; image.src = '/assets/logo.webp'; } }
@@ -160,6 +161,7 @@ export class SchoolsFormComponent implements OnChanges {
 	schoolNamePreview(item: SchoolItem): string { const words = String(item.name || '').trim().split(/\s+/).filter(Boolean); return this.expandedSchoolNames.has(item.id) || words.length <= 5 ? words.join(' ') : `${words.slice(0, 5).join(' ')}…`; }
 	schoolNameToggleLabel(item: SchoolItem): string { return this.expandedSchoolNames.has(item.id) ? 'عرض أقل' : 'عرض المزيد'; }
 	toggleSchoolName(item: SchoolItem): void { if (this.expandedSchoolNames.has(item.id)) this.expandedSchoolNames.delete(item.id); else this.expandedSchoolNames.add(item.id); }
+	private persistSchoolsChanges(): void { if (!this.content) return; this.cms.savePageState('schools', this.content).subscribe({ next: saved => { Object.assign(this.content, saved); this.errorMessage = ''; }, error: err => { this.errorMessage = err?.error?.message || 'تعذر حفظ المدارس على السيرفر. اضغط حفظ على السيرفر وحاول مرة أخرى.'; } }); }
 	programSelection(item: SchoolItem): 'engineering' | 'computers' | 'both' { return item.programs.includes('engineering') && item.programs.includes('computers') ? 'both' : item.programs.includes('computers') ? 'computers' : 'engineering'; }
 	setProgram(item: SchoolItem, value: 'engineering' | 'computers' | 'both'): void { item.programs = this.programsFromSelection(value); }
 
