@@ -16,6 +16,7 @@ interface SchoolItem {
 	imports: [CommonModule, FormsModule],
 	styles: [adminFormStyles + `
 		.schools-help{color:#718096;line-height:1.75;margin:0 0 1rem}.schools-list{display:flex;flex-direction:column;gap:.7rem}.school-card{display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:start;padding:.85rem;border:1px solid #e6eaf1;border-radius:11px;background:#fff}.school-card__fields{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}.school-card__fields .cms-field{margin:0}.school-card__del{align-self:start;padding:.45rem .65rem;border:0;border-radius:8px;background:#fff1f3;color:#c24b67;cursor:pointer;font:inherit;font-weight:800}.school-card__del:hover{background:#ffe2e8}.schools-empty{padding:1.5rem;text-align:center;color:#8993a8;border:1px dashed #dfe4ed;border-radius:11px}.schools-count{color:#8993a8;font-size:.78rem;font-weight:700}
+		.schools-table-filters{display:grid;grid-template-columns:2fr repeat(3,1fr) auto;gap:.6rem;margin:0 0 1rem;padding:.75rem;border:1px solid #e6eaf1;border-radius:11px;background:#f8faff}.schools-table-filters .cms-field{margin:0}.schools-table-filters .cms-label{font-size:.72rem}.schools-table-filters__clear{align-self:end;min-height:38px;padding:.45rem .8rem;border:1px solid #d9d3ff;border-radius:8px;color:#6241df;background:#f4f1ff;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}@media(max-width:900px){.schools-table-filters{grid-template-columns:1fr 1fr}}@media(max-width:520px){.schools-table-filters{grid-template-columns:1fr}}
 		@media(max-width:700px){.school-card__fields{grid-template-columns:1fr}}
 	`],
 	template: `
@@ -43,10 +44,17 @@ interface SchoolItem {
 			</div>
 
 			<div class="cms-section schools-table-section">
-				<div class="cms-section-title"><span>كل المدارس والمعاهد</span><span class="schools-count">{{ items.length }} مؤسسة</span></div>
+				<div class="cms-section-title"><span>كل المدارس والمعاهد</span><span class="schools-count">{{ filteredItems.length }} من {{ items.length }} مؤسسة</span></div>
+				<div class="schools-table-filters">
+					<label class="cms-field"><span class="cms-label">بحث بالاسم</span><input class="cms-input" [(ngModel)]="tableSearch" placeholder="اكتب اسم المؤسسة"></label>
+					<label class="cms-field"><span class="cms-label">النوع</span><select class="cms-select" [(ngModel)]="tableType"><option value="">كل الأنواع</option><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></label>
+					<label class="cms-field"><span class="cms-label">التصنيف</span><select class="cms-select" [(ngModel)]="tableCategory"><option value="">كل التصنيفات</option><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></label>
+					<label class="cms-field"><span class="cms-label">المعادلة</span><select class="cms-select" [(ngModel)]="tableProgram"><option value="">كل المعادلات</option><option *ngFor="let program of programOptions" [value]="program.value">{{ program.label }}</option></select></label>
+					<button type="button" class="schools-table-filters__clear" (click)="clearTableFilters()">مسح الفلاتر</button>
+				</div>
 				<div class="schools-table-wrap" *ngIf="items.length; else emptyState">
 					<table class="schools-table"><thead><tr><th>#</th><th>اسم المؤسسة</th><th>النوع</th><th>التصنيف</th><th>المعادلة</th><th>رابط الصورة</th><th>إجراء</th></tr></thead><tbody>
-						<tr *ngFor="let item of items; let i = index"><td class="schools-table__index">{{ i + 1 }}</td><td><input class="cms-input" [(ngModel)]="item.name"></td><td><select class="cms-select" [(ngModel)]="item.type"><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></td><td><select class="cms-select" [(ngModel)]="item.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></td><td><select class="cms-select" [ngModel]="programSelection(item)" (ngModelChange)="setProgram(item, $event)"><option *ngFor="let program of programOptions" [value]="program.value">{{ program.label }}</option></select></td><td><input class="cms-input" [(ngModel)]="item.logo" dir="ltr"><label class="cms-upload-btn">📤 {{ uploadingKey === 'item-' + i ? 'جاري الرفع...' : 'رفع صورة' }}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden (change)="uploadItemImage(item, i, $event)"></label></td><td><button type="button" class="school-card__del" (click)="removeItem(i)" aria-label="حذف المؤسسة">حذف</button></td></tr>
+						<tr *ngFor="let item of filteredItems; let i = index"><td class="schools-table__index">{{ item.id }}</td><td><input class="cms-input" [(ngModel)]="item.name"></td><td><select class="cms-select" [(ngModel)]="item.type"><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></td><td><select class="cms-select" [(ngModel)]="item.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></td><td><select class="cms-select" [ngModel]="programSelection(item)" (ngModelChange)="setProgram(item, $event)"><option *ngFor="let program of programOptions" [value]="program.value">{{ program.label }}</option></select></td><td><input class="cms-input" [(ngModel)]="item.logo" dir="ltr"><label class="cms-upload-btn">📤 {{ uploadingKey === 'item-' + i ? 'جاري الرفع...' : 'رفع صورة' }}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden (change)="uploadItemImage(item, i, $event)"></label></td><td><button type="button" class="school-card__del" (click)="removeItem(items.indexOf(item))" aria-label="حذف المؤسسة">حذف</button></td></tr>
 					</tbody></table>
 				</div>
 				<ng-template #emptyState><div class="schools-empty">لا توجد مؤسسات محفوظة حاليًا.</div></ng-template>
@@ -63,6 +71,21 @@ export class SchoolsFormComponent implements OnChanges {
 	draft: Partial<SchoolItem> & { program?: 'engineering' | 'computers' | 'both' } = this.emptyDraft();
 	errorMessage = '';
 	uploadingKey: string | null = null;
+	tableSearch = '';
+	tableType = '';
+	tableCategory = '';
+	tableProgram = '';
+
+	get filteredItems(): SchoolItem[] {
+		const search = this.tableSearch.trim().toLowerCase();
+		return this.items.filter(item => {
+			const matchesSearch = !search || item.name.toLowerCase().includes(search);
+			const matchesType = !this.tableType || item.type === this.tableType;
+			const matchesCategory = !this.tableCategory || item.category === this.tableCategory;
+			const matchesProgram = !this.tableProgram || item.programs.includes(this.tableProgram as 'engineering' | 'computers');
+			return matchesSearch && matchesType && matchesCategory && matchesProgram;
+		});
+	}
 
 	ngOnChanges(): void {
 		if (!this.content || typeof this.content !== 'object') return;
@@ -84,6 +107,7 @@ export class SchoolsFormComponent implements OnChanges {
 	}
 
 	removeItem(index: number): void { this.items.splice(index, 1); }
+	clearTableFilters(): void { this.tableSearch = ''; this.tableType = ''; this.tableCategory = ''; this.tableProgram = ''; }
 	programSelection(item: SchoolItem): 'engineering' | 'computers' | 'both' { return item.programs.includes('engineering') && item.programs.includes('computers') ? 'both' : item.programs.includes('computers') ? 'computers' : 'engineering'; }
 	setProgram(item: SchoolItem, value: 'engineering' | 'computers' | 'both'): void { item.programs = this.programsFromSelection(value); }
 
