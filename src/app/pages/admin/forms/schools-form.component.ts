@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, inject } from '@angular/core';
+import { Component, HostListener, Input, OnChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { adminFormStyles } from './admin-form-styles';
@@ -161,6 +161,13 @@ export class SchoolsFormComponent implements OnChanges {
 		applyPosition();
 		requestAnimationFrame(applyPosition);
 		setTimeout(applyPosition, 0);
+	}
+	@HostListener('document:click', ['$event'])
+	closeActionsOnOutsideClick(event: MouseEvent): void {
+		const target = event.target as HTMLElement | null;
+		if (target?.closest('.school-actions-trigger, .school-actions-popover')) return;
+		if (this.openItemActionId === null) return;
+		this.openItemActionId = null;
 	}
 	startEdit(item: SchoolItem): void { this.openItemActionId = null; this.editingItem = item; this.editDraft = { ...item, programs: [...item.programs] }; }
 	cancelEdit(): void { this.editingItem = null; this.editDraft = null; }

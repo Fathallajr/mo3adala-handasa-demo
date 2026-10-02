@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -368,6 +368,16 @@ export class AdminDashboardPageComponent implements OnInit {
 		const trigger = event?.currentTarget as HTMLElement | null;
 		if (!trigger) return;
 		this.positionActionMenu(trigger, '--admin-actions-top', '--admin-actions-left', 170, 145, '.admin-actions-popover');
+	}
+	@HostListener('document:click', ['$event'])
+	closeActionMenusOnOutsideClick(event: MouseEvent): void {
+		const target = event.target as HTMLElement | null;
+		if (target?.closest('.lead-actions-menu__trigger, .lead-actions-menu__panel, .admin-actions-popover, .school-actions-trigger, .school-actions-popover')) return;
+		if (this.openLeadActionMenuId === null && this.openWheelActionMenuId === null && this.openAdminActionUser === null) return;
+		this.openLeadActionMenuId = null;
+		this.openWheelActionMenuId = null;
+		this.openAdminActionUser = null;
+		this.refreshView();
 	}
 	loadFeedback(force = false): void {
 		if ((this.isLoadingFeedback && !force) || (this.feedbackLoaded && !force)) return;
