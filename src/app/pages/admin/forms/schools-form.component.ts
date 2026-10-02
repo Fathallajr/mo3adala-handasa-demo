@@ -82,7 +82,7 @@ export class SchoolsFormComponent implements OnChanges {
 	@Input() content: any;
 	private readonly cms = inject(MonthlyContentService);
 	readonly categories = ['المعاهد الفنية', 'مدارس الثانوية الصناعية نظام 3 سنوات', 'مدارس الثانوية الصناعية نظام 5 سنوات', 'مدارس تكنولوجية نظام 3 سنوات', 'مدارس تكنولوجية نظام 5 سنوات'];
-	readonly programOptions = [{ value: 'engineering', label: 'هندسة' }, { value: 'computers', label: 'حاسبات' }, { value: 'both', label: 'هندسة وحاسبات' }] as const;
+	readonly programOptions = [{ value: 'engineering', label: 'هندسة' }, { value: 'computers', label: 'حاسبات' }] as const;
 	items: SchoolItem[] = [];
 	draft: Partial<SchoolItem> & { program?: 'engineering' | 'computers' | 'both' } = this.emptyDraft();
 	errorMessage = '';
