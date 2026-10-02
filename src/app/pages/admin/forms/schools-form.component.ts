@@ -17,6 +17,7 @@ interface SchoolItem {
 	styles: [adminFormStyles + `
 		.schools-help{color:#718096;line-height:1.75;margin:0 0 1rem}.schools-list{display:flex;flex-direction:column;gap:.7rem}.school-card{display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:start;padding:.85rem;border:1px solid #e6eaf1;border-radius:11px;background:#fff}.school-card__fields{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}.school-card__fields .cms-field{margin:0}.school-card__del{align-self:start;padding:.45rem .65rem;border:0;border-radius:8px;background:#fff1f3;color:#c24b67;cursor:pointer;font:inherit;font-weight:800}.school-card__del:hover{background:#ffe2e8}.schools-empty{padding:1.5rem;text-align:center;color:#8993a8;border:1px dashed #dfe4ed;border-radius:11px}.schools-count{color:#8993a8;font-size:.78rem;font-weight:700}
 		.schools-table-filters{display:grid;grid-template-columns:2fr repeat(3,1fr) auto;gap:.6rem;margin:0 0 1rem;padding:.75rem;border:1px solid #e6eaf1;border-radius:11px;background:#f8faff}.schools-table-filters .cms-field{margin:0}.schools-table-filters .cms-label{font-size:.72rem}.schools-table-filters__clear{align-self:end;min-height:38px;padding:.45rem .8rem;border:1px solid #d9d3ff;border-radius:8px;color:#6241df;background:#f4f1ff;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}@media(max-width:900px){.schools-table-filters{grid-template-columns:1fr 1fr}}@media(max-width:520px){.schools-table-filters{grid-template-columns:1fr}}
+		.schools-actions-cell{position:relative;white-space:nowrap}.school-actions-trigger{width:32px;height:30px;border:1px solid #cfc5ff;border-radius:8px;color:#6241df;background:#f4f1ff;font-size:20px;line-height:1;cursor:pointer}.school-actions-menu{position:absolute;z-index:5;top:calc(100% + 4px);right:0;display:grid;min-width:100px;padding:4px;border:1px solid #e2e5ee;border-radius:9px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16)}.school-actions-menu button{padding:8px;border:0;border-radius:6px;background:transparent;color:#526078;font:inherit;font-size:11px;font-weight:800;text-align:right;cursor:pointer}.school-actions-menu button:hover{background:#f4f1ff;color:#6241df}.school-actions-menu button:last-child{color:#c33f5d}.school-modal-backdrop{position:fixed;z-index:40;inset:0;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.45)}.school-modal{width:min(520px,100%);max-height:90vh;overflow:auto;padding:22px;border:1px solid #e2e5ee;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.28)}.school-modal-close{border:0;background:transparent;color:#64748b;font-size:25px;cursor:pointer}.school-modal-actions{display:flex;justify-content:flex-start;gap:8px;margin-top:15px}.school-delete-modal p{color:#526078;line-height:1.8}
 		@media(max-width:700px){.school-card__fields{grid-template-columns:1fr}}
 	`],
 	template: `
@@ -52,11 +53,22 @@ interface SchoolItem {
 				</div>
 				<div class="schools-table-wrap" *ngIf="items.length; else emptyState">
 					<table class="schools-table"><thead><tr><th>#</th><th>اسم المؤسسة</th><th>النوع</th><th>المعادلة</th><th>رابط الصورة</th><th>إجراء</th></tr></thead><tbody>
-						<tr *ngFor="let item of filteredItems; let i = index"><td class="schools-table__index">{{ item.id }}</td><td><input class="cms-input" [(ngModel)]="item.name"></td><td><select class="cms-select" [(ngModel)]="item.category" (ngModelChange)="item.type = $event"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></td><td><select class="cms-select" [ngModel]="programSelection(item)" (ngModelChange)="setProgram(item, $event)"><option *ngFor="let program of programOptions" [value]="program.value">{{ program.label }}</option></select></td><td><input class="cms-input" [(ngModel)]="item.logo" dir="ltr"><label class="cms-upload-btn">📤 {{ uploadingKey === 'item-' + i ? 'جاري الرفع...' : 'رفع صورة' }}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden (change)="uploadItemImage(item, i, $event)"></label></td><td><button type="button" class="school-card__del" (click)="removeItem(items.indexOf(item))" aria-label="حذف المؤسسة">حذف</button></td></tr>
+						<tr *ngFor="let item of filteredItems"><td class="schools-table__index">{{ item.id }}</td><td>{{ item.name }}</td><td>{{ item.type }}</td><td>{{ programSelection(item) === 'both' ? 'هندسة وحاسبات' : (programSelection(item) === 'computers' ? 'حاسبات' : 'هندسة') }}</td><td>{{ item.logo }}</td><td class="schools-actions-cell"><button type="button" class="school-actions-trigger" (click)="toggleItemActions(item)" aria-label="إجراءات المؤسسة">⋮</button><div class="school-actions-menu" *ngIf="openItemActionId === item.id"><button type="button" (click)="startEdit(item)">تعديل</button><button type="button" (click)="confirmDelete(item)">حذف</button></div></td></tr>
 					</tbody></table>
 				</div>
 				<ng-template #emptyState><div class="schools-empty">لا توجد مؤسسات محفوظة حاليًا.</div></ng-template>
 			</div>
+			<div class="school-modal-backdrop" *ngIf="editDraft" (click)="cancelEdit()">
+				<div class="school-modal" (click)="$event.stopPropagation()">
+					<div class="cms-section-title"><span>تعديل المؤسسة</span><button type="button" class="school-modal-close" (click)="cancelEdit()">×</button></div>
+					<label class="cms-field"><span class="cms-label">اسم المؤسسة</span><input class="cms-input" [(ngModel)]="editDraft.name"></label>
+					<label class="cms-field"><span class="cms-label">النوع</span><select class="cms-select" [(ngModel)]="editDraft.type" (ngModelChange)="editDraft.category = $event"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></label>
+					<label class="cms-field"><span class="cms-label">المعادلة</span><select class="cms-select" [ngModel]="programSelection(editDraft)" (ngModelChange)="setProgram(editDraft, $event)"><option *ngFor="let program of programOptions" [value]="program.value">{{ program.label }}</option></select></label>
+					<label class="cms-field"><span class="cms-label">رابط الصورة</span><input class="cms-input" [(ngModel)]="editDraft.logo" dir="ltr"><label class="cms-upload-btn">📤 رفع صورة من الجهاز<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden (change)="uploadEditImage($event)"></label></label>
+					<div class="school-modal-actions"><button type="button" class="cms-button" (click)="saveEdit()">حفظ التعديل</button><button type="button" class="schools-table-filters__clear" (click)="cancelEdit()">إلغاء</button></div>
+				</div>
+			</div>
+			<div class="school-modal-backdrop" *ngIf="pendingDeleteItem" (click)="cancelDelete()"><div class="school-modal school-delete-modal" (click)="$event.stopPropagation()"><div class="cms-section-title">تأكيد الحذف</div><p>هل تريد حذف «{{ pendingDeleteItem.name }}»؟</p><div class="school-modal-actions"><button type="button" class="school-card__del" (click)="deleteItem()">حذف</button><button type="button" class="schools-table-filters__clear" (click)="cancelDelete()">إلغاء</button></div></div></div>
 		</div>
 	`
 })
@@ -69,6 +81,10 @@ export class SchoolsFormComponent implements OnChanges {
 	draft: Partial<SchoolItem> & { program?: 'engineering' | 'computers' | 'both' } = this.emptyDraft();
 	errorMessage = '';
 	uploadingKey: string | null = null;
+	openItemActionId: number | null = null;
+	editingItem: SchoolItem | null = null;
+	editDraft: SchoolItem | null = null;
+	pendingDeleteItem: SchoolItem | null = null;
 	tableSearch = '';
 	tableType = '';
 	tableProgram = '';
@@ -103,12 +119,20 @@ export class SchoolsFormComponent implements OnChanges {
 	}
 
 	removeItem(index: number): void { this.items.splice(index, 1); }
+	toggleItemActions(item: SchoolItem): void { this.openItemActionId = this.openItemActionId === item.id ? null : item.id; }
+	startEdit(item: SchoolItem): void { this.openItemActionId = null; this.editingItem = item; this.editDraft = { ...item, programs: [...item.programs] }; }
+	cancelEdit(): void { this.editingItem = null; this.editDraft = null; }
+	saveEdit(): void { if (!this.editingItem || !this.editDraft) return; Object.assign(this.editingItem, this.editDraft, { category: this.editDraft.type }); this.cancelEdit(); }
+	confirmDelete(item: SchoolItem): void { this.openItemActionId = null; this.pendingDeleteItem = item; }
+	cancelDelete(): void { this.pendingDeleteItem = null; }
+	deleteItem(): void { if (!this.pendingDeleteItem) return; this.items = this.items.filter(item => item.id !== this.pendingDeleteItem?.id); this.content.items = this.items; this.pendingDeleteItem = null; }
 	clearTableFilters(): void { this.tableSearch = ''; this.tableType = ''; this.tableProgram = ''; }
 	programSelection(item: SchoolItem): 'engineering' | 'computers' | 'both' { return item.programs.includes('engineering') && item.programs.includes('computers') ? 'both' : item.programs.includes('computers') ? 'computers' : 'engineering'; }
 	setProgram(item: SchoolItem, value: 'engineering' | 'computers' | 'both'): void { item.programs = this.programsFromSelection(value); }
 
 	uploadDraftImage(event: Event): void { this.uploadImage(event, 'draft'); }
 	uploadItemImage(item: SchoolItem, index: number, event: Event): void { this.uploadImage(event, 'item-' + index, item); }
+	uploadEditImage(event: Event): void { if (this.editDraft) this.uploadImage(event, 'edit', this.editDraft); }
 
 	private uploadImage(event: Event, key: string, item?: SchoolItem): void {
 		const input = event.target as HTMLInputElement;
