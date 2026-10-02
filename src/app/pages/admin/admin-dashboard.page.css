@@ -484,3 +484,192 @@ tbody tr:hover { background:#faf9ff; }
 .wheel-view > .editor-toolbar .editor-subtitle {
   display: none;
 }
+
+/* Admin accounts: a quieter, more structured control panel. */
+.admin-users-view .editor-toolbar {
+  align-items: center;
+  padding: 8px 4px 22px;
+}
+.admin-users-view .editor-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  letter-spacing: -.6px;
+}
+.admin-users-view .editor-title::before {
+  content: '♟';
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(145deg, #6d4aff, #9a73ff);
+  box-shadow: 0 8px 18px #6d4aff2e;
+  font-size: 19px;
+}
+.admin-users-view .editor-subtitle {
+  max-width: 650px;
+  margin-top: 7px;
+  color: #7c879d;
+}
+.admin-users-view .admin-user-create {
+  position: relative;
+  overflow: hidden;
+  padding: 23px;
+  border: 1px solid #e4e0ff;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fbfaff 0%, #f5f7ff 100%);
+  box-shadow: 0 14px 30px #4335a00d;
+}
+.admin-users-view .admin-user-create::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(#6d4aff, #a878ff);
+}
+.admin-users-view .admin-user-create h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  color: #2a3450;
+  font-size: 17px;
+}
+.admin-users-view .admin-user-create h3::before {
+  content: '+';
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #fff;
+  background: #6d4aff;
+  font-size: 18px;
+  line-height: 1;
+}
+.admin-users-view .admin-user-create .filters {
+  display: grid;
+  grid-template-columns: minmax(180px, .8fr) minmax(250px, 1.2fr) auto;
+  align-items: end;
+  gap: 13px;
+  margin-bottom: 18px;
+}
+.admin-users-view .admin-user-create .filter-field {
+  min-width: 0;
+  gap: 7px;
+}
+.admin-users-view .admin-user-create .filter-field span {
+  color: #66728c;
+  font-size: 11px;
+}
+.admin-users-view .admin-user-create .filters input {
+  min-width: 0;
+  min-height: 44px;
+  border-color: #dfe3f1;
+  background: #fff;
+  box-shadow: 0 3px 10px #34405e08;
+}
+.admin-users-view .admin-user-create .filter-submit {
+  min-height: 44px;
+  padding-inline: 20px;
+}
+.admin-users-view .admin-permission-grid {
+  gap: 9px;
+  padding-top: 17px;
+  border-top: 1px solid #e7e8f3;
+}
+.admin-users-view .admin-permission-grid label {
+  min-height: 34px;
+  padding: 7px 11px;
+  border-color: #e1e4f0;
+  border-radius: 10px;
+  background: #fff;
+  transition: .18s ease;
+}
+.admin-users-view .admin-permission-grid label:hover {
+  border-color: #b9aaff;
+  color: #5540c9;
+  background: #faf9ff;
+  transform: translateY(-1px);
+}
+.admin-users-view > .table-wrap {
+  margin-top: 20px;
+  padding: 4px 9px 8px;
+  border: 1px solid #e5e8f1;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 12px 28px #2b36570b;
+}
+.admin-users-view > .table-wrap table {
+  min-width: 820px;
+}
+.admin-users-view > .table-wrap th {
+  height: 48px;
+  color: #737e96;
+  background: #f8f9fc;
+  font-size: 11px;
+}
+.admin-users-view > .table-wrap td {
+  min-height: 58px;
+  vertical-align: middle;
+}
+.admin-users-view > .table-wrap tbody tr {
+  transition: background .18s ease;
+}
+.admin-users-view > .table-wrap tbody tr:hover {
+  background: #fbfaff;
+}
+.admin-users-view > .table-wrap tbody td:first-child {
+  color: #26314b;
+  font-weight: 900;
+}
+.admin-users-view .admin-granted-permissions span {
+  border: 1px solid #e3ddff;
+  background: #f5f2ff;
+}
+.admin-users-view .admin-granted-permissions .secondary-btn,
+.admin-users-view .admin-password-field + .secondary-btn {
+  padding: 8px 10px;
+  color: #5540c9;
+  border-color: #ded7ff;
+  background: #f7f5ff;
+}
+.admin-users-view .admin-password-field {
+  min-width: 205px;
+}
+.admin-users-view .admin-password-field .admin-inline-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 36px;
+  margin-left: 0;
+  background: #fbfcff;
+}
+.admin-users-view .admin-password-field + .secondary-btn {
+  margin-top: 7px;
+}
+.admin-users-view .admin-danger-btn {
+  min-width: 54px;
+  transition: .18s ease;
+}
+.admin-users-view .admin-danger-btn:hover {
+  color: #fff;
+  background: #c94a63;
+  transform: translateY(-1px);
+}
+@media (max-width: 760px) {
+  .admin-users-view .admin-user-create {
+    padding: 17px;
+  }
+  .admin-users-view .admin-user-create .filters {
+    grid-template-columns: 1fr;
+  }
+  .admin-users-view .admin-user-create .filter-submit {
+    width: 100%;
+  }
+  .admin-users-view .editor-title {
+    font-size: 22px;
+  }
+}
