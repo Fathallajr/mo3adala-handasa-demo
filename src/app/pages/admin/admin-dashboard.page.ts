@@ -367,7 +367,8 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (!shouldOpen) return;
 		const trigger = event?.currentTarget as HTMLElement | null;
 		if (!trigger) return;
-		this.positionActionMenu(trigger, '--admin-actions-top', '--admin-actions-left', 170, 145, '.admin-actions-popover');
+		const adminIndex = this.adminUsers.findIndex(user => user.username === username);
+		this.positionActionMenu(trigger, '--admin-actions-top', '--admin-actions-left', 170, 145, '.admin-actions-popover', () => this.findActionTrigger(adminIndex));
 	}
 	@HostListener('document:click', ['$event'])
 	closeActionMenusOnOutsideClick(event: MouseEvent): void {

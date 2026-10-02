@@ -155,8 +155,10 @@ export class SchoolsFormComponent implements OnChanges {
 				: triggerRect.left - menuWidth - 6;
 			const top = Math.min(Math.max(edge, rawTop), Math.max(edge, viewportHeight - menuHeight - edge));
 			const left = Math.min(Math.max(edge, rawLeft), Math.max(edge, viewportWidth - menuWidth - edge));
-			section.style.setProperty('--school-actions-top', `${top}px`);
-			section.style.setProperty('--school-actions-left', `${left}px`);
+			if (renderedMenu) {
+				renderedMenu.style.top = `${top}px`;
+				renderedMenu.style.left = `${left}px`;
+			}
 		};
 		applyPosition();
 		requestAnimationFrame(applyPosition);
