@@ -9,6 +9,7 @@ interface SchoolItem {
 	id: number;
 	name: string;	type: string;	category: string;	logo: string;	programs: Array<'engineering' | 'computers'>;
 }
+type SchoolPaginationItem = number | '…';
 
 @Component({
 	selector: 'app-schools-form',
@@ -22,7 +23,7 @@ interface SchoolItem {
 		.schools-logo-cell{width:110px;text-align:center}.schools-logo-cell img{display:block;width:54px;height:54px;margin:auto;border:1px solid #e5e9f2;border-radius:12px;background:#fff;object-fit:contain;padding:5px}
 		.schools-name-cell{width:220px;max-width:220px;white-space:normal;line-height:1.5}.schools-name-cell>span{display:block;overflow-wrap:anywhere}.school-name-more{margin-top:4px;padding:0;border:0;color:#6241df;background:transparent;font:inherit;font-size:.72rem;font-weight:800;cursor:pointer}.school-name-more:hover{text-decoration:underline}
 		.schools-table{width:100%;table-layout:fixed}.schools-table th:nth-child(1),.schools-table td:nth-child(1){width:42px}.schools-table th:nth-child(2),.schools-table td:nth-child(2){width:30%}.schools-table th:nth-child(3),.schools-table td:nth-child(3){width:20%;white-space:normal;line-height:1.45}.schools-table th:nth-child(4),.schools-table td:nth-child(4){width:11%;white-space:normal;line-height:1.45}.schools-table th:nth-child(5),.schools-table td:nth-child(5){width:100px}.schools-table th:nth-child(6),.schools-table td:nth-child(6){width:70px}
-		.schools-pagination{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding:10px 0;color:#8993a8;font-size:.78rem}.schools-pagination__pages{display:flex;align-items:center;gap:5px}.schools-pagination__button,.schools-pagination__page{min-height:34px;padding:7px 11px;border:1px solid #e1e6f0;border-radius:9px;color:#59647b;background:#fff;font:inherit;font-weight:800;cursor:pointer}.schools-pagination__page{min-width:34px;padding:0 8px}.schools-pagination__page.is-active{border-color:#6d4aff;color:#fff;background:#6d4aff;box-shadow:0 5px 14px #6d4aff2b}.schools-pagination__button:disabled{opacity:.5;cursor:not-allowed}.schools-pagination__summary{white-space:nowrap}@media(max-width:520px){.schools-pagination{gap:6px;font-size:.68rem}.schools-pagination__button{padding:6px 8px}.schools-pagination__page{min-width:30px}}
+		.schools-pagination{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding:10px 0;color:#8993a8;font-size:.78rem}.schools-pagination__pages{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center}.schools-pagination__button,.schools-pagination__page{min-height:34px;padding:7px 11px;border:1px solid #e1e6f0;border-radius:9px;color:#59647b;background:#fff;font:inherit;font-weight:800;cursor:pointer}.schools-pagination__page{min-width:34px;padding:0 8px}.schools-pagination__page.is-active{border-color:#6d4aff;color:#fff;background:#6d4aff;box-shadow:0 5px 14px #6d4aff2b}.schools-pagination__page.is-ellipsis{min-width:20px;padding:0 2px;border-color:transparent;color:#8993a8;background:transparent;box-shadow:none;cursor:default}.schools-pagination__button:disabled,.schools-pagination__page:disabled{opacity:.5;cursor:not-allowed}.schools-pagination__summary{white-space:nowrap}@media(max-width:520px){.schools-pagination{gap:6px;font-size:.68rem}.schools-pagination__button{padding:6px 8px}.schools-pagination__page{min-width:30px}}
 		@media(max-width:700px){.school-card__fields{grid-template-columns:1fr}}
 	`],
 	template: `
@@ -61,7 +62,7 @@ interface SchoolItem {
 		<tr *ngFor="let item of paginatedItems"><td class="schools-table__index">{{ item.id }}</td><td class="schools-name-cell"><span>{{ schoolNamePreview(item) }}</span><button *ngIf="hasLongSchoolName(item.name)" type="button" class="school-name-more" (click)="toggleSchoolName(item)">{{ schoolNameToggleLabel(item) }}</button></td><td>{{ item.type }}</td><td>{{ programSelection(item) === 'both' ? 'هندسة وحاسبات' : (programSelection(item) === 'computers' ? 'حاسبات' : 'هندسة') }}</td><td class="schools-logo-cell"><img [src]="schoolLogoUrl(item.logo)" (error)="handleSchoolLogoError($event)" [alt]="item.name" loading="lazy"></td><td class="schools-actions-cell"><button type="button" class="school-actions-trigger" (click)="toggleItemActions(item, $event)" aria-label="إجراءات المؤسسة">⋮</button></td></tr>
 					</tbody></table>
 				</div>
-				<nav class="schools-pagination" *ngIf="schoolsPages > 1" aria-label="صفحات المدارس والمعاهد"><button type="button" class="schools-pagination__button" (click)="goToSchoolPage(currentSchoolsPage - 1)" [disabled]="currentSchoolsPage <= 1">السابق</button><div class="schools-pagination__pages"><button type="button" class="schools-pagination__page" *ngFor="let page of schoolPageNumbers" [class.is-active]="page === currentSchoolsPage" (click)="goToSchoolPage(page)">{{ page }}</button></div><span class="schools-pagination__summary">صفحة {{ currentSchoolsPage }} من {{ schoolsPages }}</span><button type="button" class="schools-pagination__button" (click)="goToSchoolPage(currentSchoolsPage + 1)" [disabled]="currentSchoolsPage >= schoolsPages">التالي</button></nav>
+				<nav class="schools-pagination" *ngIf="schoolsPages > 1" aria-label="صفحات المدارس والمعاهد"><button type="button" class="schools-pagination__button" (click)="goToSchoolPage(currentSchoolsPage - 1)" [disabled]="currentSchoolsPage <= 1">السابق</button><div class="schools-pagination__pages"><button type="button" class="schools-pagination__page" *ngFor="let page of schoolPageNumbers" [class.is-active]="page === currentSchoolsPage" [class.is-ellipsis]="page === '…'" [disabled]="page === '…'" [attr.aria-label]="page === '…' ? 'فاصل' : 'الصفحة ' + page" (click)="goToSchoolPage(page)">{{ page }}</button></div><span class="schools-pagination__summary">صفحة {{ currentSchoolsPage }} من {{ schoolsPages }}</span><button type="button" class="schools-pagination__button" (click)="goToSchoolPage(currentSchoolsPage + 1)" [disabled]="currentSchoolsPage >= schoolsPages">التالي</button></nav>
 				<div class="school-actions-popover" *ngIf="openItem">
 					<button type="button" (click)="startEdit(openItem)">✏️ تعديل</button>
 					<button type="button" class="school-actions-popover__delete" (click)="confirmDelete(openItem)">🗑️ حذف</button>
@@ -113,7 +114,7 @@ export class SchoolsFormComponent implements OnChanges {
 	}
 	get schoolsPages(): number { return Math.max(1, Math.ceil(this.filteredItems.length / this.schoolsPageSize)); }
 	get currentSchoolsPage(): number { return Math.min(this.schoolsPage, this.schoolsPages); }
-	get schoolPageNumbers(): number[] { return Array.from({ length: this.schoolsPages }, (_, index) => index + 1); }
+	get schoolPageNumbers(): SchoolPaginationItem[] { return this.buildSchoolPaginationItems(this.currentSchoolsPage, this.schoolsPages); }
 	get paginatedItems(): SchoolItem[] {
 		const start = (this.currentSchoolsPage - 1) * this.schoolsPageSize;
 		return this.filteredItems.slice(start, start + this.schoolsPageSize);
@@ -189,7 +190,19 @@ export class SchoolsFormComponent implements OnChanges {
 	cancelDelete(): void { this.pendingDeleteItem = null; }
 	deleteItem(): void { if (!this.pendingDeleteItem) return; this.items = this.items.filter(item => item.id !== this.pendingDeleteItem?.id); this.content.items = this.items; this.pendingDeleteItem = null; this.persistSchoolsChanges(); }
 	clearTableFilters(): void { this.tableSearch = ''; this.tableType = ''; this.tableProgram = ''; }
-	goToSchoolPage(page: number): void {
+	buildSchoolPaginationItems(currentPage: number, totalPages: number): SchoolPaginationItem[] {
+		if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1);
+		const items: SchoolPaginationItem[] = [1];
+		const start = Math.max(2, currentPage - 1);
+		const end = Math.min(totalPages - 1, currentPage + 1);
+		if (start > 2) items.push('…');
+		for (let page = start; page <= end; page++) items.push(page);
+		if (end < totalPages - 1) items.push('…');
+		items.push(totalPages);
+		return items;
+	}
+	goToSchoolPage(page: number | string): void {
+		if (typeof page !== 'number') return;
 		this.schoolsPage = Math.min(Math.max(1, page), this.schoolsPages);
 		this.openItemActionId = null;
 	}
