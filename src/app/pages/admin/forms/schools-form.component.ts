@@ -21,6 +21,7 @@ interface SchoolItem {
 		.schools-table-section{position:relative}.school-actions-popover{position:absolute;z-index:20;top:7.5rem;left:1rem;display:flex;align-items:center;gap:7px;padding:7px 9px;border:1px solid #d9d3ff;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16);font-size:11px}.school-actions-popover button{padding:7px 9px;border:0;border-radius:7px;color:#6241df;background:#f4f1ff;font:inherit;font-weight:800;cursor:pointer}.school-actions-popover__delete{color:#c33f5d!important;background:#fff0f3!important}
 		.school-actions-popover{position:fixed;z-index:1000;top:var(--school-actions-top,1.5rem);right:auto;left:var(--school-actions-left,1rem);display:grid;min-width:120px;padding:5px;gap:3px}.school-actions-popover button{text-align:right}.school-actions-popover::before{content:none}
 		.schools-logo-cell{width:110px;text-align:center}.schools-logo-cell img{display:block;width:54px;height:54px;margin:auto;border:1px solid #e5e9f2;border-radius:12px;background:#fff;object-fit:contain;padding:5px}
+		.schools-name-cell{width:220px;max-width:220px;white-space:normal;line-height:1.5}.schools-name-cell>span{display:block;overflow-wrap:anywhere}.school-name-more{margin-top:4px;padding:0;border:0;color:#6241df;background:transparent;font:inherit;font-size:.72rem;font-weight:800;cursor:pointer}.school-name-more:hover{text-decoration:underline}
 		@media(max-width:700px){.school-card__fields{grid-template-columns:1fr}}
 	`],
 	template: `
@@ -56,7 +57,7 @@ interface SchoolItem {
 				</div>
 				<div class="schools-table-wrap" *ngIf="items.length; else emptyState">
 					<table class="schools-table"><thead><tr><th>#</th><th>اسم المؤسسة</th><th>النوع</th><th>المعادلة</th><th>الصورة</th><th>إجراء</th></tr></thead><tbody>
-		<tr *ngFor="let item of filteredItems"><td class="schools-table__index">{{ item.id }}</td><td>{{ item.name }}</td><td>{{ item.type }}</td><td>{{ programSelection(item) === 'both' ? 'هندسة وحاسبات' : (programSelection(item) === 'computers' ? 'حاسبات' : 'هندسة') }}</td><td class="schools-logo-cell"><img [src]="schoolLogoUrl(item.logo)" (error)="handleSchoolLogoError($event)" [alt]="item.name" loading="lazy"></td><td class="schools-actions-cell"><button type="button" class="school-actions-trigger" (click)="toggleItemActions(item, $event)" aria-label="إجراءات المؤسسة">⋮</button></td></tr>
+		<tr *ngFor="let item of filteredItems"><td class="schools-table__index">{{ item.id }}</td><td class="schools-name-cell"><span>{{ schoolNamePreview(item) }}</span><button *ngIf="hasLongSchoolName(item.name)" type="button" class="school-name-more" (click)="toggleSchoolName(item)">{{ schoolNameToggleLabel(item) }}</button></td><td>{{ item.type }}</td><td>{{ programSelection(item) === 'both' ? 'هندسة وحاسبات' : (programSelection(item) === 'computers' ? 'حاسبات' : 'هندسة') }}</td><td class="schools-logo-cell"><img [src]="schoolLogoUrl(item.logo)" (error)="handleSchoolLogoError($event)" [alt]="item.name" loading="lazy"></td><td class="schools-actions-cell"><button type="button" class="school-actions-trigger" (click)="toggleItemActions(item, $event)" aria-label="إجراءات المؤسسة">⋮</button></td></tr>
 					</tbody></table>
 				</div>
 				<div class="school-actions-popover" *ngIf="openItem">
@@ -85,6 +86,7 @@ export class SchoolsFormComponent implements OnChanges {
 	readonly categories = ['المعاهد الفنية', 'مدارس الثانوية الصناعية نظام 3 سنوات', 'مدارس الثانوية الصناعية نظام 5 سنوات', 'مدارس تكنولوجية نظام 3 سنوات', 'مدارس تكنولوجية نظام 5 سنوات'];
 	readonly programOptions = [{ value: 'engineering', label: 'هندسة' }, { value: 'computers', label: 'حاسبات' }] as const;
 	items: SchoolItem[] = [];
+	readonly expandedSchoolNames = new Set<number>();
 	draft: Partial<SchoolItem> & { program?: 'engineering' | 'computers' | 'both' } = this.emptyDraft();
 	errorMessage = '';
 	uploadingKey: string | null = null;
@@ -153,6 +155,10 @@ export class SchoolsFormComponent implements OnChanges {
 	clearTableFilters(): void { this.tableSearch = ''; this.tableType = ''; this.tableProgram = ''; }
 	schoolLogoUrl(logo: string): string { const value = String(logo || '').trim(); if (!value) return '/assets/logo.webp'; return /^https?:\/\//i.test(value) || value.startsWith('/') ? value : `/${value}`; }
 	handleSchoolLogoError(event: Event): void { const image = event.target as HTMLImageElement; if (!image.dataset['fallback']) { image.dataset['fallback'] = 'true'; image.src = '/assets/logo.webp'; } }
+	hasLongSchoolName(name: string): boolean { return String(name || '').trim().split(/\s+/).filter(Boolean).length > 5; }
+	schoolNamePreview(item: SchoolItem): string { const words = String(item.name || '').trim().split(/\s+/).filter(Boolean); return this.expandedSchoolNames.has(item.id) || words.length <= 5 ? words.join(' ') : `${words.slice(0, 5).join(' ')}…`; }
+	schoolNameToggleLabel(item: SchoolItem): string { return this.expandedSchoolNames.has(item.id) ? 'عرض أقل' : 'عرض المزيد'; }
+	toggleSchoolName(item: SchoolItem): void { if (this.expandedSchoolNames.has(item.id)) this.expandedSchoolNames.delete(item.id); else this.expandedSchoolNames.add(item.id); }
 	programSelection(item: SchoolItem): 'engineering' | 'computers' | 'both' { return item.programs.includes('engineering') && item.programs.includes('computers') ? 'both' : item.programs.includes('computers') ? 'computers' : 'engineering'; }
 	setProgram(item: SchoolItem, value: 'engineering' | 'computers' | 'both'): void { item.programs = this.programsFromSelection(value); }
 
