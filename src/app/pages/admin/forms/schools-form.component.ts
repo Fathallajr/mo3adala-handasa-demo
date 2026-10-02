@@ -1,8 +1,9 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { adminFormStyles } from './admin-form-styles';
 import { DEFAULT_SCHOOLS } from '../../../core/schools.defaults';
+import { MonthlyContentService } from '../../../core/services/monthly-content.service';
 
 interface SchoolItem {
 	id: number;
@@ -35,7 +36,7 @@ interface SchoolItem {
 					<label class="cms-field"><span class="cms-label">النوع</span><select class="cms-select" [(ngModel)]="draft.type"><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></label>
 					<label class="cms-field"><span class="cms-label">التصنيف *</span><select class="cms-select" [(ngModel)]="draft.category"><option value="" disabled>اختر التصنيف</option><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></label>
 				</div>
-				<label class="cms-field"><span class="cms-label">رابط الصورة (اختياري)</span><input class="cms-input" [(ngModel)]="draft.logo" placeholder="/assets/schools/tech-school.png"></label>
+				<label class="cms-field"><span class="cms-label">رابط الصورة (اختياري)</span><input class="cms-input" [(ngModel)]="draft.logo" placeholder="/assets/schools/tech-school.png"><label class="cms-upload-btn">📤 {{ uploadingKey === 'draft' ? 'جاري الرفع...' : 'رفع صورة من الجهاز' }}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden (change)="uploadDraftImage($event)"></label></label>
 			<button type="button" class="cms-button" (click)="addItem()">+ إضافة للمؤسسات</button>
 			<p class="cms-error" *ngIf="errorMessage">{{ errorMessage }}</p>
 			</div>
@@ -44,7 +45,7 @@ interface SchoolItem {
 				<div class="cms-section-title"><span>كل المدارس والمعاهد</span><span class="schools-count">{{ items.length }} مؤسسة</span></div>
 				<div class="schools-table-wrap" *ngIf="items.length; else emptyState">
 					<table class="schools-table"><thead><tr><th>#</th><th>اسم المؤسسة</th><th>النوع</th><th>التصنيف</th><th>رابط الصورة</th><th>إجراء</th></tr></thead><tbody>
-						<tr *ngFor="let item of items; let i = index"><td class="schools-table__index">{{ i + 1 }}</td><td><input class="cms-input" [(ngModel)]="item.name"></td><td><select class="cms-select" [(ngModel)]="item.type"><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></td><td><select class="cms-select" [(ngModel)]="item.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></td><td><input class="cms-input" [(ngModel)]="item.logo" dir="ltr"></td><td><button type="button" class="school-card__del" (click)="removeItem(i)" aria-label="حذف المؤسسة">حذف</button></td></tr>
+						<tr *ngFor="let item of items; let i = index"><td class="schools-table__index">{{ i + 1 }}</td><td><input class="cms-input" [(ngModel)]="item.name"></td><td><select class="cms-select" [(ngModel)]="item.type"><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></td><td><select class="cms-select" [(ngModel)]="item.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></td><td><input class="cms-input" [(ngModel)]="item.logo" dir="ltr"><label class="cms-upload-btn">📤 {{ uploadingKey === 'item-' + i ? 'جاري الرفع...' : 'رفع صورة' }}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden (change)="uploadItemImage(item, i, $event)"></label></td><td><button type="button" class="school-card__del" (click)="removeItem(i)" aria-label="حذف المؤسسة">حذف</button></td></tr>
 					</tbody></table>
 				</div>
 				<ng-template #emptyState><div class="schools-empty">لا توجد مؤسسات محفوظة حاليًا.</div></ng-template>
@@ -54,10 +55,12 @@ interface SchoolItem {
 })
 export class SchoolsFormComponent implements OnChanges {
 	@Input() content: any;
+	private readonly cms = inject(MonthlyContentService);
 	readonly categories = ['المعاهد الفنية', 'مدارس الثانوية الصناعية نظام 3 سنوات', 'مدارس الثانوية الصناعية نظام 5 سنوات', 'مدارس تكنولوجية نظام 3 سنوات', 'مدارس تكنولوجية نظام 5 سنوات'];
 	items: SchoolItem[] = [];
 	draft: Partial<SchoolItem> = this.emptyDraft();
 	errorMessage = '';
+	uploadingKey: string | null = null;
 
 	ngOnChanges(): void {
 		if (!this.content || typeof this.content !== 'object') return;
@@ -78,6 +81,27 @@ export class SchoolsFormComponent implements OnChanges {
 	}
 
 	removeItem(index: number): void { this.items.splice(index, 1); }
+
+	uploadDraftImage(event: Event): void { this.uploadImage(event, 'draft'); }
+	uploadItemImage(item: SchoolItem, index: number, event: Event): void { this.uploadImage(event, 'item-' + index, item); }
+
+	private uploadImage(event: Event, key: string, item?: SchoolItem): void {
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0];
+		input.value = '';
+		if (!file) return;
+		const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+		if (!allowedTypes.has(file.type) || file.size > 8 * 1024 * 1024) {
+			this.errorMessage = !allowedTypes.has(file.type) ? 'نوع الملف غير مدعوم. ارفع JPG أو PNG أو WEBP أو GIF.' : 'حجم الصورة أكبر من 8 ميجابايت.';
+			return;
+		}
+		this.errorMessage = '';
+		this.uploadingKey = key;
+		this.cms.uploadImage(file, 'schools').subscribe({
+			next: url => { if (item) item.logo = url; else this.draft.logo = url; this.uploadingKey = null; },
+			error: error => { this.uploadingKey = null; this.errorMessage = error?.error?.message || 'تعذر رفع الصورة. حاول مرة أخرى.'; }
+		});
+	}
 
 	private emptyDraft(): Partial<SchoolItem> { return { name: '', type: 'مدرسة صناعية', category: 'مدارس الثانوية الصناعية نظام 3 سنوات', logo: '/assets/schools/tech-school.png' }; }
 }
