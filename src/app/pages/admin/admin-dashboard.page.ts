@@ -159,6 +159,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	errorMessage = '';
 	adminUsername = '';
 	openAdminActionUser: string | null = null;
+	get openAdminUser(): AdminUser | null { return this.adminUsers.find(user => user.username === this.openAdminActionUser) || null; }
 	siteMaintenance = false;
 	isSavingSiteMode = false;
 	isSaving = false;
