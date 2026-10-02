@@ -514,20 +514,27 @@ export class AdminDashboardPageComponent implements OnInit {
 	toggleLeadActionMenu(lead: Lead, event?: MouseEvent): void {
 		const shouldOpen = this.openLeadActionMenuId !== lead.id;
 		this.openLeadActionMenuId = shouldOpen ? lead.id : null;
-		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--lead-actions-top', '--lead-actions-left', 140, 125, '.lead-actions-menu__panel--global');
+		const leadIndex = this.leads.indexOf(lead);
+		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--lead-actions-top', '--lead-actions-left', 140, 125, '.lead-actions-menu__panel--global', () => this.findActionTrigger(leadIndex));
 		this.refreshView();
 	}
 	toggleWheelActionMenu(claim: WheelClaim, event?: MouseEvent): void {
 		const shouldOpen = this.openWheelActionMenuId !== claim.token;
 		this.openWheelActionMenuId = shouldOpen ? claim.token : null;
-		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--wheel-actions-top', '--wheel-actions-left', 140, 125, '.lead-actions-menu__panel--global');
+		const claimIndex = this.wheelClaims.indexOf(claim);
+		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--wheel-actions-top', '--wheel-actions-left', 140, 125, '.lead-actions-menu__panel--global', () => this.findActionTrigger(claimIndex));
 		this.refreshView();
 	}
-	private positionActionMenu(trigger: HTMLElement | null, topVariable: string, leftVariable: string, preferredWidth: number, preferredHeight: number, menuSelector: string): void {
+	private findActionTrigger(index: number): HTMLElement | null {
+		if (index < 0) return null;
+		return document.querySelectorAll<HTMLElement>('.lead-actions-menu__trigger').item(index) || null;
+	}
+	private positionActionMenu(trigger: HTMLElement | null, topVariable: string, leftVariable: string, preferredWidth: number, preferredHeight: number, menuSelector: string, findCurrentTrigger?: () => HTMLElement | null): void {
 		if (!trigger) return;
 		const triggerRectAtClick = trigger.getBoundingClientRect();
 		const applyPosition = (): void => {
-			const rect = trigger.isConnected ? trigger.getBoundingClientRect() : triggerRectAtClick;
+			const currentTrigger = findCurrentTrigger?.() || (trigger.isConnected ? trigger : null);
+			const rect = currentTrigger?.getBoundingClientRect() || triggerRectAtClick;
 			const visualViewport = window.visualViewport;
 			const viewportWidth = visualViewport?.width || document.documentElement.clientWidth || window.innerWidth;
 			const viewportHeight = visualViewport?.height || document.documentElement.clientHeight || window.innerHeight;
