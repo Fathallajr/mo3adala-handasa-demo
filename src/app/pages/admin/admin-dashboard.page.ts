@@ -228,6 +228,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	private syncRouteState(): void {
+		this.closeActionMenus();
 		const params = this.route.snapshot.paramMap;
 		const pageKey = this.resolvePageKey(params.get('pageKey'));
 			const isCmsNavigation = this.pendingCmsNavigation;
@@ -286,6 +287,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	setView(view: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms'): void {
+		this.closeActionMenus();
 		this.statusMessage = '';
 		this.errorMessage = '';
 		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
@@ -374,6 +376,15 @@ export class AdminDashboardPageComponent implements OnInit {
 	closeActionMenusOnOutsideClick(event: MouseEvent): void {
 		const target = event.target as HTMLElement | null;
 		if (target?.closest('.lead-actions-menu__trigger, .lead-actions-menu__panel, .admin-actions-popover, .school-actions-trigger, .school-actions-popover')) return;
+		this.closeActionMenus();
+	}
+	@HostListener('window:scroll')
+	@HostListener('document:wheel')
+	@HostListener('document:touchmove')
+	closeActionMenusOnViewportMove(): void {
+		this.closeActionMenus();
+	}
+	private closeActionMenus(): void {
 		if (this.openLeadActionMenuId === null && this.openWheelActionMenuId === null && this.openAdminActionUser === null) return;
 		this.openLeadActionMenuId = null;
 		this.openWheelActionMenuId = null;
