@@ -742,3 +742,7 @@ tbody tr:hover { background:#faf9ff; }
 .admin-actions-popover button:hover{background:#f4f1ff;color:#6241df}
 .admin-actions-popover .lead-actions-menu__delete{color:#c33f5d}
 .admin-actions-popover .lead-actions-menu__delete:hover{background:#fff0f3;color:#b33b57}
+.admin-edit-dialog .admin-permission-grid{margin:18px 0 0;text-align:right}
+.admin-modal-field{display:block;margin-top:18px;color:#526078;font-size:12px;font-weight:800;text-align:right}
+.admin-modal-field .admin-password-field{display:flex;width:100%;margin-top:8px}
+.admin-modal-field input{width:100%;box-sizing:border-box;min-height:42px;padding:9px 12px;border:1px solid #dfe4ed;border-radius:10px;font:inherit;font-size:13px}

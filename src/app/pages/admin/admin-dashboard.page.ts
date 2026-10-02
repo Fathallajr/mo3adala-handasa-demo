@@ -99,6 +99,10 @@ export class AdminDashboardPageComponent implements OnInit {
 	adminUserFormError = '';
 	adminUserPasswordDraft: Record<string, string> = {};
 	adminUserPasswordVisibility: Record<string, boolean> = {};
+	adminPasswordModalUser: AdminUser | null = null;
+	adminPasswordModalDraft = '';
+	adminPasswordModalVisible = false;
+	adminPermissionModalUser: AdminUser | null = null;
 	adminUserPermissionDraft: Record<string, string[]> = {};
 	adminPermissionEdit: Record<string, boolean> = {};
 	isLoadingAdminUsers = false;
@@ -310,8 +314,20 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (!password) { this.errorMessage = 'اكتب كلمة المرور الجديدة أولاً.'; return; }
 		this.adminApi.updateAdminUser(user.username, { password }).subscribe({ next: () => { this.adminUserPasswordDraft[user.username] = ''; this.statusMessage = 'تم تغيير كلمة المرور.'; }, error: err => this.handleApiError(err) });
 	}
+	openAdminPermissionModal(user: AdminUser): void { this.adminPermissionModalUser = user; this.adminUserPermissionDraft[user.username] = [...user.permissions]; this.adminPermissionEdit[user.username] = true; this.openAdminActionUser = null; }
+	closeAdminPermissionModal(): void { if (this.adminPermissionModalUser) this.cancelAdminPermissionEdit(this.adminPermissionModalUser); this.adminPermissionModalUser = null; }
+	openAdminPasswordModal(user: AdminUser): void { this.adminPasswordModalUser = user; this.adminPasswordModalDraft = ''; this.adminPasswordModalVisible = false; this.openAdminActionUser = null; }
+	closeAdminPasswordModal(): void { this.adminPasswordModalUser = null; this.adminPasswordModalDraft = ''; this.adminPasswordModalVisible = false; }
+	saveAdminPasswordModal(): void {
+		if (!this.adminPasswordModalUser) return;
+		const user = this.adminPasswordModalUser;
+		const password = this.adminPasswordModalDraft.trim();
+		if (!password) { this.errorMessage = 'اكتب كلمة المرور الجديدة أولاً.'; return; }
+		if (password.length < 10) { this.errorMessage = 'كلمة المرور يجب أن تكون 10 أحرف على الأقل.'; return; }
+		this.adminApi.updateAdminUser(user.username, { password }).subscribe({ next: () => { this.statusMessage = 'تم تغيير كلمة المرور.'; this.errorMessage = ''; this.closeAdminPasswordModal(); }, error: err => this.handleApiError(err) });
+	}
 	saveAdminPermissions(user: AdminUser): void {
-		this.adminApi.updateAdminUser(user.username, { permissions: this.adminUserPermissionDraft[user.username] || user.permissions }).subscribe({ next: updated => { user.permissions = updated.permissions; this.adminPermissionEdit[user.username] = false; this.statusMessage = 'تم تحديث الصفحات المسموحة.'; }, error: err => this.handleApiError(err) });
+		this.adminApi.updateAdminUser(user.username, { permissions: this.adminUserPermissionDraft[user.username] || user.permissions }).subscribe({ next: updated => { user.permissions = updated.permissions; this.adminPermissionEdit[user.username] = false; this.statusMessage = 'تم تحديث الصفحات المسموحة.'; this.closeAdminPermissionModal(); }, error: err => this.handleApiError(err) });
 	}
 	toggleAdminPermissionEdit(username: string): void { this.adminPermissionEdit[username] = !this.adminPermissionEdit[username]; }
 	cancelAdminPermissionEdit(user: AdminUser): void { this.adminUserPermissionDraft[user.username] = [...user.permissions]; this.adminPermissionEdit[user.username] = false; }
