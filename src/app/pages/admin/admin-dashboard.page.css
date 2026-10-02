@@ -485,6 +485,50 @@ tbody tr:hover { background:#faf9ff; }
   display: none;
 }
 
+.cms-news-view > .editor-toolbar {
+  align-items: center;
+  padding: 8px 4px 22px;
+}
+.cms-news-view > .editor-toolbar .editor-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #202b42;
+  font-size: 26px;
+  letter-spacing: -.6px;
+}
+.cms-news-view > .editor-toolbar .editor-title::before {
+  content: '✦';
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(145deg, #6d4aff, #9873ff);
+  box-shadow: 0 9px 20px #6d4aff2e;
+  font-size: 18px;
+}
+.cms-news-view > .editor-toolbar .editor-subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 7px;
+}
+.cms-news-view > .editor-toolbar .editor-subtitle span {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #f1eeff;
+}
+.cms-news-view > .editor-toolbar .editor-actions { gap: 9px; }
+.cms-news-view > .editor-toolbar .editor-actions button { min-height: 42px; padding-inline: 16px; }
+@media (max-width:760px) {
+  .cms-news-view > .editor-toolbar .editor-title { font-size: 22px; }
+  .cms-news-view > .editor-toolbar .editor-actions { width:100%; }
+  .cms-news-view > .editor-toolbar .editor-actions button { flex:1; }
+}
+
 /* Admin accounts: a quieter, more structured control panel. */
 .admin-users-view .editor-toolbar {
   align-items: center;

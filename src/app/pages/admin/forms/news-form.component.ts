@@ -31,9 +31,9 @@ interface NewsContent {
 	imports: [CommonModule, FormsModule],
 	styles: [adminFormStyles],
 	template: `
-<div class="cms-form" *ngIf="data">
+<div class="cms-form news-cms-form" *ngIf="data">
 
-	<div class="cms-section">
+	<div class="cms-section news-page-settings">
 		<div class="cms-section-title">إعدادات الصفحة</div>
 		<div class="cms-row">
 			<div class="cms-field">
@@ -53,10 +53,10 @@ interface NewsContent {
 		</div>
 	</div>
 
-	<div class="cms-section">
+	<div class="cms-section news-items-section">
 		<div class="cms-section-title">الأخبار ({{ data.items.length }})</div>
 		<div class="cms-array-list">
-			<div class="cms-array-item" *ngFor="let item of data.items; let i = index">
+			<div class="cms-array-item news-editor-item" *ngFor="let item of data.items; let i = index">
 				<div style="flex:1">
 					<div class="cms-array-item__num">خبر {{ i + 1 }}</div>
 					<div class="cms-field">
