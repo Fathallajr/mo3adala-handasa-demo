@@ -96,7 +96,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	heroTitle = 'كلية هندسة';
 	heroHighlight = 'أقرب مما تتخيل';
 	heroFeatures: string[] = ['شرح مبسط وخطة واضحة', 'متابعة مستمرة معاك', 'محتوى متحدث لدفعة 2027'];
-	heroImageSrc = '/assets/11.jpg';
+	heroImageSrc = '/assets/batch-2027-hero.webp';
 	private heroImageFallbackUsed = false;
 	joinEyebrow = 'خليك أول واحد يعرف';
 	joinTitle = 'سجل دلوقتي';
@@ -127,7 +127,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		if (this.heroImageFallbackUsed) return;
 		this.heroImageFallbackUsed = true;
 		const image = event.target as HTMLImageElement | null;
-		if (image) image.src = '/assets/arabic-engineers-hero.webp';
+		if (image) image.src = '/assets/logo.webp';
 	}
 
 	openGiftBox(): void {
