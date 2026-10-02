@@ -7,7 +7,7 @@ import { MonthlyContentService } from '../../../core/services/monthly-content.se
 
 interface SchoolItem {
 	id: number;
-	name: string;	type: string;	category: string;	logo: string;
+	name: string;	type: string;	category: string;	logo: string;	programs: Array<'engineering' | 'computers'>;
 }
 
 @Component({
@@ -35,6 +35,7 @@ interface SchoolItem {
 					<label class="cms-field"><span class="cms-label">الاسم *</span><input class="cms-input" [(ngModel)]="draft.name" placeholder="مثال: مدرسة النيل الصناعية"></label>
 					<label class="cms-field"><span class="cms-label">النوع</span><select class="cms-select" [(ngModel)]="draft.type"><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></label>
 					<label class="cms-field"><span class="cms-label">التصنيف *</span><select class="cms-select" [(ngModel)]="draft.category"><option value="" disabled>اختر التصنيف</option><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></label>
+					<label class="cms-field"><span class="cms-label">المعادلة *</span><select class="cms-select" [(ngModel)]="draft.program"><option *ngFor="let program of programOptions" [value]="program.value">{{ program.label }}</option></select></label>
 				</div>
 				<label class="cms-field"><span class="cms-label">رابط الصورة (اختياري)</span><input class="cms-input" [(ngModel)]="draft.logo" placeholder="/assets/schools/tech-school.png"><label class="cms-upload-btn">📤 {{ uploadingKey === 'draft' ? 'جاري الرفع...' : 'رفع صورة من الجهاز' }}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden (change)="uploadDraftImage($event)"></label></label>
 			<button type="button" class="cms-button" (click)="addItem()">+ إضافة للمؤسسات</button>
@@ -44,8 +45,8 @@ interface SchoolItem {
 			<div class="cms-section schools-table-section">
 				<div class="cms-section-title"><span>كل المدارس والمعاهد</span><span class="schools-count">{{ items.length }} مؤسسة</span></div>
 				<div class="schools-table-wrap" *ngIf="items.length; else emptyState">
-					<table class="schools-table"><thead><tr><th>#</th><th>اسم المؤسسة</th><th>النوع</th><th>التصنيف</th><th>رابط الصورة</th><th>إجراء</th></tr></thead><tbody>
-						<tr *ngFor="let item of items; let i = index"><td class="schools-table__index">{{ i + 1 }}</td><td><input class="cms-input" [(ngModel)]="item.name"></td><td><select class="cms-select" [(ngModel)]="item.type"><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></td><td><select class="cms-select" [(ngModel)]="item.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></td><td><input class="cms-input" [(ngModel)]="item.logo" dir="ltr"><label class="cms-upload-btn">📤 {{ uploadingKey === 'item-' + i ? 'جاري الرفع...' : 'رفع صورة' }}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden (change)="uploadItemImage(item, i, $event)"></label></td><td><button type="button" class="school-card__del" (click)="removeItem(i)" aria-label="حذف المؤسسة">حذف</button></td></tr>
+					<table class="schools-table"><thead><tr><th>#</th><th>اسم المؤسسة</th><th>النوع</th><th>التصنيف</th><th>المعادلة</th><th>رابط الصورة</th><th>إجراء</th></tr></thead><tbody>
+						<tr *ngFor="let item of items; let i = index"><td class="schools-table__index">{{ i + 1 }}</td><td><input class="cms-input" [(ngModel)]="item.name"></td><td><select class="cms-select" [(ngModel)]="item.type"><option value="مدرسة صناعية">مدرسة صناعية</option><option value="مدرسة تكنولوجية">مدرسة تكنولوجية</option><option value="معهد فني">معهد فني</option></select></td><td><select class="cms-select" [(ngModel)]="item.category"><option *ngFor="let category of categories" [value]="category">{{ category }}</option></select></td><td><select class="cms-select" [ngModel]="programSelection(item)" (ngModelChange)="setProgram(item, $event)"><option *ngFor="let program of programOptions" [value]="program.value">{{ program.label }}</option></select></td><td><input class="cms-input" [(ngModel)]="item.logo" dir="ltr"><label class="cms-upload-btn">📤 {{ uploadingKey === 'item-' + i ? 'جاري الرفع...' : 'رفع صورة' }}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden (change)="uploadItemImage(item, i, $event)"></label></td><td><button type="button" class="school-card__del" (click)="removeItem(i)" aria-label="حذف المؤسسة">حذف</button></td></tr>
 					</tbody></table>
 				</div>
 				<ng-template #emptyState><div class="schools-empty">لا توجد مؤسسات محفوظة حاليًا.</div></ng-template>
@@ -57,15 +58,17 @@ export class SchoolsFormComponent implements OnChanges {
 	@Input() content: any;
 	private readonly cms = inject(MonthlyContentService);
 	readonly categories = ['المعاهد الفنية', 'مدارس الثانوية الصناعية نظام 3 سنوات', 'مدارس الثانوية الصناعية نظام 5 سنوات', 'مدارس تكنولوجية نظام 3 سنوات', 'مدارس تكنولوجية نظام 5 سنوات'];
+	readonly programOptions = [{ value: 'engineering', label: 'هندسة' }, { value: 'computers', label: 'حاسبات' }, { value: 'both', label: 'هندسة وحاسبات' }] as const;
 	items: SchoolItem[] = [];
-	draft: Partial<SchoolItem> = this.emptyDraft();
+	draft: Partial<SchoolItem> & { program?: 'engineering' | 'computers' | 'both' } = this.emptyDraft();
 	errorMessage = '';
 	uploadingKey: string | null = null;
 
 	ngOnChanges(): void {
 		if (!this.content || typeof this.content !== 'object') return;
 		if (!Array.isArray(this.content.items) || !this.content.items.length) this.content.items = DEFAULT_SCHOOLS.map((item, index) => ({ ...item, id: item.id ?? index + 1 }));
-		this.items = this.content.items;
+		this.items = this.content.items.map((item: any) => ({ ...item, programs: Array.isArray(item.programs) && item.programs.length ? item.programs : ['engineering'] }));
+		this.content.items = this.items;
 		this.draft = this.emptyDraft();
 	}
 
@@ -74,13 +77,15 @@ export class SchoolsFormComponent implements OnChanges {
 		if (!name) { this.errorMessage = 'اكتب اسم المدرسة أو المعهد أولًا.'; return; }
 		if (!this.draft.category) { this.errorMessage = 'اختار تصنيف المؤسسة أولًا.'; return; }
 		const nextId = this.items.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1;
-		this.items.push({ id: nextId, name, type: this.draft.type || 'مدرسة صناعية', category: this.draft.category, logo: this.draft.logo || '/assets/schools/tech-school.png' });
+		this.items.push({ id: nextId, name, type: this.draft.type || 'مدرسة صناعية', category: this.draft.category, logo: this.draft.logo || '/assets/schools/tech-school.png', programs: this.programsFromSelection(this.draft.program || 'engineering') });
 		this.content.items = this.items;
 		this.errorMessage = '';
 		this.draft = this.emptyDraft();
 	}
 
 	removeItem(index: number): void { this.items.splice(index, 1); }
+	programSelection(item: SchoolItem): 'engineering' | 'computers' | 'both' { return item.programs.includes('engineering') && item.programs.includes('computers') ? 'both' : item.programs.includes('computers') ? 'computers' : 'engineering'; }
+	setProgram(item: SchoolItem, value: 'engineering' | 'computers' | 'both'): void { item.programs = this.programsFromSelection(value); }
 
 	uploadDraftImage(event: Event): void { this.uploadImage(event, 'draft'); }
 	uploadItemImage(item: SchoolItem, index: number, event: Event): void { this.uploadImage(event, 'item-' + index, item); }
@@ -103,5 +108,6 @@ export class SchoolsFormComponent implements OnChanges {
 		});
 	}
 
-	private emptyDraft(): Partial<SchoolItem> { return { name: '', type: 'مدرسة صناعية', category: 'مدارس الثانوية الصناعية نظام 3 سنوات', logo: '/assets/schools/tech-school.png' }; }
+	private programsFromSelection(value: 'engineering' | 'computers' | 'both'): Array<'engineering' | 'computers'> { return value === 'both' ? ['engineering', 'computers'] : [value]; }
+	private emptyDraft(): Partial<SchoolItem> & { program: 'engineering' } { return { name: '', type: 'مدرسة صناعية', category: 'مدارس الثانوية الصناعية نظام 3 سنوات', logo: '/assets/schools/tech-school.png', program: 'engineering' }; }
 }
