@@ -530,8 +530,9 @@ export class AdminDashboardPageComponent implements OnInit {
 			const edge = 10;
 			const menuWidth = Math.min(preferredWidth, Math.max(112, viewportWidth - edge * 2));
 			const menuHeight = Math.min(preferredHeight, Math.max(96, viewportHeight - edge * 2));
-			const opensAbove = rect.bottom + menuHeight + edge > viewportHeight;
-			const rawTop = opensAbove ? rect.top - menuHeight - 6 : rect.bottom + 6;
+			// Keep the menu beside the trigger. Only clamp vertically when the
+			// trigger is close to the top or bottom edge of the viewport.
+			const rawTop = rect.top + (rect.height - menuHeight) / 2;
 			const rawLeft = rect.right + menuWidth + edge <= viewportWidth
 				? rect.right + 6
 				: rect.left - menuWidth - 6;
