@@ -305,10 +305,8 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.statusMessage = '';
 		this.errorMessage = '';
 		if (view !== 'cms') {
-			void this.router.navigate([], {
-				relativeTo: this.route,
+			void this.router.navigate(['/admin'], {
 				queryParams: { view: view === 'overview' ? null : view },
-				queryParamsHandling: 'merge',
 				replaceUrl: true
 			});
 		}
@@ -891,7 +889,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	private resolveDataView(value: string | null): AdminDataView | null {
-		const allowed: AdminDataView[] = ['leads', 'feedback', 'programs', 'wheel', 'admins'];
+		const allowed: AdminDataView[] = ['overview', 'leads', 'feedback', 'programs', 'wheel', 'admins'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
 		if (view === 'feedback') return this.auth.canAccessFeature('feedback') ? view : null;
