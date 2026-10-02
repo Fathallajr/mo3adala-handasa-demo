@@ -171,6 +171,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadNoteDraft = '';
 	wheelPendingDeletion: WheelClaim | null = null;
 	wheelPendingNote: WheelClaim | null = null;
+	wheelPendingReadNote: WheelClaim | null = null;
 	wheelPendingView: WheelClaim | null = null;
 	wheelNoteDraft = '';
 	openWheelActionMenuId: string | null = null;
@@ -466,6 +467,9 @@ export class AdminDashboardPageComponent implements OnInit {
 	toggleWheelActionMenu(claim: WheelClaim): void { this.openWheelActionMenuId = this.openWheelActionMenuId === claim.token ? null : claim.token; this.refreshView(); }
 	openWheelNote(claim: WheelClaim): void { this.openWheelActionMenuId = null; this.wheelPendingNote = claim; this.wheelNoteDraft = claim.notes || ''; this.refreshView(); }
 	closeWheelNote(): void { this.wheelPendingNote = null; this.refreshView(); }
+	openWheelReadNote(claim: WheelClaim): void { this.openWheelActionMenuId = null; this.wheelPendingReadNote = claim; this.refreshView(); }
+	closeWheelReadNote(): void { this.wheelPendingReadNote = null; this.refreshView(); }
+	editWheelNoteFromReadView(): void { const claim = this.wheelPendingReadNote; this.closeWheelReadNote(); if (claim) this.openWheelNote(claim); }
 	openWheelView(claim: WheelClaim): void { this.openWheelActionMenuId = null; this.wheelPendingView = claim; this.refreshView(); }
 	closeWheelView(): void { this.wheelPendingView = null; this.refreshView(); }
 	editWheelNoteFromView(): void { const claim = this.wheelPendingView; this.closeWheelView(); if (claim) this.openWheelNote(claim); }
