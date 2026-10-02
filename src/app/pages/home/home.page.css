@@ -196,8 +196,8 @@
 .final-subscription-menu a:hover, .final-subscription-menu a:focus-visible { background: #fff4e9; color: #ea580c; }
 .final-cta-primary { gap: 0.5rem; background: #f97316; color: #fff; }
 .final-cta-primary:hover { background: #ea580c; transform: translateY(-2px); }
-.final-cta-secondary { border: 1px solid #64748b; color: #fff; }
-.final-cta-secondary:hover { background: #1e293b; transform: translateY(-2px); }
+.final-cta-secondary { border: 1px solid rgba(148, 163, 184, 0.85); background: #263554; color: #fff; box-shadow: 0 8px 18px rgba(2, 6, 23, 0.2); }
+.final-cta-secondary:hover { background: #33466f; transform: translateY(-2px); }
 .final-cta-proof { display: flex; flex-wrap: wrap; gap: 0.65rem 1rem; margin-top: 1.5rem; color: #94a3b8; font-size: 0.8rem; }
 .final-cta-proof span { color: #fb923c; font-weight: 900; }
 
