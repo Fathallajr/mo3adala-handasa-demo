@@ -135,7 +135,10 @@ export class SchoolsFormComponent implements OnChanges {
 		if (!trigger || !section) return;
 		const triggerRect = trigger.getBoundingClientRect();
 		const sectionRect = section.getBoundingClientRect();
-		section.style.setProperty('--school-actions-top', `${triggerRect.bottom - sectionRect.top + 5}px`);
+		const menuHeight = 82;
+		const opensAbove = triggerRect.bottom + menuHeight > window.innerHeight - 12;
+		const top = opensAbove ? triggerRect.top - sectionRect.top - menuHeight - 5 : triggerRect.bottom - sectionRect.top + 5;
+		section.style.setProperty('--school-actions-top', `${Math.max(5, top)}px`);
 		section.style.setProperty('--school-actions-left', `${triggerRect.right - sectionRect.left + 5}px`);
 	}
 	startEdit(item: SchoolItem): void { this.openItemActionId = null; this.editingItem = item; this.editDraft = { ...item, programs: [...item.programs] }; }
