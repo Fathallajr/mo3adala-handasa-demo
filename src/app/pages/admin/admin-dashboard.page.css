@@ -717,3 +717,21 @@ tbody tr:hover { background:#faf9ff; }
     font-size: 22px;
   }
 }
+
+.admin-users-view > .admin-create-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  margin-bottom: 16px;
+}
+.admin-users-view > .admin-create-trigger i { font-size: 15px; }
+.admin-users-view .admin-user-create { animation: adminCreateReveal .2s ease-out; }
+@keyframes adminCreateReveal { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.admin-create-panel__head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.admin-create-panel__head h3 { margin:0 0 4px; }
+.admin-create-panel__head p { margin:0; color:#7c879d; font-size:11px; }
+.admin-create-panel__close { width:34px; height:34px; border:1px solid #e1e4ef; border-radius:10px; color:#718096; background:#fff; cursor:pointer; }
+.admin-create-panel__close:hover { color:#c24b67; border-color:#ffcbd6; background:#fff5f7; }
+.admin-create-panel__actions { display:flex; gap:9px; justify-content:flex-start; margin-top:18px; padding-top:16px; border-top:1px solid #e7e8f3; }
+@media (max-width:760px) { .admin-users-view > .admin-create-trigger { width:100%; justify-content:center; } .admin-create-panel__actions button { flex:1; } }

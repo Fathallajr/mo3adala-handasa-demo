@@ -93,6 +93,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	private feedbackLoaded = false;
 	adminUsers: AdminUser[] = [];
 	adminUserDraft = { username: '', password: '', permissions: [] as string[] };
+	isAdminUserCreateOpen = false;
 	showAdminUserPassword = false;
 	adminUserFormError = '';
 	adminUserPasswordDraft: Record<string, string> = {};
@@ -295,8 +296,10 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.adminUserFormError = '';
 		if (!/^[a-zA-Z0-9][a-zA-Z0-9._@+-]{2,79}$/.test(username)) { this.adminUserFormError = 'اسم المستخدم يجب أن يبدأ بحرف أو رقم، ومن 3 إلى 80 حرفاً، بدون مسافات.'; return; }
 		if (password.length < 10) { this.adminUserFormError = 'كلمة المرور يجب أن تكون 10 أحرف على الأقل.'; return; }
-		this.adminApi.createAdminUser({ ...this.adminUserDraft, username }).subscribe({ next: user => { this.adminUsers = [user, ...this.adminUsers]; this.adminUserDraft = { username: '', password: '', permissions: [] }; this.statusMessage = 'تم إنشاء الحساب بدون تخزين كلمة المرور كنص مكشوف.'; }, error: err => this.handleApiError(err) });
+		this.adminApi.createAdminUser({ ...this.adminUserDraft, username }).subscribe({ next: user => { this.adminUsers = [user, ...this.adminUsers]; this.adminUserDraft = { username: '', password: '', permissions: [] }; this.showAdminUserPassword = false; this.isAdminUserCreateOpen = false; this.statusMessage = 'تم إنشاء الحساب بدون تخزين كلمة المرور كنص مكشوف.'; }, error: err => this.handleApiError(err) });
 	}
+	openAdminUserCreate(): void { this.adminUserDraft = { username: '', password: '', permissions: [] }; this.adminUserFormError = ''; this.showAdminUserPassword = false; this.isAdminUserCreateOpen = true; this.refreshView(); }
+	closeAdminUserCreate(): void { this.isAdminUserCreateOpen = false; this.adminUserDraft = { username: '', password: '', permissions: [] }; this.adminUserFormError = ''; this.showAdminUserPassword = false; this.refreshView(); }
 	toggleAdminPermission(target: string[] | null, pageKey: string): void { if (!target) return; const index = target.indexOf(pageKey); if (index >= 0) target.splice(index, 1); else target.push(pageKey); }
 	setAdminPassword(user: AdminUser): void {
 		const password = this.adminUserPasswordDraft[user.username] || '';
