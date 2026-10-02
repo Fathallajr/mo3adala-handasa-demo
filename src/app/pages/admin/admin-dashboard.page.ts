@@ -333,7 +333,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		const triggerRect = trigger.getBoundingClientRect();
 		const sectionRect = section.getBoundingClientRect();
 		section.style.setProperty('--admin-actions-top', `${triggerRect.bottom - sectionRect.top + 5}px`);
-		section.style.setProperty('--admin-actions-right', `${sectionRect.right - triggerRect.right}px`);
+		section.style.setProperty('--admin-actions-left', `${triggerRect.right - sectionRect.left + 5}px`);
 	}
 	loadFeedback(force = false): void {
 		if ((this.isLoadingFeedback && !force) || (this.feedbackLoaded && !force)) return;
