@@ -379,8 +379,10 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.closeActionMenus();
 	}
 	@HostListener('window:scroll')
+	@HostListener('document:scroll')
 	@HostListener('document:wheel')
 	@HostListener('document:touchmove')
+	@HostListener('window:resize')
 	closeActionMenusOnViewportMove(): void {
 		this.closeActionMenus();
 	}
