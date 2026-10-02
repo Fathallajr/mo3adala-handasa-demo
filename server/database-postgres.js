@@ -148,7 +148,14 @@ async function getLead(id) {
 
 async function updateLead(id, changes) {
 	await ensureSchema();
-	const result = await pool.query('UPDATE leads SET status = COALESCE($1,status), updated_at = COALESCE($2,updated_at) WHERE id = $3 RETURNING id,name,whatsapp,school,student_type AS "studentType",program,source,status,notes,attribution,created_at AS "createdAt",updated_at AS "updatedAt"', [changes.status || null, changes.updatedAt || null, id]);
+	const fields = [];
+	const values = [];
+	if (changes.status !== undefined) { fields.push(`status = $${values.length + 1}`); values.push(changes.status); }
+	if (changes.notes !== undefined) { fields.push(`notes = $${values.length + 1}`); values.push(String(changes.notes || '').trim()); }
+	if (changes.updatedAt !== undefined) { fields.push(`updated_at = $${values.length + 1}`); values.push(changes.updatedAt); }
+	if (!fields.length) return getLead(id);
+	values.push(id);
+	const result = await pool.query(`UPDATE leads SET ${fields.join(', ')} WHERE id = $${values.length} RETURNING id,name,whatsapp,school,student_type AS "studentType",program,source,status,notes,attribution,created_at AS "createdAt",updated_at AS "updatedAt"`, values);
 	return result.rows[0] || null;
 }
 

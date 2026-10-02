@@ -137,6 +137,7 @@ function updateLead(id, changes) {
 	const fields = [];
 	const values = [];
 	if (changes.status !== undefined) { fields.push('status = ?'); values.push(changes.status); }
+	if (changes.notes !== undefined) { fields.push('notes = ?'); values.push(String(changes.notes || '').trim()); }
 	if (changes.updatedAt !== undefined) { fields.push('updated_at = ?'); values.push(changes.updatedAt); }
 	if (!fields.length) return getLead(id);
 	values.push(id);

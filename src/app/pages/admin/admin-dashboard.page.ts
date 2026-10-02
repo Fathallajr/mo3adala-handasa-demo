@@ -176,11 +176,13 @@ export class AdminDashboardPageComponent implements OnInit {
 	openLeadActionMenuId: string | null = null;
 	get openLeadAction(): Lead | null { return this.leads.find(lead => lead.id === this.openLeadActionMenuId) || null; }
 	leadNoteDraft = '';
+	isSavingLeadNote = false;
 	wheelPendingDeletion: WheelClaim | null = null;
 	wheelPendingNote: WheelClaim | null = null;
 	wheelPendingReadNote: WheelClaim | null = null;
 	wheelPendingView: WheelClaim | null = null;
 	wheelNoteDraft = '';
+	isSavingWheelNote = false;
 	openWheelActionMenuId: string | null = null;
 	get openWheelAction(): WheelClaim | null { return this.wheelClaims.find(claim => claim.token === this.openWheelActionMenuId) || null; }
 	pageSummaries: Record<string, { hasContent: boolean; updatedAt?: string }> = {};
@@ -596,10 +598,11 @@ export class AdminDashboardPageComponent implements OnInit {
 	editWheelNoteFromView(): void { const claim = this.wheelPendingView; this.closeWheelView(); if (claim) this.openWheelNote(claim); }
 	saveWheelNote(): void {
 		const claim = this.wheelPendingNote;
-		if (!claim) return;
-		this.adminApi.updateWheelClaim(claim.token, { notes: this.wheelNoteDraft.trim() }).subscribe({
+		if (!claim || this.isSavingWheelNote) return;
+		this.isSavingWheelNote = true;
+		this.adminApi.updateWheelClaim(claim.token, { notes: this.wheelNoteDraft.trim() }).pipe(finalize(() => { this.isSavingWheelNote = false; this.refreshView(); })).subscribe({
 			next: updated => { Object.assign(claim, updated); this.statusMessage = 'تم حفظ ملاحظة نتيجة العجلة.'; this.errorMessage = ''; this.closeWheelNote(); this.refreshView(); },
-			error: err => this.handleApiError(err)
+			error: err => { this.handleApiError(err); this.refreshView(); }
 		});
 	}
 	closeLeadActionMenu(): void { this.openLeadActionMenuId = null; this.refreshView(); }
@@ -607,9 +610,10 @@ export class AdminDashboardPageComponent implements OnInit {
 	editLeadNoteFromReadView(): void { const lead = this.leadPendingReadNote; this.closeLeadReadNote(); if (lead) this.openLeadNote(lead); }
 	saveLeadNote(): void {
 		const lead = this.leadPendingNote;
-		if (!lead) return;
+		if (!lead || this.isSavingLeadNote) return;
 		const notes = this.leadNoteDraft.trim();
-		this.adminApi.updateLead(lead.id, { notes }).subscribe({
+		this.isSavingLeadNote = true;
+		this.adminApi.updateLead(lead.id, { notes }).pipe(finalize(() => { this.isSavingLeadNote = false; this.refreshView(); })).subscribe({
 			next: updated => {
 				lead.notes = updated.notes || '';
 				this.statusMessage = 'تم حفظ ملاحظة العميل.';

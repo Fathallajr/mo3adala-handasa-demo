@@ -229,7 +229,7 @@
 			<h2 id="lead-note-dialog-title">ملاحظة للطالب</h2>
 			<p>اكتب ملاحظة خاصة بـ <strong>{{ leadPendingNote.name }}</strong></p>
 			<textarea [(ngModel)]="leadNoteDraft" class="lead-note-textarea" rows="5" maxlength="1000" placeholder="مثال: تم التواصل معه وطلب الاتصال غدًا"></textarea>
-			<div class="delete-dialog__actions"><button type="button" class="delete-dialog__cancel" (click)="closeLeadNote()">إلغاء</button><button type="button" class="note-dialog__save" (click)="saveLeadNote()"><i class="bi bi-check2"></i> حفظ الملاحظة</button></div>
+			<div class="delete-dialog__actions"><button type="button" class="delete-dialog__cancel" (click)="closeLeadNote()" [disabled]="isSavingLeadNote">إلغاء</button><button type="button" class="note-dialog__save" (click)="saveLeadNote()" [disabled]="isSavingLeadNote"><i class="bi bi-check2"></i> {{ isSavingLeadNote ? 'جاري الحفظ...' : 'حفظ الملاحظة' }}</button></div>
 		</section>
 	</div>
 	<div *ngIf="leadPendingReadNote" class="delete-dialog-backdrop" role="presentation" (click)="closeLeadReadNote()">
@@ -253,7 +253,7 @@
 			<h2 id="wheel-note-dialog-title">ملاحظة نتيجة العجلة</h2>
 			<p>اكتب ملاحظة خاصة بـ <strong>{{ wheelPendingNote.name }}</strong></p>
 			<textarea [(ngModel)]="wheelNoteDraft" class="lead-note-textarea" rows="5" maxlength="1000" placeholder="مثال: تم التواصل معه وتسليم الهدية"></textarea>
-			<div class="delete-dialog__actions"><button type="button" class="delete-dialog__cancel" (click)="closeWheelNote()">إلغاء</button><button type="button" class="note-dialog__save" (click)="saveWheelNote()"><i class="bi bi-check2"></i> حفظ الملاحظة</button></div>
+			<div class="delete-dialog__actions"><button type="button" class="delete-dialog__cancel" (click)="closeWheelNote()" [disabled]="isSavingWheelNote">إلغاء</button><button type="button" class="note-dialog__save" (click)="saveWheelNote()" [disabled]="isSavingWheelNote"><i class="bi bi-check2"></i> {{ isSavingWheelNote ? 'جاري الحفظ...' : 'حفظ الملاحظة' }}</button></div>
 		</section>
 	</div>
 	<div *ngIf="wheelPendingReadNote" class="delete-dialog-backdrop" role="presentation" (click)="closeWheelReadNote()">

@@ -779,6 +779,15 @@ app.patch('/api/admin/leads/:id', requireAdmin, requirePermission('leads:update'
 		await database.createAuditLog({ id: crypto.randomUUID(), action: 'updated', entityType: 'lead', entityId: lead.id, actor: req.adminUsername || '', ip: req.ip, createdAt: updatedAt });
 		return res.json(lead);
 	}
+	if (Object.keys(req.body || {}).every(key => key === 'notes')) {
+		const notes = String(req.body?.notes || '').trim();
+		if (notes.length > 1000) return res.status(400).json({ message: 'Lead notes are too long' });
+		const updatedAt = getNowIso();
+		const lead = await database.updateLead(req.params.id, { notes, updatedAt });
+		if (!lead) return res.status(404).json({ message: 'Lead not found' });
+		await database.createAuditLog({ id: crypto.randomUUID(), action: 'updated', entityType: 'lead', entityId: lead.id, actor: req.adminUsername || '', ip: req.ip, createdAt: updatedAt });
+		return res.json(lead);
+	}
 	const store = await readStore();
 	const lead = store.leads.find(item => item.id === req.params.id);
 	if (!lead) return res.status(404).json({ message: 'Lead not found' });
