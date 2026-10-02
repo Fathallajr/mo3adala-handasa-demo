@@ -684,17 +684,21 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	selectPage(pageKey: CmsPageKey): void {
 		this.sidebarOpen = false;
-		this.activeView = 'cms';
 		const currentRoutePageKey = this.route.snapshot.paramMap.get('pageKey');
+		const currentQueryView = this.route.snapshot.queryParamMap.get('view');
 		// Keep the URL in sync even when the selected page is already the
 		// component's default. Without this, selecting the first CMS page from
 		// /admin only changed the view in memory; a refresh then returned to the
 		// default data view instead of the page the user was editing.
-		if (pageKey === this.selectedPageKey && currentRoutePageKey === pageKey && this.activeView === 'cms') return;
+		if (pageKey === this.selectedPageKey && currentRoutePageKey === pageKey && !currentQueryView) {
+			this.activeView = 'cms';
+			return;
+		}
+		this.activeView = 'cms';
 		this.selectedPageKey = pageKey;
 		this.loadPage(pageKey);
 		this.pendingCmsNavigation = true;
-		void this.router.navigate(['/admin', pageKey], { queryParams: {} });
+		void this.router.navigate(['/admin', pageKey], { queryParams: {}, replaceUrl: true });
 	}
 
 	toggleSidebar(): void {
