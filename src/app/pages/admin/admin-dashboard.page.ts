@@ -168,6 +168,10 @@ export class AdminDashboardPageComponent implements OnInit {
 	openLeadActionMenuId: string | null = null;
 	leadNoteDraft = '';
 	wheelPendingDeletion: WheelClaim | null = null;
+	wheelPendingNote: WheelClaim | null = null;
+	wheelPendingView: WheelClaim | null = null;
+	wheelNoteDraft = '';
+	openWheelActionMenuId: string | null = null;
 	pageSummaries: Record<string, { hasContent: boolean; updatedAt?: string }> = {};
 	private pendingCmsNavigation = false;
 	private leadsRequestId = 0;
@@ -455,6 +459,20 @@ export class AdminDashboardPageComponent implements OnInit {
 	openLeadView(lead: Lead): void { this.openLeadActionMenuId = null; this.leadPendingView = lead; this.refreshView(); }
 	closeLeadView(): void { this.leadPendingView = null; this.refreshView(); }
 	toggleLeadActionMenu(lead: Lead): void { this.openLeadActionMenuId = this.openLeadActionMenuId === lead.id ? null : lead.id; this.refreshView(); }
+	toggleWheelActionMenu(claim: WheelClaim): void { this.openWheelActionMenuId = this.openWheelActionMenuId === claim.token ? null : claim.token; this.refreshView(); }
+	openWheelNote(claim: WheelClaim): void { this.openWheelActionMenuId = null; this.wheelPendingNote = claim; this.wheelNoteDraft = claim.notes || ''; this.refreshView(); }
+	closeWheelNote(): void { this.wheelPendingNote = null; this.refreshView(); }
+	openWheelView(claim: WheelClaim): void { this.openWheelActionMenuId = null; this.wheelPendingView = claim; this.refreshView(); }
+	closeWheelView(): void { this.wheelPendingView = null; this.refreshView(); }
+	editWheelNoteFromView(): void { const claim = this.wheelPendingView; this.closeWheelView(); if (claim) this.openWheelNote(claim); }
+	saveWheelNote(): void {
+		const claim = this.wheelPendingNote;
+		if (!claim) return;
+		this.adminApi.updateWheelClaim(claim.token, { notes: this.wheelNoteDraft.trim() }).subscribe({
+			next: updated => { Object.assign(claim, updated); this.statusMessage = 'تم حفظ ملاحظة نتيجة العجلة.'; this.errorMessage = ''; this.closeWheelNote(); this.refreshView(); },
+			error: err => this.handleApiError(err)
+		});
+	}
 	closeLeadActionMenu(): void { this.openLeadActionMenuId = null; this.refreshView(); }
 	editLeadNoteFromView(): void { const lead = this.leadPendingView; this.closeLeadView(); if (lead) this.openLeadNote(lead); }
 	editLeadNoteFromReadView(): void { const lead = this.leadPendingReadNote; this.closeLeadReadNote(); if (lead) this.openLeadNote(lead); }

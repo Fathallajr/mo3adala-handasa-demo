@@ -38,7 +38,7 @@ db.exec(`
   );
   CREATE TABLE IF NOT EXISTS wheel_claims (
     token TEXT PRIMARY KEY, name TEXT NOT NULL, whatsapp TEXT NOT NULL UNIQUE,
-    program TEXT NOT NULL, gift TEXT NOT NULL, claimed_at TEXT NOT NULL
+    program TEXT NOT NULL, gift TEXT NOT NULL, notes TEXT DEFAULT '', claimed_at TEXT NOT NULL
   );
   CREATE TABLE IF NOT EXISTS assets (
     filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BLOB NOT NULL, created_at TEXT NOT NULL
@@ -58,6 +58,7 @@ try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN username TEXT NOT NULL D
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN permissions TEXT NOT NULL DEFAULT '[]'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE leads ADD COLUMN attribution TEXT DEFAULT '{}'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE feedbacks ADD COLUMN batch TEXT DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
+try { db.prepare("ALTER TABLE wheel_claims ADD COLUMN notes TEXT DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 
 function migrateLegacyStore() {
   if (db.prepare('SELECT value FROM metadata WHERE key = ?').get('legacy-json-migrated')) return;
@@ -230,10 +231,11 @@ function getFeedback(id) { return db.prepare('SELECT id,name,university,batch,ra
 function updateFeedback(id, changes) { const fields = []; const values = []; if (changes.status) { fields.push('status = ?'); values.push(changes.status); } if (changes.updatedAt) { fields.push('updated_at = ?'); values.push(changes.updatedAt); } if (!fields.length) return; values.push(id); db.prepare(`UPDATE feedbacks SET ${fields.join(', ')} WHERE id = ?`).run(...values); }
 function setMissingFeedbackBatch(batch, updatedAt) { return db.prepare("UPDATE feedbacks SET batch = ?, updated_at = ? WHERE batch IS NULL OR TRIM(batch) = '' OR TRIM(batch) IN ('غير محدد', 'غير محددة', 'بدون اختيار', 'لم يتم الاختيار')").run(batch, updatedAt).changes; }
 function listPublishedFeedback() { return db.prepare("SELECT id,name,university,batch,rating,message,status,created_at AS createdAt,updated_at AS updatedAt FROM feedbacks WHERE status = 'published' ORDER BY created_at DESC LIMIT 50").all(); }
-function findWheelClaimByPhone(whatsapp) { readWheelState(); return db.prepare('SELECT token,name,whatsapp,program,gift,claimed_at AS claimedAt FROM wheel_claims WHERE whatsapp = ?').get(whatsapp) || null; }
-function createWheelClaim(claim) { try { db.prepare('INSERT INTO wheel_claims(token,name,whatsapp,program,gift,claimed_at) VALUES (?,?,?,?,?,?)').run(claim.token, claim.name, claim.whatsapp, claim.program, claim.gift, claim.claimedAt); } catch (error) { if (String(error.message).includes('UNIQUE constraint failed')) error.code = 'DUPLICATE_WHEEL_CLAIM'; throw error; } }
-function listWheelClaims() { readWheelState(); return db.prepare('SELECT token,name,whatsapp,program,gift,claimed_at AS claimedAt FROM wheel_claims ORDER BY claimed_at DESC').all(); }
+function findWheelClaimByPhone(whatsapp) { readWheelState(); return db.prepare('SELECT token,name,whatsapp,program,gift,notes,claimed_at AS claimedAt FROM wheel_claims WHERE whatsapp = ?').get(whatsapp) || null; }
+function createWheelClaim(claim) { try { db.prepare('INSERT INTO wheel_claims(token,name,whatsapp,program,gift,notes,claimed_at) VALUES (?,?,?,?,?,?,?)').run(claim.token, claim.name, claim.whatsapp, claim.program, claim.gift, claim.notes || '', claim.claimedAt); } catch (error) { if (String(error.message).includes('UNIQUE constraint failed')) error.code = 'DUPLICATE_WHEEL_CLAIM'; throw error; } }
+function listWheelClaims() { readWheelState(); return db.prepare('SELECT token,name,whatsapp,program,gift,notes,claimed_at AS claimedAt FROM wheel_claims ORDER BY claimed_at DESC').all(); }
+function updateWheelClaim(token, changes) { const result = db.prepare('UPDATE wheel_claims SET notes = ? WHERE token = ?').run(String(changes.notes || '').trim(), token); return result.changes ? db.prepare('SELECT token,name,whatsapp,program,gift,notes,claimed_at AS claimedAt FROM wheel_claims WHERE token = ?').get(token) : null; }
 function deleteWheelClaim(token) { return db.prepare('DELETE FROM wheel_claims WHERE token = ?').run(token).changes > 0; }
 function countWheelClaims() { listWheelClaims(); return db.prepare('SELECT COUNT(*) AS count FROM wheel_claims').get().count; }
 
-module.exports = { readStore, writeStore, savePage, createLead, getLead, updateLead, createAuditLog, deleteLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, setMissingFeedbackBatch, listPublishedFeedback, databaseFile };
+module.exports = { readStore, writeStore, savePage, createLead, getLead, updateLead, createAuditLog, deleteLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, setMissingFeedbackBatch, listPublishedFeedback, databaseFile };

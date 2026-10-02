@@ -15,7 +15,7 @@ export interface Program {
 	id: string; name: string; slug: string; category: string; language: string; price: number;
 	features: string[]; isActive: boolean; enrollmentStatus: 'open' | 'closed';
 }
-export interface WheelClaim { token: string; name: string; whatsapp: string; program: string; gift: string; claimedAt: string; }
+export interface WheelClaim { token: string; name: string; whatsapp: string; program: string; gift: string; notes?: string; claimedAt: string; }
 export interface Feedback { id: string; name: string; university?: string; batch?: string; rating: number; message: string; status: 'new' | 'reviewed' | 'published' | 'archived'; createdAt: string; updatedAt?: string | null; }
 export interface AdminUser { username: string; role: string; permissions: string[]; isActive: boolean; createdAt?: string; updatedAt?: string; }
 export interface SiteMode { maintenance: boolean; }
@@ -67,6 +67,7 @@ export class AdminApiService {
 		return this.http.get<{ data: WheelClaim[]; total: number; pagination: { page: number; limit: number; total: number; pages: number } }>(`${this.base}/admin/wheel/claims`, { params });
 	}
 	deleteWheelClaim(token: string): Observable<void> { return this.http.delete<void>(`${this.base}/admin/wheel/claims/${encodeURIComponent(token)}`); }
+	updateWheelClaim(token: string, payload: { notes: string }): Observable<WheelClaim> { return this.http.patch<WheelClaim>(`${this.base}/admin/wheel/claims/${encodeURIComponent(token)}`, payload); }
 	exportWheelClaims(filters: { search?: string; gift?: string; program?: string; from?: string; to?: string } = {}): Observable<Blob> {
 		let params = new HttpParams();
 		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);

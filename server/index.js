@@ -911,7 +911,7 @@ app.get('/api/admin/wheel/claims/export', requireAdmin, requirePermission('wheel
 	if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) return res.status(400).json({ message: 'Invalid from date' });
 	if (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)) return res.status(400).json({ message: 'Invalid to date' });
 	if (from && to && from > to) return res.status(400).json({ message: 'From date must be before to date' });
-	let data = (await database.listWheelClaims()).map(({ name, whatsapp, program, gift, claimedAt }) => ({ name, whatsapp, program, gift, claimedAt }));
+	let data = (await database.listWheelClaims()).map(({ name, whatsapp, program, gift, notes, claimedAt }) => ({ name, whatsapp, program, gift, notes, claimedAt }));
 	if (search) data = data.filter(item => [item.name, item.whatsapp, item.program, item.gift].some(value => String(value || '').toLowerCase().includes(search)));
 	if (gift) data = data.filter(item => item.gift === gift);
 	if (program) data = data.filter(item => item.program === program);
@@ -923,10 +923,18 @@ app.get('/api/admin/wheel/claims/export', requireAdmin, requirePermission('wheel
 		const phone = String(value ?? '').trim();
 		return phone ? `'${phone}` : '';
 	};
-	const rows = [['الاسم', 'واتساب', 'البرنامج', 'الهدية', 'التاريخ'], ...data.map(item => [item.name, excelPhone(item.whatsapp), item.program, item.gift, item.claimedAt])];
+	const rows = [['الاسم', 'واتساب', 'البرنامج', 'الهدية', 'ملاحظات', 'التاريخ'], ...data.map(item => [item.name, excelPhone(item.whatsapp), item.program, item.gift, item.notes, item.claimedAt])];
 	const csv = '\uFEFF' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n');
 	res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="wheel-claims-${from || 'all'}-${to || 'all'}.csv"` });
 	res.send(csv);
+});
+
+app.patch('/api/admin/wheel/claims/:token', requireAdmin, requirePermission('wheel:read'), async (req, res) => {
+	const notes = String(req.body?.notes || '').trim();
+	if (notes.length > 1000) return res.status(400).json({ message: 'Wheel claim notes are too long' });
+	const claim = await database.updateWheelClaim(req.params.token, { notes });
+	if (!claim) return res.status(404).json({ message: 'Wheel claim not found' });
+	res.json(claim);
 });
 
 app.delete('/api/admin/wheel/claims/:token', requireAdmin, requirePermission('wheel:delete'), async (req, res) => {
