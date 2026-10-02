@@ -1292,6 +1292,10 @@ app.get('/uploads/:filename', async (req, res, next) => {
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 if (fssync.existsSync(DIST_DIR)) {
+	app.use((req, res, next) => {
+		if (req.originalUrl.split('?')[0] === '/admin') return res.redirect(301, '/admin/');
+		next();
+	});
 	app.use('/assets', (req, res, next) => {
 		// Asset filenames are deployment-stable and the service worker also
 		// revalidates them. Cache them at the browser/CDN for repeat visits.
