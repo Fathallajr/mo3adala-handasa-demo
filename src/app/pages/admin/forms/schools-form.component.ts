@@ -22,6 +22,7 @@ interface SchoolItem {
 		.school-actions-popover{position:fixed;z-index:1000;top:var(--school-actions-top,1.5rem);right:auto;left:var(--school-actions-left,1rem);display:grid;min-width:120px;padding:5px;gap:3px}.school-actions-popover button{text-align:right}.school-actions-popover::before{content:none}
 		.schools-logo-cell{width:110px;text-align:center}.schools-logo-cell img{display:block;width:54px;height:54px;margin:auto;border:1px solid #e5e9f2;border-radius:12px;background:#fff;object-fit:contain;padding:5px}
 		.schools-name-cell{width:220px;max-width:220px;white-space:normal;line-height:1.5}.schools-name-cell>span{display:block;overflow-wrap:anywhere}.school-name-more{margin-top:4px;padding:0;border:0;color:#6241df;background:transparent;font:inherit;font-size:.72rem;font-weight:800;cursor:pointer}.school-name-more:hover{text-decoration:underline}
+		.schools-table{width:100%;table-layout:fixed}.schools-table th:nth-child(1),.schools-table td:nth-child(1){width:42px}.schools-table th:nth-child(2),.schools-table td:nth-child(2){width:30%}.schools-table th:nth-child(3),.schools-table td:nth-child(3){width:20%;white-space:normal;line-height:1.45}.schools-table th:nth-child(4),.schools-table td:nth-child(4){width:11%;white-space:normal;line-height:1.45}.schools-table th:nth-child(5),.schools-table td:nth-child(5){width:100px}.schools-table th:nth-child(6),.schools-table td:nth-child(6){width:70px}
 		@media(max-width:700px){.school-card__fields{grid-template-columns:1fr}}
 	`],
 	template: `
