@@ -185,6 +185,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	private pendingCmsNavigation = false;
 	private leadsRequestId = 0;
 	private pageLoadRequestId = 0;
+	private authStateReady = false;
+	private routeStateReady = false;
 
 	constructor(
 		private contentService: MonthlyContentService,
@@ -203,13 +205,29 @@ export class AdminDashboardPageComponent implements OnInit {
 	ngOnInit(): void {
 		this.adminUsername = this.auth.getUsername();
 		if (this.auth.isAuthenticated()) {
-			this.auth.loadCurrentUser().subscribe({ next: user => { this.adminUsername = user.username || this.adminUsername; } });
+			this.auth.loadCurrentUser().subscribe({
+				next: user => { this.adminUsername = user.username || this.adminUsername; this.authStateReady = true; this.syncRouteState(); },
+				error: () => { this.authStateReady = true; this.syncRouteState(); }
+			});
+		} else {
+			this.authStateReady = true;
 		}
 		this.seo.setTitle('لوحة تحكم الإدارة');
 		this.seo.setRobots('noindex, nofollow, noarchive');
 		this.refreshSummaries();
-		this.route.paramMap.subscribe(params => {
-			const pageKey = this.resolvePageKey(params.get('pageKey'));
+		this.route.paramMap.subscribe(() => {
+			if (!this.authStateReady) return;
+			this.syncRouteState();
+		});
+		this.route.queryParamMap.subscribe(() => {
+			if (!this.authStateReady || !this.routeStateReady) return;
+			this.syncRouteState();
+		});
+	}
+
+	private syncRouteState(): void {
+		const params = this.route.snapshot.paramMap;
+		const pageKey = this.resolvePageKey(params.get('pageKey'));
 			const isCmsNavigation = this.pendingCmsNavigation;
 			this.selectedPageKey = pageKey;
 			if (this.pendingCmsNavigation) {
@@ -242,8 +260,8 @@ export class AdminDashboardPageComponent implements OnInit {
 					this.activeView = 'cms';
 				}
 			}
-			if (!isCmsNavigation) this.loadPage(pageKey);
-		});
+		if (!isCmsNavigation) this.loadPage(pageKey);
+		this.routeStateReady = true;
 	}
 
 	loadSiteMode(): void {

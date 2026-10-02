@@ -101,9 +101,14 @@ export class AdminAuthService {
 		const token = this.getToken();
 		return this.http.get<LoginResponse>(`${this.apiBase}/auth/me`, {
 			headers: new HttpHeaders({ Authorization: `Bearer ${token || ''}` })
-		}).pipe(tap(response => {
-			if (response.username) localStorage.setItem(this.usernameKey, response.username);
-		}));
+		}).pipe(tap(response => this.cacheUser(response)));
+	}
+
+	private cacheUser(response: LoginResponse): void {
+		if (typeof localStorage === 'undefined') return;
+		if (response.username) localStorage.setItem(this.usernameKey, response.username);
+		if (response.role) localStorage.setItem(this.roleKey, response.role);
+		if (response.permissions) localStorage.setItem(this.permissionsKey, JSON.stringify(response.permissions));
 	}
 
 	isLeadsOnly(): boolean {
