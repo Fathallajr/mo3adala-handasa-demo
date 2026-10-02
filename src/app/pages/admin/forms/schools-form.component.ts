@@ -145,6 +145,7 @@ export class SchoolsFormComponent implements OnChanges {
 			const viewportHeight = visualViewport?.height || document.documentElement.clientHeight || window.innerHeight;
 			const edge = 10;
 			const renderedMenu = document.querySelector('.school-actions-popover') as HTMLElement | null;
+			if (renderedMenu && renderedMenu.parentElement !== document.body) document.body.appendChild(renderedMenu);
 			const renderedRect = renderedMenu?.getBoundingClientRect();
 			const menuWidth = Math.min(renderedRect?.width || 130, Math.max(112, viewportWidth - edge * 2));
 			const menuHeight = Math.min(renderedRect?.height || 82, Math.max(82, viewportHeight - edge * 2));

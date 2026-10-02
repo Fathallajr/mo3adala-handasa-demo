@@ -540,6 +540,10 @@ export class AdminDashboardPageComponent implements OnInit {
 			const viewportHeight = visualViewport?.height || document.documentElement.clientHeight || window.innerHeight;
 			const edge = 10;
 			const renderedMenu = document.querySelector(menuSelector) as HTMLElement | null;
+			// Mobile browsers clip fixed descendants of the scrolling admin shell.
+			// Move the open menu to the document viewport so its coordinates remain
+			// tied to the clicked row instead of the shell/filter card.
+			if (renderedMenu && renderedMenu.parentElement !== document.body) document.body.appendChild(renderedMenu);
 			const renderedRect = renderedMenu?.getBoundingClientRect();
 			const menuWidth = Math.min(renderedRect?.width || preferredWidth, Math.max(112, viewportWidth - edge * 2));
 			const menuHeight = Math.min(renderedRect?.height || preferredHeight, Math.max(96, viewportHeight - edge * 2));
