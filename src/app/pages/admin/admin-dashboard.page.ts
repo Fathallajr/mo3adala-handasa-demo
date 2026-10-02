@@ -23,6 +23,7 @@ import { LaunchOfferFormComponent } from './forms/launch-offer-form.component';
 import { RequirementsFormComponent } from './forms/requirements-form.component';
 import { SchoolsFormComponent } from './forms/schools-form.component';
 import { ProgramLabelPipe } from '../../shared/pipes/program-label.pipe';
+import { DEFAULT_SCHOOLS } from '../../core/schools.defaults';
 
 interface PageOption {
 	key: CmsPageKey;
@@ -628,7 +629,10 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.isLoading = true;
 		this.currentContent = null;
 
-		this.contentService.loadPageState(pageKey).pipe(timeout({ each: 15000 }), finalize(() => {
+		const schoolsFallback = pageKey === 'schools'
+			? { visible: true, title: 'المدارس والمعاهد', items: DEFAULT_SCHOOLS.map((item, index) => ({ ...item, id: item.id ?? index + 1 })) }
+			: undefined;
+		this.contentService.loadPageState(pageKey, schoolsFallback as any, { emitFallback: pageKey === 'schools' }).pipe(timeout({ each: 15000 }), finalize(() => {
 			if (requestId === this.pageLoadRequestId) this.isLoading = false;
 			this.refreshView();
 		})).subscribe({
