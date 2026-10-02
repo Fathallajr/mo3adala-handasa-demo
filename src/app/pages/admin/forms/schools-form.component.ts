@@ -137,8 +137,9 @@ export class SchoolsFormComponent implements OnChanges {
 		const trigger = event?.currentTarget as HTMLElement | null;
 		const section = trigger?.closest('.schools-table-section') as HTMLElement | null;
 		if (!trigger || !section) return;
+		const triggerRectAtClick = trigger.getBoundingClientRect();
 		const applyPosition = (): void => {
-			const triggerRect = trigger.getBoundingClientRect();
+			const triggerRect = trigger.isConnected ? trigger.getBoundingClientRect() : triggerRectAtClick;
 			const visualViewport = window.visualViewport;
 			const viewportWidth = visualViewport?.width || document.documentElement.clientWidth || window.innerWidth;
 			const viewportHeight = visualViewport?.height || document.documentElement.clientHeight || window.innerHeight;

@@ -525,8 +525,9 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 	private positionActionMenu(trigger: HTMLElement | null, topVariable: string, leftVariable: string, preferredWidth: number, preferredHeight: number, menuSelector: string): void {
 		if (!trigger) return;
+		const triggerRectAtClick = trigger.getBoundingClientRect();
 		const applyPosition = (): void => {
-			const rect = trigger.getBoundingClientRect();
+			const rect = trigger.isConnected ? trigger.getBoundingClientRect() : triggerRectAtClick;
 			const visualViewport = window.visualViewport;
 			const viewportWidth = visualViewport?.width || document.documentElement.clientWidth || window.innerWidth;
 			const viewportHeight = visualViewport?.height || document.documentElement.clientHeight || window.innerHeight;
