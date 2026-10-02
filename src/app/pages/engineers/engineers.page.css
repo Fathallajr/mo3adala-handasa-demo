@@ -23,6 +23,18 @@
 	pointer-events: none;
 }
 
+/* Match the hero surface behind the fixed navbar without changing the hero's start position. */
+.engineers-page::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	inset-inline: 0;
+	height: clamp(4.75rem, 8vw, 7.5rem);
+	z-index: 0;
+	background: linear-gradient(120deg, #0f172a 0%, #111c3a 55%, #172554 100%);
+	pointer-events: none;
+}
+
 .engineers-page * {
 	box-sizing: border-box;
 	font-family: 'TheYearofHandicrafts', sans-serif;
