@@ -18,20 +18,25 @@ import { MonthlyContentService } from '../../core/services/monthly-content.servi
 export class SchoolsPageComponent {
   searchTerm = '';
   selectedFilter = 'الكل';
+  selectedProgram: '' | 'engineering' | 'computers' = '';
   isFilterMenuOpen = false;
+  isProgramMenuOpen = false;
   pageSize = 24;
   displayedCount = this.pageSize;
   
 	filterOptions = [
 		'الكل',
-		'معادلة هندسة',
-		'معادلة حاسبات',
 		'المعاهد الفنية',
     'مدارس الثانوية الصناعية نظام 3 سنوات',
     'مدارس الثانوية الصناعية نظام 5 سنوات',
     'مدارس تكنولوجية نظام 3 سنوات',
     'مدارس تكنولوجية نظام 5 سنوات'
-  ];
+	];
+	programOptions: Array<{ value: '' | 'engineering' | 'computers'; label: string }> = [
+		{ value: '', label: 'الكل' },
+		{ value: 'engineering' as const, label: 'هندسة' },
+		{ value: 'computers' as const, label: 'حاسبات' }
+	];
 
 	allSchools = [] as Array<{ id: number; name: string; type: string; category: string; logo: string; programs: Array<'engineering' | 'computers'> }>;
 
@@ -526,7 +531,7 @@ export class SchoolsPageComponent {
     let filteredSchools = this.allSchools;
 
     // Apply category filter
-		filteredSchools = filteredSchools.filter(school => this.matchesSelectedFilter(school));
+		filteredSchools = filteredSchools.filter(school => this.matchesSelectedFilter(school) && this.matchesSelectedProgram(school));
 
     // Apply search filter
     if (this.searchTerm.trim()) {
@@ -542,7 +547,7 @@ export class SchoolsPageComponent {
 
   get totalFilteredCount(): number {
     let filteredSchools = this.allSchools;
-		filteredSchools = filteredSchools.filter(school => this.matchesSelectedFilter(school));
+		filteredSchools = filteredSchools.filter(school => this.matchesSelectedFilter(school) && this.matchesSelectedProgram(school));
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase().trim();
       filteredSchools = filteredSchools.filter(school =>
@@ -568,6 +573,7 @@ export class SchoolsPageComponent {
 
   toggleFilterMenu() {
     this.isFilterMenuOpen = !this.isFilterMenuOpen;
+    this.isProgramMenuOpen = false;
   }
 
   selectFilter(filter: string) {
@@ -575,8 +581,20 @@ export class SchoolsPageComponent {
     this.isFilterMenuOpen = false;
   }
 
+  toggleProgramMenu() {
+    this.isProgramMenuOpen = !this.isProgramMenuOpen;
+    this.isFilterMenuOpen = false;
+  }
+
+  selectProgram(program: '' | 'engineering' | 'computers') {
+    this.selectedProgram = program;
+    this.displayedCount = this.pageSize;
+    this.isProgramMenuOpen = false;
+  }
+
   closeFilterMenu() {
     this.isFilterMenuOpen = false;
+    this.isProgramMenuOpen = false;
   }
 
   onSearchChange() {
@@ -587,6 +605,7 @@ export class SchoolsPageComponent {
   clearFilters() {
     this.searchTerm = '';
     this.selectedFilter = 'الكل';
+    this.selectedProgram = '';
     this.displayedCount = this.pageSize;
     this.isFilterMenuOpen = false;
   }
@@ -604,10 +623,12 @@ export class SchoolsPageComponent {
 
 	private matchesSelectedFilter(school: { category: string; programs: Array<'engineering' | 'computers'> }): boolean {
 		if (this.selectedFilter === 'الكل') return true;
-		if (this.selectedFilter === 'معادلة هندسة') return school.programs.includes('engineering');
-		if (this.selectedFilter === 'معادلة حاسبات') return school.programs.includes('computers');
 		if (this.selectedFilter === 'المعاهد الفنية') return school.category === 'المعاهد الفنية' || school.category.includes('معهد');
 		return school.category === this.selectedFilter;
+	}
+
+	private matchesSelectedProgram(school: { programs: Array<'engineering' | 'computers'> }): boolean {
+		return !this.selectedProgram || school.programs.includes(this.selectedProgram);
 	}
 
 }
