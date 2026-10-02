@@ -735,3 +735,4 @@ tbody tr:hover { background:#faf9ff; }
 .admin-create-panel__close:hover { color:#c24b67; border-color:#ffcbd6; background:#fff5f7; }
 .admin-create-panel__actions { display:flex; gap:9px; justify-content:flex-start; margin-top:18px; padding-top:16px; border-top:1px solid #e7e8f3; }
 @media (max-width:760px) { .admin-users-view > .admin-create-trigger { width:100%; justify-content:center; } .admin-create-panel__actions button { flex:1; } }
+ .admin-actions-cell{position:relative;white-space:nowrap}.admin-actions-cell .lead-actions-menu__panel{right:0;left:auto;}

@@ -158,6 +158,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	statusMessage = '';
 	errorMessage = '';
 	adminUsername = '';
+	openAdminActionUser: string | null = null;
 	siteMaintenance = false;
 	isSavingSiteMode = false;
 	isSaving = false;
@@ -321,6 +322,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (!window.confirm(`حذف حساب ${user.username}؟`)) return;
 		this.adminApi.deleteAdminUser(user.username).subscribe({ next: () => { this.adminUsers = this.adminUsers.filter(item => item.username !== user.username); this.statusMessage = 'تم حذف الحساب.'; }, error: err => this.handleApiError(err) });
 	}
+	toggleAdminActionMenu(username: string): void { this.openAdminActionUser = this.openAdminActionUser === username ? null : username; }
 	loadFeedback(force = false): void {
 		if ((this.isLoadingFeedback && !force) || (this.feedbackLoaded && !force)) return;
 		this.isLoadingFeedback = true;
