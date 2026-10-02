@@ -530,9 +530,9 @@ export class AdminDashboardPageComponent implements OnInit {
 			const edge = 10;
 			const menuWidth = Math.min(preferredWidth, Math.max(112, viewportWidth - edge * 2));
 			const menuHeight = Math.min(preferredHeight, Math.max(96, viewportHeight - edge * 2));
-			// Keep the menu beside the trigger. Only clamp vertically when the
-			// trigger is close to the top or bottom edge of the viewport.
-			const rawTop = rect.top + (rect.height - menuHeight) / 2;
+			// Start at the same vertical level as the row/date cell, then clamp
+			// only when the row is too close to a viewport edge.
+			const rawTop = rect.top;
 			const rawLeft = rect.right + menuWidth + edge <= viewportWidth
 				? rect.right + 6
 				: rect.left - menuWidth - 6;

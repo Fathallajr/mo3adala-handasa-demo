@@ -141,7 +141,7 @@ export class SchoolsFormComponent implements OnChanges {
 		const triggerRect = trigger.getBoundingClientRect();
 		const menuHeight = 82;
 		const menuWidth = Math.min(130, Math.max(112, window.innerWidth - 20));
-		const top = triggerRect.top + (triggerRect.height - menuHeight) / 2;
+		const top = triggerRect.top;
 		const opensLeft = triggerRect.right + menuWidth > window.innerWidth - 12;
 		const left = opensLeft ? triggerRect.left - menuWidth - 5 : triggerRect.right + 5;
 		section.style.setProperty('--school-actions-top', `${Math.max(5, top)}px`);
