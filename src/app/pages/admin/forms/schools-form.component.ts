@@ -20,6 +20,7 @@ interface SchoolItem {
 		.schools-actions-cell{position:relative;white-space:nowrap}.school-actions-trigger{width:32px;height:30px;border:1px solid #cfc5ff;border-radius:8px;color:#6241df;background:#f4f1ff;font-size:20px;line-height:1;cursor:pointer}.school-actions-menu{position:absolute;z-index:5;top:calc(100% + 4px);right:0;display:grid;min-width:100px;padding:4px;border:1px solid #e2e5ee;border-radius:9px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16)}.school-actions-menu button{padding:8px;border:0;border-radius:6px;background:transparent;color:#526078;font:inherit;font-size:11px;font-weight:800;text-align:right;cursor:pointer}.school-actions-menu button:hover{background:#f4f1ff;color:#6241df}.school-actions-menu button:last-child{color:#c33f5d}.school-modal-backdrop{position:fixed;z-index:40;inset:0;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.45)}.school-modal{width:min(520px,100%);max-height:90vh;overflow:auto;padding:22px;border:1px solid #e2e5ee;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.28)}.school-modal-close{border:0;background:transparent;color:#64748b;font-size:25px;cursor:pointer}.school-modal-actions{display:flex;justify-content:flex-start;gap:8px;margin-top:15px}.school-delete-modal p{color:#526078;line-height:1.8}
 		.schools-table-section{position:relative}.school-actions-popover{position:absolute;z-index:20;top:7.5rem;left:1rem;display:flex;align-items:center;gap:7px;padding:7px 9px;border:1px solid #d9d3ff;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16);font-size:11px}.school-actions-popover button{padding:7px 9px;border:0;border-radius:7px;color:#6241df;background:#f4f1ff;font:inherit;font-weight:800;cursor:pointer}.school-actions-popover__delete{color:#c33f5d!important;background:#fff0f3!important}
 		.school-actions-popover{position:fixed;z-index:1000;top:var(--school-actions-top,1.5rem);right:auto;left:var(--school-actions-left,1rem);display:grid;min-width:120px;padding:5px;gap:3px}.school-actions-popover button{text-align:right}.school-actions-popover::before{content:none}
+		.schools-logo-cell{width:110px;text-align:center}.schools-logo-cell img{display:block;width:54px;height:54px;margin:auto;border:1px solid #e5e9f2;border-radius:12px;background:#fff;object-fit:contain;padding:5px}
 		@media(max-width:700px){.school-card__fields{grid-template-columns:1fr}}
 	`],
 	template: `
@@ -54,8 +55,8 @@ interface SchoolItem {
 					<button type="button" class="schools-table-filters__clear" (click)="clearTableFilters()">مسح الفلاتر</button>
 				</div>
 				<div class="schools-table-wrap" *ngIf="items.length; else emptyState">
-					<table class="schools-table"><thead><tr><th>#</th><th>اسم المؤسسة</th><th>النوع</th><th>المعادلة</th><th>رابط الصورة</th><th>إجراء</th></tr></thead><tbody>
-		<tr *ngFor="let item of filteredItems"><td class="schools-table__index">{{ item.id }}</td><td>{{ item.name }}</td><td>{{ item.type }}</td><td>{{ programSelection(item) === 'both' ? 'هندسة وحاسبات' : (programSelection(item) === 'computers' ? 'حاسبات' : 'هندسة') }}</td><td>{{ item.logo }}</td><td class="schools-actions-cell"><button type="button" class="school-actions-trigger" (click)="toggleItemActions(item, $event)" aria-label="إجراءات المؤسسة">⋮</button></td></tr>
+					<table class="schools-table"><thead><tr><th>#</th><th>اسم المؤسسة</th><th>النوع</th><th>المعادلة</th><th>الصورة</th><th>إجراء</th></tr></thead><tbody>
+		<tr *ngFor="let item of filteredItems"><td class="schools-table__index">{{ item.id }}</td><td>{{ item.name }}</td><td>{{ item.type }}</td><td>{{ programSelection(item) === 'both' ? 'هندسة وحاسبات' : (programSelection(item) === 'computers' ? 'حاسبات' : 'هندسة') }}</td><td class="schools-logo-cell"><img [src]="schoolLogoUrl(item.logo)" (error)="handleSchoolLogoError($event)" [alt]="item.name" loading="lazy"></td><td class="schools-actions-cell"><button type="button" class="school-actions-trigger" (click)="toggleItemActions(item, $event)" aria-label="إجراءات المؤسسة">⋮</button></td></tr>
 					</tbody></table>
 				</div>
 				<div class="school-actions-popover" *ngIf="openItem">
@@ -150,6 +151,8 @@ export class SchoolsFormComponent implements OnChanges {
 	cancelDelete(): void { this.pendingDeleteItem = null; }
 	deleteItem(): void { if (!this.pendingDeleteItem) return; this.items = this.items.filter(item => item.id !== this.pendingDeleteItem?.id); this.content.items = this.items; this.pendingDeleteItem = null; }
 	clearTableFilters(): void { this.tableSearch = ''; this.tableType = ''; this.tableProgram = ''; }
+	schoolLogoUrl(logo: string): string { const value = String(logo || '').trim(); if (!value) return '/assets/logo.webp'; return /^https?:\/\//i.test(value) || value.startsWith('/') ? value : `/${value}`; }
+	handleSchoolLogoError(event: Event): void { const image = event.target as HTMLImageElement; if (!image.dataset['fallback']) { image.dataset['fallback'] = 'true'; image.src = '/assets/logo.webp'; } }
 	programSelection(item: SchoolItem): 'engineering' | 'computers' | 'both' { return item.programs.includes('engineering') && item.programs.includes('computers') ? 'both' : item.programs.includes('computers') ? 'computers' : 'engineering'; }
 	setProgram(item: SchoolItem, value: 'engineering' | 'computers' | 'both'): void { item.programs = this.programsFromSelection(value); }
 
