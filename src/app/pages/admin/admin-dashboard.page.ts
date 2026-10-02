@@ -323,7 +323,18 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (!window.confirm(`حذف حساب ${user.username}؟`)) return;
 		this.adminApi.deleteAdminUser(user.username).subscribe({ next: () => { this.adminUsers = this.adminUsers.filter(item => item.username !== user.username); this.statusMessage = 'تم حذف الحساب.'; }, error: err => this.handleApiError(err) });
 	}
-	toggleAdminActionMenu(username: string): void { this.openAdminActionUser = this.openAdminActionUser === username ? null : username; }
+	toggleAdminActionMenu(username: string, event?: MouseEvent): void {
+		const shouldOpen = this.openAdminActionUser !== username;
+		this.openAdminActionUser = shouldOpen ? username : null;
+		if (!shouldOpen) return;
+		const trigger = event?.currentTarget as HTMLElement | null;
+		const section = trigger?.closest('.admin-users-view') as HTMLElement | null;
+		if (!trigger || !section) return;
+		const triggerRect = trigger.getBoundingClientRect();
+		const sectionRect = section.getBoundingClientRect();
+		section.style.setProperty('--admin-actions-top', `${triggerRect.bottom - sectionRect.top + 5}px`);
+		section.style.setProperty('--admin-actions-right', `${sectionRect.right - triggerRect.right}px`);
+	}
 	loadFeedback(force = false): void {
 		if ((this.isLoadingFeedback && !force) || (this.feedbackLoaded && !force)) return;
 		this.isLoadingFeedback = true;

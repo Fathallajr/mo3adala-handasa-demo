@@ -737,7 +737,7 @@ tbody tr:hover { background:#faf9ff; }
 @media (max-width:760px) { .admin-users-view > .admin-create-trigger { width:100%; justify-content:center; } .admin-create-panel__actions button { flex:1; } }
 .admin-actions-cell{position:relative;white-space:nowrap}.admin-actions-cell .lead-actions-menu__panel{right:0;left:auto;}
 .admin-users-view{position:relative}
-.admin-actions-popover{position:absolute;z-index:30;top:9.5rem;right:1rem;display:grid;min-width:150px;gap:3px;padding:5px;border:1px solid #d9d3ff;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16)}
+.admin-actions-popover{position:absolute;z-index:30;top:var(--admin-actions-top,9.5rem);right:var(--admin-actions-right,1rem);display:grid;min-width:150px;gap:3px;padding:5px;border:1px solid #d9d3ff;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16)}
 .admin-actions-popover button{display:flex;align-items:center;gap:7px;width:100%;padding:8px 9px;border:0;border-radius:7px;color:#526078;background:transparent;font:inherit;font-size:11px;font-weight:800;text-align:right;cursor:pointer}
 .admin-actions-popover button:hover{background:#f4f1ff;color:#6241df}
 .admin-actions-popover .lead-actions-menu__delete{color:#c33f5d}
