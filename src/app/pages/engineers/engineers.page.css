@@ -254,60 +254,32 @@
 
 .eng-hero__visual {
 	position: relative;
-	min-height: 430px;
+	min-height: 0;
+	height: auto;
+	aspect-ratio: 16 / 9;
 	overflow: hidden;
-	border: 7px solid rgba(255, 255, 255, .12);
-	border-radius: 2rem;
-	background: #0f172a;
-	box-shadow: 0 28px 70px rgba(0, 0, 0, .3);
-	transform: rotate(-1.2deg);
+	border: 1px solid rgba(147, 197, 253, .35);
+	border-radius: 1.5rem 3rem 1.5rem 3rem;
+	background: #f8ead2;
+	box-shadow: 0 26px 64px rgba(2, 12, 34, .42), 0 0 0 10px rgba(59, 130, 246, .08);
+	transform: none;
 }
 
 .eng-hero__visual img {
 	display: block;
 	width: 100%;
 	height: 100%;
-	min-height: 430px;
-	object-fit: cover;
-	object-position: center 28%;
-}
-
-/* The English page uses the new engineering image as a clean editorial panel. */
-.engineers-page--en .eng-hero__visual {
 	min-height: 0;
-	height: auto;
-	aspect-ratio: 16 / 9;
-	border: 1px solid rgba(147, 197, 253, .35);
-	border-radius: 1.5rem 3rem 1.5rem 3rem;
-	box-shadow: 0 26px 64px rgba(2, 12, 34, .42), 0 0 0 10px rgba(59, 130, 246, .08);
-	transform: none;
-}
-
-.engineers-page--en .eng-hero__visual img {
-	min-height: 0;
-	height: 100%;
 	object-fit: contain;
 	object-position: center;
 	background: #f8ead2;
 }
 
-.engineers-page--en .eng-hero__visual-shade,
-.engineers-page--en .eng-hero__visual-tag,
-.engineers-page--en .eng-hero__visual-caption {
+/* Both language variants use the same clean editorial image panel. */
+.eng-hero__visual-shade,
+.eng-hero__visual-tag,
+.eng-hero__visual-caption {
 	display: none;
-}
-
-/* The Arabic team artwork is a wide group portrait; preserve its full composition. */
-.engineers-page:not(.engineers-page--en) .eng-hero__visual {
-	min-height: 0;
-	height: auto;
-	aspect-ratio: 16 / 10;
-}
-
-.engineers-page:not(.engineers-page--en) .eng-hero__visual img {
-	min-height: 0;
-	height: 100%;
-	object-position: center center;
 }
 
 .eng-hero__visual-shade {
@@ -770,8 +742,9 @@
 
 @media (max-width: 1100px) {
 	.eng-back--top {
-		top: .75rem;
-		inset-inline-start: 1rem;
+		top: .85rem;
+		inset-inline-start: auto;
+		inset-inline-end: 1rem;
 		min-height: 44px;
 		padding: .45rem .8rem;
 		border: 1px solid rgba(251, 146, 60, .45);
@@ -784,16 +757,23 @@
 	}
 	.eng-hero__inner {
 		grid-template-columns: 1fr;
-		gap: 2rem;
+		gap: 1.35rem;
 		padding-top: 4rem;
+		padding-bottom: 2.25rem;
 	}
 	.eng-hero__visual {
 		order: -1;
-		min-height: 340px;
+		min-height: 0;
+		max-height: none;
+		aspect-ratio: 16 / 9;
+		border-radius: 1.25rem 2.5rem 1.25rem 2.5rem;
+		box-shadow: 0 18px 42px rgba(2, 12, 34, .34), 0 0 0 7px rgba(59, 130, 246, .07);
 		transform: none;
 	}
 	.eng-hero__visual img {
-		min-height: 340px;
+		min-height: 0;
+		height: 100%;
+		object-position: center;
 	}
 	.teachers-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -817,60 +797,15 @@
 	.eng-cta > div { width: 100%; }
 	.eng-cta .eng-button--light { width: 100%; }
 
-	/* Mobile English hero: keep the image compact and give the copy its own space. */
-	.engineers-page--en .eng-hero__inner {
-		gap: 1.35rem;
-		padding-top: 4rem;
-		padding-bottom: 2.25rem;
-	}
-	.engineers-page--en .eng-back--top {
-		top: .85rem;
-		inset-inline-start: auto;
-		inset-inline-end: 1rem;
-	}
-	.engineers-page--en .eng-hero__visual {
-		order: -1;
-		min-height: 0;
-		max-height: none;
-		aspect-ratio: 16 / 9;
-		border-radius: 1.25rem 2.5rem 1.25rem 2.5rem;
-		box-shadow: 0 18px 42px rgba(2, 12, 34, .34), 0 0 0 7px rgba(59, 130, 246, .07);
-	}
-	.engineers-page--en .eng-hero__visual img {
-		min-height: 0;
-		height: 100%;
-		object-position: center;
-	}
-	.engineers-page--en .eng-hero__visual-tag {
-		top: .8rem;
-		right: .8rem;
-		padding: .35rem .6rem;
-		font-size: .66rem;
-	}
-	.engineers-page--en .eng-hero__visual-caption {
-		right: 1rem;
-		bottom: 1rem;
-		left: 1rem;
-	}
-	.engineers-page--en .eng-hero__visual-caption strong { font-size: 1.05rem; }
-	.engineers-page--en .eng-hero__visual-caption span { font-size: .68rem; }
-	.engineers-page--en .eng-hero__content { text-align: right; }
-	.engineers-page--en .eng-hero p { font-size: .88rem; line-height: 1.85; }
-
-	.engineers-page:not(.engineers-page--en) .eng-hero__visual {
-		min-height: 0;
-		max-height: none;
-		aspect-ratio: 16 / 10;
-	}
-	.engineers-page:not(.engineers-page--en) .eng-hero__visual img {
-		min-height: 0;
-	}
+	.eng-hero__content { text-align: right; }
+	.eng-hero p { font-size: .88rem; line-height: 1.85; }
 }
 
 @media (max-width: 520px) {
 	.eng-back--top {
 		top: .75rem;
-		inset-inline-start: 1rem;
+		inset-inline-start: auto;
+		inset-inline-end: 1rem;
 		min-height: 44px;
 		padding: .45rem .8rem;
 		border: 1px solid rgba(251, 146, 60, .45);
