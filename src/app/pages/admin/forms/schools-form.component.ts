@@ -138,14 +138,28 @@ export class SchoolsFormComponent implements OnChanges {
 		const trigger = event?.currentTarget as HTMLElement | null;
 		const section = trigger?.closest('.schools-table-section') as HTMLElement | null;
 		if (!trigger || !section) return;
-		const triggerRect = trigger.getBoundingClientRect();
-		const menuHeight = 82;
-		const menuWidth = Math.min(130, Math.max(112, window.innerWidth - 20));
-		const top = triggerRect.top;
-		const opensLeft = triggerRect.right + menuWidth > window.innerWidth - 12;
-		const left = opensLeft ? triggerRect.left - menuWidth - 5 : triggerRect.right + 5;
-		section.style.setProperty('--school-actions-top', `${Math.max(5, top)}px`);
-		section.style.setProperty('--school-actions-left', `${Math.min(Math.max(10, left), Math.max(10, window.innerWidth - menuWidth - 10))}px`);
+		const applyPosition = (): void => {
+			const triggerRect = trigger.getBoundingClientRect();
+			const visualViewport = window.visualViewport;
+			const viewportWidth = visualViewport?.width || document.documentElement.clientWidth || window.innerWidth;
+			const viewportHeight = visualViewport?.height || document.documentElement.clientHeight || window.innerHeight;
+			const edge = 10;
+			const renderedMenu = document.querySelector('.school-actions-popover') as HTMLElement | null;
+			const renderedRect = renderedMenu?.getBoundingClientRect();
+			const menuWidth = Math.min(renderedRect?.width || 130, Math.max(112, viewportWidth - edge * 2));
+			const menuHeight = Math.min(renderedRect?.height || 82, Math.max(82, viewportHeight - edge * 2));
+			const rawTop = triggerRect.top;
+			const rawLeft = triggerRect.right + menuWidth + edge <= viewportWidth
+				? triggerRect.right + 6
+				: triggerRect.left - menuWidth - 6;
+			const top = Math.min(Math.max(edge, rawTop), Math.max(edge, viewportHeight - menuHeight - edge));
+			const left = Math.min(Math.max(edge, rawLeft), Math.max(edge, viewportWidth - menuWidth - edge));
+			section.style.setProperty('--school-actions-top', `${top}px`);
+			section.style.setProperty('--school-actions-left', `${left}px`);
+		};
+		applyPosition();
+		requestAnimationFrame(applyPosition);
+		setTimeout(applyPosition, 0);
 	}
 	startEdit(item: SchoolItem): void { this.openItemActionId = null; this.editingItem = item; this.editDraft = { ...item, programs: [...item.programs] }; }
 	cancelEdit(): void { this.editingItem = null; this.editDraft = null; }

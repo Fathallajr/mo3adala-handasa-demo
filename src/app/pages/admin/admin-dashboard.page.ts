@@ -365,7 +365,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (!shouldOpen) return;
 		const trigger = event?.currentTarget as HTMLElement | null;
 		if (!trigger) return;
-		this.positionActionMenu(trigger, '--admin-actions-top', '--admin-actions-left', 170, 145);
+		this.positionActionMenu(trigger, '--admin-actions-top', '--admin-actions-left', 170, 145, '.admin-actions-popover');
 	}
 	loadFeedback(force = false): void {
 		if ((this.isLoadingFeedback && !force) || (this.feedbackLoaded && !force)) return;
@@ -512,24 +512,27 @@ export class AdminDashboardPageComponent implements OnInit {
 	toggleLeadActionMenu(lead: Lead, event?: MouseEvent): void {
 		const shouldOpen = this.openLeadActionMenuId !== lead.id;
 		this.openLeadActionMenuId = shouldOpen ? lead.id : null;
-		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--lead-actions-top', '--lead-actions-left', 140, 125);
+		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--lead-actions-top', '--lead-actions-left', 140, 125, '.lead-actions-menu__panel');
 		this.refreshView();
 	}
 	toggleWheelActionMenu(claim: WheelClaim, event?: MouseEvent): void {
 		const shouldOpen = this.openWheelActionMenuId !== claim.token;
 		this.openWheelActionMenuId = shouldOpen ? claim.token : null;
-		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--wheel-actions-top', '--wheel-actions-left', 140, 125);
+		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--wheel-actions-top', '--wheel-actions-left', 140, 125, '.lead-actions-menu__panel');
 		this.refreshView();
 	}
-	private positionActionMenu(trigger: HTMLElement | null, topVariable: string, leftVariable: string, preferredWidth: number, preferredHeight: number): void {
+	private positionActionMenu(trigger: HTMLElement | null, topVariable: string, leftVariable: string, preferredWidth: number, preferredHeight: number, menuSelector: string): void {
 		if (!trigger) return;
 		const applyPosition = (): void => {
 			const rect = trigger.getBoundingClientRect();
-			const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
-			const viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+			const visualViewport = window.visualViewport;
+			const viewportWidth = visualViewport?.width || document.documentElement.clientWidth || window.innerWidth;
+			const viewportHeight = visualViewport?.height || document.documentElement.clientHeight || window.innerHeight;
 			const edge = 10;
-			const menuWidth = Math.min(preferredWidth, Math.max(112, viewportWidth - edge * 2));
-			const menuHeight = Math.min(preferredHeight, Math.max(96, viewportHeight - edge * 2));
+			const renderedMenu = document.querySelector(menuSelector) as HTMLElement | null;
+			const renderedRect = renderedMenu?.getBoundingClientRect();
+			const menuWidth = Math.min(renderedRect?.width || preferredWidth, Math.max(112, viewportWidth - edge * 2));
+			const menuHeight = Math.min(renderedRect?.height || preferredHeight, Math.max(96, viewportHeight - edge * 2));
 			// Start at the same vertical level as the row/date cell, then clamp
 			// only when the row is too close to a viewport edge.
 			const rawTop = rect.top;
@@ -543,6 +546,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		};
 		applyPosition();
 		requestAnimationFrame(applyPosition);
+		setTimeout(applyPosition, 0);
 	}
 	openWheelNote(claim: WheelClaim): void { this.openWheelActionMenuId = null; this.wheelPendingNote = claim; this.wheelNoteDraft = claim.notes || ''; this.refreshView(); }
 	closeWheelNote(): void { this.wheelPendingNote = null; this.refreshView(); }
