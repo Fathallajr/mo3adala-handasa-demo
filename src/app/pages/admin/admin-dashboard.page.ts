@@ -365,13 +365,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (!shouldOpen) return;
 		const trigger = event?.currentTarget as HTMLElement | null;
 		if (!trigger) return;
-		const triggerRect = trigger.getBoundingClientRect();
-		const menuWidth = 170;
-		const menuHeight = 145;
-		const top = triggerRect.bottom + menuHeight > window.innerHeight - 12 ? triggerRect.top - menuHeight - 5 : triggerRect.bottom + 5;
-		const left = triggerRect.right + menuWidth > window.innerWidth - 12 ? triggerRect.left - menuWidth - 5 : triggerRect.right + 5;
-		document.documentElement.style.setProperty('--admin-actions-top', `${Math.max(5, top)}px`);
-		document.documentElement.style.setProperty('--admin-actions-left', `${Math.max(5, left)}px`);
+		this.positionActionMenu(trigger, '--admin-actions-top', '--admin-actions-left', 170, 145);
 	}
 	loadFeedback(force = false): void {
 		if ((this.isLoadingFeedback && !force) || (this.feedbackLoaded && !force)) return;
@@ -518,25 +512,36 @@ export class AdminDashboardPageComponent implements OnInit {
 	toggleLeadActionMenu(lead: Lead, event?: MouseEvent): void {
 		const shouldOpen = this.openLeadActionMenuId !== lead.id;
 		this.openLeadActionMenuId = shouldOpen ? lead.id : null;
-		if (shouldOpen) this.positionActionMenu(event, '--lead-actions-top', '--lead-actions-left');
+		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--lead-actions-top', '--lead-actions-left', 140, 125);
 		this.refreshView();
 	}
 	toggleWheelActionMenu(claim: WheelClaim, event?: MouseEvent): void {
 		const shouldOpen = this.openWheelActionMenuId !== claim.token;
 		this.openWheelActionMenuId = shouldOpen ? claim.token : null;
-		if (shouldOpen) this.positionActionMenu(event, '--wheel-actions-top', '--wheel-actions-left');
+		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--wheel-actions-top', '--wheel-actions-left', 140, 125);
 		this.refreshView();
 	}
-	private positionActionMenu(event: MouseEvent | undefined, topVariable: string, leftVariable: string): void {
-		const trigger = event?.currentTarget as HTMLElement | null;
+	private positionActionMenu(trigger: HTMLElement | null, topVariable: string, leftVariable: string, preferredWidth: number, preferredHeight: number): void {
 		if (!trigger) return;
-		const rect = trigger.getBoundingClientRect();
-		const menuWidth = 140;
-		const menuHeight = 125;
-		const top = rect.bottom + menuHeight > window.innerHeight - 12 ? rect.top - menuHeight - 5 : rect.bottom + 5;
-		const left = rect.right + menuWidth > window.innerWidth - 12 ? rect.left - menuWidth - 5 : rect.right + 5;
-		document.documentElement.style.setProperty(topVariable, `${Math.max(5, top)}px`);
-		document.documentElement.style.setProperty(leftVariable, `${Math.max(5, left)}px`);
+		const applyPosition = (): void => {
+			const rect = trigger.getBoundingClientRect();
+			const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+			const viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+			const edge = 10;
+			const menuWidth = Math.min(preferredWidth, Math.max(112, viewportWidth - edge * 2));
+			const menuHeight = Math.min(preferredHeight, Math.max(96, viewportHeight - edge * 2));
+			const opensAbove = rect.bottom + menuHeight + edge > viewportHeight;
+			const rawTop = opensAbove ? rect.top - menuHeight - 6 : rect.bottom + 6;
+			const rawLeft = rect.right + menuWidth + edge <= viewportWidth
+				? rect.right + 6
+				: rect.left - menuWidth - 6;
+			const top = Math.min(Math.max(edge, rawTop), Math.max(edge, viewportHeight - menuHeight - edge));
+			const left = Math.min(Math.max(edge, rawLeft), Math.max(edge, viewportWidth - menuWidth - edge));
+			document.documentElement.style.setProperty(topVariable, `${top}px`);
+			document.documentElement.style.setProperty(leftVariable, `${left}px`);
+		};
+		applyPosition();
+		requestAnimationFrame(applyPosition);
 	}
 	openWheelNote(claim: WheelClaim): void { this.openWheelActionMenuId = null; this.wheelPendingNote = claim; this.wheelNoteDraft = claim.notes || ''; this.refreshView(); }
 	closeWheelNote(): void { this.wheelPendingNote = null; this.refreshView(); }

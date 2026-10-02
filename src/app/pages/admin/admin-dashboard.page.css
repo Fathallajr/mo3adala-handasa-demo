@@ -190,7 +190,7 @@ tbody tr:hover { background:#faf9ff; }
 .lead-actions-menu { position:relative; display:inline-block; }
 .lead-actions-menu__trigger { display:grid; place-items:center; width:32px; height:30px; border:1px solid #cfc5ff; border-radius:8px; color:#6241df; background:#f4f1ff; cursor:pointer; }
 .lead-actions-menu__trigger:hover { background:#e9e3ff; }
-.lead-actions-menu__panel { position:fixed; z-index:1000; top:var(--lead-actions-top,5px); right:auto; left:var(--lead-actions-left,5px); display:grid; min-width:112px; padding:5px; border:1px solid #e2e5ee; border-radius:10px; background:#fff; box-shadow:0 12px 28px rgba(15,23,42,.16); }
+.lead-actions-menu__panel { position:fixed; z-index:3000; top:var(--lead-actions-top,5px); right:auto; left:var(--lead-actions-left,5px); display:grid; width:max-content; min-width:112px; max-width:calc(100vw - 20px); box-sizing:border-box; padding:5px; border:1px solid #e2e5ee; border-radius:10px; background:#fff; box-shadow:0 12px 28px rgba(15,23,42,.16); }
 .lead-actions-menu__panel button { display:flex; align-items:center; gap:7px; width:100%; padding:8px 9px; border:0; border-radius:7px; color:#526078; background:transparent; font:inherit; font-size:11px; font-weight:800; text-align:right; cursor:pointer; }
 .lead-actions-menu__panel button:hover { background:#f4f1ff; color:#6241df; }
 .lead-actions-menu__panel .lead-actions-menu__delete { color:#c33f5d; }
@@ -738,7 +738,7 @@ tbody tr:hover { background:#faf9ff; }
 @media (max-width:760px) { .admin-users-view > .admin-create-trigger { width:100%; justify-content:center; } .admin-create-panel__actions button { flex:1; } }
 .admin-actions-cell{position:relative;white-space:nowrap}.admin-actions-cell .lead-actions-menu__panel{right:0;left:auto;}
 .admin-users-view{position:relative}
-.admin-actions-popover{position:fixed;z-index:1000;top:var(--admin-actions-top,5px);right:auto;left:var(--admin-actions-left,5px);display:grid;min-width:150px;gap:3px;padding:5px;border:1px solid #d9d3ff;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16)}
+.admin-actions-popover{position:fixed;z-index:3000;top:var(--admin-actions-top,5px);right:auto;left:var(--admin-actions-left,5px);display:grid;width:max-content;min-width:150px;max-width:calc(100vw - 20px);box-sizing:border-box;gap:3px;padding:5px;border:1px solid #d9d3ff;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16)}
 .admin-actions-popover button{display:flex;align-items:center;gap:7px;width:100%;padding:8px 9px;border:0;border-radius:7px;color:#526078;background:transparent;font:inherit;font-size:11px;font-weight:800;text-align:right;cursor:pointer}
 .admin-actions-popover button:hover{background:#f4f1ff;color:#6241df}
 .admin-actions-popover .lead-actions-menu__delete{color:#c33f5d}
