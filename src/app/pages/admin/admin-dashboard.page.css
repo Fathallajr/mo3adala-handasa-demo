@@ -196,6 +196,7 @@ tbody tr:hover { background:#faf9ff; }
 .lead-actions-menu__panel .lead-actions-menu__delete { color:#c33f5d; }
 .lead-actions-menu__panel .lead-actions-menu__delete:hover { background:#fff0f3; color:#b33b57; }
 .lead-actions-menu__panel--wheel { top:var(--wheel-actions-top,5px); left:var(--wheel-actions-left,5px); }
+.lead-actions-menu__panel--global { position:fixed !important; z-index:10000; isolation:isolate; }
 .note-lead-btn { display:inline-flex; align-items:center; gap:4px; min-height:30px; margin-inline-end:5px; padding:5px 8px; border:1px solid #cfc5ff; border-radius:8px; color:#6241df; background:#f4f1ff; font:inherit; font-size:10px; font-weight:800; cursor:pointer; }
 .note-lead-btn:hover { background:#e9e3ff; }
 .note-dialog__icon { color:#6241df; background:#f0edff; }

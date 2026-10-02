@@ -174,6 +174,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	leadPendingReadNote: Lead | null = null;
 	leadPendingView: Lead | null = null;
 	openLeadActionMenuId: string | null = null;
+	get openLeadAction(): Lead | null { return this.leads.find(lead => lead.id === this.openLeadActionMenuId) || null; }
 	leadNoteDraft = '';
 	wheelPendingDeletion: WheelClaim | null = null;
 	wheelPendingNote: WheelClaim | null = null;
@@ -181,6 +182,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	wheelPendingView: WheelClaim | null = null;
 	wheelNoteDraft = '';
 	openWheelActionMenuId: string | null = null;
+	get openWheelAction(): WheelClaim | null { return this.wheelClaims.find(claim => claim.token === this.openWheelActionMenuId) || null; }
 	pageSummaries: Record<string, { hasContent: boolean; updatedAt?: string }> = {};
 	private pendingCmsNavigation = false;
 	private leadsRequestId = 0;
@@ -512,13 +514,13 @@ export class AdminDashboardPageComponent implements OnInit {
 	toggleLeadActionMenu(lead: Lead, event?: MouseEvent): void {
 		const shouldOpen = this.openLeadActionMenuId !== lead.id;
 		this.openLeadActionMenuId = shouldOpen ? lead.id : null;
-		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--lead-actions-top', '--lead-actions-left', 140, 125, '.lead-actions-menu__panel');
+		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--lead-actions-top', '--lead-actions-left', 140, 125, '.lead-actions-menu__panel--global');
 		this.refreshView();
 	}
 	toggleWheelActionMenu(claim: WheelClaim, event?: MouseEvent): void {
 		const shouldOpen = this.openWheelActionMenuId !== claim.token;
 		this.openWheelActionMenuId = shouldOpen ? claim.token : null;
-		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--wheel-actions-top', '--wheel-actions-left', 140, 125, '.lead-actions-menu__panel');
+		if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--wheel-actions-top', '--wheel-actions-left', 140, 125, '.lead-actions-menu__panel--global');
 		this.refreshView();
 	}
 	private positionActionMenu(trigger: HTMLElement | null, topVariable: string, leftVariable: string, preferredWidth: number, preferredHeight: number, menuSelector: string): void {
