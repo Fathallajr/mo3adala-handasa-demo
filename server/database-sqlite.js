@@ -214,6 +214,7 @@ function updateAdminUser(username, changes) {
 	const fields = [];
 	const values = [];
 	if (changes.passwordHash) { fields.push('password_hash = ?', 'password_salt = ?'); values.push(changes.passwordHash, changes.passwordSalt); }
+	if (changes.role) { fields.push('role = ?'); values.push(changes.role); }
 	if (changes.permissions) { fields.push('permissions = ?'); values.push(JSON.stringify(changes.permissions)); }
 	if (changes.isActive !== undefined) { fields.push('is_active = ?'); values.push(changes.isActive ? 1 : 0); }
 	if (changes.updatedAt) { fields.push('updated_at = ?'); values.push(changes.updatedAt); }

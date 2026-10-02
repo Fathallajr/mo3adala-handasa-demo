@@ -93,13 +93,14 @@ export class AdminDashboardPageComponent implements OnInit {
 	isLoadingOverview = false;
 	private feedbackLoaded = false;
 	adminUsers: AdminUser[] = [];
-	adminUserDraft = { username: '', password: '', permissions: [] as string[] };
+	adminUserDraft = { username: '', password: '', role: 'editor', permissions: [] as string[] };
 	isAdminUserCreateOpen = false;
 	showAdminUserPassword = false;
 	adminUserFormError = '';
 	adminUserPasswordDraft: Record<string, string> = {};
 	adminUserPasswordVisibility: Record<string, boolean> = {};
 	adminUserPermissionDraft: Record<string, string[]> = {};
+	adminUserRoleDraft: Record<string, string> = {};
 	adminPermissionEdit: Record<string, boolean> = {};
 	isLoadingAdminUsers = false;
 	isLoadingPrograms = false;
@@ -111,7 +112,8 @@ export class AdminDashboardPageComponent implements OnInit {
 	private wheelClaimsLoaded = false;
 	private adminUsersLoaded = false;
 	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
-	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }];
+	readonly adminFeatureOptions = [{ key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }];
+	readonly adminRoleOptions = [{ key: 'editor', title: 'محرر' }, { key: 'leads', title: 'الليدز' }];
 	wheelSearch = '';
 	wheelGift = '';
 	wheelProgram = '';
@@ -292,7 +294,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	loadAdminUsers(force = false): void {
 		if (this.isLoadingAdminUsers || (this.adminUsersLoaded && !force)) return;
 		this.isLoadingAdminUsers = true;
-		this.adminApi.listAdminUsers().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingAdminUsers = false; this.refreshView(); })).subscribe({ next: result => { this.adminUsers = result.data; this.adminUserPermissionDraft = Object.fromEntries(result.data.map(user => [user.username, [...user.permissions]])); this.adminUsersLoaded = true; this.refreshView(); }, error: err => { this.handleApiError(err); this.refreshView(); } });
+		this.adminApi.listAdminUsers().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingAdminUsers = false; this.refreshView(); })).subscribe({ next: result => { this.adminUsers = result.data.map(user => ({ ...user, role: user.role === 'leads' || user.permissions.includes('leads') ? 'leads' : 'editor', permissions: user.permissions.filter(permission => permission !== 'leads') })); this.adminUserPermissionDraft = Object.fromEntries(this.adminUsers.map(user => [user.username, [...user.permissions]])); this.adminUserRoleDraft = Object.fromEntries(this.adminUsers.map(user => [user.username, user.role])); this.adminUsersLoaded = true; this.refreshView(); }, error: err => { this.handleApiError(err); this.refreshView(); } });
 	}
 	createAdminUser(): void {
 		const username = this.adminUserDraft.username.trim();
@@ -300,10 +302,10 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.adminUserFormError = '';
 		if (!/^[a-zA-Z0-9][a-zA-Z0-9._@+-]{2,79}$/.test(username)) { this.adminUserFormError = 'اسم المستخدم يجب أن يبدأ بحرف أو رقم، ومن 3 إلى 80 حرفاً، بدون مسافات.'; return; }
 		if (password.length < 10) { this.adminUserFormError = 'كلمة المرور يجب أن تكون 10 أحرف على الأقل.'; return; }
-		this.adminApi.createAdminUser({ ...this.adminUserDraft, username }).subscribe({ next: user => { this.adminUsers = [user, ...this.adminUsers]; this.adminUserDraft = { username: '', password: '', permissions: [] }; this.showAdminUserPassword = false; this.isAdminUserCreateOpen = false; this.statusMessage = 'تم إنشاء الحساب بدون تخزين كلمة المرور كنص مكشوف.'; }, error: err => this.handleApiError(err) });
+		this.adminApi.createAdminUser({ ...this.adminUserDraft, username }).subscribe({ next: user => { this.adminUsers = [user, ...this.adminUsers]; this.adminUserDraft = { username: '', password: '', role: 'editor', permissions: [] }; this.showAdminUserPassword = false; this.isAdminUserCreateOpen = false; this.statusMessage = 'تم إنشاء الحساب بدون تخزين كلمة المرور كنص مكشوف.'; }, error: err => this.handleApiError(err) });
 	}
-	openAdminUserCreate(): void { this.adminUserDraft = { username: '', password: '', permissions: [] }; this.adminUserFormError = ''; this.showAdminUserPassword = false; this.isAdminUserCreateOpen = true; this.refreshView(); }
-	closeAdminUserCreate(): void { this.isAdminUserCreateOpen = false; this.adminUserDraft = { username: '', password: '', permissions: [] }; this.adminUserFormError = ''; this.showAdminUserPassword = false; this.refreshView(); }
+	openAdminUserCreate(): void { this.adminUserDraft = { username: '', password: '', role: 'editor', permissions: [] }; this.adminUserFormError = ''; this.showAdminUserPassword = false; this.isAdminUserCreateOpen = true; this.refreshView(); }
+	closeAdminUserCreate(): void { this.isAdminUserCreateOpen = false; this.adminUserDraft = { username: '', password: '', role: 'editor', permissions: [] }; this.adminUserFormError = ''; this.showAdminUserPassword = false; this.refreshView(); }
 	toggleAdminPermission(target: string[] | null, pageKey: string): void { if (!target) return; const index = target.indexOf(pageKey); if (index >= 0) target.splice(index, 1); else target.push(pageKey); }
 	setAdminPassword(user: AdminUser): void {
 		const password = this.adminUserPasswordDraft[user.username] || '';
@@ -311,13 +313,13 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.adminApi.updateAdminUser(user.username, { password }).subscribe({ next: () => { this.adminUserPasswordDraft[user.username] = ''; this.statusMessage = 'تم تغيير كلمة المرور.'; }, error: err => this.handleApiError(err) });
 	}
 	saveAdminPermissions(user: AdminUser): void {
-		this.adminApi.updateAdminUser(user.username, { permissions: this.adminUserPermissionDraft[user.username] || user.permissions }).subscribe({ next: updated => { user.permissions = updated.permissions; this.adminPermissionEdit[user.username] = false; this.statusMessage = 'تم تحديث الصفحات المسموحة.'; }, error: err => this.handleApiError(err) });
+		this.adminApi.updateAdminUser(user.username, { role: this.adminUserRoleDraft[user.username] || user.role, permissions: (this.adminUserPermissionDraft[user.username] || user.permissions).filter(permission => permission !== 'leads') }).subscribe({ next: updated => { user.role = updated.role; user.permissions = updated.permissions; this.adminPermissionEdit[user.username] = false; this.statusMessage = 'تم تحديث الدور والصفحات المسموحة.'; }, error: err => this.handleApiError(err) });
 	}
 	toggleAdminPermissionEdit(username: string): void { this.adminPermissionEdit[username] = !this.adminPermissionEdit[username]; }
-	cancelAdminPermissionEdit(user: AdminUser): void { this.adminUserPermissionDraft[user.username] = [...user.permissions]; this.adminPermissionEdit[user.username] = false; }
+	cancelAdminPermissionEdit(user: AdminUser): void { this.adminUserPermissionDraft[user.username] = [...user.permissions]; this.adminUserRoleDraft[user.username] = user.role; this.adminPermissionEdit[user.username] = false; }
 	getAdminPermissionLabels(user: AdminUser): string[] {
 		const keys = this.adminUserPermissionDraft[user.username] || user.permissions;
-		return [...this.adminFeatureOptions.map(item => ({ key: item.key, title: item.title })), ...this.adminPageOptions.map(item => ({ key: item.key, title: item.title }))].filter(item => keys.includes(item.key)).map(item => item.title);
+		return [...(user.role === 'leads' ? ['الليدز'] : []), ...this.adminFeatureOptions.map(item => ({ key: item.key, title: item.title })), ...this.adminPageOptions.map(item => ({ key: item.key, title: item.title }))].filter(item => typeof item === 'string' || keys.includes(item.key)).map(item => typeof item === 'string' ? item : item.title);
 	}
 	removeAdminUser(user: AdminUser): void {
 		if (!window.confirm(`حذف حساب ${user.username}؟`)) return;

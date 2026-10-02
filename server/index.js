@@ -822,8 +822,13 @@ app.patch('/api/admin/feedback/:id', requireAdmin, requirePermission('feedback:u
 
 function normalizeUserPermissions(value) {
 	if (!Array.isArray(value)) return [];
-	const allowed = new Set([...PAGE_KEYS, 'leads', 'wheel', 'feedback']);
+	const allowed = new Set([...PAGE_KEYS, 'wheel', 'feedback']);
 	return [...new Set(value.map(item => String(item || '').trim()).filter(item => allowed.has(item)))];
+}
+
+function normalizeAdminRole(value) {
+	const role = String(value || '').trim().toLowerCase();
+	return role === 'leads' ? 'leads' : 'editor';
 }
 
 app.get('/api/admin/users', requireAdmin, requireFullAdmin, async (_req, res) => {
@@ -833,14 +838,15 @@ app.get('/api/admin/users', requireAdmin, requireFullAdmin, async (_req, res) =>
 app.post('/api/admin/users', requireAdmin, requireFullAdmin, async (req, res, next) => {
 	const username = String(req.body?.username || '').trim();
 	const password = String(req.body?.password || '');
+	const role = normalizeAdminRole(req.body?.role);
 	const permissions = normalizeUserPermissions(req.body?.permissions);
 	if (!/^[a-zA-Z0-9][a-zA-Z0-9._@+-]{2,79}$/.test(username)) return res.status(400).json({ message: 'اسم المستخدم يجب أن يبدأ بحرف أو رقم، ومن 3 إلى 80 حرفاً، بدون مسافات.' });
 	if (password.length < 10 || password.length > 200) return res.status(400).json({ message: 'كلمة المرور يجب ألا تقل عن 10 أحرف.' });
 	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(409).json({ message: 'اسم المستخدم محجوز.' });
 	try {
 		const { salt, hash } = hashAdminPassword(password);
-		await database.createAdminUser({ username, passwordHash: hash, passwordSalt: salt, role: 'editor', permissions, createdAt: getNowIso() });
-		res.status(201).json({ username, role: 'editor', permissions });
+		await database.createAdminUser({ username, passwordHash: hash, passwordSalt: salt, role, permissions, createdAt: getNowIso() });
+		res.status(201).json({ username, role, permissions });
 	} catch (error) {
 		if (String(error.message || '').toLowerCase().includes('unique')) return res.status(409).json({ message: 'اسم المستخدم مستخدم بالفعل.' });
 		next(error);
@@ -853,6 +859,7 @@ app.patch('/api/admin/users/:username', requireAdmin, requireFullAdmin, async (r
 	const user = await database.findAdminUser(username);
 	if (!user) return res.status(404).json({ message: 'الحساب غير موجود.' });
 	const changes = { updatedAt: getNowIso() };
+	if (req.body?.role !== undefined) changes.role = normalizeAdminRole(req.body.role);
 	if (req.body?.permissions !== undefined) changes.permissions = normalizeUserPermissions(req.body.permissions);
 	if (req.body?.isActive !== undefined) changes.isActive = Boolean(req.body.isActive);
 	if (req.body?.password !== undefined) {
@@ -865,7 +872,7 @@ app.patch('/api/admin/users/:username', requireAdmin, requireFullAdmin, async (r
 	try {
 		await database.updateAdminUser(username, changes);
 		if (changes.passwordHash || changes.isActive === false) await database.deleteAdminSessionsForUsername(username);
-		res.json({ username, role: user.role, permissions: changes.permissions || user.permissions, isActive: changes.isActive ?? user.isActive });
+		res.json({ username, role: changes.role || user.role, permissions: changes.permissions || user.permissions, isActive: changes.isActive ?? user.isActive });
 	} catch (error) { next(error); }
 });
 

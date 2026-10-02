@@ -55,8 +55,8 @@ export class AdminApiService {
 	}
 	updateFeedback(id: string, status: Feedback['status']): Observable<Feedback> { return this.http.patch<Feedback>(`${this.base}/admin/feedback/${id}`, { status }); }
 	listAdminUsers(): Observable<{ data: AdminUser[] }> { return this.http.get<{ data: AdminUser[] }>(`${this.base}/admin/users`); }
-	createAdminUser(payload: { username: string; password: string; permissions: string[] }): Observable<AdminUser> { return this.http.post<AdminUser>(`${this.base}/admin/users`, payload); }
-	updateAdminUser(username: string, payload: { password?: string; permissions?: string[]; isActive?: boolean }): Observable<AdminUser> { return this.http.patch<AdminUser>(`${this.base}/admin/users/${encodeURIComponent(username)}`, payload); }
+	createAdminUser(payload: { username: string; password: string; role: string; permissions: string[] }): Observable<AdminUser> { return this.http.post<AdminUser>(`${this.base}/admin/users`, payload); }
+	updateAdminUser(username: string, payload: { password?: string; role?: string; permissions?: string[]; isActive?: boolean }): Observable<AdminUser> { return this.http.patch<AdminUser>(`${this.base}/admin/users/${encodeURIComponent(username)}`, payload); }
 	deleteAdminUser(username: string): Observable<void> { return this.http.delete<void>(`${this.base}/admin/users/${encodeURIComponent(username)}`); }
 	listPrograms(): Observable<{ data: Program[] }> { return this.http.get<{ data: Program[] }>(`${this.base}/admin/programs`); }
 	createProgram(payload: Partial<Program>): Observable<Program> { return this.http.post<Program>(`${this.base}/admin/programs`, payload); }
