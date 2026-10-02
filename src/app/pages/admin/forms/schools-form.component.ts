@@ -19,7 +19,7 @@ interface SchoolItem {
 		.schools-table-filters{display:grid;grid-template-columns:2fr repeat(3,1fr) auto;gap:.6rem;margin:0 0 1rem;padding:.75rem;border:1px solid #e6eaf1;border-radius:11px;background:#f8faff}.schools-table-filters .cms-field{margin:0}.schools-table-filters .cms-label{font-size:.72rem}.schools-table-filters__clear{align-self:end;min-height:38px;padding:.45rem .8rem;border:1px solid #d9d3ff;border-radius:8px;color:#6241df;background:#f4f1ff;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}@media(max-width:900px){.schools-table-filters{grid-template-columns:1fr 1fr}}@media(max-width:520px){.schools-table-filters{grid-template-columns:1fr}}
 		.schools-actions-cell{position:relative;white-space:nowrap}.school-actions-trigger{width:32px;height:30px;border:1px solid #cfc5ff;border-radius:8px;color:#6241df;background:#f4f1ff;font-size:20px;line-height:1;cursor:pointer}.school-actions-menu{position:absolute;z-index:5;top:calc(100% + 4px);right:0;display:grid;min-width:100px;padding:4px;border:1px solid #e2e5ee;border-radius:9px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16)}.school-actions-menu button{padding:8px;border:0;border-radius:6px;background:transparent;color:#526078;font:inherit;font-size:11px;font-weight:800;text-align:right;cursor:pointer}.school-actions-menu button:hover{background:#f4f1ff;color:#6241df}.school-actions-menu button:last-child{color:#c33f5d}.school-modal-backdrop{position:fixed;z-index:40;inset:0;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.45)}.school-modal{width:min(520px,100%);max-height:90vh;overflow:auto;padding:22px;border:1px solid #e2e5ee;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.28)}.school-modal-close{border:0;background:transparent;color:#64748b;font-size:25px;cursor:pointer}.school-modal-actions{display:flex;justify-content:flex-start;gap:8px;margin-top:15px}.school-delete-modal p{color:#526078;line-height:1.8}
 		.schools-table-section{position:relative}.school-actions-popover{position:absolute;z-index:20;top:7.5rem;left:1rem;display:flex;align-items:center;gap:7px;padding:7px 9px;border:1px solid #d9d3ff;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16);font-size:11px}.school-actions-popover button{padding:7px 9px;border:0;border-radius:7px;color:#6241df;background:#f4f1ff;font:inherit;font-weight:800;cursor:pointer}.school-actions-popover__delete{color:#c33f5d!important;background:#fff0f3!important}
-		.school-actions-popover{top:var(--school-actions-top,1.5rem);right:auto;left:var(--school-actions-left,1rem);display:grid;min-width:120px;padding:5px;gap:3px}.school-actions-popover button{text-align:right}.school-actions-popover::before{content:none}
+		.school-actions-popover{position:fixed;z-index:1000;top:var(--school-actions-top,1.5rem);right:auto;left:var(--school-actions-left,1rem);display:grid;min-width:120px;padding:5px;gap:3px}.school-actions-popover button{text-align:right}.school-actions-popover::before{content:none}
 		@media(max-width:700px){.school-card__fields{grid-template-columns:1fr}}
 	`],
 	template: `
@@ -134,12 +134,14 @@ export class SchoolsFormComponent implements OnChanges {
 		const section = trigger?.closest('.schools-table-section') as HTMLElement | null;
 		if (!trigger || !section) return;
 		const triggerRect = trigger.getBoundingClientRect();
-		const sectionRect = section.getBoundingClientRect();
 		const menuHeight = 82;
+		const menuWidth = 130;
 		const opensAbove = triggerRect.bottom + menuHeight > window.innerHeight - 12;
-		const top = opensAbove ? triggerRect.top - sectionRect.top - menuHeight - 5 : triggerRect.bottom - sectionRect.top + 5;
+		const top = opensAbove ? triggerRect.top - menuHeight - 5 : triggerRect.bottom + 5;
+		const opensLeft = triggerRect.right + menuWidth > window.innerWidth - 12;
+		const left = opensLeft ? triggerRect.left - menuWidth - 5 : triggerRect.right + 5;
 		section.style.setProperty('--school-actions-top', `${Math.max(5, top)}px`);
-		section.style.setProperty('--school-actions-left', `${triggerRect.right - sectionRect.left + 5}px`);
+		section.style.setProperty('--school-actions-left', `${Math.max(5, left)}px`);
 	}
 	startEdit(item: SchoolItem): void { this.openItemActionId = null; this.editingItem = item; this.editDraft = { ...item, programs: [...item.programs] }; }
 	cancelEdit(): void { this.editingItem = null; this.editDraft = null; }
