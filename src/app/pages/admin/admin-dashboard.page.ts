@@ -217,7 +217,9 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.pendingCmsNavigation = false;
 			} else {
 			if (this.auth.getRole() === 'admin') {
-				this.activeView = this.resolveDataView(this.route.snapshot.queryParamMap.get('view')) || 'leads';
+				const requestedView = this.resolveDataView(this.route.snapshot.queryParamMap.get('view'));
+				const hasCmsRoute = !!this.route.snapshot.paramMap.get('pageKey');
+				this.activeView = requestedView || (hasCmsRoute ? 'cms' : 'leads');
 				// Load only the visible section. Loading every admin section at once
 				// exhausts the production database connection pool and makes one of
 				// the otherwise unrelated requests fail intermittently.
