@@ -344,12 +344,14 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.openAdminActionUser = shouldOpen ? username : null;
 		if (!shouldOpen) return;
 		const trigger = event?.currentTarget as HTMLElement | null;
-		const section = trigger?.closest('.admin-users-view') as HTMLElement | null;
-		if (!trigger || !section) return;
+		if (!trigger) return;
 		const triggerRect = trigger.getBoundingClientRect();
-		const sectionRect = section.getBoundingClientRect();
-		section.style.setProperty('--admin-actions-top', `${triggerRect.bottom - sectionRect.top + 5}px`);
-		section.style.setProperty('--admin-actions-left', `${triggerRect.right - sectionRect.left + 5}px`);
+		const menuWidth = 170;
+		const menuHeight = 145;
+		const top = triggerRect.bottom + menuHeight > window.innerHeight - 12 ? triggerRect.top - menuHeight - 5 : triggerRect.bottom + 5;
+		const left = triggerRect.right + menuWidth > window.innerWidth - 12 ? triggerRect.left - menuWidth - 5 : triggerRect.right + 5;
+		document.documentElement.style.setProperty('--admin-actions-top', `${Math.max(5, top)}px`);
+		document.documentElement.style.setProperty('--admin-actions-left', `${Math.max(5, left)}px`);
 	}
 	loadFeedback(force = false): void {
 		if ((this.isLoadingFeedback && !force) || (this.feedbackLoaded && !force)) return;
@@ -493,8 +495,29 @@ export class AdminDashboardPageComponent implements OnInit {
 	closeLeadReadNote(): void { this.leadPendingReadNote = null; this.refreshView(); }
 	openLeadView(lead: Lead): void { this.openLeadActionMenuId = null; this.leadPendingView = lead; this.refreshView(); }
 	closeLeadView(): void { this.leadPendingView = null; this.refreshView(); }
-	toggleLeadActionMenu(lead: Lead): void { this.openLeadActionMenuId = this.openLeadActionMenuId === lead.id ? null : lead.id; this.refreshView(); }
-	toggleWheelActionMenu(claim: WheelClaim): void { this.openWheelActionMenuId = this.openWheelActionMenuId === claim.token ? null : claim.token; this.refreshView(); }
+	toggleLeadActionMenu(lead: Lead, event?: MouseEvent): void {
+		const shouldOpen = this.openLeadActionMenuId !== lead.id;
+		this.openLeadActionMenuId = shouldOpen ? lead.id : null;
+		if (shouldOpen) this.positionActionMenu(event, '--lead-actions-top', '--lead-actions-left');
+		this.refreshView();
+	}
+	toggleWheelActionMenu(claim: WheelClaim, event?: MouseEvent): void {
+		const shouldOpen = this.openWheelActionMenuId !== claim.token;
+		this.openWheelActionMenuId = shouldOpen ? claim.token : null;
+		if (shouldOpen) this.positionActionMenu(event, '--wheel-actions-top', '--wheel-actions-left');
+		this.refreshView();
+	}
+	private positionActionMenu(event: MouseEvent | undefined, topVariable: string, leftVariable: string): void {
+		const trigger = event?.currentTarget as HTMLElement | null;
+		if (!trigger) return;
+		const rect = trigger.getBoundingClientRect();
+		const menuWidth = 140;
+		const menuHeight = 125;
+		const top = rect.bottom + menuHeight > window.innerHeight - 12 ? rect.top - menuHeight - 5 : rect.bottom + 5;
+		const left = rect.right + menuWidth > window.innerWidth - 12 ? rect.left - menuWidth - 5 : rect.right + 5;
+		document.documentElement.style.setProperty(topVariable, `${Math.max(5, top)}px`);
+		document.documentElement.style.setProperty(leftVariable, `${Math.max(5, left)}px`);
+	}
 	openWheelNote(claim: WheelClaim): void { this.openWheelActionMenuId = null; this.wheelPendingNote = claim; this.wheelNoteDraft = claim.notes || ''; this.refreshView(); }
 	closeWheelNote(): void { this.wheelPendingNote = null; this.refreshView(); }
 	openWheelReadNote(claim: WheelClaim): void { this.openWheelActionMenuId = null; this.wheelPendingReadNote = claim; this.refreshView(); }
