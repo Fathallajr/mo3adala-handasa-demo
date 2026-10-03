@@ -97,6 +97,8 @@ export class SchoolsFormComponent implements OnChanges {
 	editingItem: SchoolItem | null = null;
 	editDraft: SchoolItem | null = null;
 	pendingDeleteItem: SchoolItem | null = null;
+	private schoolsSaveInFlight = false;
+	private schoolsSaveQueued = false;
 	tableSearch = '';
 	tableType = '';
 	tableProgram = '';
@@ -212,7 +214,26 @@ export class SchoolsFormComponent implements OnChanges {
 	schoolNamePreview(item: SchoolItem): string { const words = String(item.name || '').trim().split(/\s+/).filter(Boolean); return this.expandedSchoolNames.has(item.id) || words.length <= 5 ? words.join(' ') : `${words.slice(0, 5).join(' ')}…`; }
 	schoolNameToggleLabel(item: SchoolItem): string { return this.expandedSchoolNames.has(item.id) ? 'عرض أقل' : 'عرض المزيد'; }
 	toggleSchoolName(item: SchoolItem): void { if (this.expandedSchoolNames.has(item.id)) this.expandedSchoolNames.delete(item.id); else this.expandedSchoolNames.add(item.id); }
-	private persistSchoolsChanges(): void { if (!this.content) return; this.cms.savePageState('schools', this.content).subscribe({ next: saved => { Object.assign(this.content, saved); this.errorMessage = ''; }, error: err => { this.errorMessage = err?.error?.message || 'تعذر حفظ المدارس على السيرفر. اضغط حفظ على السيرفر وحاول مرة أخرى.'; } }); }
+	private persistSchoolsChanges(): void {
+		if (!this.content) return;
+		if (this.schoolsSaveInFlight) {
+			this.schoolsSaveQueued = true;
+			return;
+		}
+		this.schoolsSaveInFlight = true;
+		this.cms.savePageState('schools', this.content).subscribe({
+			next: saved => { Object.assign(this.content, saved); this.errorMessage = ''; },
+			error: err => { this.errorMessage = err?.error?.message || 'تعذر حفظ المدارس على السيرفر. اضغط حفظ على السيرفر وحاول مرة أخرى.'; this.finishSchoolsSave(); },
+			complete: () => this.finishSchoolsSave()
+		});
+	}
+	private finishSchoolsSave(): void {
+		this.schoolsSaveInFlight = false;
+		if (this.schoolsSaveQueued) {
+			this.schoolsSaveQueued = false;
+			this.persistSchoolsChanges();
+		}
+	}
 	programSelection(item: SchoolItem): 'engineering' | 'computers' | 'both' { return item.programs.includes('engineering') && item.programs.includes('computers') ? 'both' : item.programs.includes('computers') ? 'computers' : 'engineering'; }
 	setProgram(item: SchoolItem, value: 'engineering' | 'computers' | 'both'): void { item.programs = this.programsFromSelection(value); }
 
