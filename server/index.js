@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const multer = require('multer');
 const compression = require('compression');
 const swaggerUi = require('swagger-ui-express');
+const XLSX = require('xlsx');
 const database = require('./database');
 
 const app = express();
@@ -338,6 +339,7 @@ function requirePermission(permission) {
 	return (req, res, next) => {
 		const groupedReadWritePermissions = {
 			leads: new Set(['leads:read', 'leads:update']),
+			customers: new Set(['customers:read', 'customers:update']),
 			feedback: new Set(['feedback:read', 'feedback:update']),
 			wheel: new Set(['wheel:read'])
 		};
@@ -407,6 +409,8 @@ app.use(async (req, res, next) => {
 		next();
 	}
 });
+const excelUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const pendingCustomerImports = new Map();
 
 function addAuditLog(store, action, entity, entityId, req) {
 	store.auditLogs.unshift({
@@ -807,6 +811,103 @@ app.patch('/api/admin/leads/:id', requireAdmin, requirePermission('leads:update'
 app.delete('/api/admin/leads/:id', requireAdmin, requirePermission('leads:delete'), async (req, res) => {
 	const deleted = await database.deleteLead(req.params.id);
 	if (!deleted) return res.status(404).json({ message: 'Lead not found' });
+	res.status(204).send();
+});
+
+const CUSTOMER_STATUSES = LEAD_STATUSES;
+function parseCustomerWorkbook(buffer) {
+	const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: false });
+	const sheet = workbook.Sheets[workbook.SheetNames[0]];
+	const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+	const parsed = rows.map(row => {
+		const values = Object.fromEntries(Object.entries(row).map(([key, value]) => [String(key).trim().toLowerCase(), value]));
+		const name = String(values['الاسم'] ?? values['name'] ?? values['اسم العميل'] ?? '').trim();
+		let phone = normalizePhone(values['رقم الهاتف'] ?? values['الهاتف'] ?? values['phone'] ?? values['whatsapp'] ?? values['رقم التليفون'] ?? '');
+		if (phone.length === 10 && phone.startsWith('1')) phone = `0${phone}`;
+		return { name, phone };
+	});
+	return parsed;
+}
+function normalizeCustomerRow(row) {
+	const values = Object.fromEntries(Object.entries(row).map(([key, value]) => [String(key).trim().toLowerCase(), value]));
+	const name = String(values['الاسم'] ?? values['name'] ?? values['اسم العميل'] ?? '').trim();
+	let phone = normalizePhone(values['رقم الهاتف'] ?? values['الهاتف'] ?? values['phone'] ?? values['whatsapp'] ?? values['رقم التليفون'] ?? '');
+	if (phone.length === 10 && phone.startsWith('1')) phone = `0${phone}`;
+	return { name, phone };
+}
+function filterCustomers(items, req) {
+	const search = String(req.query.search || '').trim().toLowerCase();
+	const status = String(req.query.status || '').trim();
+	let result = items;
+	if (status && CUSTOMER_STATUSES.includes(status)) result = result.filter(item => item.status === status);
+	if (search) result = result.filter(item => [item.name, item.phone, item.notes].some(value => String(value || '').toLowerCase().includes(search)));
+	return result;
+}
+
+app.get('/api/admin/customers', requireAdmin, requirePermission('customers:read'), async (req, res) => {
+	const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+	const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
+	const customers = filterCustomers(await database.listCustomers(), req);
+	res.json({ data: customers.slice((page - 1) * limit, page * limit), pagination: { page, limit, total: customers.length, pages: Math.ceil(customers.length / limit) || 1 } });
+});
+
+app.get('/api/admin/customers/export', requireAdmin, requirePermission('customers:export'), async (req, res) => {
+	const customers = filterCustomers(await database.listCustomers(), req);
+	const escapeCsv = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+	const rows = [['اسم العميل', 'رقم الهاتف', 'الحالة', 'الملاحظات', 'تاريخ الإضافة'], ...customers.map(item => [item.name, `'${item.phone}`, LEAD_STATUS_LABELS[item.status] || item.status, item.notes, item.createdAt])];
+	const csv = '\uFEFF' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n');
+	res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="customers.csv"' });
+	res.send(csv);
+});
+
+app.post('/api/admin/customers/import/preview', requireAdmin, requirePermission('customers:import'), excelUpload.single('file'), async (req, res, next) => {
+	try {
+		if (!req.file?.buffer) return res.status(400).json({ message: 'ارفع ملف Excel أولاً.' });
+		const rows = parseCustomerWorkbook(req.file.buffer);
+		if (!rows.length) return res.status(400).json({ message: 'الملف لا يحتوي على بيانات.' });
+		const existing = new Set((await database.listCustomers()).map(item => item.phone));
+		const seen = new Set(); let added = 0; let duplicate = 0; let invalid = 0; const validRows = [];
+		for (const customer of rows) { if (!/^\d{10,15}$/.test(customer.phone)) { invalid++; continue; } if (existing.has(customer.phone) || seen.has(customer.phone)) { duplicate++; continue; } seen.add(customer.phone); validRows.push(customer); added++; }
+		const importId = crypto.randomUUID(); pendingCustomerImports.set(importId, { rows: validRows, createdAt: Date.now() });
+		res.json({ importId, added, duplicate, invalid, total: rows.length });
+	} catch (error) { next(error); }
+});
+app.post('/api/admin/customers/import/confirm', requireAdmin, requirePermission('customers:import'), async (req, res, next) => {
+	try {
+		const pending = pendingCustomerImports.get(String(req.body?.importId || ''));
+		if (!pending || Date.now() - pending.createdAt > 10 * 60 * 1000) return res.status(400).json({ message: 'انتهت صلاحية معاينة الملف. ارفع الملف مرة أخرى.' });
+		pendingCustomerImports.delete(String(req.body.importId));
+		const existing = new Set((await database.listCustomers()).map(item => item.phone)); let added = 0; let duplicate = 0;
+		for (const customer of pending.rows) { if (existing.has(customer.phone)) { duplicate++; continue; } const now = getNowIso(); await database.createCustomer({ id: crypto.randomUUID(), name: customer.name, phone: customer.phone, status: 'new', notes: '', createdAt: now, updatedAt: null }); existing.add(customer.phone); added++; }
+		await database.createAuditLog({ id: crypto.randomUUID(), action: 'imported', entityType: 'customer', entityId: `batch:${crypto.randomUUID()}`, actor: req.adminUsername || '', ip: req.ip, createdAt: getNowIso() });
+		res.json({ added, duplicate, invalid: 0, total: pending.rows.length });
+	} catch (error) { next(error); }
+});
+
+app.get('/api/admin/customers/:id', requireAdmin, requirePermission('customers:read'), async (req, res) => {
+	const customer = await database.getCustomer(req.params.id);
+	if (!customer) return res.status(404).json({ message: 'Customer not found' });
+	res.json(customer);
+});
+app.patch('/api/admin/customers/:id', requireAdmin, requirePermission('customers:update'), async (req, res) => {
+	if (req.body?.status !== undefined && !CUSTOMER_STATUSES.includes(req.body.status)) return res.status(400).json({ message: 'Invalid customer status' });
+	if (req.body?.name !== undefined && String(req.body.name).trim().length > 160) return res.status(400).json({ message: 'Customer name is too long' });
+	if (req.body?.phone !== undefined && !/^\d{10,15}$/.test(String(req.body.phone).trim())) return res.status(400).json({ message: 'Invalid customer phone' });
+	if (req.body?.notes !== undefined && String(req.body.notes).length > 1000) return res.status(400).json({ message: 'Customer notes are too long' });
+	if (req.body?.phone !== undefined) {
+		const phone = String(req.body.phone).trim();
+		const duplicate = await database.findCustomerByPhone(phone);
+		if (duplicate && duplicate.id !== req.params.id) return res.status(409).json({ message: 'رقم الهاتف موجود بالفعل لعميل آخر.' });
+	}
+	const customer = await database.updateCustomer(req.params.id, { name: req.body?.name, phone: req.body?.phone, status: req.body?.status, notes: req.body?.notes, updatedAt: getNowIso() });
+	if (!customer) return res.status(404).json({ message: 'Customer not found' });
+	await database.createAuditLog({ id: crypto.randomUUID(), action: 'updated', entityType: 'customer', entityId: customer.id, actor: req.adminUsername || '', ip: req.ip, createdAt: getNowIso() });
+	res.json(customer);
+});
+app.delete('/api/admin/customers/:id', requireAdmin, requirePermission('customers:delete'), async (req, res) => {
+	const deleted = await database.deleteCustomer(req.params.id);
+	if (!deleted) return res.status(404).json({ message: 'Customer not found' });
+	await database.createAuditLog({ id: crypto.randomUUID(), action: 'deleted', entityType: 'customer', entityId: req.params.id, actor: req.adminUsername || '', ip: req.ip, createdAt: getNowIso() });
 	res.status(204).send();
 });
 
@@ -1315,7 +1416,10 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 
 if (fssync.existsSync(DIST_DIR)) {
 	app.use((req, res, next) => {
-		if (req.originalUrl.split('?')[0] === '/admin') return res.redirect(301, '/admin/');
+		if (req.path === '/admin') {
+			const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+			return res.redirect(301, `/admin/${query}`);
+		}
 		next();
 	});
 	app.use('/assets', (req, res, next) => {

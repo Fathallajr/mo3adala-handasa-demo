@@ -6,6 +6,7 @@ export interface Lead {
 	id: string; name: string; whatsapp: string; school?: string; studentType?: string;
 	program?: string; source?: string; attribution?: { platform?: string; campaign?: string; adSet?: string; ad?: string; medium?: string; content?: string; landingPage?: string; referrer?: string }; status: string; notes?: string; createdAt: string; updatedAt?: string;
 }
+export interface Customer { id: string; name: string; phone: string; status: string; notes?: string; createdAt: string; updatedAt?: string | null; }
 export interface DashboardSummary {
 	totalLeads: number; todayLeads: number; wheelClaimsCount: number;
 	byStatus: Record<string, number>; byProgram: Record<string, number>;
@@ -47,6 +48,15 @@ export class AdminApiService {
 	}
 	updateLead(id: string, payload: Partial<Lead>): Observable<Lead> { return this.http.patch<Lead>(`${this.base}/admin/leads/${id}`, payload); }
 	deleteLead(id: string): Observable<void> { return this.http.delete<void>(`${this.base}/admin/leads/${id}`); }
+	listCustomers(search = '', status = '', page = 1, limit = 20): Observable<{ data: Customer[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
+		let params = new HttpParams().set('page', page).set('limit', limit); if (search) params = params.set('search', search); if (status) params = params.set('status', status);
+		return this.http.get<{ data: Customer[]; pagination: { page: number; limit: number; total: number; pages: number } }>(`${this.base}/admin/customers`, { params });
+	}
+	exportCustomers(filters: { search?: string; status?: string } = {}): Observable<Blob> { let params = new HttpParams(); for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value); return this.http.get(`${this.base}/admin/customers/export`, { params, responseType: 'blob' }); }
+	previewCustomers(file: File): Observable<{ importId: string; added: number; duplicate: number; invalid: number; total: number }> { const form = new FormData(); form.append('file', file); return this.http.post<{ importId: string; added: number; duplicate: number; invalid: number; total: number }>(`${this.base}/admin/customers/import/preview`, form); }
+	confirmCustomers(importId: string): Observable<{ added: number; duplicate: number; invalid: number; total: number }> { return this.http.post<{ added: number; duplicate: number; invalid: number; total: number }>(`${this.base}/admin/customers/import/confirm`, { importId }); }
+	updateCustomer(id: string, payload: Partial<Customer>): Observable<Customer> { return this.http.patch<Customer>(`${this.base}/admin/customers/${id}`, payload); }
+	deleteCustomer(id: string): Observable<void> { return this.http.delete<void>(`${this.base}/admin/customers/${id}`); }
 	listFeedback(search = '', status = '', page = 1, limit = 20): Observable<{ data: Feedback[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
 		let params = new HttpParams().set('page', page).set('limit', limit);
 		if (search) params = params.set('search', search);

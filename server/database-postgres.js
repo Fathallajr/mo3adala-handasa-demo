@@ -18,6 +18,11 @@ function ensureSchema() {
 				student_type TEXT DEFAULT '', program TEXT DEFAULT '', source TEXT DEFAULT '', status TEXT NOT NULL,
 				notes TEXT DEFAULT '', attribution JSONB NOT NULL DEFAULT '{}'::jsonb, created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ
 			);
+			CREATE TABLE IF NOT EXISTS customers (
+				id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT NOT NULL UNIQUE,
+				status TEXT NOT NULL DEFAULT 'new', notes TEXT DEFAULT '',
+				created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ
+			);
 			CREATE TABLE IF NOT EXISTS programs (
 				id TEXT PRIMARY KEY, name TEXT NOT NULL, slug TEXT NOT NULL UNIQUE, category TEXT NOT NULL,
 				language TEXT NOT NULL, price NUMERIC NOT NULL DEFAULT 0, features JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -159,6 +164,17 @@ async function updateLead(id, changes) {
 	return result.rows[0] || null;
 }
 
+async function listCustomers() { await ensureSchema(); const result = await pool.query('SELECT id,name,phone,status,notes,created_at AS "createdAt",updated_at AS "updatedAt" FROM customers ORDER BY created_at DESC'); return result.rows; }
+async function getCustomer(id) { await ensureSchema(); const result = await pool.query('SELECT id,name,phone,status,notes,created_at AS "createdAt",updated_at AS "updatedAt" FROM customers WHERE id = $1', [id]); return result.rows[0] || null; }
+async function createCustomer(customer) { await ensureSchema(); await pool.query('INSERT INTO customers(id,name,phone,status,notes,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)', [customer.id, customer.name, customer.phone, customer.status || 'new', customer.notes || '', customer.createdAt, customer.updatedAt || null]); return customer; }
+async function updateCustomer(id, changes) {
+	await ensureSchema(); const fields = [], values = []; const add = (column, value) => { fields.push(`${column} = $${values.length + 1}`); values.push(value); };
+	if (changes.name !== undefined) add('name', String(changes.name || '').trim()); if (changes.phone !== undefined) add('phone', String(changes.phone || '').trim()); if (changes.status !== undefined) add('status', changes.status); if (changes.notes !== undefined) add('notes', String(changes.notes || '').trim()); if (changes.updatedAt !== undefined) add('updated_at', changes.updatedAt);
+	if (!fields.length) return getCustomer(id); values.push(id); const result = await pool.query(`UPDATE customers SET ${fields.join(', ')} WHERE id = $${values.length} RETURNING id,name,phone,status,notes,created_at AS "createdAt",updated_at AS "updatedAt"`, values); return result.rows[0] || null;
+}
+async function deleteCustomer(id) { await ensureSchema(); const result = await pool.query('DELETE FROM customers WHERE id = $1 RETURNING id', [id]); return result.rowCount > 0; }
+async function findCustomerByPhone(phone) { await ensureSchema(); const result = await pool.query('SELECT id FROM customers WHERE phone = $1', [phone]); return result.rows[0] || null; }
+
 async function createAuditLog(log) {
 	await ensureSchema();
 	await pool.query('INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)', [log.id, log.action || '', log.entityType || '', log.entityId || '', log.actor || '', log.ip || '', log.createdAt || new Date().toISOString()]);
@@ -235,4 +251,4 @@ async function deleteAdminSession(token) {
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, savePage, createLead, getLead, updateLead, createAuditLog, deleteLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, setMissingFeedbackBatch, listPublishedFeedback, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, savePage, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, setMissingFeedbackBatch, listPublishedFeedback, databaseFile: null, pool, ensureSchema };

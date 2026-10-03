@@ -8,7 +8,7 @@ import { CmsPageKey, cmsPageOptions } from '../../core/cms-page.registry';
 import { displayProgramLabel } from '../../core/program-labels';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
-import { AdminApiService, AdminUser, DashboardSummary, Feedback, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
+import { AdminApiService, AdminUser, Customer, DashboardSummary, Feedback, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
 import { SeoService } from '../../core/seo.service';
 import { ContactFormComponent } from './forms/contact-form.component';
 import { FaqFormComponent } from './forms/faq-form.component';
@@ -33,7 +33,7 @@ interface PageOption {
 	group: string;
 }
 
-type AdminDataView = 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins';
+type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins';
 type PaginationItem = number | '…';
 
 @Component({
@@ -62,7 +62,7 @@ type PaginationItem = number | '…';
 export class AdminDashboardPageComponent implements OnInit {
 	sidebarOpen = false;
 	sidebarCollapsed = false;
-	activeView: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms' = 'leads';
+	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,
 		todayLeads: 0,
@@ -73,6 +73,14 @@ export class AdminDashboardPageComponent implements OnInit {
 		recentActivity: []
 	};
 	leads: Lead[] = [];
+	customers: Customer[] = [];
+	customersPage = 1; customersPages = 1; customersTotal = 0; customerSearch = ''; customerStatus = ''; isLoadingCustomers = false; private customersLoaded = false;
+	readonly customerStatuses = ['new', 'batch_28', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
+	customerPendingDeletion: Customer | null = null; customerPendingView: Customer | null = null; customerPendingNote: Customer | null = null; customerPendingReadNote: Customer | null = null; customerPendingEdit: Customer | null = null; customerEditName = ''; customerEditPhone = ''; customerNoteDraft = ''; isSavingCustomerNote = false; isSavingCustomerEdit = false;
+	openCustomerActionMenuId: string | null = null;
+	get openCustomerAction(): Customer | null { return this.customers.find(customer => customer.id === this.openCustomerActionMenuId) || null; }
+	customerImportPreview: { importId: string; added: number; duplicate: number; invalid: number; total: number } | null = null;
+	customerImportInstructionsOpen = false;
 	programs: Program[] = [];
 	wheelClaims: WheelClaim[] = [];
 	wheelPage = 1;
@@ -115,7 +123,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	private wheelClaimsLoaded = false;
 	private adminUsersLoaded = false;
 	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
-	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }];
+	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'customers:import', title: 'العملاء: استيراد Excel' }, { key: 'customers:export', title: 'العملاء: تصدير Excel' }, { key: 'customers:delete', title: 'العملاء: حذف' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }];
 	wheelSearch = '';
 	wheelGift = '';
 	wheelProgram = '';
@@ -251,6 +259,7 @@ export class AdminDashboardPageComponent implements OnInit {
 				// the otherwise unrelated requests fail intermittently.
 				if (this.activeView === 'overview') this.loadOverview();
 				if (this.activeView === 'leads') this.loadLeads();
+				if (this.activeView === 'customers') this.loadCustomers();
 				if (this.activeView === 'feedback') this.loadFeedback();
 				if (this.activeView === 'programs') this.loadPrograms();
 				if (this.activeView === 'wheel') this.loadWheelClaims();
@@ -258,12 +267,14 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.loadSiteMode();
 				} else if (canOpenCmsPage) {
 					this.activeView = 'cms';
-				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback')) {
+				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
+					const canLoadCustomers = this.auth.canAccessFeature('customers');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
 					const canLoadFeedback = this.auth.canAccessFeature('feedback');
-					this.activeView = canLoadLeads ? 'leads' : canLoadWheel ? 'wheel' : 'feedback';
+					this.activeView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : 'feedback';
 					if (canLoadLeads) this.loadLeads();
+					if (canLoadCustomers) this.loadCustomers();
 					if (canLoadWheel) this.loadWheelClaims();
 					if (canLoadFeedback) this.loadFeedback();
 				} else {
@@ -293,11 +304,12 @@ export class AdminDashboardPageComponent implements OnInit {
 		});
 	}
 
-	setView(view: 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms'): void {
+	setView(view: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms'): void {
 		this.closeActionMenus();
 		this.statusMessage = '';
 		this.errorMessage = '';
 		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
+		if (view === 'customers' && !this.auth.canAccessFeature('customers')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
 		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
 		if (view !== 'cms' && view !== 'leads' && view !== 'wheel' && view !== 'feedback' && this.auth.getRole() !== 'admin') return;
@@ -317,6 +329,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		}
 		if (view === 'overview') this.loadOverview();
 		if (view === 'leads') this.loadLeads();
+		if (view === 'customers') this.loadCustomers();
 		if (view === 'programs') this.loadPrograms();
 		if (view === 'wheel') this.loadWheelClaims();
 		if (view === 'feedback') this.loadFeedback();
@@ -380,7 +393,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	@HostListener('document:click', ['$event'])
 	closeActionMenusOnOutsideClick(event: MouseEvent): void {
 		const target = event.target as HTMLElement | null;
-		if (target?.closest('.lead-actions-menu__trigger, .lead-actions-menu__panel, .admin-actions-popover, .school-actions-trigger, .school-actions-popover')) return;
+		if (target?.closest('.lead-actions-menu__trigger, .lead-actions-menu__panel, .admin-actions-popover, .school-actions-trigger, .school-actions-popover, .customer-actions-menu')) return;
 		this.closeActionMenus();
 	}
 	@HostListener('window:scroll')
@@ -392,10 +405,11 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.closeActionMenus();
 	}
 	private closeActionMenus(): void {
-		if (this.openLeadActionMenuId === null && this.openWheelActionMenuId === null && this.openAdminActionUser === null) return;
+		if (this.openLeadActionMenuId === null && this.openWheelActionMenuId === null && this.openAdminActionUser === null && this.openCustomerActionMenuId === null) return;
 		this.openLeadActionMenuId = null;
 		this.openWheelActionMenuId = null;
 		this.openAdminActionUser = null;
+		this.openCustomerActionMenuId = null;
 		this.refreshView();
 	}
 	loadFeedback(force = false): void {
@@ -484,6 +498,46 @@ export class AdminDashboardPageComponent implements OnInit {
 			}
 		});
 	}
+	loadCustomers(force = false): void {
+		if ((this.isLoadingCustomers && !force) || (this.customersLoaded && !force)) return;
+		this.isLoadingCustomers = true; this.adminApi.listCustomers(this.customerSearch.trim(), this.customerStatus, this.customersPage, 20).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingCustomers = false; this.refreshView(); })).subscribe({
+			next: result => { this.customers = result.data; this.customersTotal = result.pagination.total; this.customersPages = result.pagination.pages || 1; this.customersLoaded = true; this.statusMessage = 'تم تحديث بيانات العملاء.'; this.refreshView(); },
+			error: err => this.handleApiError(err)
+		});
+	}
+	searchCustomers(): void { this.customersPage = 1; this.loadCustomers(true); }
+	changeCustomerPage(page: number): void { this.customersPage = Math.min(Math.max(page, 1), this.customersPages); this.loadCustomers(true); }
+	formatCustomerStatus(status: string): string { return this.leadStatusLabels[status] || status || 'غير محدد'; }
+	openCustomerImportInstructions(): void { this.customerImportInstructionsOpen = true; this.refreshView(); }
+	closeCustomerImportInstructions(): void { this.customerImportInstructionsOpen = false; }
+	importCustomers(event: Event): void {
+		const file = (event.target as HTMLInputElement).files?.[0]; if (!file) return;
+		this.adminApi.previewCustomers(file).subscribe({ next: result => { this.customerImportPreview = result; this.errorMessage = ''; }, error: err => this.handleApiError(err) });
+		(event.target as HTMLInputElement).value = '';
+	}
+	confirmCustomerImport(): void { if (!this.customerImportPreview) return; const importId = this.customerImportPreview.importId; this.adminApi.confirmCustomers(importId).subscribe({ next: result => { this.customerImportPreview = null; this.statusMessage = `تمت الإضافة: ${result.added}، المتكرر: ${result.duplicate}.`; this.customersLoaded = false; this.loadCustomers(true); }, error: err => this.handleApiError(err) }); }
+	cancelCustomerImport(): void { this.customerImportPreview = null; }
+	downloadCustomersExcel(): void { this.adminApi.exportCustomers({ search: this.customerSearch.trim(), status: this.customerStatus }).subscribe({ next: blob => { const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'customers.csv'; anchor.click(); URL.revokeObjectURL(url); this.statusMessage = 'تم تصدير العملاء.'; }, error: err => this.handleApiError(err) }); }
+	updateCustomerStatus(customer: Customer, status: string): void { const previous = customer.status; customer.status = status; this.adminApi.updateCustomer(customer.id, { status }).subscribe({ next: updated => customer.status = updated.status, error: err => { customer.status = previous; this.handleApiError(err); } }); }
+	deleteCustomer(customer: Customer): void { this.openCustomerActionMenuId = null; this.customerPendingDeletion = customer; this.refreshView(); }
+	openCustomerView(customer: Customer): void { this.openCustomerActionMenuId = null; this.customerPendingView = customer; this.refreshView(); }
+	openCustomerEdit(customer: Customer): void { this.openCustomerActionMenuId = null; this.customerPendingEdit = customer; this.customerEditName = customer.name || ''; this.customerEditPhone = customer.phone || ''; this.errorMessage = ''; this.refreshView(); }
+	closeCustomerEdit(): void { this.customerPendingEdit = null; this.customerEditName = ''; this.customerEditPhone = ''; this.refreshView(); }
+	saveCustomerEdit(): void { const customer = this.customerPendingEdit; const name = this.customerEditName.trim(); const phone = this.customerEditPhone.trim(); if (!customer || this.isSavingCustomerEdit) return; if (!/^\d{10,15}$/.test(phone)) { this.errorMessage = 'اكتب رقم هاتف صحيح من 10 إلى 15 رقمًا.'; return; } this.isSavingCustomerEdit = true; this.adminApi.updateCustomer(customer.id, { name, phone }).pipe(finalize(() => { this.isSavingCustomerEdit = false; this.refreshView(); })).subscribe({ next: updated => { Object.assign(customer, updated); this.statusMessage = 'تم تحديث بيانات العميل.'; this.errorMessage = ''; this.closeCustomerEdit(); }, error: err => this.handleApiError(err) }); }
+	closeCustomerView(): void { this.customerPendingView = null; this.refreshView(); }
+	openCustomerNote(customer: Customer): void { this.openCustomerActionMenuId = null; this.customerPendingNote = customer; this.customerNoteDraft = customer.notes || ''; this.refreshView(); }
+	closeCustomerNote(): void { this.customerPendingNote = null; this.customerNoteDraft = ''; this.refreshView(); }
+	openCustomerReadNote(customer: Customer): void { this.openCustomerActionMenuId = null; this.customerPendingReadNote = customer; this.refreshView(); }
+	closeCustomerReadNote(): void { this.customerPendingReadNote = null; this.refreshView(); }
+	editCustomerNoteFromView(): void { const customer = this.customerPendingView; this.closeCustomerView(); if (customer) this.openCustomerNote(customer); }
+	editCustomerNoteFromReadView(): void { const customer = this.customerPendingReadNote; this.closeCustomerReadNote(); if (customer) this.openCustomerNote(customer); }
+	closeCustomerDialogs(): void { this.closeCustomerView(); this.closeCustomerNote(); this.closeCustomerReadNote(); }
+	saveCustomerNote(): void { const customer = this.customerPendingNote; if (!customer || this.isSavingCustomerNote) return; this.isSavingCustomerNote = true; this.adminApi.updateCustomer(customer.id, { notes: this.customerNoteDraft.trim() }).pipe(finalize(() => { this.isSavingCustomerNote = false; this.refreshView(); })).subscribe({ next: updated => { customer.notes = updated.notes || ''; this.statusMessage = 'تم حفظ ملاحظة العميل.'; this.errorMessage = ''; this.closeCustomerNote(); }, error: err => this.handleApiError(err) }); }
+	openCustomerActionMenu(customer: Customer, event?: MouseEvent): void { const shouldOpen = this.openCustomerActionMenuId !== customer.id; this.openCustomerActionMenuId = shouldOpen ? customer.id : null; const customerIndex = this.customers.indexOf(customer); if (shouldOpen) this.positionActionMenu(event?.currentTarget as HTMLElement | null, '--customer-actions-top', '--customer-actions-left', 140, 125, '.lead-actions-menu__panel--customer', () => this.findCustomerActionTrigger(customerIndex)); this.refreshView(); }
+	private findCustomerActionTrigger(index: number): HTMLElement | null { if (index < 0) return null; return document.querySelectorAll<HTMLElement>('.customer-actions-menu .lead-actions-menu__trigger').item(index) || null; }
+	closeCustomerActionMenu(): void { this.openCustomerActionMenuId = null; this.refreshView(); }
+	closeDeleteCustomerDialog(): void { this.customerPendingDeletion = null; this.refreshView(); }
+	confirmDeleteCustomer(): void { const customer = this.customerPendingDeletion; if (!customer) return; this.customerPendingDeletion = null; this.adminApi.deleteCustomer(customer.id).subscribe({ next: () => { this.customers = this.customers.filter(item => item.id !== customer.id); this.customersTotal = Math.max(0, this.customersTotal - 1); this.statusMessage = 'تم حذف العميل نهائيًا.'; this.errorMessage = ''; this.refreshView(); }, error: err => this.handleApiError(err) }); }
 	searchLeads(): void { this.leadsPage = 1; this.loadLeads(true); }
 	clearLeadFilters(): void { this.leadSearch = ''; this.leadSource = ''; this.leadPlatform = ''; this.leadCampaign = ''; this.leadStatus = ''; this.leadProgram = ''; this.leadDateFrom = ''; this.leadDateTo = ''; this.leads = []; this.leadsTotal = 0; this.searchLeads(); }
 	downloadLeadsExcel(): void {
@@ -894,10 +948,11 @@ export class AdminDashboardPageComponent implements OnInit {
 	}
 
 	private resolveDataView(value: string | null): AdminDataView | null {
-		const allowed: AdminDataView[] = ['overview', 'leads', 'feedback', 'programs', 'wheel', 'admins'];
+		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'admins'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
 		if (view === 'feedback') return this.auth.canAccessFeature('feedback') ? view : null;
+		if (view === 'customers') return this.auth.canAccessFeature('customers') ? view : null;
 		if (view === 'overview' || view === 'programs' || view === 'admins') {
 			return this.auth.getRole() === 'admin' ? view : null;
 		}
@@ -912,5 +967,6 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
 
-	canAccessFeature(feature: 'leads' | 'wheel' | 'feedback'): boolean { return this.auth.canAccessFeature(feature); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback'): boolean { return this.auth.canAccessFeature(feature); }
+	canAccessCustomerPermission(permission: string): boolean { return this.auth.canAccessPermission(permission); }
 }

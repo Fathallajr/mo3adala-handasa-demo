@@ -19,6 +19,11 @@ db.exec(`
 		notes TEXT DEFAULT '', attribution TEXT DEFAULT '{}', created_at TEXT NOT NULL, updated_at TEXT
   );
   CREATE UNIQUE INDEX IF NOT EXISTS leads_whatsapp_unique ON leads(whatsapp);
+  CREATE TABLE IF NOT EXISTS customers (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT NOT NULL UNIQUE,
+    status TEXT NOT NULL DEFAULT 'new', notes TEXT DEFAULT '',
+    created_at TEXT NOT NULL, updated_at TEXT
+  );
   CREATE TABLE IF NOT EXISTS programs (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, slug TEXT NOT NULL UNIQUE, category TEXT NOT NULL,
     language TEXT NOT NULL, price REAL NOT NULL DEFAULT 0, features TEXT NOT NULL DEFAULT '[]',
@@ -133,6 +138,23 @@ function deleteLead(id) {
 	return db.prepare('DELETE FROM leads WHERE id = ?').run(id).changes > 0;
 }
 
+function listCustomers() { return db.prepare('SELECT id,name,phone,status,notes,created_at AS createdAt,updated_at AS updatedAt FROM customers ORDER BY created_at DESC').all(); }
+function getCustomer(id) { return db.prepare('SELECT id,name,phone,status,notes,created_at AS createdAt,updated_at AS updatedAt FROM customers WHERE id = ?').get(id) || null; }
+function createCustomer(customer) { db.prepare('INSERT INTO customers(id,name,phone,status,notes,created_at,updated_at) VALUES (?,?,?,?,?,?,?)').run(customer.id, customer.name, customer.phone, customer.status || 'new', customer.notes || '', customer.createdAt, customer.updatedAt || null); return customer; }
+function updateCustomer(id, changes) {
+  const fields = [], values = [];
+  if (changes.name !== undefined) { fields.push('name = ?'); values.push(String(changes.name || '').trim()); }
+  if (changes.phone !== undefined) { fields.push('phone = ?'); values.push(String(changes.phone || '').trim()); }
+  if (changes.status !== undefined) { fields.push('status = ?'); values.push(changes.status); }
+  if (changes.notes !== undefined) { fields.push('notes = ?'); values.push(String(changes.notes || '').trim()); }
+  if (changes.updatedAt !== undefined) { fields.push('updated_at = ?'); values.push(changes.updatedAt); }
+  if (!fields.length) return getCustomer(id);
+  values.push(id); const result = db.prepare(`UPDATE customers SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  return result.changes ? getCustomer(id) : null;
+}
+function deleteCustomer(id) { return db.prepare('DELETE FROM customers WHERE id = ?').run(id).changes > 0; }
+function findCustomerByPhone(phone) { return db.prepare('SELECT id FROM customers WHERE phone = ?').get(phone) || null; }
+
 function updateLead(id, changes) {
 	const fields = [];
 	const values = [];
@@ -239,4 +261,4 @@ function updateWheelClaim(token, changes) { const result = db.prepare('UPDATE wh
 function deleteWheelClaim(token) { return db.prepare('DELETE FROM wheel_claims WHERE token = ?').run(token).changes > 0; }
 function countWheelClaims() { listWheelClaims(); return db.prepare('SELECT COUNT(*) AS count FROM wheel_claims').get().count; }
 
-module.exports = { readStore, writeStore, savePage, createLead, getLead, updateLead, createAuditLog, deleteLead, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, setMissingFeedbackBatch, listPublishedFeedback, databaseFile };
+module.exports = { readStore, writeStore, savePage, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, setMissingFeedbackBatch, listPublishedFeedback, databaseFile };
