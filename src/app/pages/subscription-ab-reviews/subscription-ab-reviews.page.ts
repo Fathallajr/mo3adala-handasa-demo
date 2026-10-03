@@ -83,7 +83,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 
 	submitDeliveryWhatsApp(): void {
 		this.deliveryFormSubmitted = true;
-		if (!this.deliveryName.trim() || !this.deliveryRegistered) return;
+		if (this.isEnrollmentClosed || !this.deliveryName.trim() || this.deliveryRegistered !== 'نعم') return;
 		window.open(this.deliveryWhatsAppUrl, '_blank', 'noopener');
 	}
 
@@ -92,11 +92,12 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		return `https://t.me/AssAm268?text=${encodeURIComponent(message)}`;
 	}
 	materialsTelegramName = '';
+	materialsTelegramRegistered = '';
 	materialsTelegramSubmitted = false;
 
 	submitMaterialsTelegram(): void {
 		this.materialsTelegramSubmitted = true;
-		if (!this.materialsTelegramName.trim()) return;
+		if (this.isEnrollmentClosed || !this.materialsTelegramName.trim() || this.materialsTelegramRegistered !== 'نعم') return;
 		window.open(this.materialsTelegramUrl, '_blank', 'noopener');
 	}
 

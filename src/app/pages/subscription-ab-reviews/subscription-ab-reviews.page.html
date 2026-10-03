@@ -164,7 +164,11 @@
 								<label><span>اسمك الثلاثي <b>*</b></span><input name="materialsTelegramName" [(ngModel)]="materialsTelegramName" required placeholder="اكتب اسمك كما كتبته في الفورم"></label>
 								<small class="support-field-error" *ngIf="materialsTelegramSubmitted && !materialsTelegramName.trim()">الاسم مطلوب</small>
 								<label><span>نوع المعادلة</span><input name="materialsTelegramEquation" [ngModel]="subscriptionProgramLabel" readonly aria-readonly="true"></label>
-								<button type="submit"><i class="bi bi-telegram"></i> دخول جروبات المواد</button>
+								<label><span>سجلت في الفورم؟ <b>*</b></span><select name="materialsTelegramRegistered" [(ngModel)]="materialsTelegramRegistered" required><option value="" disabled>اختار الإجابة</option><option value="نعم">نعم</option><option value="لا">لا</option></select></label>
+								<small class="support-field-error" *ngIf="materialsTelegramSubmitted && !materialsTelegramRegistered">اختار نعم أو لا</small>
+								<small class="support-field-error" *ngIf="materialsTelegramSubmitted && materialsTelegramRegistered === 'لا'">لازم تسجل الفورم أولاً قبل دخول جروبات المواد.</small>
+								<small class="support-field-error" *ngIf="materialsTelegramSubmitted && isEnrollmentClosed">الاشتراك مقفول حاليًا، لا يمكن إرسال رسالة.</small>
+								<button type="submit" [disabled]="isEnrollmentClosed" [class.is-disabled]="isEnrollmentClosed"><i class="bi bi-telegram"></i> دخول جروبات المواد</button>
 							</form>
 						</div>
 					</div>
@@ -195,7 +199,9 @@
 								<select name="deliveryRegistered" [(ngModel)]="deliveryRegistered" required><option value="" disabled>اختار الإجابة</option><option value="نعم">نعم</option><option value="لا">لا</option></select>
 							</label>
 							<small class="support-field-error" *ngIf="deliveryFormSubmitted && !deliveryRegistered">اختار نعم أو لا</small>
-							<button type="submit"><i class="bi bi-whatsapp"></i> إرسال على واتساب</button>
+							<small class="support-field-error" *ngIf="deliveryFormSubmitted && deliveryRegistered === 'لا'">لازم تسجل الفورم أولاً قبل استلام الكود.</small>
+							<small class="support-field-error" *ngIf="deliveryFormSubmitted && isEnrollmentClosed">الاشتراك مقفول حاليًا، لا يمكن إرسال رسالة.</small>
+							<button type="submit" [disabled]="isEnrollmentClosed" [class.is-disabled]="isEnrollmentClosed"><i class="bi bi-whatsapp"></i> إرسال على واتساب</button>
 						</form>
 						<small>نوع المعادلة بيتحدد تلقائيًا حسب صفحة الاشتراك المفتوحة.</small>
 					</div>
@@ -304,7 +310,7 @@
 					<span><b>03</b><i class="bi bi-mortarboard"></i><em>ابدأ مذاكرتك</em></span>
 				</div>
 				<div class="review-account__help">
-					<a href="https://youtu.be/wVb83PI6zSo?si=hqBcWgoQZ5hOGBeJ" target="_blank" rel="noopener"><i class="bi bi-youtube"></i><span>شرح إنشاء حساب على المنصة</span></a>
+					<a href="https://youtu.be/5cU6kAt-HcY?si=ssFKZ2hgiXHgsdp2" target="_blank" rel="noopener"><i class="bi bi-youtube"></i><span>شرح إنشاء حساب على المنصة</span></a>
 					<a href="https://t.me/+201114931092" target="_blank" rel="noopener"><i class="bi bi-telegram"></i><span>مشكلة في المنصة؟ تواصل على تيليجرام</span></a>
 				</div>
 			</article>
