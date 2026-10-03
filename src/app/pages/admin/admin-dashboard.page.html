@@ -102,9 +102,6 @@
 				</div>
 				<div class="editor-actions">
 					<button type="button" class="secondary-btn" (click)="openPreview()">فتح الصفحة للمراجعة ↗</button>
-					<button type="button" class="primary-btn" (click)="save()" [disabled]="isSaving || isLoading">
-						{{ isSaving ? 'جاري الحفظ...' : 'حفظ على السيرفر' }}
-					</button>
 				</div>
 			</div>
 
@@ -206,6 +203,13 @@
 					<app-json-content-form *ngSwitchDefault [content]="currentContent"></app-json-content-form>
 
 				</ng-container>
+
+				<div class="cms-local-save-bar" *ngIf="hasUnsavedCmsChanges">
+					<span><i class="bi bi-pencil-square"></i> توجد تعديلات لم تُحفظ بعد</span>
+					<button type="button" class="primary-btn" (click)="save()" [disabled]="isSaving || isLoading">
+						{{ isSaving ? 'جاري الحفظ على السيرفر...' : 'حفظ التعديلات على السيرفر' }}
+					</button>
+				</div>
 
 			</div>
 			</section>
