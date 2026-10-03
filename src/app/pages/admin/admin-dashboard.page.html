@@ -199,6 +199,7 @@
 						*ngSwitchCase="'schools'"
 						[content]="currentContent"
 						[saveVersion]="cmsSaveVersion"
+						[isSaving]="isSaving"
 						(saveRequested)="save()">
 					</app-schools-form>
 
