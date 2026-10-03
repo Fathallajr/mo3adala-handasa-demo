@@ -159,8 +159,6 @@ export class AdminDashboardPageComponent implements OnInit {
 
 	selectedPageKey: CmsPageKey = 'batch-2027';
 	currentContent: unknown = null;
-	private savedContentSnapshot = '';
-	cmsSaveVersion = 0;
 	statusMessage = '';
 	errorMessage = '';
 	adminUsername = '';
@@ -170,9 +168,6 @@ export class AdminDashboardPageComponent implements OnInit {
 	isSavingSiteMode = false;
 	isSaving = false;
 	isLoading = false;
-	get hasUnsavedCmsChanges(): boolean {
-		return !!this.currentContent && this.serializeContent(this.currentContent) !== this.savedContentSnapshot;
-	}
 	isLoadingLeads = false;
 	leadPendingDeletion: Lead | null = null;
 	leadPendingNote: Lead | null = null;
@@ -769,7 +764,6 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.errorMessage = '';
 		this.isLoading = true;
 		this.currentContent = null;
-		this.savedContentSnapshot = '';
 
 		const schoolsFallback = pageKey === 'schools'
 			? { visible: true, title: 'المدارس والمعاهد', items: DEFAULT_SCHOOLS.map((item, index) => ({ ...item, id: item.id ?? index + 1 })) }
@@ -781,7 +775,6 @@ export class AdminDashboardPageComponent implements OnInit {
 				next: content => {
 					if (requestId !== this.pageLoadRequestId) return;
 					this.currentContent = content;
-					this.savedContentSnapshot = this.serializeContent(content);
 					this.refreshView();
 			},
 			error: () => {
@@ -803,20 +796,18 @@ export class AdminDashboardPageComponent implements OnInit {
 		});
 	}
 
-	save(pageKey: CmsPageKey = this.selectedPageKey): void {
+	save(): void {
 		if (!this.currentContent || this.isLoading || this.isSaving) return;
 		this.errorMessage = '';
 		this.statusMessage = '';
 		this.isSaving = true;
 
-		this.contentService.savePageState(pageKey, this.currentContent).pipe(finalize(() => {
+		this.contentService.savePageState(this.selectedPageKey, this.currentContent).pipe(finalize(() => {
 			this.isSaving = false;
 			this.refreshView();
 		})).subscribe({
 			next: saved => {
 					this.currentContent = saved;
-					this.savedContentSnapshot = this.serializeContent(saved);
-					this.cmsSaveVersion++;
 					this.statusMessage = 'تم الحفظ على السيرفر بنجاح ✓';
 				this.refreshSummaries();
 			},
@@ -829,14 +820,6 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.errorMessage = err.error?.message || (errorName === 'TimeoutError' ? 'انتهت مهلة الحفظ. تأكد من اتصال السيرفر.' : 'فشل حفظ التعديلات على السيرفر.');
 			}
 		});
-	}
-
-	private serializeContent(value: unknown): string {
-		try {
-			return JSON.stringify(value) || '';
-		} catch {
-			return '';
-		}
 	}
 
 	private handleSessionExpired(): void {
