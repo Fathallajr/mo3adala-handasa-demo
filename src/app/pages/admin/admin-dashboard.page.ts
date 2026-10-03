@@ -123,7 +123,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	private wheelClaimsLoaded = false;
 	private adminUsersLoaded = false;
 	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
-	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'customers:import', title: 'العملاء: استيراد Excel' }, { key: 'customers:export', title: 'العملاء: تصدير Excel' }, { key: 'customers:delete', title: 'العملاء: حذف' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }];
+	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }];
 	wheelSearch = '';
 	wheelGift = '';
 	wheelProgram = '';
@@ -968,5 +968,5 @@ export class AdminDashboardPageComponent implements OnInit {
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
 
 	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback'): boolean { return this.auth.canAccessFeature(feature); }
-	canAccessCustomerPermission(permission: string): boolean { return this.auth.canAccessPermission(permission); }
+	canAccessCustomerPermission(_permission: string): boolean { return this.auth.canAccessFeature('customers'); }
 }

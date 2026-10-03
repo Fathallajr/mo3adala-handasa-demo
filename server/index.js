@@ -339,7 +339,7 @@ function requirePermission(permission) {
 	return (req, res, next) => {
 		const groupedReadWritePermissions = {
 			leads: new Set(['leads:read', 'leads:update']),
-			customers: new Set(['customers:read', 'customers:update']),
+			customers: new Set(['customers:read', 'customers:update', 'customers:import', 'customers:export', 'customers:delete']),
 			feedback: new Set(['feedback:read', 'feedback:update']),
 			wheel: new Set(['wheel:read'])
 		};
@@ -518,7 +518,7 @@ app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000,
 
 	try {
 		const role = isFullAdmin ? 'admin' : isLeadsAdmin ? 'leads' : (databaseUser.role || 'editor');
-		const session = await issueToken(role, isFullAdmin ? ADMIN_USERNAME : isLeadsAdmin ? LEADS_ADMIN_USERNAME : databaseUser.username, isFullAdmin ? ['*'] : isLeadsAdmin ? ['leads:read', 'leads:update', 'wheel:read', 'batch-2027'] : databaseUser.permissions);
+		const session = await issueToken(role, isFullAdmin ? ADMIN_USERNAME : isLeadsAdmin ? LEADS_ADMIN_USERNAME : databaseUser.username, isFullAdmin ? ['*'] : isLeadsAdmin ? ['leads:read', 'leads:update', 'wheel:read', 'batch-2027'] : normalizeUserPermissions(databaseUser.permissions));
 		res.json(session);
 	} catch (error) {
 		next(error);
@@ -937,24 +937,22 @@ app.patch('/api/admin/feedback/:id', requireAdmin, requirePermission('feedback:u
 
 function normalizeUserPermissions(value) {
 	if (!Array.isArray(value)) return [];
-	// Keep the customer page and its optional actions as first-class admin
-	// permissions. Previously the UI could send these keys, but this
-	// normalization silently discarded them before saving to the database.
-	const allowed = new Set([
-		...PAGE_KEYS,
-		'leads',
-		'customers',
-		'customers:import',
-		'customers:export',
-		'customers:delete',
-		'wheel',
-		'feedback'
-	]);
-	return [...new Set(value.map(item => String(item || '').trim()).filter(item => allowed.has(item)))];
+	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'feedback']);
+	const normalized = [];
+	for (const rawItem of value) {
+		const item = String(rawItem || '').trim();
+		if (item === 'customers' || item.startsWith('customers:')) {
+			if (!normalized.includes('customers')) normalized.push('customers');
+		} else if (allowed.has(item) && !normalized.includes(item)) {
+			normalized.push(item);
+		}
+	}
+	return normalized;
 }
 
 app.get('/api/admin/users', requireAdmin, requireFullAdmin, async (_req, res) => {
-	res.json({ data: await database.listAdminUsers() });
+	const users = await database.listAdminUsers();
+	res.json({ data: users.map(user => ({ ...user, permissions: normalizeUserPermissions(user.permissions) })) });
 });
 
 app.post('/api/admin/users', requireAdmin, requireFullAdmin, async (req, res, next) => {
