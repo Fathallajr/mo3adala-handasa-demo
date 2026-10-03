@@ -272,7 +272,8 @@ export class AdminDashboardPageComponent implements OnInit {
 					const canLoadCustomers = this.auth.canAccessFeature('customers');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
 					const canLoadFeedback = this.auth.canAccessFeature('feedback');
-					this.activeView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : 'feedback';
+					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : 'feedback';
+					this.activeView = requestedView || defaultView;
 					if (canLoadLeads) this.loadLeads();
 					if (canLoadCustomers) this.loadCustomers();
 					if (canLoadWheel) this.loadWheelClaims();
