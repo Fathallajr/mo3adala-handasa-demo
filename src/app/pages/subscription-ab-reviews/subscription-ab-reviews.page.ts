@@ -187,7 +187,9 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 				// Keep each public subscription route isolated. Uploaded CMS assets
 				// are valid for the selected route, while a legacy /assets path from
 				// another page must not replace this route's default schedule.
-				scheduleImages: loaded.scheduleImages ?? this.subscriptionDetails.scheduleImages,
+				// Ignore legacy schedule entries from older months. Keep only the
+				// current route's built-in schedule or an explicitly uploaded CMS asset.
+				scheduleImages: this.hasValidRouteSchedules(loaded.scheduleImages) ? loaded.scheduleImages : this.subscriptionDetails.scheduleImages,
 				subscriptionWarnings: this.mergeSubscriptionWarnings(loaded.subscriptionWarnings)
 			};
 		}
