@@ -74,7 +74,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	};
 	leads: Lead[] = [];
 	customers: Customer[] = [];
-	customersPage = 1; customersPages = 1; customersTotal = 0; customerSearch = ''; customerStatus = ''; isLoadingCustomers = false; private customersLoaded = false;
+	customersPage = 1; customersPages = 1; customerPageNumbers: PaginationItem[] = [1]; customersTotal = 0; customerSearch = ''; customerStatus = ''; isLoadingCustomers = false; private customersLoaded = false;
 	readonly customerStatuses = ['new', 'batch_28', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
 	customerPendingDeletion: Customer | null = null; customerPendingView: Customer | null = null; customerPendingNote: Customer | null = null; customerPendingReadNote: Customer | null = null; customerPendingEdit: Customer | null = null; customerEditName = ''; customerEditPhone = ''; customerNoteDraft = ''; isSavingCustomerNote = false; isSavingCustomerEdit = false;
 	openCustomerActionMenuId: string | null = null;
@@ -502,12 +502,13 @@ export class AdminDashboardPageComponent implements OnInit {
 	loadCustomers(force = false): void {
 		if ((this.isLoadingCustomers && !force) || (this.customersLoaded && !force)) return;
 		this.isLoadingCustomers = true; this.adminApi.listCustomers(this.customerSearch.trim(), this.customerStatus, this.customersPage, 20).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingCustomers = false; this.refreshView(); })).subscribe({
-			next: result => { this.customers = result.data; this.customersTotal = result.pagination.total; this.customersPages = result.pagination.pages || 1; this.customersLoaded = true; this.statusMessage = 'تم تحديث بيانات العملاء.'; this.refreshView(); },
+			next: result => { this.customers = result.data; this.customersTotal = result.pagination.total; this.customersPages = result.pagination.pages || 1; this.customerPageNumbers = this.buildPaginationItems(this.customersPage, this.customersPages); this.customersLoaded = true; this.statusMessage = 'تم تحديث بيانات العملاء.'; this.refreshView(); },
 			error: err => this.handleApiError(err)
 		});
 	}
 	searchCustomers(): void { this.customersPage = 1; this.loadCustomers(true); }
-	changeCustomerPage(page: number): void { this.customersPage = Math.min(Math.max(page, 1), this.customersPages); this.loadCustomers(true); }
+	changeCustomerPage(page: number): void { this.goToCustomerPage(page); }
+	goToCustomerPage(page: number | string): void { if (typeof page !== 'number') return; const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.customersPages); if (nextPage === this.customersPage && this.customersLoaded) return; this.customersPage = nextPage; this.loadCustomers(true); }
 	formatCustomerStatus(status: string): string { return this.leadStatusLabels[status] || status || 'غير محدد'; }
 	openCustomerImportInstructions(): void { this.customerImportInstructionsOpen = true; this.refreshView(); }
 	closeCustomerImportInstructions(): void { this.customerImportInstructionsOpen = false; }
