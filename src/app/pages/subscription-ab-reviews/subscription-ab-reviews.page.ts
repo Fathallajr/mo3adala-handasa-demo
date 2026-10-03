@@ -69,22 +69,20 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		return this.isEnglishSubscription ? 'October 10' : this.closingDateLabel;
 	}
 
-	get deliveryWhatsAppUrl(): string {
+	get deliveryTelegramUrl(): string {
 		const message = [
-			`الاسم: ${this.deliveryName.trim()}`,
+			`الاسم الثلاثي: ${this.deliveryName.trim()}`,
 			`نوع المعادلة: ${this.subscriptionProgramLabel}`,
-			`حولت الاشتراك وسجلت في الفورم؟ ${this.deliveryRegistered}`
 		].join('\n');
-		return `https://api.whatsapp.com/send/?phone=201080681865&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
+		return `https://t.me/AssAm268?text=${encodeURIComponent(message)}`;
 	}
 	deliveryName = '';
-	deliveryRegistered = '';
 	deliveryFormSubmitted = false;
 
-		submitDeliveryWhatsApp(): void {
+	submitDeliveryTelegram(): void {
 		this.deliveryFormSubmitted = true;
-		if (!this.deliveryName.trim() || !this.deliveryRegistered) return;
-		window.open(this.deliveryWhatsAppUrl, '_blank', 'noopener');
+		if (!this.deliveryName.trim()) return;
+		window.open(this.deliveryTelegramUrl, '_blank', 'noopener');
 	}
 
 	get supportWhatsAppUrl(): string {

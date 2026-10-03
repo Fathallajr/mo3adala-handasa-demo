@@ -164,35 +164,26 @@
 				<article class="review-step review-step--delivery">
 					<header class="review-step__head">
 						<b>04</b>
-						<div><h2>استلم الكود</h2><p>الكود هيوصلك على واتساب</p></div>
+						<div><h2>ادخل جروبات المواد</h2><p>بعد تسجيل الفورم انضم للجروبات</p></div>
 					</header>
 					<div class="review-delivery">
-						<div class="review-delivery__icon"><i class="bi bi-whatsapp"></i></div>
-						<span><i></i> الإرسال عبر واتساب</span>
-						<h3>ابعت بياناتك على واتساب</h3>
-						<p>املأ البيانات مرة واحدة فقط وتجنب إرسالها أكثر من مرة. عادةً يتم تسليم كود التفعيل خلال 24 ساعة بعد مراجعة البيانات.</p>
-						<form class="delivery-whatsapp-form" (ngSubmit)="submitDeliveryWhatsApp()" novalidate>
+						<div class="review-delivery__icon review-delivery__icon--telegram"><i class="bi bi-telegram"></i></div>
+						<span><i></i> الإرسال عبر تيليجرام</span>
+						<h3>انضم لجروبات المواد على تيليجرام</h3>
+						<p>اكتب اسمك الثلاثي بنفس الطريقة الموجودة في الفورم، ثم ادخل جروبات المواد الخاصة بالاشتراك.</p>
+						<form class="delivery-whatsapp-form" (ngSubmit)="submitDeliveryTelegram()" novalidate>
 							<label>
-								<span>اسمك <b>*</b></span>
-								<input name="deliveryName" [(ngModel)]="deliveryName" required placeholder="اكتب اسمك">
+								<span>اسمك الثلاثي <b>*</b></span>
+								<input name="deliveryName" [(ngModel)]="deliveryName" required placeholder="اكتب اسمك الثلاثي">
 							</label>
 							<small class="support-field-error" *ngIf="deliveryFormSubmitted && !deliveryName.trim()">الاسم مطلوب</small>
 							<label>
 								<span>نوع المعادلة</span>
 								<input name="deliveryEquationType" [ngModel]="subscriptionProgramLabel" readonly aria-readonly="true">
 							</label>
-							<label>
-								<span>حولت الاشتراك وسجلت في الفورم؟ <b>*</b></span>
-								<select name="deliveryRegistered" [(ngModel)]="deliveryRegistered" required>
-									<option value="" disabled>اختار الإجابة</option>
-									<option value="نعم">نعم</option>
-									<option value="لا">لا</option>
-								</select>
-							</label>
-							<small class="support-field-error" *ngIf="deliveryFormSubmitted && !deliveryRegistered">اختار نعم أو لا</small>
-							<button type="submit"><i class="bi bi-whatsapp"></i> إرسال على واتساب</button>
+							<button type="submit"><i class="bi bi-telegram"></i> دخول جروبات المواد</button>
 						</form>
-						<small>نوع المعادلة بيتحدد تلقائيًا حسب صفحة الاشتراك المفتوحة.</small>
+						<small>اكتب نفس الاسم الثلاثي الموجود في بيانات الفورم.</small>
 					</div>
 				</article>
 			</div>
