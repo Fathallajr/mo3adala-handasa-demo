@@ -1207,11 +1207,17 @@
 	min-height: 390px;
 }
 
+.review-flow__split > .review-step {
+	display: flex;
+	flex-direction: column;
+}
+
 .review-form {
+	flex: 1;
 	min-height: 290px;
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
+	justify-content: space-between;
 	padding: 1.3rem;
 	border: 1px solid #dae3f6;
 	border-radius: 20px;
@@ -1298,6 +1304,7 @@
 }
 
 .review-delivery {
+	flex: 1;
 	min-height: 290px;
 	display: flex;
 	flex-direction: column;
