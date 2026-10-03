@@ -239,10 +239,11 @@ export class AdminDashboardPageComponent implements OnInit {
 				this.activeView = 'cms';
 				this.pendingCmsNavigation = false;
 			} else {
-			if (this.auth.getRole() === 'admin') {
 				const requestedView = this.resolveDataView(this.route.snapshot.queryParamMap.get('view'));
 				const hasCmsRoute = !!this.route.snapshot.paramMap.get('pageKey');
-				this.activeView = requestedView || (hasCmsRoute ? 'cms' : 'leads');
+				const canOpenCmsPage = hasCmsRoute && this.auth.canAccessPage(pageKey);
+			if (this.auth.getRole() === 'admin') {
+				this.activeView = requestedView || (canOpenCmsPage ? 'cms' : 'leads');
 				// Load only the visible section. Loading every admin section at once
 				// exhausts the production database connection pool and makes one of
 				// the otherwise unrelated requests fail intermittently.
@@ -253,6 +254,8 @@ export class AdminDashboardPageComponent implements OnInit {
 				if (this.activeView === 'wheel') this.loadWheelClaims();
 				if (this.activeView === 'admins') this.loadAdminUsers();
 				this.loadSiteMode();
+				} else if (canOpenCmsPage) {
+					this.activeView = 'cms';
 				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
