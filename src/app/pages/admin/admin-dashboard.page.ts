@@ -312,7 +312,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		if (view === 'customers' && !this.auth.canAccessFeature('customers')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
 		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
-		if (view !== 'cms' && view !== 'leads' && view !== 'wheel' && view !== 'feedback' && this.auth.getRole() !== 'admin') return;
+		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'feedback' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
 			this.sidebarOpen = false;
 			return;
