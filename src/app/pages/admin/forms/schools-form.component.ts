@@ -90,7 +90,7 @@ export class SchoolsFormComponent implements OnChanges {
 	@Input() content: any;
 	@Input() saveVersion = 0;
 	@Input() isSaving = false;
-	@Output() saveRequested = new EventEmitter<void>();
+	@Output() saveRequested = new EventEmitter<'schools'>();
 	private readonly cms = inject(MonthlyContentService);
 	readonly categories = ['المعاهد الفنية', 'مدارس الثانوية الصناعية نظام 3 سنوات', 'مدارس الثانوية الصناعية نظام 5 سنوات', 'مدارس تكنولوجية نظام 3 سنوات', 'مدارس تكنولوجية نظام 5 سنوات'];
 	readonly programOptions = [{ value: 'engineering', label: 'هندسة' }, { value: 'computers', label: 'حاسبات' }] as const;
@@ -224,7 +224,7 @@ export class SchoolsFormComponent implements OnChanges {
 	schoolNamePreview(item: SchoolItem): string { const words = String(item.name || '').trim().split(/\s+/).filter(Boolean); return this.expandedSchoolNames.has(item.id) || words.length <= 5 ? words.join(' ') : `${words.slice(0, 5).join(' ')}…`; }
 	schoolNameToggleLabel(item: SchoolItem): string { return this.expandedSchoolNames.has(item.id) ? 'عرض أقل' : 'عرض المزيد'; }
 	toggleSchoolName(item: SchoolItem): void { if (this.expandedSchoolNames.has(item.id)) this.expandedSchoolNames.delete(item.id); else this.expandedSchoolNames.add(item.id); }
-	requestSave(): void { this.saveRequested.emit(); }
+	requestSave(): void { this.saveRequested.emit('schools'); }
 	programSelection(item: SchoolItem): 'engineering' | 'computers' | 'both' { return item.programs.includes('engineering') && item.programs.includes('computers') ? 'both' : item.programs.includes('computers') ? 'computers' : 'engineering'; }
 	setProgram(item: SchoolItem, value: 'engineering' | 'computers' | 'both'): void { item.programs = this.programsFromSelection(value); this.hasPendingChanges = true; }
 

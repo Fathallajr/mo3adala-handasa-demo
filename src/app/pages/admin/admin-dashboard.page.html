@@ -200,7 +200,7 @@
 						[content]="currentContent"
 						[saveVersion]="cmsSaveVersion"
 						[isSaving]="isSaving"
-						(saveRequested)="save()">
+						(saveRequested)="save($event)">
 					</app-schools-form>
 
 					<app-json-content-form *ngSwitchDefault [content]="currentContent"></app-json-content-form>

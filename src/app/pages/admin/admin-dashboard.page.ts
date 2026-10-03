@@ -803,13 +803,13 @@ export class AdminDashboardPageComponent implements OnInit {
 		});
 	}
 
-	save(): void {
+	save(pageKey: CmsPageKey = this.selectedPageKey): void {
 		if (!this.currentContent || this.isLoading || this.isSaving) return;
 		this.errorMessage = '';
 		this.statusMessage = '';
 		this.isSaving = true;
 
-		this.contentService.savePageState(this.selectedPageKey, this.currentContent).pipe(finalize(() => {
+		this.contentService.savePageState(pageKey, this.currentContent).pipe(finalize(() => {
 			this.isSaving = false;
 			this.refreshView();
 		})).subscribe({
