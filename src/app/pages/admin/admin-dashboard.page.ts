@@ -243,7 +243,9 @@ export class AdminDashboardPageComponent implements OnInit {
 				const hasCmsRoute = !!this.route.snapshot.paramMap.get('pageKey');
 				const canOpenCmsPage = hasCmsRoute && this.auth.canAccessPage(pageKey);
 			if (this.auth.getRole() === 'admin') {
-				this.activeView = requestedView || (canOpenCmsPage ? 'cms' : 'leads');
+				// A CMS page in the URL is authoritative. Ignore any stale query view
+				// so refreshes and repeated route-sync events cannot switch it to leads.
+				this.activeView = canOpenCmsPage ? 'cms' : requestedView || 'leads';
 				// Load only the visible section. Loading every admin section at once
 				// exhausts the production database connection pool and makes one of
 				// the otherwise unrelated requests fail intermittently.
