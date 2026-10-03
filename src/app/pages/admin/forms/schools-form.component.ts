@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnChanges, inject } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnChanges, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { adminFormStyles } from './admin-form-styles';
@@ -19,12 +19,13 @@ type SchoolPaginationItem = number | '…';
 		.schools-help{color:#718096;line-height:1.75;margin:0 0 1rem}.schools-list{display:flex;flex-direction:column;gap:.7rem}.school-card{display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:start;padding:.85rem;border:1px solid #e6eaf1;border-radius:11px;background:#fff}.school-card__fields{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}.school-card__fields .cms-field{margin:0}.school-card__del{align-self:start;padding:.45rem .65rem;border:0;border-radius:8px;background:#fff1f3;color:#c24b67;cursor:pointer;font:inherit;font-weight:800}.school-card__del:hover{background:#ffe2e8}.schools-empty{padding:1.5rem;text-align:center;color:#8993a8;border:1px dashed #dfe4ed;border-radius:11px}.schools-count{color:#8993a8;font-size:.78rem;font-weight:700}
 		.schools-table-filters{display:grid;grid-template-columns:2fr repeat(3,1fr) auto;gap:.6rem;margin:0 0 1rem;padding:.75rem;border:1px solid #e6eaf1;border-radius:11px;background:#f8faff}.schools-table-filters .cms-field{margin:0}.schools-table-filters .cms-label{font-size:.72rem}.schools-table-filters__clear{align-self:end;min-height:38px;padding:.45rem .8rem;border:1px solid #d9d3ff;border-radius:8px;color:#6241df;background:#f4f1ff;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}@media(max-width:900px){.schools-table-filters{grid-template-columns:1fr 1fr}}@media(max-width:520px){.schools-table-filters{grid-template-columns:1fr}}
 		.schools-actions-cell{position:relative;white-space:nowrap}.school-actions-trigger{width:32px;height:30px;border:1px solid #cfc5ff;border-radius:8px;color:#6241df;background:#f4f1ff;font-size:20px;line-height:1;cursor:pointer}.school-actions-menu{position:absolute;z-index:5;top:calc(100% + 4px);right:0;display:grid;min-width:100px;padding:4px;border:1px solid #e2e5ee;border-radius:9px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16)}.school-actions-menu button{padding:8px;border:0;border-radius:6px;background:transparent;color:#526078;font:inherit;font-size:11px;font-weight:800;text-align:right;cursor:pointer}.school-actions-menu button:hover{background:#f4f1ff;color:#6241df}.school-actions-menu button:last-child{color:#c33f5d}.school-modal-backdrop{position:fixed;z-index:40;inset:0;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.45)}.school-modal{width:min(520px,100%);max-height:90vh;overflow:auto;padding:22px;border:1px solid #e2e5ee;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.28)}.school-modal-close{border:0;background:transparent;color:#64748b;font-size:25px;cursor:pointer}.school-modal-actions{display:flex;justify-content:flex-start;gap:8px;margin-top:15px}.school-delete-modal p{color:#526078;line-height:1.8}
+		.schools-local-save{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-top:.85rem;padding:.7rem .8rem;border:1px solid #d8ceff;border-radius:10px;background:#faf8ff;color:#5d4aaf;font-size:.72rem;font-weight:900}.schools-local-save .cms-button{margin:0;white-space:nowrap}
 		.schools-table-section{position:relative}.school-actions-popover{position:fixed!important;z-index:10000;top:var(--school-actions-top,1.5rem);right:auto;left:var(--school-actions-left,1rem);display:grid;width:max-content;min-width:120px;max-width:calc(100vw - 20px);box-sizing:border-box;padding:5px;gap:3px;border:1px solid #d9d3ff;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.16);font-size:11px;isolation:isolate}.school-actions-popover button{padding:8px 9px;border:0;border-radius:7px;color:#6241df;background:#f4f1ff;font:inherit;font-weight:800;text-align:right;white-space:nowrap;cursor:pointer}.school-actions-popover__delete{color:#c33f5d!important;background:#fff0f3!important}
 		.schools-logo-cell{width:110px;text-align:center}.schools-logo-cell img{display:block;width:54px;height:54px;margin:auto;border:1px solid #e5e9f2;border-radius:12px;background:#fff;object-fit:contain;padding:5px}
 		.schools-name-cell{width:220px;max-width:220px;white-space:normal;line-height:1.5}.schools-name-cell>span{display:block;overflow-wrap:anywhere}.school-name-more{margin-top:4px;padding:0;border:0;color:#6241df;background:transparent;font:inherit;font-size:.72rem;font-weight:800;cursor:pointer}.school-name-more:hover{text-decoration:underline}
 		.schools-table{width:100%;table-layout:fixed}.schools-table th:nth-child(1),.schools-table td:nth-child(1){width:42px}.schools-table th:nth-child(2),.schools-table td:nth-child(2){width:30%}.schools-table th:nth-child(3),.schools-table td:nth-child(3){width:20%;white-space:normal;line-height:1.45}.schools-table th:nth-child(4),.schools-table td:nth-child(4){width:11%;white-space:normal;line-height:1.45}.schools-table th:nth-child(5),.schools-table td:nth-child(5){width:100px}.schools-table th:nth-child(6),.schools-table td:nth-child(6){width:70px}
 		.schools-pagination{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding:10px 0;color:#8993a8;font-size:.78rem}.schools-pagination__pages{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center}.schools-pagination__button,.schools-pagination__page{min-height:34px;padding:7px 11px;border:1px solid #e1e6f0;border-radius:9px;color:#59647b;background:#fff;font:inherit;font-weight:800;cursor:pointer}.schools-pagination__page{min-width:34px;padding:0 8px}.schools-pagination__page.is-active{border-color:#6d4aff;color:#fff;background:#6d4aff;box-shadow:0 5px 14px #6d4aff2b}.schools-pagination__page.is-ellipsis{min-width:20px;padding:0 2px;border-color:transparent;color:#8993a8;background:transparent;box-shadow:none;cursor:default}.schools-pagination__button:disabled,.schools-pagination__page:disabled{opacity:.5;cursor:not-allowed}.schools-pagination__summary{white-space:nowrap}@media(max-width:520px){.schools-pagination{gap:6px;font-size:.68rem}.schools-pagination__button{padding:6px 8px}.schools-pagination__page{min-width:30px}}
-		@media(max-width:700px){.school-card__fields{grid-template-columns:1fr}}
+		@media(max-width:700px){.school-card__fields{grid-template-columns:1fr}.schools-local-save{align-items:stretch;flex-direction:column}.schools-local-save .cms-button{width:100%}}
 	`],
 	template: `
 		<div class="cms-form schools-cms-form" *ngIf="content">
@@ -46,6 +47,7 @@ type SchoolPaginationItem = number | '…';
 				</div>
 				<label class="cms-field"><span class="cms-label">رابط الصورة (اختياري)</span><input class="cms-input" [(ngModel)]="draft.logo" placeholder="/assets/schools/tech-school.png"><label class="cms-upload-btn">📤 {{ uploadingKey === 'draft' ? 'جاري الرفع...' : 'رفع صورة من الجهاز' }}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden (change)="uploadDraftImage($event)"></label></label>
 			<button type="button" class="cms-button" (click)="addItem()">+ إضافة للمؤسسات</button>
+			<div class="schools-local-save" *ngIf="hasPendingChanges"><span>تم تعديل بيانات المدارس</span><button type="button" class="cms-button" (click)="requestSave()">حفظ التعديلات على السيرفر</button></div>
 			<p class="cms-error" *ngIf="errorMessage">{{ errorMessage }}</p>
 			</div>
 
@@ -68,6 +70,7 @@ type SchoolPaginationItem = number | '…';
 					<button type="button" class="school-actions-popover__delete" (click)="confirmDelete(openItem)">🗑️ حذف</button>
 				</div>
 				<ng-template #emptyState><div class="schools-empty">لا توجد مؤسسات محفوظة حاليًا.</div></ng-template>
+				<div class="schools-local-save" *ngIf="hasPendingChanges"><span>توجد تعديلات لم تُحفظ بعد</span><button type="button" class="cms-button" (click)="requestSave()">حفظ التعديلات على السيرفر</button></div>
 			</div>
 			<div class="school-modal-backdrop" *ngIf="editDraft" (click)="cancelEdit()">
 				<div class="school-modal" (click)="$event.stopPropagation()">
@@ -85,6 +88,8 @@ type SchoolPaginationItem = number | '…';
 })
 export class SchoolsFormComponent implements OnChanges {
 	@Input() content: any;
+	@Input() saveVersion = 0;
+	@Output() saveRequested = new EventEmitter<void>();
 	private readonly cms = inject(MonthlyContentService);
 	readonly categories = ['المعاهد الفنية', 'مدارس الثانوية الصناعية نظام 3 سنوات', 'مدارس الثانوية الصناعية نظام 5 سنوات', 'مدارس تكنولوجية نظام 3 سنوات', 'مدارس تكنولوجية نظام 5 سنوات'];
 	readonly programOptions = [{ value: 'engineering', label: 'هندسة' }, { value: 'computers', label: 'حاسبات' }] as const;
@@ -102,6 +107,8 @@ export class SchoolsFormComponent implements OnChanges {
 	tableProgram = '';
 	schoolsPage = 1;
 	readonly schoolsPageSize = 10;
+	hasPendingChanges = false;
+	private lastSaveVersion = 0;
 
 	get filteredItems(): SchoolItem[] {
 		const search = this.tableSearch.trim().toLowerCase();
@@ -122,6 +129,10 @@ export class SchoolsFormComponent implements OnChanges {
 	get openItem(): SchoolItem | null { return this.items.find(item => item.id === this.openItemActionId) || null; }
 
 	ngOnChanges(): void {
+		if (this.saveVersion !== this.lastSaveVersion) {
+			this.lastSaveVersion = this.saveVersion;
+			this.hasPendingChanges = false;
+		}
 		if (!this.content || typeof this.content !== 'object') return;
 		if (!Array.isArray(this.content.items) || !this.content.items.length) this.content.items = DEFAULT_SCHOOLS.map((item, index) => ({ ...item, id: item.id ?? index + 1 }));
 		this.items = this.content.items.map((item: any) => { const liveType = item.category || item.type || this.categories[0]; return { ...item, type: liveType, category: liveType, programs: Array.isArray(item.programs) && item.programs.length ? item.programs : ['engineering'] }; });
@@ -138,10 +149,10 @@ export class SchoolsFormComponent implements OnChanges {
 		this.content.items = this.items;
 		this.errorMessage = '';
 		this.draft = this.emptyDraft();
-		this.persistSchoolsChanges();
+		this.hasPendingChanges = true;
 	}
 
-	removeItem(index: number): void { this.items.splice(index, 1); }
+	removeItem(index: number): void { this.items.splice(index, 1); this.content.items = this.items; this.hasPendingChanges = true; }
 	toggleItemActions(item: SchoolItem, event?: MouseEvent): void {
 		const shouldOpen = this.openItemActionId !== item.id;
 		this.openItemActionId = shouldOpen ? item.id : null;
@@ -185,10 +196,10 @@ export class SchoolsFormComponent implements OnChanges {
 	}
 	startEdit(item: SchoolItem): void { this.openItemActionId = null; this.editingItem = item; this.editDraft = { ...item, programs: [...item.programs] }; }
 	cancelEdit(): void { this.editingItem = null; this.editDraft = null; }
-	saveEdit(): void { if (!this.editingItem || !this.editDraft) return; Object.assign(this.editingItem, this.editDraft, { category: this.editDraft.type }); this.cancelEdit(); this.content.items = this.items; this.persistSchoolsChanges(); }
+	saveEdit(): void { if (!this.editingItem || !this.editDraft) return; Object.assign(this.editingItem, this.editDraft, { category: this.editDraft.type }); this.cancelEdit(); this.content.items = this.items; this.hasPendingChanges = true; }
 	confirmDelete(item: SchoolItem): void { this.openItemActionId = null; this.pendingDeleteItem = item; }
 	cancelDelete(): void { this.pendingDeleteItem = null; }
-	deleteItem(): void { if (!this.pendingDeleteItem) return; this.items = this.items.filter(item => item.id !== this.pendingDeleteItem?.id); this.content.items = this.items; this.pendingDeleteItem = null; this.persistSchoolsChanges(); }
+	deleteItem(): void { if (!this.pendingDeleteItem) return; this.items = this.items.filter(item => item.id !== this.pendingDeleteItem?.id); this.content.items = this.items; this.pendingDeleteItem = null; this.hasPendingChanges = true; }
 	clearTableFilters(): void { this.tableSearch = ''; this.tableType = ''; this.tableProgram = ''; }
 	buildSchoolPaginationItems(currentPage: number, totalPages: number): SchoolPaginationItem[] {
 		if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1);
@@ -212,9 +223,9 @@ export class SchoolsFormComponent implements OnChanges {
 	schoolNamePreview(item: SchoolItem): string { const words = String(item.name || '').trim().split(/\s+/).filter(Boolean); return this.expandedSchoolNames.has(item.id) || words.length <= 5 ? words.join(' ') : `${words.slice(0, 5).join(' ')}…`; }
 	schoolNameToggleLabel(item: SchoolItem): string { return this.expandedSchoolNames.has(item.id) ? 'عرض أقل' : 'عرض المزيد'; }
 	toggleSchoolName(item: SchoolItem): void { if (this.expandedSchoolNames.has(item.id)) this.expandedSchoolNames.delete(item.id); else this.expandedSchoolNames.add(item.id); }
-	private persistSchoolsChanges(): void { if (!this.content) return; this.cms.savePageState('schools', this.content).subscribe({ next: saved => { Object.assign(this.content, saved); this.errorMessage = ''; }, error: err => { this.errorMessage = err?.error?.message || 'تعذر حفظ المدارس على السيرفر. اضغط حفظ على السيرفر وحاول مرة أخرى.'; } }); }
+	requestSave(): void { this.saveRequested.emit(); }
 	programSelection(item: SchoolItem): 'engineering' | 'computers' | 'both' { return item.programs.includes('engineering') && item.programs.includes('computers') ? 'both' : item.programs.includes('computers') ? 'computers' : 'engineering'; }
-	setProgram(item: SchoolItem, value: 'engineering' | 'computers' | 'both'): void { item.programs = this.programsFromSelection(value); }
+	setProgram(item: SchoolItem, value: 'engineering' | 'computers' | 'both'): void { item.programs = this.programsFromSelection(value); this.hasPendingChanges = true; }
 
 	uploadDraftImage(event: Event): void { this.uploadImage(event, 'draft'); }
 	uploadItemImage(item: SchoolItem, index: number, event: Event): void { this.uploadImage(event, 'item-' + index, item); }
@@ -233,7 +244,7 @@ export class SchoolsFormComponent implements OnChanges {
 		this.errorMessage = '';
 		this.uploadingKey = key;
 		this.cms.uploadImage(file, 'schools').subscribe({
-			next: url => { if (item) item.logo = url; else this.draft.logo = url; this.uploadingKey = null; },
+			next: url => { if (item) item.logo = url; else this.draft.logo = url; this.hasPendingChanges = true; this.uploadingKey = null; },
 			error: error => { this.uploadingKey = null; this.errorMessage = error?.error?.message || 'تعذر رفع الصورة. حاول مرة أخرى.'; }
 		});
 	}

@@ -160,6 +160,7 @@ export class AdminDashboardPageComponent implements OnInit {
 	selectedPageKey: CmsPageKey = 'batch-2027';
 	currentContent: unknown = null;
 	private savedContentSnapshot = '';
+	cmsSaveVersion = 0;
 	statusMessage = '';
 	errorMessage = '';
 	adminUsername = '';
@@ -815,6 +816,7 @@ export class AdminDashboardPageComponent implements OnInit {
 			next: saved => {
 					this.currentContent = saved;
 					this.savedContentSnapshot = this.serializeContent(saved);
+					this.cmsSaveVersion++;
 					this.statusMessage = 'تم الحفظ على السيرفر بنجاح ✓';
 				this.refreshSummaries();
 			},
