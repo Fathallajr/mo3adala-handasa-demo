@@ -69,20 +69,35 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		return this.isEnglishSubscription ? 'October 10' : this.closingDateLabel;
 	}
 
-	get deliveryTelegramUrl(): string {
+	get deliveryWhatsAppUrl(): string {
 		const message = [
-			`الاسم الثلاثي: ${this.deliveryName.trim()}`,
+			`الاسم: ${this.deliveryName.trim()}`,
 			`نوع المعادلة: ${this.subscriptionProgramLabel}`,
+			`حولت الاشتراك وسجلت في الفورم؟ ${this.deliveryRegistered}`
 		].join('\n');
-		return `https://t.me/AssAm268?text=${encodeURIComponent(message)}`;
+		return `https://api.whatsapp.com/send/?phone=201080681865&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
 	}
 	deliveryName = '';
+	deliveryRegistered = '';
 	deliveryFormSubmitted = false;
 
-	submitDeliveryTelegram(): void {
+	submitDeliveryWhatsApp(): void {
 		this.deliveryFormSubmitted = true;
-		if (!this.deliveryName.trim()) return;
-		window.open(this.deliveryTelegramUrl, '_blank', 'noopener');
+		if (!this.deliveryName.trim() || !this.deliveryRegistered) return;
+		window.open(this.deliveryWhatsAppUrl, '_blank', 'noopener');
+	}
+
+	get materialsTelegramUrl(): string {
+		const message = [`الاسم الثلاثي: ${this.materialsTelegramName.trim()}`, `نوع المعادلة: ${this.subscriptionProgramLabel}`].join('\n');
+		return `https://t.me/AssAm268?text=${encodeURIComponent(message)}`;
+	}
+	materialsTelegramName = '';
+	materialsTelegramSubmitted = false;
+
+	submitMaterialsTelegram(): void {
+		this.materialsTelegramSubmitted = true;
+		if (!this.materialsTelegramName.trim()) return;
+		window.open(this.materialsTelegramUrl, '_blank', 'noopener');
 	}
 
 	get supportWhatsAppUrl(): string {

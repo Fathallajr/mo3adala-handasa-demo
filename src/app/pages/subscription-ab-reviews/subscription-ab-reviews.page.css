@@ -1346,6 +1346,16 @@
 	cursor: not-allowed;
 }
 
+.review-form__telegram-step { display: grid; gap: .65rem; margin-top: 1rem; padding: .85rem; border: 1px solid rgba(41, 82, 145, .16); border-radius: 14px; background: rgba(235, 242, 255, .72); }
+.review-form__telegram-head { display: flex; align-items: center; gap: .55rem; color: #19345e; text-align: right; }
+.review-form__telegram-head > i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; color: #fff; background: #229ed9; font-size: .9rem; }
+.review-form__telegram-head div { display: grid; gap: .12rem; }
+.review-form__telegram-head strong { font-size: .72rem; }
+.review-form__telegram-head small { color: #62718a; font-size: .58rem; }
+.review-form__telegram-step .delivery-whatsapp-form { width: 100%; margin: 0; }
+.review-form__telegram-step .delivery-whatsapp-form input { color: #19345e; background: #fff; border-color: rgba(41, 82, 145, .18); }
+.review-form__telegram-step .delivery-whatsapp-form button { color: #fff; background: #229ed9; }
+
 .review-delivery {
 	flex: 1;
 	min-height: 290px;
