@@ -69,10 +69,27 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		return this.isEnglishSubscription ? 'October 10' : this.closingDateLabel;
 	}
 
+	get deliveryWhatsAppUrl(): string {
+		const message = [
+			`الاسم: ${this.deliveryName.trim()}`,
+			`نوع المعادلة: ${this.subscriptionProgramLabel}`,
+			`حولت الاشتراك وسجلت في الفورم؟ ${this.deliveryRegistered}`
+		].join('\n');
+		return `https://api.whatsapp.com/send/?phone=201080681865&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
+	}
+	deliveryName = '';
+	deliveryRegistered = '';
+	deliveryFormSubmitted = false;
+
+		submitDeliveryWhatsApp(): void {
+		this.deliveryFormSubmitted = true;
+		if (!this.deliveryName.trim() || !this.deliveryRegistered) return;
+		window.open(this.deliveryWhatsAppUrl, '_blank', 'noopener');
+	}
+
 	get supportWhatsAppUrl(): string {
 		const details = `الاسم: ${this.supportName.trim()}\nرقم الهاتف: ${this.supportPhone.trim()}\nنوع المعادلة: ${this.subscriptionProgramLabel}\nسجلت الفورم؟ ${this.supportRegistered}\nالمشكلة: ${this.supportProblem.trim()}`;
-		const message = details;
-		return `https://api.whatsapp.com/send/?phone=${this.subscriptionDetails.whatsappNumber}&text=${encodeURIComponent(message)}&type=phone_number&app_absent=0`;
+		return `https://api.whatsapp.com/send/?phone=201080681865&text=${encodeURIComponent(details)}&type=phone_number&app_absent=0`;
 	}
 	supportName = '';
 	supportPhone = '';

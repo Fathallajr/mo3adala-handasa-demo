@@ -169,9 +169,30 @@
 					<div class="review-delivery">
 						<div class="review-delivery__icon"><i class="bi bi-whatsapp"></i></div>
 						<span><i></i> الإرسال عبر واتساب</span>
-						<h3>جاهز تبدأ الرحلة</h3>
-						<p>بعد مراجعة بيانات التحويل، هنبعتلك كود تفعيل المنصة على نفس الرقم المسجل في الفورم.</p>
-						<small>تأكد إن رقم الواتساب مكتوب صح</small>
+						<h3>ابعت بياناتك على واتساب</h3>
+						<p>املأ البيانات مرة واحدة فقط وتجنب إرسالها أكثر من مرة. عادةً يتم تسليم كود التفعيل خلال 24 ساعة بعد مراجعة البيانات.</p>
+						<form class="delivery-whatsapp-form" (ngSubmit)="submitDeliveryWhatsApp()" novalidate>
+							<label>
+								<span>اسمك <b>*</b></span>
+								<input name="deliveryName" [(ngModel)]="deliveryName" required placeholder="اكتب اسمك">
+							</label>
+							<small class="support-field-error" *ngIf="deliveryFormSubmitted && !deliveryName.trim()">الاسم مطلوب</small>
+							<label>
+								<span>نوع المعادلة</span>
+								<input name="deliveryEquationType" [ngModel]="subscriptionProgramLabel" readonly aria-readonly="true">
+							</label>
+							<label>
+								<span>حولت الاشتراك وسجلت في الفورم؟ <b>*</b></span>
+								<select name="deliveryRegistered" [(ngModel)]="deliveryRegistered" required>
+									<option value="" disabled>اختار الإجابة</option>
+									<option value="نعم">نعم</option>
+									<option value="لا">لا</option>
+								</select>
+							</label>
+							<small class="support-field-error" *ngIf="deliveryFormSubmitted && !deliveryRegistered">اختار نعم أو لا</small>
+							<button type="submit"><i class="bi bi-whatsapp"></i> إرسال على واتساب</button>
+						</form>
+						<small>نوع المعادلة بيتحدد تلقائيًا حسب صفحة الاشتراك المفتوحة.</small>
 					</div>
 				</article>
 			</div>
