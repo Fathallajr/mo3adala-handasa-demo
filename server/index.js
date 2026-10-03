@@ -937,7 +937,19 @@ app.patch('/api/admin/feedback/:id', requireAdmin, requirePermission('feedback:u
 
 function normalizeUserPermissions(value) {
 	if (!Array.isArray(value)) return [];
-	const allowed = new Set([...PAGE_KEYS, 'leads', 'wheel', 'feedback']);
+	// Keep the customer page and its optional actions as first-class admin
+	// permissions. Previously the UI could send these keys, but this
+	// normalization silently discarded them before saving to the database.
+	const allowed = new Set([
+		...PAGE_KEYS,
+		'leads',
+		'customers',
+		'customers:import',
+		'customers:export',
+		'customers:delete',
+		'wheel',
+		'feedback'
+	]);
 	return [...new Set(value.map(item => String(item || '').trim()).filter(item => allowed.has(item)))];
 }
 
