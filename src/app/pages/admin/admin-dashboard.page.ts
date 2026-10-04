@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -59,7 +59,8 @@ type PaginationItem = number | '…';
 	templateUrl: './admin-dashboard.page.html',
 	styleUrls: ['./admin-dashboard.page.css']
 })
-export class AdminDashboardPageComponent implements OnInit {
+export class AdminDashboardPageComponent implements OnInit, OnDestroy {
+	private feedbackRefreshTimer: ReturnType<typeof setInterval> | null = null;
 	sidebarOpen = false;
 	sidebarCollapsed = false;
 	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms' = 'leads';
@@ -227,6 +228,9 @@ export class AdminDashboardPageComponent implements OnInit {
 		this.seo.setTitle('لوحة تحكم الإدارة');
 		this.seo.setRobots('noindex, nofollow, noarchive');
 		this.refreshSummaries();
+		this.feedbackRefreshTimer = setInterval(() => {
+			if (this.activeView === 'feedback' && !this.isLoadingFeedback) this.loadFeedback(true);
+		}, 15000);
 		this.route.paramMap.subscribe(() => {
 			if (!this.authStateReady) return;
 			this.syncRouteState();
@@ -235,6 +239,13 @@ export class AdminDashboardPageComponent implements OnInit {
 			if (!this.authStateReady || !this.routeStateReady) return;
 			this.syncRouteState();
 		});
+	}
+
+	ngOnDestroy(): void {
+		if (this.feedbackRefreshTimer) {
+			clearInterval(this.feedbackRefreshTimer);
+			this.feedbackRefreshTimer = null;
+		}
 	}
 
 	private syncRouteState(): void {
@@ -440,7 +451,7 @@ export class AdminDashboardPageComponent implements OnInit {
 		return items;
 	}
 	updateFeedbackStatus(feedback: Feedback, status: Feedback['status']): void {
-		this.adminApi.updateFeedback(feedback.id, status).subscribe({ next: updated => { feedback.status = updated.status; this.statusMessage = 'تم تحديث حالة الرأي.'; }, error: err => this.handleApiError(err) });
+		this.adminApi.updateFeedback(feedback.id, status).subscribe({ next: updated => { feedback.status = updated.status; this.statusMessage = 'تم تحديث حالة الرأي.'; this.loadFeedback(true); }, error: err => this.handleApiError(err) });
 	}
 	feedbackPreview(message: string): string {
 		return (message || '').trim().split(/\s+/).filter(Boolean).slice(0, 10).join(' ');

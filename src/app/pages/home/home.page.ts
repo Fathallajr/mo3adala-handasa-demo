@@ -34,6 +34,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	publishedFeedbacks: Array<{ id: string; name: string; university?: string; batch?: string; rating: number; message: string }> = [];
 	private readonly feedbackEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api/feedback/published' : '/api/feedback/published';
 	private readonly refreshPublishedFeedbacksOnFocus = () => this.loadPublishedFeedbacks();
+	private publishedFeedbackRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
 	homeVideos = [
 		{
@@ -205,6 +206,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 		});
 		this.loadPublishedFeedbacks();
 		if (typeof window !== 'undefined') window.addEventListener('focus', this.refreshPublishedFeedbacksOnFocus, { passive: true });
+		this.publishedFeedbackRefreshTimer = setInterval(() => this.loadPublishedFeedbacks(), 15000);
 	}
 
 	private loadPublishedFeedbacks(): void {
@@ -351,6 +353,10 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	
 	ngOnDestroy() {
 		if (typeof window !== 'undefined') window.removeEventListener('focus', this.refreshPublishedFeedbacksOnFocus);
+		if (this.publishedFeedbackRefreshTimer) {
+			clearInterval(this.publishedFeedbackRefreshTimer);
+			this.publishedFeedbackRefreshTimer = null;
+		}
 		if (this.descriptionInterval) {
 			clearInterval(this.descriptionInterval);
 		}
