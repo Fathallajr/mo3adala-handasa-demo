@@ -13,7 +13,7 @@ interface RequirementsContent { visible: boolean; title: string; description: st
 })
 export class RequirementsFormComponent implements OnChanges {
 	@Input() content: unknown; data: RequirementsContent | null = null; engineeringText = ''; computersText = ''; documentsText = '';
-	ngOnChanges(): void { const raw = (this.content || {}) as Partial<RequirementsContent>; this.data = { visible: raw.visible !== false, title: raw.title || 'كل شروط المعادلة في مكان واحد', description: raw.description || '', engineeringConditions: raw.engineeringConditions || [], computersConditions: raw.computersConditions || [], documents: raw.documents || [], steps: raw.steps || [] }; this.refresh(); if (this.content && typeof this.content === 'object') Object.assign(this.content, this.data); }
+	ngOnChanges(): void { const raw = (this.content || {}) as Partial<RequirementsContent>; this.data = { visible: raw.visible !== false, title: raw.title || 'كل شروط تقديم اختبارات المعادلة لدفعة 2027', description: raw.description || '', engineeringConditions: raw.engineeringConditions || [], computersConditions: raw.computersConditions || [], documents: raw.documents || [], steps: raw.steps || [] }; this.refresh(); if (this.content && typeof this.content === 'object') Object.assign(this.content, this.data); }
 	setList(key: 'engineeringConditions'|'computersConditions'|'documents', value: string): void { if (this.data) this.data[key] = value.split('\n').map(item => item.trim()).filter(Boolean); this.refresh(); }
 	private refresh(): void { this.engineeringText = this.data?.engineeringConditions.join('\n') || ''; this.computersText = this.data?.computersConditions.join('\n') || ''; this.documentsText = this.data?.documents.join('\n') || ''; }
 }

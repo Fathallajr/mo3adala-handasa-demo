@@ -18,8 +18,8 @@ import { cmsPageDefaults } from '../../core/cms-page.registry';
 export class RequirementsPageComponent implements OnInit {
   selectedProgram: 'engineering' | 'computers' = 'engineering';
   isPageVisible = true;
-  pageTitle = 'كل شروط المعادلة في مكان واحد';
-  pageDescription = 'راجع الشروط والمستندات وخطوات التقديم قبل ما تبدأ، وخليك جاهز لكل مرحلة في طريقك لكلية الهندسة.';
+  pageTitle = 'كل شروط تقديم اختبارات المعادلة لدفعة 2027';
+  pageDescription = 'راجع الشروط والمستندات وخطوات التقديم قبل ما تبدأ، وخليك جاهز لكل مرحلة في طريقك لكلية الهندسة وحاسبات.';
   engineeringConditions: string[] = [];
   computersConditions: string[] = [];
   documents: string[] = [];

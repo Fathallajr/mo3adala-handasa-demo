@@ -1389,6 +1389,20 @@ async function migrateMissingFeedbackBatchOnce() {
 	console.log(`Updated ${updatedCount} feedback records from batch 2027 to 2026.`);
 }
 
+async function migrateRequirementsCopyOnce() {
+	const migrationKey = 'requirements-copy-v2-batch-2027-computers';
+	if (await database.getMetadata(migrationKey)) return;
+	const store = await readStore();
+	const current = store.pages.requirements?.data;
+	if (current) {
+		const data = { ...current };
+		if (data.title === 'كل شروط المعادلة في مكان واحد') data.title = 'كل شروط تقديم اختبارات المعادلة لدفعة 2027';
+		if (data.description === 'راجع الشروط والمستندات وخطوات التقديم قبل ما تبدأ، وخليك جاهز لكل مرحلة في طريقك لكلية الهندسة.') data.description = 'راجع الشروط والمستندات وخطوات التقديم قبل ما تبدأ، وخليك جاهز لكل مرحلة في طريقك لكلية الهندسة وحاسبات.';
+		await database.savePage('requirements', data, getNowIso());
+	}
+	await database.setMetadata(migrationKey, getNowIso());
+}
+
 app.get('/api/content', async (req, res) => {
 	noCache(res);
 	const store = await readStore();
@@ -1554,6 +1568,7 @@ app.get('*', (req, res, next) => {
 		await migrateNewsEquationOnce();
 		await migrateMissingCurrentNewsOnce();
 		await migrateMissingFeedbackBatchOnce();
+		await migrateRequirementsCopyOnce();
 	} catch (error) {
 		console.error('Subscription content migration failed', error);
 	}
