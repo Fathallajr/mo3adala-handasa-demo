@@ -293,8 +293,8 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			const description = `اشترك في ${this.subscriptionProgramLabel} بخطة واضحة للمذاكرة والمراجعة والمتابعة المستمرة.`;
 			const slug = pathname.replace(/^\//, '');
 			const imagePath = this.isComputersSubscription
-				? (this.isEnglishSubscription ? '/assets/schedule-computers-en.jpg' : '/assets/schedule-computers-ar.jpg')
-				: (this.isEnglishSubscription ? '/assets/schedule-engineering-en.jpg' : '/assets/schedule-engineering-ar.jpg');
+				? (this.isEnglishSubscription ? '/assets/schedule-computers-en.webp' : '/assets/schedule-computers-ar.webp')
+				: (this.isEnglishSubscription ? '/assets/schedule-engineering-en.webp' : '/assets/schedule-engineering-ar.webp');
 			const url = `${siteUrl}/${slug}`;
 			const image = `${siteUrl.replace(/\/$/, '')}${encodeURI(imagePath)}`;
 
@@ -364,8 +364,8 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		const program = this.isComputersSubscription ? 'حاسبات' : 'هندسة';
 		const language = this.isEnglishSubscription ? 'لغات' : 'عربي';
 		const asset = this.isComputersSubscription
-			? (this.isEnglishSubscription ? 'schedule-computers-en.jpg' : 'schedule-computers-ar.jpg')
-			: (this.isEnglishSubscription ? 'schedule-engineering-en.jpg' : 'schedule-engineering-ar.jpg');
+			? (this.isEnglishSubscription ? 'schedule-computers-en.webp' : 'schedule-computers-ar.webp')
+			: (this.isEnglishSubscription ? 'schedule-engineering-en.webp' : 'schedule-engineering-ar.webp');
 
 		return {
 			group: `جدول شهر أكتوبر ${program} ${language}`,

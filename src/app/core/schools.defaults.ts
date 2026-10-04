@@ -41,7 +41,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "الإسكندرية الصناعية للبترول والنقل البحري",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/الاسكندرية الثانوية الصناعية للبترول والنقل البحرى والصناعات.jpeg",
+    "logo": "/assets/schools/الاسكندرية الثانوية الصناعية للبترول والنقل البحرى والصناعات.webp",
     "programs": [
       "engineering"
     ]
@@ -59,7 +59,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "المعهد الفني للعلوم والتكنولوجيا",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/المعهد الفنى للعلوم والتكنولوجيا.png",
+    "logo": "/assets/schools/المعهد الفنى للعلوم والتكنولوجيا.webp",
     "programs": [
       "engineering"
     ]
@@ -122,7 +122,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مياه الشرب والصرف الصحي",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/ْالمدرسة الثانوية الفنية لمياه الشرب والصرف الصحي.jpeg",
+    "logo": "/assets/schools/ْالمدرسة الثانوية الفنية لمياه الشرب والصرف الصحي.webp",
     "programs": [
       "engineering"
     ]
@@ -185,7 +185,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "سمارت للحاسبات والإلكترونات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/سمارت للحاسبات والالكترونات.jpeg",
+    "logo": "/assets/schools/سمارت للحاسبات والالكترونات.webp",
     "programs": [
       "engineering"
     ]
@@ -644,7 +644,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مكارم الأخلاق المعمارية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مكارم الأخلاق المعمارية.jpg",
+    "logo": "/assets/schools/مكارم الأخلاق المعمارية.webp",
     "programs": [
       "engineering"
     ]
@@ -653,7 +653,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مدرسة الطباعة الفنية بشبرا",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة الطباعة الفنية بشبرا.jpg",
+    "logo": "/assets/schools/مدرسة الطباعة الفنية بشبرا.webp",
     "programs": [
       "engineering"
     ]
@@ -671,7 +671,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مدرسة عابدين الثانوية الصناعية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة عابدين الثانوية الصناعية.jpg",
+    "logo": "/assets/schools/مدرسة عابدين الثانوية الصناعية.webp",
     "programs": [
       "engineering"
     ]
@@ -680,7 +680,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مدرسة الخصوص الثانوية الصناعية بنين",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة الخصوص الثانوية الصناعية بنين.jpg",
+    "logo": "/assets/schools/مدرسة الخصوص الثانوية الصناعية بنين.webp",
     "programs": [
       "engineering"
     ]
@@ -689,7 +689,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "العباسية الثانوية الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/العباسية الثانوية الصناعية بنات.jpg",
+    "logo": "/assets/schools/العباسية الثانوية الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -698,7 +698,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مدرسة السيدة خديجة أم المؤمنين الصناعية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة السيدة خديجة أم المؤمنين الصناعية.jpg",
+    "logo": "/assets/schools/مدرسة السيدة خديجة أم المؤمنين الصناعية.webp",
     "programs": [
       "engineering"
     ]
@@ -716,7 +716,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مدرسة السلام الثانوية الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة السلام الثانوية الصناعية بنات.jpg",
+    "logo": "/assets/schools/مدرسة السلام الثانوية الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -725,7 +725,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مدرسة أحمد ماهر الثانوية الصناعية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة أحمد ماهر الثانوية الصناعية.jpg",
+    "logo": "/assets/schools/مدرسة أحمد ماهر الثانوية الصناعية.webp",
     "programs": [
       "engineering"
     ]
@@ -734,7 +734,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مدرسة الرضوانية الصناعية بنين",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة الرضوانية الصناعية بنين.jpg",
+    "logo": "/assets/schools/مدرسة الرضوانية الصناعية بنين.webp",
     "programs": [
       "engineering"
     ]
@@ -761,7 +761,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مدرسة شبرا الميكانيكية الجديدة",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة شبرا الميكانيكية الجديدة.jpg",
+    "logo": "/assets/schools/مدرسة شبرا الميكانيكية الجديدة.webp",
     "programs": [
       "engineering"
     ]
@@ -770,7 +770,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مدرسة السادات الصناعية بنين",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة السادات الصناعية بنين.jpg",
+    "logo": "/assets/schools/مدرسة السادات الصناعية بنين.webp",
     "programs": [
       "engineering"
     ]
@@ -887,7 +887,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "منشأة ناصر الثانوية المعمارية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/منشأة ناصر الثانوية المعمارية.jpg",
+    "logo": "/assets/schools/منشأة ناصر الثانوية المعمارية.webp",
     "programs": [
       "engineering"
     ]
@@ -896,7 +896,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "بنبا قادن الصناعية الثانوية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/بنبا قادن الصناعية الثانوية.jpg",
+    "logo": "/assets/schools/بنبا قادن الصناعية الثانوية.webp",
     "programs": [
       "engineering"
     ]
@@ -950,7 +950,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "طلعت حرب الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/طلعت حرب الصناعية بنات.jpg",
+    "logo": "/assets/schools/طلعت حرب الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -959,7 +959,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "باب الشعرية الثانوية الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/باب الشعرية الثانوية الصناعية بنات.jpg",
+    "logo": "/assets/schools/باب الشعرية الثانوية الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -968,7 +968,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "السيدة زينب الثانوية الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/السيدة زينب الثانوية الصناعية بنات.jpg",
+    "logo": "/assets/schools/السيدة زينب الثانوية الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -977,7 +977,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "سميرة موسى الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/سميرة موسى الصناعية بنات.jpg",
+    "logo": "/assets/schools/سميرة موسى الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -1004,7 +1004,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "القاهرة الثانوية الصناعية بالمنيل بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/القاهرة الفنية للنسيج بنات_.jpg",
+    "logo": "/assets/schools/القاهرة الفنية للنسيج بنات_.webp",
     "programs": [
       "engineering"
     ]
@@ -1022,7 +1022,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "دمياط الثانوية الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة دمياط الثانوية الصناعية بنات.jpg",
+    "logo": "/assets/schools/مدرسة دمياط الثانوية الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -1031,7 +1031,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "دمياط الجديدة الثانوية الصناعية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة دمياط الجديدة الثانوية الصناعية.jpg",
+    "logo": "/assets/schools/مدرسة دمياط الجديدة الثانوية الصناعية.webp",
     "programs": [
       "engineering"
     ]
@@ -1040,7 +1040,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "كفر حميدو الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/كفر حميدو الصناعية بنات_.jpg",
+    "logo": "/assets/schools/كفر حميدو الصناعية بنات_.webp",
     "programs": [
       "engineering"
     ]
@@ -1049,7 +1049,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "الرحامنة الثانوية الصناعية دمياط",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/الرحامنة الثانوية الصناعية دمياط.jpg",
+    "logo": "/assets/schools/الرحامنة الثانوية الصناعية دمياط.webp",
     "programs": [
       "engineering"
     ]
@@ -1058,7 +1058,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "محمد حسن درة الإلكترونية دمياط",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/محمد حسن درة الإلكترونية دمياط.jpg",
+    "logo": "/assets/schools/محمد حسن درة الإلكترونية دمياط.webp",
     "programs": [
       "engineering"
     ]
@@ -1067,7 +1067,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "سلامون الثانوية الصناعية بنين",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/سلامون الثانوية الصناعية بنين.jpg",
+    "logo": "/assets/schools/سلامون الثانوية الصناعية بنين.webp",
     "programs": [
       "engineering"
     ]
@@ -1076,7 +1076,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "الزقازيق الصناعية بنات رقم 1",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/الزقازيق الصناعية بنات رقم 1.jpg",
+    "logo": "/assets/schools/الزقازيق الصناعية بنات رقم 1.webp",
     "programs": [
       "engineering"
     ]
@@ -1085,7 +1085,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "الزقازيق الصناعية بنات رقم 2",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/الزقازيق الصناعية بنات رقم 2.jpg",
+    "logo": "/assets/schools/الزقازيق الصناعية بنات رقم 2.webp",
     "programs": [
       "engineering"
     ]
@@ -1094,7 +1094,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "إبراهيم أبو النجا الثانوية الصناعية بنين",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/إبراهيم أبو النجا الثانوية الصناعية بنين.jpg",
+    "logo": "/assets/schools/إبراهيم أبو النجا الثانوية الصناعية بنين.webp",
     "programs": [
       "engineering"
     ]
@@ -1103,7 +1103,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "الخصوص الثانوية الصناعية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/الخصوص الثانوية الصناعية.jpg",
+    "logo": "/assets/schools/الخصوص الثانوية الصناعية.webp",
     "programs": [
       "engineering"
     ]
@@ -1112,7 +1112,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "الزخرفية الصناعية بنين دمياط",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/الزخرفية الصناعية بنين دمياط.jpg",
+    "logo": "/assets/schools/الزخرفية الصناعية بنين دمياط.webp",
     "programs": [
       "engineering"
     ]
@@ -1121,7 +1121,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "حلوان المهنية الملحقة بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/حلوان المهنية الملحقة بنات.jpg",
+    "logo": "/assets/schools/حلوان المهنية الملحقة بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -1130,7 +1130,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "القاضي شرف الدين بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/القاضي شرف الدين بنات.jpg",
+    "logo": "/assets/schools/القاضي شرف الدين بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -1148,7 +1148,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "زين العابدين للتعليم المزدوج",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/زين العابدين للتعليم المزدوج.jpg",
+    "logo": "/assets/schools/زين العابدين للتعليم المزدوج.webp",
     "programs": [
       "engineering"
     ]
@@ -1157,7 +1157,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "طنطا الثانوية الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/طنطا الثانوية الصناعية بنات.jpg",
+    "logo": "/assets/schools/طنطا الثانوية الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -1166,7 +1166,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "طنطا الثانوية الميكانيكية بنين",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/طنطا الثانوية الميكانيكية بنين.jpg",
+    "logo": "/assets/schools/طنطا الثانوية الميكانيكية بنين.webp",
     "programs": [
       "engineering"
     ]
@@ -1175,7 +1175,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "طنطا الثانوية الزخرفية بنين",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/طنطا الثانوية الزخرفية بنين.jpg",
+    "logo": "/assets/schools/طنطا الثانوية الزخرفية بنين.webp",
     "programs": [
       "engineering"
     ]
@@ -1184,7 +1184,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "طنبارة الثانوية الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/طنبارة الثانوية الصناعية بنات.jpg",
+    "logo": "/assets/schools/طنبارة الثانوية الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -1220,7 +1220,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "سنبو الثانوية الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/سنبو الثانوية الصناعية بنات.jpg",
+    "logo": "/assets/schools/سنبو الثانوية الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -1229,7 +1229,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "سندوب الثانوية الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/سندوب الثانوية الصناعية بنات.jpg",
+    "logo": "/assets/schools/سندوب الثانوية الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -1265,7 +1265,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "الفيوم الصناعية الزخرفية بنين",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة الفيوم الصناعية الزخرفية بنين.jpg",
+    "logo": "/assets/schools/مدرسة الفيوم الصناعية الزخرفية بنين.webp",
     "programs": [
       "engineering"
     ]
@@ -1274,7 +1274,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "منفلوط الثانوية الصناعية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/منفلوط الثانوية الصناعية.jpg",
+    "logo": "/assets/schools/منفلوط الثانوية الصناعية.webp",
     "programs": [
       "engineering"
     ]
@@ -1292,7 +1292,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "بدر الثانوية الصناعية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/بدر الثانوية الصناعية_.jpg",
+    "logo": "/assets/schools/بدر الثانوية الصناعية_.webp",
     "programs": [
       "engineering"
     ]
@@ -1301,7 +1301,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "أسيوط الثانوية الميكانيكية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/أسيوط الثانوية الميكانيكية.jpg",
+    "logo": "/assets/schools/أسيوط الثانوية الميكانيكية.webp",
     "programs": [
       "engineering"
     ]
@@ -1310,7 +1310,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "أسيوط الثانوية الزخرفية",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 3 سنوات",
-    "logo": "/assets/schools/أسيوط الثانوية الزخرفية.jpg",
+    "logo": "/assets/schools/أسيوط الثانوية الزخرفية.webp",
     "programs": [
       "engineering"
     ]
@@ -1364,7 +1364,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "معهد السالزيان دون بوسكو ITI",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 5 سنوات",
-    "logo": "/assets/schools/معهد السالزيان دون بوسكو.jpeg",
+    "logo": "/assets/schools/معهد السالزيان دون بوسكو.webp",
     "programs": [
       "engineering"
     ]
@@ -1382,7 +1382,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "جلال فهمي الفنية المتقدمة",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 5 سنوات",
-    "logo": "/assets/schools/جلال فهمي الفنيه المتقدمه.jpeg",
+    "logo": "/assets/schools/جلال فهمي الفنيه المتقدمه.webp",
     "programs": [
       "engineering"
     ]
@@ -1490,7 +1490,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "القاهرة الفنية للنسيج بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 5 سنوات",
-    "logo": "/assets/schools/القاهرة الفنية للنسيج بنات_.jpg",
+    "logo": "/assets/schools/القاهرة الفنية للنسيج بنات_.webp",
     "programs": [
       "engineering"
     ]
@@ -1553,7 +1553,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "ناصر الثانوية الصناعية العسكرية بنين بسنورس ",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 5 سنوات",
-    "logo": "/assets/schools/ناصر الثانوية الصناعية.jpg",
+    "logo": "/assets/schools/ناصر الثانوية الصناعية.webp",
     "programs": [
       "engineering"
     ]
@@ -1571,7 +1571,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "السيدة صفية الثانوية الصناعية بنات",
     "type": "مدرسة صناعية",
     "category": "مدارس الثانوية الصناعية نظام 5 سنوات",
-    "logo": "/assets/schools/السيدة صفية الثانوية الصناعية بنات.jpg",
+    "logo": "/assets/schools/السيدة صفية الثانوية الصناعية بنات.webp",
     "programs": [
       "engineering"
     ]
@@ -1679,7 +1679,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "مدارس WE للتكنولوجيا التطبيقية",
     "type": "مدرسة تكنولوجية",
     "category": "مدارس تكنولوجية نظام 3 سنوات",
-    "logo": "/assets/schools/مدرسة WE للتكنولوجيا التطبيقية_.jpg",
+    "logo": "/assets/schools/مدرسة WE للتكنولوجيا التطبيقية_.webp",
     "programs": [
       "engineering",
       "computers"
@@ -1716,7 +1716,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "عمار للتكنولوجيا التطبيقية",
     "type": "مدرسة تكنولوجية",
     "category": "مدارس تكنولوجية نظام 3 سنوات",
-    "logo": "/assets/schools/عمار للتكنولوجيا التطبيقيه.jpg",
+    "logo": "/assets/schools/عمار للتكنولوجيا التطبيقيه.webp",
     "programs": [
       "engineering"
     ]
@@ -1743,7 +1743,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "إلكترو مصر للتكنولوجيا التطبيقية",
     "type": "مدرسة تكنولوجية",
     "category": "مدارس تكنولوجية نظام 3 سنوات",
-    "logo": "/assets/schools/إلكترو مصر للتكنولوجيا التطبيقية.jpeg",
+    "logo": "/assets/schools/إلكترو مصر للتكنولوجيا التطبيقية.webp",
     "programs": [
       "engineering"
     ]
@@ -1761,7 +1761,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "العربي للتكنولوجيا التطبيقية",
     "type": "مدرسة تكنولوجية",
     "category": "مدارس تكنولوجية نظام 3 سنوات",
-    "logo": "/assets/schools/العربي للتكنولوجيا التطبيقية.png",
+    "logo": "/assets/schools/العربي للتكنولوجيا التطبيقية.webp",
     "programs": [
       "engineering"
     ]
@@ -1770,7 +1770,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "إيجيبت جولد للتكنولوجيا التطبيقية",
     "type": "مدرسة تكنولوجية",
     "category": "مدارس تكنولوجية نظام 3 سنوات",
-    "logo": "/assets/schools/إيجيبت جولد للتكنولوجيا التطبيقية.jpeg",
+    "logo": "/assets/schools/إيجيبت جولد للتكنولوجيا التطبيقية.webp",
     "programs": [
       "engineering"
     ]
@@ -1806,7 +1806,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "Mountain View",
     "type": "مدرسة تكنولوجية",
     "category": "مدارس تكنولوجية نظام 3 سنوات",
-    "logo": "/assets/schools/Mountain View.jpeg",
+    "logo": "/assets/schools/Mountain View.webp",
     "programs": [
       "engineering"
     ]
@@ -1842,7 +1842,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "غبور 2",
     "type": "مدرسة تكنولوجية",
     "category": "مدارس تكنولوجية نظام 3 سنوات",
-    "logo": "/assets/schools/غبور.jpg",
+    "logo": "/assets/schools/غبور.webp",
     "programs": [
       "engineering"
     ]
@@ -1851,7 +1851,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "أكاديمية مصر الدولية للحاسبات والذكاء الاصطناعي (MICA)",
     "type": "مدرسة تكنولوجية",
     "category": "مدارس تكنولوجية نظام 3 سنوات",
-    "logo": "/assets/schools/أكاديمية مصر الدولية للحاسبات والذكاء الاصطناعي .jpeg",
+    "logo": "/assets/schools/أكاديمية مصر الدولية للحاسبات والذكاء الاصطناعي .webp",
     "programs": [
       "engineering"
     ]
@@ -1869,7 +1869,7 @@ export const DEFAULT_SCHOOLS: SchoolItem[] = [
     "name": "HST",
     "type": "مدرسة تكنولوجية",
     "category": "مدارس تكنولوجية نظام 3 سنوات",
-    "logo": "/assets/schools/HST School for Applied Technology.jpeg",
+    "logo": "/assets/schools/HST School for Applied Technology.webp",
     "programs": [
       "engineering"
     ]

@@ -21,9 +21,9 @@ type StoryInput = Pick<SuccessStory, 'name' | 'category' | 'message'> & Partial<
 
 const femaleStudents = new Set(['أسماء يحيي', 'نورهان محمود', 'ملاك حليم', 'مرام مدحت', 'أميرة محمد', 'أية سعيد']);
 const studentImageFiles: Record<string, string> = {
-	'أسماء يحيي': 'اسماء يحيي.jpg',
-	'أحمد حسن': 'احمد حسن.jpg',
-	'أميرة محمد': 'اميرة محمد.jpg',
+	'أسماء يحيي': 'اسماء يحيي.webp',
+	'أحمد حسن': 'احمد حسن.webp',
+	'أميرة محمد': 'اميرة محمد.webp',
 	'نورهان محمود': 'نورهان محمود.png'
 };
 

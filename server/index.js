@@ -1300,7 +1300,7 @@ async function migrateNewsEquationOnce() {
 					title: 'جدول اختبارات معادلة كلية الهندسة 2026',
 					description: 'أعلن المجلس الأعلى للجامعات جدول اختبارات معادلة كلية الهندسة للعام الجامعي 2026/2027.',
 					date: '2026-07-31',
-					image: '/assets/جدول اختبارات معادلة كلية الهندسة .jpeg',
+					image: '/assets/جدول اختبارات معادلة كلية الهندسة .webp',
 					link: '/news/detail/engineering-equation-exam-schedule-2026',
 					category: 'جداول الامتحانات',
 					important: true
@@ -1309,7 +1309,7 @@ async function migrateNewsEquationOnce() {
 					title: 'فتح باب التقديم لاختبارات معادلة كلية الهندسة',
 					description: 'التسجيل متاح إلكترونيًا خلال الفترة المحددة للعام الجامعي 2026/2027.',
 					date: '2026-07-31',
-					image: '/assets/خبر فتح باب التقديم.jpeg',
+					image: '/assets/خبر فتح باب التقديم.webp',
 					link: '/news/detail/engineering-equation-application-open-2026',
 					category: 'التقديم والقبول',
 					important: true
@@ -1353,19 +1353,19 @@ async function migrateMissingCurrentNewsOnce() {
 			{
 				title: 'جروب إنجليزي جديد لطلاب المكثف — من الصفر خطوة بخطوة 🔥',
 				description: 'فتحنا جروب مجاني لطلاب المكثف هنبدأ فيه من الصفر حرفيًا.',
-				date: '2026-05-01', image: '/assets/خبر جروب الانجليزي.jpeg',
+				date: '2026-05-01', image: '/assets/خبر جروب الانجليزي.webp',
 				link: '/news/detail/english-group-intensive-2026', category: 'الكورسات والدورات', important: true
 			},
 			{
 				title: 'انطلاق جروب C رسميًا على ابلكيشن معادلة كلية الهندسة',
 				description: 'جروب C بدأ رسميًا لبداية قوية وطريق واضح إلى كلية الهندسة.',
-				date: '2026-01-24', image: '/assets/جروب جديد.jpg.jpeg',
+				date: '2026-01-24', image: '/assets/جروب جديد.jpg.webp',
 				link: '/news/detail/group-c-launch-2026', category: 'الكورسات والدورات', important: true
 			},
 			{
 				title: '7 أيام تجريبية مجاناً لطلاب المعادلة',
 				description: 'جرب الأبلكيشن بالكامل واحصل على كود مجاني لمدة 7 أيام.',
-				date: '2026-01-21', image: '/assets/اكواد مجانية.jpg',
+				date: '2026-01-21', image: '/assets/اكواد مجانية.webp',
 				link: '/news/detail/free-week-codes-2025', category: 'عروض خاصة', important: true
 			}
 		];

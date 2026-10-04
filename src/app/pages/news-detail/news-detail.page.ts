@@ -38,7 +38,7 @@ export class NewsDetailPageComponent implements OnInit {
 			title: 'المجلس الأعلى للجامعات يعلن فتح باب التقديم لاختبارات معادلة كلية الهندسة 2026',
 			content: `
 				<div class="mb-8 text-center">
-					<img src="/assets/خبر فتح باب التقديم.jpeg" alt="فتح باب التقديم لاختبارات معادلة كلية الهندسة 2026" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
+					<img src="/assets/خبر فتح باب التقديم.webp" alt="فتح باب التقديم لاختبارات معادلة كلية الهندسة 2026" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
 				</div>
 
 				<div class="bg-orange-50 border-l-4 border-orange-500 p-6 mb-6">
@@ -73,15 +73,15 @@ export class NewsDetailPageComponent implements OnInit {
 			author: 'فريق الابلكيشن',
 			category: 'التقديم والقبول',
 			important: true,
-			image: '/assets/خبر فتح باب التقديم.jpeg',
-			images: ['/assets/خبر فتح باب التقديم.jpeg']
+			image: '/assets/خبر فتح باب التقديم.webp',
+			images: ['/assets/خبر فتح باب التقديم.webp']
 		},
 		'engineering-equation-exam-schedule-2026': {
 			id: 'engineering-equation-exam-schedule-2026',
 			title: 'جدول اختبارات معادلة كلية الهندسة 2026',
 			content: `
 				<div class="mb-8 text-center">
-					<img src="/assets/جدول اختبارات معادلة كلية الهندسة .jpeg" alt="جدول اختبارات معادلة كلية الهندسة 2026" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
+					<img src="/assets/جدول اختبارات معادلة كلية الهندسة .webp" alt="جدول اختبارات معادلة كلية الهندسة 2026" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
 				</div>
 
 				<div class="bg-red-50 border-l-4 border-red-500 p-6 mb-6">
@@ -114,8 +114,8 @@ export class NewsDetailPageComponent implements OnInit {
 			author: 'فريق المعادلة',
 			category: 'جداول الامتحانات',
 			important: true,
-			image: '/assets/جدول اختبارات معادلة كلية الهندسة .jpeg',
-			images: ['/assets/جدول اختبارات معادلة كلية الهندسة .jpeg']
+			image: '/assets/جدول اختبارات معادلة كلية الهندسة .webp',
+			images: ['/assets/جدول اختبارات معادلة كلية الهندسة .webp']
 		},
 		'app-book-order-2026': {
 			id: 'app-book-order-2026',
@@ -262,7 +262,7 @@ export class NewsDetailPageComponent implements OnInit {
 				</div>
 
 				<div class="mb-8 text-center">
-					<img src="/assets/خبر جروب الانجليزي.jpeg" alt="جروب إنجليزي مكثف" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
+					<img src="/assets/خبر جروب الانجليزي.webp" alt="جروب إنجليزي مكثف" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
 				</div>
 
 				<div class="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6">
@@ -309,8 +309,8 @@ export class NewsDetailPageComponent implements OnInit {
 			author: 'فريق المعادلة',
 			category: 'الكورسات والدورات',
 			important: true,
-			image: '/assets/خبر جروب الانجليزي.jpeg',
-			images: ['/assets/خبر جروب الانجليزي.jpeg']
+			image: '/assets/خبر جروب الانجليزي.webp',
+			images: ['/assets/خبر جروب الانجليزي.webp']
 		},
 		'group-c-launch-2026': {
 			id: 'group-c-launch-2026',
@@ -323,7 +323,7 @@ export class NewsDetailPageComponent implements OnInit {
 				</div>
 				
 				<div class="mb-8 text-center">
-					<img src="/assets/جروب جديد.jpg.jpeg" alt="انطلاق جروب C" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
+					<img src="/assets/جروب جديد.jpg.webp" alt="انطلاق جروب C" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
 				</div>
 				
 				<div class="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6">
@@ -364,9 +364,9 @@ export class NewsDetailPageComponent implements OnInit {
 			author: 'فريق المعادلة',
 			category: 'الكورسات والدورات',
 			important: true,
-			image: '/assets/جروب جديد.jpg.jpeg',
+			image: '/assets/جروب جديد.jpg.webp',
 			images: [
-				'/assets/جروب جديد.jpg.jpeg'
+				'/assets/جروب جديد.jpg.webp'
 			]
 		},
 		'english-plan-dr-omar-2025': {
@@ -380,7 +380,7 @@ export class NewsDetailPageComponent implements OnInit {
 				</div>
 				
 				<div class="mb-8 text-center">
-					<img src="/assets/خبر الإنجليزي.jpg" alt="خطة الإنجليزي مع دكتور عمر" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
+					<img src="/assets/خبر الإنجليزي.webp" alt="خطة الإنجليزي مع دكتور عمر" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
 				</div>
 				
 				<div class="bg-orange-50 border-l-4 border-orange-500 p-6 mb-6">
@@ -446,9 +446,9 @@ export class NewsDetailPageComponent implements OnInit {
 			author: 'فريق المعادلة',
 			category: 'الكورسات والدورات',
 			important: true,
-			image: '/assets/خبر الإنجليزي.jpg',
+			image: '/assets/خبر الإنجليزي.webp',
 			images: [
-				'/assets/خبر الإنجليزي.jpg'
+				'/assets/خبر الإنجليزي.webp'
 			]
 		},
 		'monitoring-system-2025': {
@@ -461,7 +461,7 @@ export class NewsDetailPageComponent implements OnInit {
 				</div>
 				
 				<div class="mb-8 text-center">
-					<img src="/assets/نظام المتابعة.jpg" alt="نظام المتابعة" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
+					<img src="/assets/نظام المتابعة.webp" alt="نظام المتابعة" class="mx-auto rounded-lg shadow-lg max-w-full" style="max-width: 800px;">
 				</div>
 				
 				<p class="text-lg leading-relaxed mb-6 text-gray-700 font-semibold text-center">
@@ -535,9 +535,9 @@ export class NewsDetailPageComponent implements OnInit {
 			author: 'فريق المعادلة',
 			category: 'أنظمة الأبلكيشن',
 			important: true,
-			image: '/assets/نظام المتابعة.jpg',
+			image: '/assets/نظام المتابعة.webp',
 			images: [
-				'/assets/نظام المتابعة.jpg'
+				'/assets/نظام المتابعة.webp'
 			]
 		},
 		'free-week-codes-2025': {
@@ -680,9 +680,9 @@ export class NewsDetailPageComponent implements OnInit {
 			author: 'فريق المعادلة',
 			category: 'الكتب والمراجع',
 			important: false,
-			image: '/assets/كتاب.jpg',
+			image: '/assets/كتاب.webp',
 			images: [
-				'/assets/كتاب.jpg'
+				'/assets/كتاب.webp'
 			]
 		},
 		'one-chance-only-2025': {
@@ -753,8 +753,8 @@ export class NewsDetailPageComponent implements OnInit {
 			date: '2025-06-22',
 			author: 'فريق المعادلة',
 			category: 'قبول خاص',
-			image: '/assets/we.jpg',
-			images: ['/assets/we.jpg']
+			image: '/assets/we.webp',
+			images: ['/assets/we.webp']
 		},
 		'english-words-group-2025': {
 			id: 'english-words-group-2025',
@@ -803,9 +803,9 @@ export class NewsDetailPageComponent implements OnInit {
 			author: 'فريق المعادلة',
 			category: 'أخبار التطبيق',
 			important: false,
-			image: '/assets/مكثف.jpg',
+			image: '/assets/مكثف.webp',
 			images: [
-				'/assets/مكثف.jpg'
+				'/assets/مكثف.webp'
 			]
 		},
 		'intensive-course-2025': {
