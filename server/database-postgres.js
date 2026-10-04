@@ -90,10 +90,10 @@ async function writeStore(store) {
 	const client = await pool.connect();
 	try {
 		await client.query('BEGIN');
-		await client.query('TRUNCATE pages, leads, programs, audit_logs');
-		for (const [key, value] of Object.entries(store.pages || {})) {
-			await client.query('INSERT INTO pages(key,data,updated_at) VALUES ($1,$2::jsonb,$3)', [key, JSON.stringify(value.data ?? {}), value.updatedAt || new Date().toISOString()]);
-		}
+		// Pages have their own atomic savePage() path. Do not rewrite them from
+		// this potentially stale full-store snapshot: program/lead updates used
+		// to bring back old CMS content and silently delete newer news.
+		await client.query('TRUNCATE leads, programs, audit_logs');
 		for (const lead of store.leads || []) {
 			await client.query(`INSERT INTO leads(id,name,whatsapp,school,student_type,program,source,status,notes,attribution,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12)`, [lead.id, lead.name || '', lead.whatsapp || '', lead.school || '', lead.studentType || '', lead.program || '', lead.source || '', lead.status || 'new', lead.notes || '', JSON.stringify(lead.attribution || {}), lead.createdAt || new Date().toISOString(), lead.updatedAt || null]);
 		}

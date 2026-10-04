@@ -103,9 +103,9 @@ function readStore() {
 
 function writeStore(store) {
   const transaction = db.transaction(() => {
-    db.prepare('DELETE FROM pages').run();
-    const pageInsert = db.prepare('INSERT INTO pages(key,data,updated_at) VALUES (?,?,?)');
-    for (const [key, value] of Object.entries(store.pages || {})) pageInsert.run(key, JSON.stringify(value.data ?? {}), value.updatedAt || new Date().toISOString());
+    // Pages have their own atomic savePage() path. Do not rewrite them from
+    // this potentially stale full-store snapshot: program/lead updates used
+    // to bring back old CMS content and silently delete newer news.
     db.prepare('DELETE FROM leads').run();
 		const leadInsert = db.prepare(`INSERT INTO leads(id,name,whatsapp,school,student_type,program,source,status,notes,attribution,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`);
 		for (const lead of store.leads || []) leadInsert.run(lead.id, lead.name || '', lead.whatsapp || '', lead.school || '', lead.studentType || '', lead.program || '', lead.source || '', lead.status || 'new', lead.notes || '', JSON.stringify(lead.attribution || {}), lead.createdAt || new Date().toISOString(), lead.updatedAt || null);

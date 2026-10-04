@@ -1330,6 +1330,52 @@ async function migrateNewsEquationOnce() {
 	await database.setMetadata(migrationKey, getNowIso());
 }
 
+async function migrateMissingCurrentNewsOnce() {
+	const migrationKey = 'news-equation-current-items-recovery-v1';
+	if (await database.getMetadata(migrationKey)) return;
+
+	const store = await readStore();
+	const page = store.pages['news-equation']?.data;
+	if (page && page.visible !== false && Array.isArray(page.items)) {
+		const recoveredItems = [
+			{
+				title: 'كتاب أبلكيشن معادلة كلية الهندسة 📘💪',
+				description: 'أقوى تجميعة أسئلة وتمارين وامتحانات مهمة مصممة علشان توصّلك للنجاح بثقة.',
+				date: '2026-05-07', image: '/assets/خبر الكتاب.webp',
+				link: '/news/detail/app-book-order-2026', category: 'الكتب والمراجع', important: true
+			},
+			{
+				title: 'فرصة التأسيس المبكر لدفعة 2027 🚀🔥',
+				description: 'هنبدأ معاك من البداية خطوة بخطوة عشان تدخل المعادلة وأنت جاهز.',
+				date: '2026-05-03', image: '/assets/جروب السنة الجديدة 2027.webp',
+				link: '/news/detail/group-2027-foundation', category: 'الكورسات والدورات', important: true
+			},
+			{
+				title: 'جروب إنجليزي جديد لطلاب المكثف — من الصفر خطوة بخطوة 🔥',
+				description: 'فتحنا جروب مجاني لطلاب المكثف هنبدأ فيه من الصفر حرفيًا.',
+				date: '2026-05-01', image: '/assets/خبر جروب الانجليزي.jpeg',
+				link: '/news/detail/english-group-intensive-2026', category: 'الكورسات والدورات', important: true
+			},
+			{
+				title: 'انطلاق جروب C رسميًا على ابلكيشن معادلة كلية الهندسة',
+				description: 'جروب C بدأ رسميًا لبداية قوية وطريق واضح إلى كلية الهندسة.',
+				date: '2026-01-24', image: '/assets/جروب جديد.jpg.jpeg',
+				link: '/news/detail/group-c-launch-2026', category: 'الكورسات والدورات', important: true
+			},
+			{
+				title: '7 أيام تجريبية مجاناً لطلاب المعادلة',
+				description: 'جرب الأبلكيشن بالكامل واحصل على كود مجاني لمدة 7 أيام.',
+				date: '2026-01-21', image: '/assets/اكواد مجانية.jpg',
+				link: '/news/detail/free-week-codes-2025', category: 'عروض خاصة', important: true
+			}
+		];
+		const existingLinks = new Set(page.items.map(item => String(item?.link || '').trim()).filter(Boolean));
+		const missing = recoveredItems.filter(item => !existingLinks.has(item.link));
+		if (missing.length) await database.savePage('news-equation', { ...page, items: [...page.items, ...missing] }, getNowIso());
+	}
+	await database.setMetadata(migrationKey, getNowIso());
+}
+
 async function migrateMissingFeedbackBatchOnce() {
 	const migrationKey = 'feedback-batch-2027-v2';
 	if (await database.getMetadata(migrationKey)) return;
@@ -1502,6 +1548,7 @@ app.get('*', (req, res, next) => {
 		await migrateLaunchOfferOnce();
 		await migrateFeedbackPageOnce();
 		await migrateNewsEquationOnce();
+		await migrateMissingCurrentNewsOnce();
 		await migrateMissingFeedbackBatchOnce();
 	} catch (error) {
 		console.error('Subscription content migration failed', error);
