@@ -230,7 +230,7 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 		title: 'قول رأيك في الأبليكيشن',
 		description: 'رأيك بيساعدنا نطوّر المحتوى والمتابعة ونقدّم تجربة أفضل لكل طالب.',
 		batchLabel: 'الدفعة',
-		batchPlaceholder: 'مثال: 2027',
+		batchPlaceholder: 'مثال: 2026',
 		batchRequired: true
 	}
 };

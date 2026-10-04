@@ -676,7 +676,7 @@ app.post('/api/leads', rateLimit({ name: 'leads', windowMs: 15 * 60 * 1000, max:
 app.post('/api/feedback', rateLimit({ name: 'feedback', windowMs: 15 * 60 * 1000, max: 8 }), async (req, res) => {
 	const name = String(req.body?.name || '').trim();
 	const university = String(req.body?.university || '').trim();
-	const batch = String(req.body?.batch || '2027').trim();
+	const batch = String(req.body?.batch || '2026').trim();
 	const message = String(req.body?.message || '').trim();
 	const rating = Number(req.body?.rating);
 	if (name.length < 2 || name.length > 120) return res.status(400).json({ message: 'Name must be between 2 and 120 characters' });
@@ -1275,7 +1275,7 @@ async function migrateFeedbackPageOnce() {
 			title: 'قول رأيك في الأبليكيشن',
 			description: 'رأيك بيساعدنا نطوّر المحتوى والمتابعة ونقدّم تجربة أفضل لكل طالب.',
 			batchLabel: 'الدفعة',
-			batchPlaceholder: 'مثال: 2027',
+			batchPlaceholder: 'مثال: 2026',
 			batchRequired: true
 		}, getNowIso());
 	}
@@ -1377,12 +1377,16 @@ async function migrateMissingCurrentNewsOnce() {
 }
 
 async function migrateMissingFeedbackBatchOnce() {
-	const migrationKey = 'feedback-batch-2027-v2';
+	const migrationKey = 'feedback-batch-2026-v3';
 	if (await database.getMetadata(migrationKey)) return;
 
-	const updatedCount = await database.setMissingFeedbackBatch('2027', getNowIso());
+	const updatedCount = await database.updateFeedbackBatch('2027', '2026', getNowIso());
+	const store = await readStore();
+	if (store.pages.feedback?.data?.batchPlaceholder === 'مثال: 2027') {
+		await database.savePage('feedback', { ...store.pages.feedback.data, batchPlaceholder: 'مثال: 2026' }, getNowIso());
+	}
 	await database.setMetadata(migrationKey, getNowIso());
-	console.log(`Assigned batch 2027 to ${updatedCount} legacy feedback records.`);
+	console.log(`Updated ${updatedCount} feedback records from batch 2027 to 2026.`);
 }
 
 app.get('/api/content', async (req, res) => {

@@ -25,7 +25,7 @@ export class FeedbackPageComponent {
 	title = 'قول رأيك في الأبليكيشن';
 	description = 'رأيك بيساعدنا نطوّر المحتوى والمتابعة ونقدّم تجربة أفضل لكل طالب.';
 	batchLabel = 'الدفعة';
-	batchPlaceholder = 'مثال: 2027';
+	batchPlaceholder = 'مثال: 2026';
 	batchRequired = true;
 	batchValue = '';
 	isPageVisible = true;
@@ -62,7 +62,7 @@ export class FeedbackPageComponent {
 		this.http.post(this.feedbackEndpoint, {
 					name: form.value.name,
 					university: form.value.university,
-					batch: String(form.value.batch || this.batchValue || '2027').trim(),
+					batch: String(form.value.batch || this.batchValue || '2026').trim(),
 					rating: form.value.rating,
 					message: form.value.message,
 			}).pipe(
