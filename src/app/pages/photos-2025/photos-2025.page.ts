@@ -30,14 +30,25 @@ export class Photos2025PageComponent implements OnInit {
 	}
 
 	ngOnInit(): void {
+		this.studentPhotos2025 = this.shufflePhotos(this.studentPhotos2025);
+		this.studentPhotos2024 = this.shufflePhotos(this.studentPhotos2024);
 		this.monthlyContent.loadPageState('photos-2025', { visible: true, albums: [{ year: 2025, items: this.studentPhotos2025 }, { year: 2024, items: this.studentPhotos2024 }] }).subscribe((state: any) => {
 			if (state?.visible === false) return;
 			const albums = Array.isArray(state?.albums) ? state.albums : [];
 			const album2025 = albums.find((album: any) => Number(album.year) === 2025);
 			const album2024 = albums.find((album: any) => Number(album.year) === 2024);
-			if (Array.isArray(album2025?.items) && album2025.items.length) this.studentPhotos2025 = album2025.items;
-			if (Array.isArray(album2024?.items) && album2024.items.length) this.studentPhotos2024 = album2024.items;
+			if (Array.isArray(album2025?.items) && album2025.items.length) this.studentPhotos2025 = this.shufflePhotos(album2025.items);
+			if (Array.isArray(album2024?.items) && album2024.items.length) this.studentPhotos2024 = this.shufflePhotos(album2024.items);
 		});
+	}
+
+	private shufflePhotos(photos: string[]): string[] {
+		const shuffled = [...photos];
+		for (let index = shuffled.length - 1; index > 0; index--) {
+			const randomIndex = Math.floor(Math.random() * (index + 1));
+			[shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+		}
+		return shuffled;
 	}
 
 	openPhoto(photo: string) {

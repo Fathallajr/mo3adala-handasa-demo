@@ -190,6 +190,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	ngOnInit() {
+		this.studentPhotos2025 = this.shufflePhotos(this.studentPhotos2025);
 		// العودة إلى أعلى الصفحة عند تحميل الصفحة
 		if (typeof window !== 'undefined') {
 			window.scrollTo(0, 0);
@@ -279,8 +280,17 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 		}
 
 		if (Array.isArray(state.photos?.items) && state.photos.items.length) {
-			this.studentPhotos2025 = state.photos.items;
+			this.studentPhotos2025 = this.shufflePhotos(state.photos.items);
 		}
+	}
+
+	private shufflePhotos(photos: string[]): string[] {
+		const shuffled = [...photos];
+		for (let index = shuffled.length - 1; index > 0; index--) {
+			const randomIndex = Math.floor(Math.random() * (index + 1));
+			[shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+		}
+		return shuffled;
 	}
 	
 	private startDescriptionAnimation() {
