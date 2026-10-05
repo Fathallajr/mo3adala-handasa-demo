@@ -204,8 +204,8 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 		sourceOptions: ['فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'],
 		joinEyebrow: 'خليك أول واحد يعرف',
 		joinTitle: 'سجل دلوقتي',
-		joinHighlight: 'وخد أولوية العروض والخصومات',
-		joinDescription: 'سيب بياناتك واحجز أولوية التواصل قبل بداية الدفعة الجديدة.',
+		joinHighlight: 'ونشرحلك كل حاجة تخص المعادلة',
+		joinDescription: 'سيب بياناتك وفريقنا هيتواصل معاك',
 		submitLabel: 'احصل على الخصم الآن'
 	},
 	'launch-offer': {
@@ -234,4 +234,3 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 		batchRequired: true
 	}
 };
-

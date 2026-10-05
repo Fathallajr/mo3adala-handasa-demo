@@ -1263,6 +1263,24 @@ async function migrateLaunchOfferOnce() {
 	console.log('Initialized launch offer CMS content once.');
 }
 
+async function migrateBatch2027JoinCopyOnce() {
+	const migrationKey = 'batch-2027-join-copy-v2';
+	if (await database.getMetadata(migrationKey)) return;
+
+	const store = await readStore();
+	const page = store.pages['batch-2027']?.data;
+	if (page) {
+		const next = { ...page };
+		if (next.joinHighlight === 'وخد أولوية العروض والخصومات') next.joinHighlight = 'ونشرحلك كل حاجة تخص المعادلة';
+		if (next.joinDescription === 'سيب بياناتك واحجز أولوية التواصل قبل بداية الدفعة الجديدة.') next.joinDescription = 'سيب بياناتك وفريقنا هيتواصل معاك';
+		if (next.joinHighlight !== page.joinHighlight || next.joinDescription !== page.joinDescription) {
+			await database.savePage('batch-2027', next, getNowIso());
+		}
+	}
+	await database.setMetadata(migrationKey, getNowIso());
+	console.log('Updated batch 2027 join copy.');
+}
+
 async function migrateFeedbackPageOnce() {
 	const migrationKey = 'feedback-cms-v1';
 	if (await database.getMetadata(migrationKey)) return;
@@ -1564,6 +1582,7 @@ app.get('*', (req, res, next) => {
 	try {
 		await migrateSubscriptionContentOnce();
 		await migrateLaunchOfferOnce();
+		await migrateBatch2027JoinCopyOnce();
 		await migrateFeedbackPageOnce();
 		await migrateNewsEquationOnce();
 		await migrateMissingCurrentNewsOnce();

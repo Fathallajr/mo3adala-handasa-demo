@@ -100,8 +100,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	private heroImageFallbackUsed = false;
 	joinEyebrow = 'خليك أول واحد يعرف';
 	joinTitle = 'سجل دلوقتي';
-	joinHighlight = 'وخد أولوية العروض والخصومات';
-	joinDescription = 'سيب بياناتك واحجز أولوية التواصل قبل بداية الدفعة الجديدة.';
+	joinHighlight = 'ونشرحلك كل حاجة تخص المعادلة';
+	joinDescription = 'سيب بياناتك وفريقنا هيتواصل معاك';
 	submitLabel = 'احصل على الخصم الآن';
 	isPageVisible = true;
 	wheelVisible = false;
