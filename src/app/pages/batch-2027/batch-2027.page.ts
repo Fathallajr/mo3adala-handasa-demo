@@ -469,7 +469,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		}
 		this.offerSubmitting = true;
 		this.offerError = '';
-		const lead = { name: this.lead.name.trim(), whatsapp: this.lead.whatsapp.trim(), school: this.lead.school.trim(), studentType: this.lead.studentType, program: this.lead.program, source: this.lead.source, consent: this.offerContactConsent ? 'نعم' : 'لا', attribution: JSON.stringify(this.leadAttribution) };
+		const attribution = captureLeadAttribution();
+		const lead = { name: this.lead.name.trim(), whatsapp: this.lead.whatsapp.trim(), school: this.lead.school.trim(), studentType: this.lead.studentType, program: this.lead.program, source: this.lead.source, consent: this.offerContactConsent ? 'نعم' : 'لا', attribution: JSON.stringify(attribution) };
 		try {
 			const payload = await this.postLead(lead);
 			if (payload.alreadyRegistered) {

@@ -436,7 +436,7 @@ function isWheelLead(lead) {
 
 function normalizeAttribution(value) {
 	if (!value || typeof value !== 'object') return {};
-	const allowed = ['platform', 'campaign', 'adSet', 'ad', 'medium', 'content', 'landingPage', 'referrer'];
+	const allowed = ['platform', 'campaign', 'campaignId', 'adSet', 'ad', 'medium', 'content', 'landingPage', 'referrer'];
 	return Object.fromEntries(allowed
 		.map(key => [key, typeof value[key] === 'string' ? value[key].trim().slice(0, 300) : ''])
 		.filter(([, item]) => item));

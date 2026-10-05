@@ -1,6 +1,7 @@
 export interface LeadAttribution {
 	platform?: string;
 	campaign?: string;
+	campaignId?: string;
 	adSet?: string;
 	ad?: string;
 	medium?: string;
@@ -42,6 +43,7 @@ export function captureLeadAttribution(): LeadAttribution {
 	const current: LeadAttribution = {
 		platform: detectPlatform(params),
 		campaign: firstValue(params, 'utm_campaign', 'campaign'),
+		campaignId: firstValue(params, 'utm_id', 'campaign_id', 'campaignId'),
 		adSet: firstValue(params, 'utm_adset', 'utm_adset_name', 'adset', 'adset_name'),
 		ad: firstValue(params, 'utm_content', 'utm_ad', 'utm_ad_name', 'ad', 'ad_name'),
 		medium: firstValue(params, 'utm_medium'),

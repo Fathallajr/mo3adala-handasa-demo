@@ -75,6 +75,11 @@ export class AppComponent implements OnInit, OnDestroy {
 	private offerOpenTimer?: ReturnType<typeof setTimeout>;
 	private launchOfferSubscription?: Subscription;
 
+	get isHomeRoute(): boolean {
+		const path = this.currentRoute.split(/[?#]/, 1)[0] || '/';
+		return path === '/';
+	}
+
 	constructor(private router: Router, private viewportScroller: ViewportScroller, private seo: SeoService, private cdr: ChangeDetectorRef, private contentService: MonthlyContentService) {
 		if ('scrollRestoration' in history) {
 			history.scrollRestoration = 'manual';
@@ -131,7 +136,7 @@ export class AppComponent implements OnInit, OnDestroy {
 				// A visitor who already submitted the launch form should go straight
 				// to the maintenance screen on later visits, even while maintenance
 				// mode is still enabled.
-				if (this.siteMaintenance && this.launchOfferLoaded && this.launchOfferVisible && !localStorage.getItem('launch-offer-submitted')) {
+				if (this.siteMaintenance && this.launchOfferLoaded && this.launchOfferVisible && this.isHomeRoute && !localStorage.getItem('launch-offer-submitted')) {
 					this.showLaunchOffer = true;
 					this.showLoading = false;
 				}
@@ -155,7 +160,7 @@ export class AppComponent implements OnInit, OnDestroy {
 				};
 				this.launchOfferExpiresAt = String(state?.expiresAt || '');
 				this.startOfferCountdown(this.launchOfferExpiresAt);
-				if (this.launchOfferVisible && this.currentRoute === '/' && !localStorage.getItem('launch-offer-submitted')) {
+				if (this.launchOfferVisible && this.isHomeRoute && !localStorage.getItem('launch-offer-submitted')) {
 					this.offerOpenTimer = setTimeout(() => {
 						if (!this.launchOfferVisible) return;
 						this.showLaunchOffer = true;
@@ -262,7 +267,11 @@ export class AppComponent implements OnInit, OnDestroy {
 		}
 		this.offerSubmitting = true;
 		this.offerError = '';
-		const lead = { name: this.offerName.trim(), whatsapp: this.offerWhatsapp.trim(), school: this.offerSchool.trim(), studentType: this.offerStudentType, program: this.offerProgram, source: this.offerSource, consent: this.offerContactConsent ? 'نعم' : 'لا', attribution: JSON.stringify(this.leadAttribution) };
+		// Read attribution again at submit time. This covers ad previews and
+		// navigations where the query string was added after the root component
+		// was first constructed.
+		const attribution = captureLeadAttribution();
+		const lead = { name: this.offerName.trim(), whatsapp: this.offerWhatsapp.trim(), school: this.offerSchool.trim(), studentType: this.offerStudentType, program: this.offerProgram, source: this.offerSource, consent: this.offerContactConsent ? 'نعم' : 'لا', attribution: JSON.stringify(attribution) };
 		const controller = new AbortController();
 		const timeout = setTimeout(() => controller.abort(), 15000);
 		try {

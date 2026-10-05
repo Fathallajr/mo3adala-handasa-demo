@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 export interface Lead {
 	id: string; name: string; whatsapp: string; school?: string; studentType?: string;
-	program?: string; source?: string; attribution?: { platform?: string; campaign?: string; adSet?: string; ad?: string; medium?: string; content?: string; landingPage?: string; referrer?: string }; status: string; notes?: string; createdAt: string; updatedAt?: string;
+	program?: string; source?: string; attribution?: { platform?: string; campaign?: string; campaignId?: string; adSet?: string; ad?: string; medium?: string; content?: string; landingPage?: string; referrer?: string }; status: string; notes?: string; createdAt: string; updatedAt?: string;
 }
 export interface Customer { id: string; name: string; phone: string; status: string; notes?: string; createdAt: string; updatedAt?: string | null; }
 export interface DashboardSummary {
