@@ -31,10 +31,12 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		@media(max-width:650px){.employee-detail-page{padding:15px;gap:16px}.employee-detail-page .modal-header{margin:-15px -15px 0;padding:18px 15px 15px}.employee-detail-page .modal-header h3{font-size:18px}.employee-detail-page .profile-section{padding:16px}.employee-detail-page .view-field{min-height:64px}.employee-detail-page .view-field--wide{min-height:82px}}
 		.employee-account-actions{display:flex;align-items:end;gap:8px}.employee-account-actions .field{flex:1}.employee-password-button{min-height:42px;border:0;border-radius:10px;padding:0 13px;background:#f0edff;color:#5b43c9;font:inherit;font-size:12px;font-weight:900;cursor:pointer}.employee-password-button:disabled{opacity:.6;cursor:wait}.employee-account-status{grid-column:1/-1;margin:0;color:#13825f;font-size:12px;font-weight:900}
 		.employee-name:disabled{color:#34415b;cursor:default}
+		.employee-self-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid #d9d1ff;border-radius:14px;background:linear-gradient(135deg,#f7f5ff,#efebff);color:#4f3bc0;font-size:12px;font-weight:800}.employee-self-banner strong{display:block;margin-bottom:4px;color:#2d3a59;font-size:14px}.employee-self-banner button{min-height:38px;border:0;border-radius:9px;padding:0 14px;background:#6d4aff;color:#fff;font:inherit;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}.employee-self-badge{display:inline-flex;align-items:center;width:max-content;padding:5px 9px;border-radius:999px;background:#e9e4ff;color:#5b43c9;font-size:10px;font-weight:900}.employee-card--own{border-color:#bdb0ff;box-shadow:0 8px 22px #6d4aff12}
 	`],
 	template: `
 		<div class="wrap" *ngIf="content">
 			<p class="intro" *ngIf="!employeePageEmployee">سجّل الموظفين ومسمياتهم، وافتح ملف الموظف لإدارة ملاحظاته وراتبه والبونص والخصومات لكل شهر. كل البيانات داخل لوحة الإدارة فقط.</p>
+			<div class="employee-self-banner" *ngIf="isEmployeeAccount && !employeePageEmployee"><div><strong>أنت داخل حساب الموظف</strong><span>يمكنك مشاهدة جدول الموظفين، وفتح ملفك الشخصي فقط لعرض بياناتك الكاملة.</span></div><button type="button" (click)="openOwnEmployeePage()">فتح ملفي الشخصي</button></div>
 			<div class="employee-toolbar" *ngIf="!isEmployeeAccount && !employeePageEmployee">
 				<button type="button" class="add" (click)="openAddEmployee()">+ إضافة موظف</button>
 				<div class="employee-filters">
@@ -76,9 +78,10 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 				</div>
 				<div class="employee-table-head" *ngIf="!employeePageEmployee && filteredEmployees.length"><span>الموظف</span><span>النوع</span><span>المهام</span><span>نوع الإدارة</span><span>المدير المباشر</span><span>رقم الواتساب</span><span>الإجراءات</span></div>
 				<div class="list" *ngIf="!employeePageEmployee && filteredEmployees.length; else emptyState">
-					<article class="employee-card" *ngFor="let employee of filteredEmployees; let i = index">
+					<article class="employee-card" *ngFor="let employee of filteredEmployees; let i = index" [class.employee-card--own]="isEmployeeAccount && isOwnEmployee(employee)">
 						<div class="identity">
 							<button type="button" class="employee-name" [disabled]="isEmployeeAccount && !isOwnEmployee(employee)" (click)="openEmployeePage(employee)">{{ employee.name }}</button>
+							<span class="employee-self-badge" *ngIf="isEmployeeAccount && isOwnEmployee(employee)">ملفي الشخصي</span>
 							<span class="employee-month-total" *ngIf="false">صافي الشهر: {{ formatMoney(employeeMonthlyTotal(employee)) }}</span>
 						</div>
 						<div><span class="employee-column-label">النوع</span><span class="tag tag--type">{{ employeeTypeLabel(employee) }}</span></div>
@@ -237,6 +240,7 @@ export class EmployeesFormComponent implements OnChanges {
 		void this.router.navigate([], { relativeTo: this.route, fragment: `employee-${employee.id}` });
 	}
 	editEmployee(employee: Employee): void { if (this.isEmployeeAccount) return; this.openEmployeePage(employee); this.isEditingEmployee = true; }
+	openOwnEmployeePage(): void { const employee = this.employees.find(item => item.id === this.employeeAccountId); if (employee) this.openEmployeePage(employee); }
 	startEmployeeEditing(): void { this.isEditingEmployee = true; this.editError = ''; this.editSuccess = ''; }
 	closeEmployeePage(): void {
 		this.employeePageId = null;
