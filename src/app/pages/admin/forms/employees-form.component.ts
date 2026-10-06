@@ -401,7 +401,7 @@ export class EmployeesFormComponent implements OnChanges {
 		return Number(this.getMonthRecord(employee).salary) || 0;
 	}
 
-	formatMoney(value: number): string { return new Intl.NumberFormat('ar-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 2 }).format(value); }
+	formatMoney(value: number): string { return String(Math.round(Number(value) || 0)); }
 
 	private adjustmentTotal(employee: Employee, kind: PayrollAdjustment['kind']): number {
 		return this.getMonthRecord(employee).adjustments.filter(item => item.kind === kind).reduce((total, item) => total + (Number(item.amount) || 0), 0);
