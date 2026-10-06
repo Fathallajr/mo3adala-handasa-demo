@@ -385,6 +385,7 @@ function employeeDirectoryItem(item) {
 		id: item.id,
 		name: item.name,
 		titles: Array.isArray(item.titles) ? item.titles : (item.job ? [item.job] : []),
+		description: item.description || '',
 		whatsapp: item.whatsapp || '',
 		department: item.department || '',
 		employeeType: item.employeeType || 'employee',
