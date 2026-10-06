@@ -36,6 +36,7 @@
 						<div class="page-item__title">{{ page.title }}</div>
 					</button>
 				</div>
+				<button *ngIf="employeeAccount && canAccessPage('employees')" type="button" class="page-item page-item--profile" (click)="openEmployeeProfile()"><div class="page-item__title">ملفي الشخصي</div><div class="page-item__desc">فتح ملف الموظف الخاص بي</div></button>
 			</div>
 			<div class="site-maintenance-tool" *ngIf="fullAdminAccount">
 				<div class="site-maintenance-tool__title">تحديثات الموقع</div>

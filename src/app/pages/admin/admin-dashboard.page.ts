@@ -815,6 +815,18 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		void this.router.navigate(['/admin', pageKey], { queryParams: {}, replaceUrl: true });
 	}
 
+	openEmployeeProfile(): void {
+		const permission = this.auth.getPermissions().find(item => /^employee:\d+$/.test(String(item || '')));
+		if (!permission) return;
+		const employeeId = permission.slice('employee:'.length);
+		this.sidebarOpen = false;
+		this.activeView = 'cms';
+		this.selectedPageKey = 'employees';
+		this.loadPage('employees');
+		this.pendingCmsNavigation = true;
+		void this.router.navigate(['/admin', 'employees'], { fragment: `employee-${employeeId}`, replaceUrl: true });
+	}
+
 	toggleSidebar(): void {
 		this.sidebarOpen = !this.sidebarOpen;
 	}
