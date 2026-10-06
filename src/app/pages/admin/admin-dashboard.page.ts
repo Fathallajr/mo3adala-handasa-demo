@@ -22,8 +22,9 @@ import { Batch2027FormComponent } from './forms/batch-2027-form.component';
 import { LaunchOfferFormComponent } from './forms/launch-offer-form.component';
 import { RequirementsFormComponent } from './forms/requirements-form.component';
 import { SchoolsFormComponent } from './forms/schools-form.component';
-import { ProgramLabelPipe } from '../../shared/pipes/program-label.pipe';
-import { DEFAULT_SCHOOLS } from '../../core/schools.defaults';
+	import { ProgramLabelPipe } from '../../shared/pipes/program-label.pipe';
+	import { DEFAULT_SCHOOLS } from '../../core/schools.defaults';
+	import { EmployeesFormComponent } from './forms/employees-form.component';
 
 interface PageOption {
 	key: CmsPageKey;
@@ -55,6 +56,7 @@ type PaginationItem = number | '…';
 		RequirementsFormComponent,
 		SchoolsFormComponent,
 		ProgramLabelPipe
+		EmployeesFormComponent
 	],
 	templateUrl: './admin-dashboard.page.html',
 	styleUrls: ['./admin-dashboard.page.css']

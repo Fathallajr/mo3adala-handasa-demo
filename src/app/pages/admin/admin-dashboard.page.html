@@ -113,7 +113,9 @@
 					</p>
 				</div>
 				<div class="editor-actions">
-					<button type="button" class="secondary-btn" (click)="openPreview()">فتح الصفحة للمراجعة ↗</button>
+					<button *ngIf="selectedPageKey !== 'employees'" type="button" class="secondary-btn" (click)="openPreview()">فتح الصفحة للمراجعة ↗</button>
+					<button *ngIf="selectedPageKey !== 'employees'" type="button" class="secondary-btn" (click)="loadPage(selectedPageKey)" [disabled]="isLoading">تحميل آخر نسخة</button>
+					<button *ngIf="selectedPageKey !== 'employees'" type="button" class="secondary-btn" (click)="resetToDefaults()">القالب الافتراضي</button>
 					<button type="button" class="primary-btn" (click)="save()" [disabled]="isSaving || isLoading">
 						{{ isSaving ? 'جاري الحفظ...' : 'حفظ على السيرفر' }}
 					</button>
@@ -214,6 +216,11 @@
 						*ngSwitchCase="'schools'"
 						[content]="currentContent">
 					</app-schools-form>
+
+					<app-employees-form
+						*ngSwitchCase="'employees'"
+						[content]="currentContent">
+					</app-employees-form>
 
 					<app-json-content-form *ngSwitchDefault [content]="currentContent"></app-json-content-form>
 
