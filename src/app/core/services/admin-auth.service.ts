@@ -89,7 +89,11 @@ export class AdminAuthService {
 	getRole(): 'admin' | 'leads' | 'editor' | 'employee' {
 		if (typeof localStorage === 'undefined') return 'admin';
 		const role = localStorage.getItem(this.roleKey);
-		return role === 'leads' || role === 'editor' || role === 'employee' ? role : 'admin';
+		// "editor" was the old name for accounts created from حسابات الأدمن.
+		// They are full admins; only employee-created accounts stay limited.
+		if (role === 'employee') return 'employee';
+		if (role === 'leads') return 'leads';
+		return 'admin';
 	}
 
 	getUsername(): string {

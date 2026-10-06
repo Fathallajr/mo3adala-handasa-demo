@@ -347,13 +347,16 @@ function requirePermission(permission) {
 		};
 		const [group] = permission.split(':');
 		const hasGroupedPermission = groupedReadWritePermissions[group]?.has(permission) && req.adminPermissions.includes(group);
-		if (req.adminRole === 'admin' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission)) || req.adminPermissions.includes(permission) || hasGroupedPermission) return next();
+		if (req.adminRole === 'admin' || req.adminRole === 'editor' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission)) || req.adminPermissions.includes(permission) || hasGroupedPermission) return next();
 		return res.status(403).json({ message: 'ليس لديك صلاحية للوصول إلى هذا القسم.' });
 	};
 }
 
 function requireFullAdmin(req, res, next) {
-	if (req.adminRole === 'admin') return next();
+	// Accounts created from the Admin Accounts page are full admins. Older
+	// records used the legacy "editor" role, so keep them equivalent. Employee
+	// accounts are the only intentionally limited role.
+	if (req.adminRole === 'admin' || req.adminRole === 'editor') return next();
 	return res.status(403).json({ message: 'هذا القسم متاح للأدمن الرئيسي فقط.' });
 }
 
@@ -362,16 +365,16 @@ function requireUploadPagePermission(req, res, next) {
 	if (!pageKey) {
 		// Keep existing full-admin uploads backwards compatible (news and other
 		// forms), while page editors must identify the page they are editing.
-		if (req.adminRole === 'admin') return next();
+		if (req.adminRole === 'admin' || req.adminRole === 'editor') return next();
 		return res.status(400).json({ message: 'يجب تحديد صفحة الصورة قبل الرفع.' });
 	}
 	if (!PAGE_KEYS.includes(pageKey)) return res.status(400).json({ message: 'صفحة الصورة غير صحيحة.' });
-	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes(pageKey)) return next();
+	if (req.adminRole === 'admin' || req.adminRole === 'editor' || req.adminPermissions.includes('*') || req.adminPermissions.includes(pageKey)) return next();
 	return res.status(403).json({ message: 'ليس لديك صلاحية رفع صورة لهذه الصفحة.' });
 }
 
 function requirePagePermission(req, res, next) {
-	if (req.adminRole === 'admin' || (req.adminRole === 'leads' && req.params.pageKey === 'batch-2027') || req.adminPermissions.includes('*') || req.adminPermissions.includes(req.params.pageKey)) return next();
+	if (req.adminRole === 'admin' || req.adminRole === 'editor' || (req.adminRole === 'leads' && req.params.pageKey === 'batch-2027') || req.adminPermissions.includes('*') || req.adminPermissions.includes(req.params.pageKey)) return next();
 	return res.status(403).json({ message: 'ليس لديك صلاحية تعديل هذه الصفحة.' });
 }
 
@@ -395,7 +398,7 @@ function employeeDirectoryItem(item) {
 }
 
 function requireEmployeePageAccess(req, res, next) {
-	if (req.adminRole === 'admin') return next();
+	if (req.adminRole === 'admin' || req.adminRole === 'editor') return next();
 	if (req.params.pageKey === 'employees' && req.adminRole === 'employee' && req.adminPermissions.includes('employees') && getEmployeeIdFromPermissions(req.adminPermissions)) return next();
 	return res.status(403).json({ message: 'هذه الصفحة متاحة للموظف المرتبط بها فقط.' });
 }
@@ -544,7 +547,7 @@ app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000,
 	}
 
 	try {
-		const role = isFullAdmin ? 'admin' : isLeadsAdmin ? 'leads' : (databaseUser.role || 'editor');
+		const role = isFullAdmin ? 'admin' : isLeadsAdmin ? 'leads' : databaseUser.role === 'employee' ? 'employee' : 'admin';
 		const session = await issueToken(role, isFullAdmin ? ADMIN_USERNAME : isLeadsAdmin ? LEADS_ADMIN_USERNAME : databaseUser.username, isFullAdmin ? ['*'] : isLeadsAdmin ? ['leads:read', 'leads:update', 'wheel:read', 'batch-2027'] : normalizeUserPermissions(databaseUser.permissions));
 		res.json(session);
 	} catch (error) {
@@ -1045,8 +1048,8 @@ app.post('/api/admin/users', requireAdmin, requireFullAdmin, async (req, res, ne
 	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(409).json({ message: 'اسم المستخدم محجوز.' });
 	try {
 		const { salt, hash } = hashAdminPassword(password);
-		await database.createAdminUser({ username, passwordHash: hash, passwordSalt: salt, role: 'editor', permissions, createdAt: getNowIso() });
-		res.status(201).json({ username, role: 'editor', permissions });
+		await database.createAdminUser({ username, passwordHash: hash, passwordSalt: salt, role: 'admin', permissions: ['*'], createdAt: getNowIso() });
+		res.status(201).json({ username, role: 'admin', permissions: ['*'] });
 	} catch (error) {
 		if (String(error.message || '').toLowerCase().includes('unique')) return res.status(409).json({ message: 'اسم المستخدم مستخدم بالفعل.' });
 		next(error);
