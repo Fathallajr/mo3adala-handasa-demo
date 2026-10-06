@@ -38,7 +38,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 	template: `
 		<div class="wrap" *ngIf="content">
 			<p class="intro" *ngIf="!employeePageEmployee">سجّل الموظفين ومسمياتهم، وافتح ملف الموظف لإدارة ملاحظاته وراتبه والبونص والخصومات لكل شهر. كل البيانات داخل لوحة الإدارة فقط.</p>
-			<div class="employee-self-banner" *ngIf="isEmployeeAccount && !employeePageEmployee"><div><strong>أنت داخل حساب الموظف</strong><span>يمكنك مشاهدة جدول الموظفين، وفتح ملفك الشخصي فقط لعرض بياناتك الكاملة.</span></div><button type="button" (click)="openOwnEmployeePage()">فتح ملفي الشخصي</button></div>
+			<div class="employee-self-banner" *ngIf="isEmployeeAccount && !employeePageEmployee"><div><strong>أنت داخل حساب الموظف</strong><span>يمكنك مشاهدة جدول الموظفين وعرض بيانات زملائك، وفتح ملفك الشخصي لعرض بياناتك الكاملة.</span></div><button type="button" (click)="openOwnEmployeePage()">فتح ملفي الشخصي</button></div>
 			<div class="employee-toolbar" *ngIf="!isEmployeeAccount && !employeePageEmployee">
 				<button type="button" class="add" (click)="openAddEmployee()">+ إضافة موظف</button>
 				<div class="employee-filters">
@@ -91,7 +91,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<div><span class="employee-column-label">نوع الإدارة</span><span class="contact-value">{{ employee.department || 'غير محدد' }}</span></div>
 						<div><span class="employee-column-label">المدير المباشر</span><span class="contact-value">{{ managerName(employee) || 'بدون مدير' }}</span></div>
 						<div class="employee-contact"><span class="contact-label">رقم الواتساب</span><span class="contact-value" [class.contact-value--empty]="!employee.whatsapp">{{ employee.whatsapp || 'غير مسجل' }}</span></div>
-						<div class="actions" *ngIf="!isEmployeeAccount || isOwnEmployee(employee)"><button type="button" class="action-menu-trigger" aria-label="إجراءات الموظف" (click)="toggleActionMenu(employee.id)">⋮</button><div class="action-menu" *ngIf="actionMenuEmployeeId === employee.id"><button type="button" class="edit" (click)="openEmployeePage(employee)">فتح الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="edit" (click)="editEmployee(employee)">تعديل</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(i)">حذف</button></div></div>
+						<div class="actions"><button type="button" class="action-menu-trigger" aria-label="إجراءات الموظف" (click)="toggleActionMenu(employee.id)">⋮</button><div class="action-menu" *ngIf="actionMenuEmployeeId === employee.id"><button type="button" class="edit" (click)="openEmployeePage(employee)">عرض الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="edit" (click)="editEmployee(employee)">تعديل</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(i)">حذف</button></div></div>
 					</article>
 				</div>
 				<div class="employee-modal-backdrop" *ngIf="selectedEmployee as employee" [class.employee-detail-page-backdrop]="employeePageEmployee" (click)="employeePageEmployee ? null : closeDetails()">
@@ -112,8 +112,8 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						</div>
 						<div class="draft-titles" *ngIf="editDraft.titles.length"><span class="title-chip" *ngFor="let title of editDraft.titles; let titleIndex = index">{{ title }}<button *ngIf="isEditingEmployee" type="button" class="chip-remove" aria-label="حذف المسمى" (click)="removeEditTitle(titleIndex)">×</button></span></div>
 						<p class="error" *ngIf="editError">{{ editError }}</p><p class="employee-account-status" *ngIf="editSuccess">{{ editSuccess }}</p><div class="modal-save-row profile-save-row"><button *ngIf="isEditingEmployee && !isEmployeeAccount" type="button" class="save-edit" (click)="saveEdit(employee)">حفظ البيانات الأساسية</button><button *ngIf="!isEditingEmployee && !isEmployeeAccount" type="button" class="edit" (click)="startEmployeeEditing()">تعديل</button></div></section>
-						<div class="details-head"><h4>البيانات الشهرية</h4><label class="month-picker"><span>الشهر</span><input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange()"></label></div>
-						<div class="detail-grid">
+						<div class="details-head" *ngIf="!isEmployeeAccount || isOwnEmployee(employee)"><h4>البيانات الشهرية</h4><label class="month-picker"><span>الشهر</span><input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange()"></label></div>
+						<div class="detail-grid" *ngIf="!isEmployeeAccount || isOwnEmployee(employee)">
 							<section class="detail-section"><h5>الملاحظات</h5>
 								<div class="fields" *ngIf="!isEmployeeAccount"><label class="field"><span>ملاحظة جديدة لهذا الشهر</span><input [(ngModel)]="noteDraft" (keyup.enter)="addNote(employee)" placeholder="اكتب الملاحظة"></label><button type="button" class="edit" (click)="addNote(employee)">إضافة ملاحظة</button></div>
 								<div class="note-list" *ngIf="getMonthRecord(employee).notes.length"><div class="note-item" *ngFor="let note of getMonthRecord(employee).notes; let noteIndex = index"><div class="note-text">{{ note.text }}<span class="note-date">{{ note.createdAt | date:'short' }}</span></div><button *ngIf="!isEmployeeAccount" type="button" class="remove-small" aria-label="حذف الملاحظة" (click)="removeNote(employee, noteIndex)">×</button></div></div>
@@ -129,7 +129,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 							<div class="empty" *ngIf="!getMonthRecord(employee).adjustments.length">لا توجد إضافات أو خصومات لهذا الشهر.</div></section>
 						</div>
 						<div class="monthly-save-row" *ngIf="!isEmployeeAccount && (monthlyDirty || monthlySaveMessage || monthlySaveError)"><button type="button" class="save-edit" [disabled]="isSavingMonthly" (click)="saveMonthlyChanges()">{{ isSavingMonthly ? 'جاري الحفظ...' : 'حفظ التعديلات الشهرية' }}</button><span class="monthly-save-message" *ngIf="monthlySaveMessage">{{ monthlySaveMessage }}</span><span class="monthly-save-error" *ngIf="monthlySaveError">{{ monthlySaveError }}</span></div>
-						<div class="details-total"><span>صافي مستحقات {{ employee.name }} في {{ selectedMonth }}</span><strong>{{ formatMoney(employeeMonthlyTotal(employee)) }}</strong></div>
+						<div class="details-total" *ngIf="!isEmployeeAccount || isOwnEmployee(employee)"><span>صافي مستحقات {{ employee.name }} في {{ selectedMonth }}</span><strong>{{ formatMoney(employeeMonthlyTotal(employee)) }}</strong></div>
 					</section>
 				</div>
 				<ng-template #emptyState><div class="empty" *ngIf="!employeePageEmployee">{{ employees.length ? 'لا توجد نتائج مطابقة للفلاتر.' : 'لم تتم إضافة موظفين بعد.' }}</div></ng-template>
@@ -189,7 +189,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.route.fragment.subscribe(fragment => {
 			const match = String(fragment || '').match(/^employee-(\d+)$/);
 			const requestedId = match ? Number(match[1]) : null;
-			this.employeePageId = this.isEmployeeAccount ? (requestedId === this.employeeAccountId ? requestedId : null) : requestedId;
+			this.employeePageId = requestedId;
 			const employee = this.employeePageEmployee;
 			if (employee) this.selectEmployeeForPage(employee);
 		});
@@ -203,7 +203,7 @@ export class EmployeesFormComponent implements OnChanges {
 	get isEmployeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
 	get employeeAccountId(): number | null { const permission = this.auth.getPermissions().find(item => /^employee:\d+$/.test(String(item || ''))); return permission ? Number(permission.slice('employee:'.length)) : null; }
 	isOwnEmployee(employee: Employee): boolean { return !this.isEmployeeAccount || employee.id === this.employeeAccountId; }
-	get canViewSalary(): boolean { return this.auth.getRole() === 'admin' || this.isEmployeeAccount; }
+	get canViewSalary(): boolean { return this.auth.getRole() === 'admin' || (!!this.selectedEmployee && this.isOwnEmployee(this.selectedEmployee)); }
 	get employeePageEmployee(): Employee | null { return this.employees.find(employee => employee.id === this.employeePageId) || null; }
 	get employeeDepartments(): string[] { return [...new Set(this.employees.map(employee => employee.department).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, 'ar')); }
 	get employeeManagers(): Employee[] { return this.employees.filter(employee => employee.name.trim() && (employee.employeeType === 'manager' || employee.employeeType === 'general_manager')).sort((a, b) => a.name.localeCompare(b.name, 'ar')); }
@@ -229,7 +229,6 @@ export class EmployeesFormComponent implements OnChanges {
 	clearEmployeeFilters(): void { this.employeeSearch = ''; this.employeeTitleFilter = ''; this.employeeDepartmentFilter = ''; this.employeeTypeFilter = ''; this.employeeManagerFilter = null; }
 	toggleActionMenu(employeeId: number): void { this.actionMenuEmployeeId = this.actionMenuEmployeeId === employeeId ? null : employeeId; }
 	openEmployeePage(employee: Employee): void {
-		if (!this.isOwnEmployee(employee)) return;
 		this.actionMenuEmployeeId = null;
 		this.isEditingEmployee = false;
 		this.employeePageId = employee.id;
