@@ -11,8 +11,8 @@ interface EmployeeNote { id: number; text: string; createdAt: string; }
 interface PayrollAdjustment { id: number; kind: 'bonus' | 'discount'; amount: number; reason: string; }
 interface EmployeeMonth { month: string; salary: number | null; notes: EmployeeNote[]; adjustments: PayrollAdjustment[]; }
 type EmployeeType = 'employee' | 'manager' | 'general_manager';
-interface Employee { id: number; name: string; titles: string[]; whatsapp?: string; email?: string; description?: string; baseSalary?: number | null; department?: string; employeeType?: EmployeeType; managerId?: number | null; monthlyRecords?: EmployeeMonth[]; job?: string; }
-interface EmployeeDraft { name: string; titleInput: string; titles: string[]; whatsapp: string; email: string; password: string; description: string; baseSalary: number | null; department: string; employeeType: EmployeeType; managerId: number | null; }
+interface Employee { id: number; name: string; titles: string[]; whatsapp?: string; email?: string; description?: string; baseSalary?: number | null; department?: string | string[]; employeeType?: EmployeeType; managerId?: number | null; monthlyRecords?: EmployeeMonth[]; job?: string; }
+interface EmployeeDraft { name: string; titleInput: string; titles: string[]; whatsapp: string; email: string; password: string; description: string; baseSalary: number | null; departments: string[]; employeeType: EmployeeType; managerId: number | null; }
 
 @Component({
 	selector: 'app-employees-form',
@@ -60,7 +60,8 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<label class="field"><span>الدور في التطبيق</span><textarea [(ngModel)]="draft.description" placeholder="مثال: مسؤول محتوى ومتابعة مهام الفريق"></textarea></label>
 						<label class="field"><span>الراتب الأساسي</span><input type="number" min="0" step="0.01" [(ngModel)]="draft.baseSalary" placeholder="الراتب الشهري"></label>
 						<label class="field"><span>نوع الموظف <em class="required-star">*</em></span><select required [(ngModel)]="draft.employeeType" (ngModelChange)="onDraftTypeChange($event)"><option value="employee">موظف</option><option value="manager">مدير مباشر</option><option value="general_manager">مدير عام</option></select></label>
-						<label class="field"><span>نوع الإدارة <em class="required-star">*</em></span><select required [(ngModel)]="draft.department"><option value="">اختر نوع الإدارة</option><option *ngFor="let department of employeeDepartmentOptions" [value]="department">{{ department }}</option></select></label>
+						<label class="field"><span>نوع الإدارة <em class="required-star">*</em></span><select multiple required [(ngModel)]="draft.departments"><option *ngFor="let department of employeeDepartmentOptions" [value]="department">{{ department }}</option></select></label>
+						<div class="draft-titles" *ngIf="draft.departments.length"><span class="title-chip" *ngFor="let department of draft.departments; let i = index">{{ department }}<button type="button" class="chip-remove" aria-label="حذف نوع الإدارة" (click)="removeDraftDepartment(i)">×</button></span></div>
 						<label class="field" *ngIf="draft.employeeType !== 'general_manager'"><span>{{ draft.employeeType === 'manager' ? 'المدير العام' : 'المدير المباشر' }} <em *ngIf="draft.employeeType === 'manager'" class="required-star">*</em></span><select [required]="draft.employeeType === 'manager'" [(ngModel)]="draft.managerId"><option [ngValue]="null">اختر المسؤول</option><option *ngFor="let manager of employeeManagersFor(draft.employeeType, null)" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
 						<label class="field"><span>مسمى وظيفي <em class="required-star">*</em></span><input [(ngModel)]="draft.titleInput" (keyup.enter)="addDraftTitle()" placeholder="مثال: خدمة عملاء"></label>
 						<button type="button" class="edit" (click)="addDraftTitle()">+ إضافة مسمى</button>
@@ -87,7 +88,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						</div>
 						<div><span class="employee-column-label">النوع</span><span class="tag tag--type">{{ employeeTypeLabel(employee) }}</span></div>
 						<div class="employee-tasks"><span class="employee-column-label">المهام</span><span class="tag" *ngFor="let title of employee.titles">{{ title }}</span><span class="contact-value contact-value--empty" *ngIf="!employee.titles.length">غير محددة</span></div>
-						<div><span class="employee-column-label">نوع الإدارة</span><span class="contact-value">{{ employee.department || 'غير محدد' }}</span></div>
+						<div><span class="employee-column-label">نوع الإدارة</span><span class="contact-value">{{ departmentLabel(employee.department) || 'غير محدد' }}</span></div>
 						<div><span class="employee-column-label">المدير المباشر</span><span class="contact-value">{{ managerName(employee) || 'بدون مدير' }}</span></div>
 						<div class="employee-contact"><span class="contact-label">رقم الواتساب</span><span class="contact-value" [class.contact-value--empty]="!employee.whatsapp">{{ employee.whatsapp || 'غير مسجل' }}</span></div>
 						<div class="actions"><button type="button" class="action-menu-trigger" aria-label="إجراءات الموظف" (click)="toggleActionMenu(employee.id)">⋮</button><div class="action-menu" *ngIf="actionMenuEmployeeId === employee.id"><button type="button" class="edit" (click)="openEmployeePage(employee)">عرض الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="edit" (click)="editEmployee(employee)">تعديل</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(i)">حذف</button></div></div>
@@ -103,7 +104,8 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 							<div class="view-field view-field--wide" *ngIf="!isEditingEmployee"><span>الدور في التطبيق</span><strong>{{ editDraft.description || 'غير محدد' }}</strong></div><label class="field" *ngIf="isEditingEmployee"><span>الدور في التطبيق</span><textarea [(ngModel)]="editDraft.description" placeholder="مثال: مسؤول محتوى ومتابعة مهام الفريق"></textarea></label>
 							<div class="view-field view-field--salary" *ngIf="!isEditingEmployee && canViewSalary"><span>الراتب الأساسي</span><strong>{{ editDraft.baseSalary === null ? 'غير محدد' : formatMoney(editDraft.baseSalary) }}</strong></div><label class="field" *ngIf="isEditingEmployee && canViewSalary"><span>الراتب الأساسي</span><input type="number" min="0" step="0.01" [(ngModel)]="editDraft.baseSalary" placeholder="الراتب الشهري"></label>
 							<div class="view-field" *ngIf="!isEditingEmployee"><span>نوع الموظف</span><strong>{{ employeeTypeLabel(employee) }}</strong></div><label class="field" *ngIf="isEditingEmployee"><span>نوع الموظف <em class="required-star">*</em></span><select required [(ngModel)]="editDraft.employeeType" (ngModelChange)="onEditTypeChange($event)"><option value="employee">موظف</option><option value="manager">مدير مباشر</option><option value="general_manager">مدير عام</option></select></label>
-							<div class="view-field" *ngIf="!isEditingEmployee"><span>نوع الإدارة</span><strong>{{ editDraft.department || 'غير محدد' }}</strong></div><label class="field" *ngIf="isEditingEmployee"><span>نوع الإدارة <em class="required-star">*</em></span><select required [(ngModel)]="editDraft.department"><option value="">اختر نوع الإدارة</option><option *ngFor="let department of employeeDepartmentOptions" [value]="department">{{ department }}</option></select></label>
+							<div class="view-field" *ngIf="!isEditingEmployee"><span>نوع الإدارة</span><strong>{{ departmentLabel(editDraft.departments) || 'غير محدد' }}</strong></div><label class="field" *ngIf="isEditingEmployee"><span>نوع الإدارة <em class="required-star">*</em></span><select multiple required [(ngModel)]="editDraft.departments"><option *ngFor="let department of employeeDepartmentOptions" [value]="department">{{ department }}</option></select></label>
+							<div class="draft-titles" *ngIf="isEditingEmployee && editDraft.departments.length"><span class="title-chip" *ngFor="let department of editDraft.departments; let i = index">{{ department }}<button type="button" class="chip-remove" aria-label="حذف نوع الإدارة" (click)="removeEditDepartment(i)">×</button></span></div>
 							<div class="view-field" *ngIf="!isEditingEmployee && editDraft.employeeType !== 'general_manager'"><span>{{ editDraft.employeeType === 'manager' ? 'المدير العام' : 'المدير المباشر' }}</span><strong>{{ managerName(employee) || 'بدون مدير' }}</strong></div><label class="field" *ngIf="isEditingEmployee && editDraft.employeeType !== 'general_manager'"><span>{{ editDraft.employeeType === 'manager' ? 'المدير العام' : 'المدير المباشر' }} <em *ngIf="editDraft.employeeType === 'manager'" class="required-star">*</em></span><select [required]="editDraft.employeeType === 'manager'" [(ngModel)]="editDraft.managerId"><option [ngValue]="null">اختر المسؤول</option><option *ngFor="let manager of employeeManagersFor(editDraft.employeeType, employee.id)" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
 							<label class="field" *ngIf="isEditingEmployee"><span>إضافة مسمى وظيفي <em class="required-star">*</em></span><input [(ngModel)]="editDraft.titleInput" (keyup.enter)="addEditTitle()" placeholder="اكتب المسمى واضغط إضافة"></label>
 							<button *ngIf="isEditingEmployee" type="button" class="edit" (click)="addEditTitle()">+ إضافة مسمى</button>
@@ -176,6 +178,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.employees = this.content.items;
 		for (const employee of this.employees) {
 			if (!Array.isArray(employee.titles)) employee.titles = employee.job?.trim() ? [employee.job.trim()] : [];
+			employee.department = this.departmentValues(employee.department);
 			if (!['employee', 'manager', 'general_manager'].includes(employee.employeeType || '')) employee.employeeType = 'employee';
 			if (employee.employeeType === 'general_manager') employee.managerId = null;
 			if (!Array.isArray(employee.monthlyRecords)) employee.monthlyRecords = [];
@@ -203,7 +206,7 @@ export class EmployeesFormComponent implements OnChanges {
 	isOwnEmployee(employee: Employee): boolean { return !this.isEmployeeAccount || employee.id === this.employeeAccountId; }
 	get canViewSalary(): boolean { return this.auth.getRole() === 'admin' || (!!this.selectedEmployee && this.isOwnEmployee(this.selectedEmployee)); }
 	get employeePageEmployee(): Employee | null { return this.employees.find(employee => employee.id === this.employeePageId) || null; }
-	get employeeDepartments(): string[] { return [...new Set(this.employees.map(employee => employee.department).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, 'ar')); }
+	get employeeDepartments(): string[] { return [...new Set(this.employees.flatMap(employee => this.departmentValues(employee.department)))].sort((a, b) => a.localeCompare(b, 'ar')); }
 	get employeeManagers(): Employee[] { return this.employees.filter(employee => employee.name.trim() && (employee.employeeType === 'manager' || employee.employeeType === 'general_manager')).sort((a, b) => a.name.localeCompare(b.name, 'ar')); }
 	employeeManagersFor(employeeType: EmployeeType, employeeId: number | null): Employee[] {
 		if (employeeType === 'general_manager') return [];
@@ -215,8 +218,8 @@ export class EmployeesFormComponent implements OnChanges {
 	get filteredEmployees(): Employee[] {
 		const query = this.employeeSearch.trim().toLocaleLowerCase();
 		return this.employees.filter(employee => {
-			const matchesQuery = !query || [employee.name, employee.whatsapp || '', employee.department || '', this.managerName(employee), this.employeeTypeLabel(employee), ...(employee.titles || [])].join(' ').toLocaleLowerCase().includes(query);
-			const matchesDepartment = !this.employeeDepartmentFilter || employee.department === this.employeeDepartmentFilter;
+			const matchesQuery = !query || [employee.name, employee.whatsapp || '', this.departmentLabel(employee.department), this.managerName(employee), this.employeeTypeLabel(employee), ...(employee.titles || [])].join(' ').toLocaleLowerCase().includes(query);
+			const matchesDepartment = !this.employeeDepartmentFilter || this.departmentValues(employee.department).includes(this.employeeDepartmentFilter);
 			const matchesType = !this.employeeTypeFilter || (employee.employeeType || 'employee') === this.employeeTypeFilter;
 			const matchesManager = this.employeeManagerFilter === null || employee.managerId === this.employeeManagerFilter;
 			return matchesQuery && matchesDepartment && matchesType && matchesManager;
@@ -242,7 +245,7 @@ export class EmployeesFormComponent implements OnChanges {
 	private selectEmployeeForPage(employee: Employee): void {
 		this.selectedEmployeeId = employee.id;
 		this.editingId = employee.id;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, department: employee.department || '', employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, departments: this.departmentValues(employee.department), employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
 	}
 
 	openAddEmployee(): void { this.errorMessage = ''; this.draft = this.emptyDraft(); this.showAddEmployee = true; }
@@ -257,14 +260,14 @@ export class EmployeesFormComponent implements OnChanges {
 		this.pushTitle(this.draft);
 		const name = this.draft.name.trim();
 		if (!name || !this.draft.titles.length) { this.errorMessage = 'اكتب اسم الموظف وأضف مسمى وظيفيًا واحدًا على الأقل.'; return; }
-		if (!this.draft.department) { this.errorMessage = 'اختر نوع الإدارة.'; return; }
+		if (!this.draft.departments.length) { this.errorMessage = 'اختر نوع إدارة واحدًا على الأقل.'; return; }
 		if (!this.draft.employeeType) { this.errorMessage = 'اختر نوع الموظف.'; return; }
 		if (this.draft.employeeType === 'manager' && this.draft.managerId == null) { this.errorMessage = 'اختر المدير العام للمدير المباشر.'; return; }
 		const email = this.draft.email.trim().toLowerCase();
 		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { this.errorMessage = 'اكتب بريدًا إلكترونيًا صحيحًا.'; return; }
 		if (this.draft.password.length < 10) { this.errorMessage = 'كلمة السر يجب ألا تقل عن 10 أحرف.'; return; }
 		const id = this.employees.reduce((max, employee) => Math.max(max, Number(employee.id) || 0), 0) + 1;
-		this.employees.push({ id, name, titles: [...this.draft.titles], whatsapp: this.draft.whatsapp.trim(), email, description: this.draft.description.trim(), baseSalary: this.normalizeSalary(this.draft.baseSalary), department: this.draft.department, employeeType: this.draft.employeeType, managerId: this.draft.managerId, monthlyRecords: [] });
+		this.employees.push({ id, name, titles: [...this.draft.titles], whatsapp: this.draft.whatsapp.trim(), email, description: this.draft.description.trim(), baseSalary: this.normalizeSalary(this.draft.baseSalary), department: [...this.draft.departments], employeeType: this.draft.employeeType, managerId: this.draft.managerId, monthlyRecords: [] });
 		this.content.items = this.employees;
 		this.isSavingEmployee = true;
 		this.contentService.savePageState('employees', this.content).pipe(
@@ -280,7 +283,7 @@ export class EmployeesFormComponent implements OnChanges {
 		if (this.editingId === employee.id) { this.cancelEdit(); return; }
 		this.editingId = employee.id;
 		this.isEditingEmployee = true;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, department: employee.department || '', employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, departments: this.departmentValues(employee.department), employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
 		this.editError = '';
 	}
 
@@ -304,7 +307,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.pushTitle(this.editDraft);
 		const name = this.editDraft.name.trim();
 		if (!name || !this.editDraft.titles.length) { this.editError = 'الاسم ومسمى وظيفي واحد على الأقل مطلوبان.'; return; }
-		if (!this.editDraft.department) { this.editError = 'اختر نوع الإدارة.'; return; }
+		if (!this.editDraft.departments.length) { this.editError = 'اختر نوع إدارة واحدًا على الأقل.'; return; }
 		if (!this.editDraft.employeeType) { this.editError = 'اختر نوع الموظف.'; return; }
 		if (this.editDraft.employeeType === 'manager' && this.editDraft.managerId == null) { this.editError = 'اختر المدير العام للمدير المباشر.'; return; }
 		employee.name = name;
@@ -312,12 +315,12 @@ export class EmployeesFormComponent implements OnChanges {
 		employee.whatsapp = this.editDraft.whatsapp.trim();
 		employee.description = this.editDraft.description.trim();
 		employee.baseSalary = this.normalizeSalary(this.editDraft.baseSalary);
-		employee.department = this.editDraft.department;
+		employee.department = [...this.editDraft.departments];
 		employee.employeeType = this.editDraft.employeeType;
 		employee.managerId = this.editDraft.employeeType === 'general_manager' ? null : this.editDraft.managerId;
 		delete employee.job;
 		this.content.items = this.employees;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, department: employee.department || '', employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, departments: this.departmentValues(employee.department), employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
 		this.isEditingEmployee = false;
 		this.editError = '';
 		this.editSuccess = '';
@@ -325,7 +328,7 @@ export class EmployeesFormComponent implements OnChanges {
 
 	cancelEdit(): void {
 		const employee = this.selectedEmployee;
-		this.editDraft = employee ? { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, department: employee.department || '', employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null } : this.emptyDraft();
+		this.editDraft = employee ? { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, departments: this.departmentValues(employee.department), employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null } : this.emptyDraft();
 		this.editingId = employee?.id ?? null;
 		this.editError = '';
 		this.editSuccess = '';
@@ -342,7 +345,7 @@ export class EmployeesFormComponent implements OnChanges {
 		if (this.selectedEmployeeId === employee.id) { this.closeDetails(); return; }
 		this.selectedEmployeeId = employee.id;
 		this.editingId = employee.id;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, department: employee.department || '', employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, departments: this.departmentValues(employee.department), employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
 		this.noteDraft = '';
 		this.adjustmentDraft = this.emptyAdjustmentDraft();
 		this.editError = '';
@@ -447,6 +450,10 @@ export class EmployeesFormComponent implements OnChanges {
 		target.titleInput = '';
 	}
 	private currentMonth(): string { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; }
-	private emptyDraft(): EmployeeDraft { return { name: '', titleInput: '', titles: [], whatsapp: '', email: '', password: '', description: '', baseSalary: null, department: '', employeeType: 'employee', managerId: null }; }
+	removeDraftDepartment(index: number): void { this.draft.departments.splice(index, 1); }
+	removeEditDepartment(index: number): void { this.editDraft.departments.splice(index, 1); }
+	private departmentValues(value?: string | string[]): string[] { return Array.isArray(value) ? value.filter(Boolean) : value?.trim() ? [value.trim()] : []; }
+	departmentLabel(value?: string | string[]): string { return this.departmentValues(value).join('، '); }
+	private emptyDraft(): EmployeeDraft { return { name: '', titleInput: '', titles: [], whatsapp: '', email: '', password: '', description: '', baseSalary: null, departments: [], employeeType: 'employee', managerId: null }; }
 	private emptyAdjustmentDraft(): { kind: 'bonus' | 'discount'; amount: number | null; reason: string } { return { kind: 'bonus', amount: null, reason: '' }; }
 }
