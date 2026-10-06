@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, switchMap } from 'rxjs';
 import { AdminApiService } from '../../../core/services/admin-api.service';
 import { AdminAuthService } from '../../../core/services/admin-auth.service';
@@ -21,12 +22,13 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		@media(max-width:850px){.fields{grid-template-columns:1fr 1fr}.payroll-summary{grid-template-columns:1fr 1fr}.employee-card{grid-template-columns:1fr auto}.employee-contact{grid-column:1;grid-row:2}.detail-grid{grid-template-columns:1fr}}
 		@media(max-width:650px){.fields,.detail-section .fields{grid-template-columns:1fr}.add{width:100%}.employee-card{align-items:flex-start}.employee-contact{grid-column:1;grid-row:auto}.actions{flex-direction:column;align-items:stretch}.month-picker{align-items:flex-start;flex-direction:column}.payroll-summary{grid-template-columns:1fr 1fr}}
 		.employee-modal-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;background:rgba(15,22,42,.62);backdrop-filter:blur(4px)}.employee-modal{display:grid;gap:18px;width:min(1100px,100%);max-height:min(92vh,940px);overflow:auto;box-sizing:border-box;padding:24px;border:1px solid #e3e7f0;border-radius:20px;background:#fff;box-shadow:0 24px 80px #11182b50}.employee-add-modal{width:min(760px,100%)}.modal-header{position:sticky;top:-24px;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin:-24px -24px 0;padding:20px 24px 15px;border-bottom:1px solid #edf0f5;background:#fff}.modal-header h3{margin:0 0 5px;font-size:20px}.modal-subtitle{margin:0;color:#7b869b;font-size:12px}.modal-close{width:38px;height:38px;border:0;border-radius:11px;background:#f1f3f7;color:#45516a;font-size:23px;cursor:pointer}.profile-section{display:grid;gap:13px;padding:16px;border:1px solid #edf0f5;border-radius:15px;background:#fbfcff}.profile-section h4{margin:0;font-size:14px}.profile-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.modal-save-row{display:flex;justify-content:flex-start;gap:8px}.modal-month-pill{padding:7px 10px;border-radius:9px;background:#f0edff;color:#5b43c9;font-size:12px;font-weight:900}
+		.employee-detail-page-backdrop{position:static;display:block;padding:0;background:transparent;backdrop-filter:none}.employee-detail-page{width:100%;max-height:none;box-shadow:none;border-radius:16px}.employee-detail-page .modal-header{position:static;margin:-24px -24px 0}.wrap>.payroll-summary{display:none}
 		@media(max-width:650px){.employee-modal-backdrop{padding:8px}.employee-modal{max-height:96vh;padding:15px;border-radius:15px}.modal-header{top:-15px;margin:-15px -15px 0;padding:15px}.profile-fields{grid-template-columns:1fr}.modal-header h3{font-size:17px}}
 	`],
 	template: `
 		<div class="wrap" *ngIf="content">
-			<p class="intro">سجّل الموظفين ومسمياتهم، وافتح ملف الموظف لإدارة ملاحظاته وراتبه والبونص والخصومات لكل شهر. كل البيانات داخل لوحة الإدارة فقط.</p>
-			<div class="employee-toolbar" *ngIf="!isEmployeeAccount">
+			<p class="intro" *ngIf="!employeePageEmployee">سجّل الموظفين ومسمياتهم، وافتح ملف الموظف لإدارة ملاحظاته وراتبه والبونص والخصومات لكل شهر. كل البيانات داخل لوحة الإدارة فقط.</p>
+			<div class="employee-toolbar" *ngIf="!isEmployeeAccount && !employeePageEmployee">
 				<button type="button" class="add" (click)="openAddEmployee()">+ إضافة موظف</button>
 				<div class="employee-filters">
 					<label class="field"><span>بحث في الموظفين</span><input [(ngModel)]="employeeSearch" placeholder="الاسم، الواتساب أو المسمى"></label>
@@ -34,7 +36,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 					<button type="button" class="clear-filters" *ngIf="employeeSearch || employeeTitleFilter" (click)="clearEmployeeFilters()">مسح الفلاتر</button>
 				</div>
 			</div>
-			<div class="employee-modal-backdrop" *ngIf="showAddEmployee" (click)="closeAddEmployee()">
+			<div class="employee-modal-backdrop" *ngIf="showAddEmployee && !employeePageEmployee" (click)="closeAddEmployee()">
 				<section class="employee-modal employee-add-modal" role="dialog" aria-modal="true" aria-label="إضافة موظف" (click)="$event.stopPropagation()">
 					<header class="modal-header"><div><h3>إضافة موظف جديد</h3><p class="modal-subtitle">أدخل البيانات الأساسية للموظف ثم احفظها.</p></div><button type="button" class="modal-close" aria-label="إغلاق" (click)="closeAddEmployee()">×</button></header>
 					<section class="profile-section"><h4>البيانات الأساسية</h4><div class="profile-fields">
@@ -50,27 +52,27 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 				</section>
 			</div>
 			<section class="wrap">
-				<div class="head"><h3>الموظفون</h3><label class="month-picker"><span>الشهر</span><input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange()"></label><span class="count">{{ filteredEmployees.length }} من {{ employees.length }} موظف</span></div>
-				<div class="payroll-summary">
+				<div class="head" *ngIf="!employeePageEmployee"><h3>الموظفون</h3><label class="month-picker"><span>الشهر</span><input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange()"></label><span class="count">{{ filteredEmployees.length }} من {{ employees.length }} موظف</span></div>
+				<div class="payroll-summary" *ngIf="!employeePageEmployee">
 					<div class="summary-card"><span>إجمالي الرواتب الأساسية</span><strong>{{ formatMoney(monthlySalaryTotal) }}</strong></div>
 					<div class="summary-card"><span>إجمالي البونص</span><strong>{{ formatMoney(monthlyBonusTotal) }}</strong></div>
 					<div class="summary-card"><span>إجمالي الخصومات</span><strong>{{ formatMoney(monthlyDiscountTotal) }}</strong></div>
 					<div class="summary-card summary-card--net"><span>إجمالي المستحق للشهر</span><strong>{{ formatMoney(monthlyNetTotal) }}</strong></div>
 				</div>
-				<div class="list" *ngIf="filteredEmployees.length; else emptyState">
+				<div class="list" *ngIf="!employeePageEmployee && filteredEmployees.length; else emptyState">
 					<article class="employee-card" *ngFor="let employee of filteredEmployees; let i = index">
 						<div class="identity">
-							<button type="button" class="employee-name" (click)="toggleDetails(employee)">{{ employee.name }} {{ selectedEmployeeId === employee.id ? '⌃' : '⌄' }}</button>
+							<button type="button" class="employee-name" (click)="openEmployeePage(employee)">{{ employee.name }}</button>
 							<div class="tags"><span class="tag" *ngFor="let title of employee.titles">{{ title }}</span></div>
-							<span class="employee-month-total">صافي الشهر: {{ formatMoney(employeeMonthlyTotal(employee)) }}</span>
+							<span class="employee-month-total" *ngIf="false">صافي الشهر: {{ formatMoney(employeeMonthlyTotal(employee)) }}</span>
 						</div>
 						<div class="employee-contact"><span class="contact-label">رقم الواتساب</span><span class="contact-value" [class.contact-value--empty]="!employee.whatsapp">{{ employee.whatsapp || 'غير مسجل' }}</span></div>
-						<div class="actions"><button type="button" class="edit" (click)="toggleDetails(employee)">فتح الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(i)">حذف</button></div>
+						<div class="actions"><button type="button" class="edit" (click)="openEmployeePage(employee)">فتح الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(i)">حذف</button></div>
 					</article>
 				</div>
-				<div class="employee-modal-backdrop" *ngIf="selectedEmployee as employee" (click)="closeDetails()">
-					<section class="employee-modal" role="dialog" aria-modal="true" [attr.aria-label]="'ملف الموظف ' + employee.name" (click)="$event.stopPropagation()">
-						<header class="modal-header"><div><h3>ملف {{ employee.name }}</h3><p class="modal-subtitle">بيانات الموظف ومتابعة الراتب والملاحظات</p></div><button type="button" class="modal-close" aria-label="إغلاق" (click)="closeDetails()">×</button></header>
+				<div class="employee-modal-backdrop" *ngIf="selectedEmployee as employee" [class.employee-detail-page-backdrop]="employeePageEmployee" (click)="employeePageEmployee ? null : closeDetails()">
+					<section class="employee-modal" [class.employee-detail-page]="employeePageEmployee" role="region" [attr.aria-label]="'ملف الموظف ' + employee.name" (click)="$event.stopPropagation()">
+						<header class="modal-header"><div><h3>ملف {{ employee.name }}</h3><p class="modal-subtitle">بيانات الموظف ومتابعة الراتب والملاحظات</p></div><button type="button" class="modal-close" aria-label="العودة للموظفين" (click)="closeEmployeePage()">×</button></header>
 						<section class="profile-section"><h4>البيانات الأساسية</h4><div class="profile-fields">
 							<label class="field"><span>اسم الموظف</span><input [(ngModel)]="editDraft.name" placeholder="اكتب الاسم"></label>
 							<label class="field"><span>رقم الواتساب</span><input type="tel" inputmode="tel" [(ngModel)]="editDraft.whatsapp" placeholder="رقم الواتساب"></label>
@@ -99,7 +101,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<div class="details-total"><span>صافي مستحقات {{ employee.name }} في {{ selectedMonth }}</span><strong>{{ formatMoney(employeeMonthlyTotal(employee)) }}</strong></div>
 					</section>
 				</div>
-				<ng-template #emptyState><div class="empty">{{ employees.length ? 'لا توجد نتائج مطابقة للفلاتر.' : 'لم تتم إضافة موظفين بعد.' }}</div></ng-template>
+				<ng-template #emptyState><div class="empty" *ngIf="!employeePageEmployee">{{ employees.length ? 'لا توجد نتائج مطابقة للفلاتر.' : 'لم تتم إضافة موظفين بعد.' }}</div></ng-template>
 			</section>
 		</div>
 	`
@@ -109,9 +111,12 @@ export class EmployeesFormComponent implements OnChanges {
 	private readonly contentService = inject(MonthlyContentService);
 	private readonly adminApi = inject(AdminApiService);
 	private readonly auth = inject(AdminAuthService);
+	private readonly route = inject(ActivatedRoute);
+	private readonly router = inject(Router);
 	employees: Employee[] = [];
 	showAddEmployee = false;
 	isSavingEmployee = false;
+	employeePageId: number | null = null;
 	draft: EmployeeDraft = this.emptyDraft();
 	editDraft: EmployeeDraft = this.emptyDraft();
 	editingId: number | null = null;
@@ -133,7 +138,20 @@ export class EmployeesFormComponent implements OnChanges {
 			if (!Array.isArray(employee.monthlyRecords)) employee.monthlyRecords = [];
 		}
 		this.draft = this.emptyDraft();
-		if (this.isEmployeeAccount && this.employees.length && this.selectedEmployeeId === null) this.toggleDetails(this.employees[0]);
+		if (this.isEmployeeAccount && this.employees.length && this.employeePageId === null) {
+			this.employeePageId = this.employees[0].id;
+			this.selectEmployeeForPage(this.employees[0]);
+		}
+	}
+
+	ngOnInit(): void {
+		this.route.fragment.subscribe(fragment => {
+			const match = String(fragment || '').match(/^employee-(\d+)$/);
+			const requestedId = match ? Number(match[1]) : null;
+			this.employeePageId = requestedId || (this.isEmployeeAccount ? this.employees[0]?.id ?? null : null);
+			const employee = this.employeePageEmployee;
+			if (employee) this.selectEmployeeForPage(employee);
+		});
 	}
 
 	get monthlySalaryTotal(): number { return this.employees.reduce((total, employee) => total + (Number(this.getMonthRecord(employee).salary) || 0), 0); }
@@ -142,6 +160,7 @@ export class EmployeesFormComponent implements OnChanges {
 	get monthlyNetTotal(): number { return this.monthlySalaryTotal + this.monthlyBonusTotal - this.monthlyDiscountTotal; }
 	get selectedEmployee(): Employee | null { return this.employees.find(employee => employee.id === this.selectedEmployeeId) || null; }
 	get isEmployeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
+	get employeePageEmployee(): Employee | null { return this.employees.find(employee => employee.id === this.employeePageId) || null; }
 	get employeeTitles(): string[] { return [...new Set(this.employees.flatMap(employee => employee.titles || []))].sort((a, b) => a.localeCompare(b, 'ar')); }
 	get filteredEmployees(): Employee[] {
 		const query = this.employeeSearch.trim().toLocaleLowerCase();
@@ -152,6 +171,21 @@ export class EmployeesFormComponent implements OnChanges {
 		});
 	}
 	clearEmployeeFilters(): void { this.employeeSearch = ''; this.employeeTitleFilter = ''; }
+	openEmployeePage(employee: Employee): void {
+		this.employeePageId = employee.id;
+		this.selectEmployeeForPage(employee);
+		void this.router.navigate([], { relativeTo: this.route, fragment: `employee-${employee.id}` });
+	}
+	closeEmployeePage(): void {
+		this.employeePageId = null;
+		this.closeDetails();
+		void this.router.navigate([], { relativeTo: this.route, fragment: undefined });
+	}
+	private selectEmployeeForPage(employee: Employee): void {
+		this.selectedEmployeeId = employee.id;
+		this.editingId = employee.id;
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '' };
+	}
 
 	openAddEmployee(): void { this.errorMessage = ''; this.draft = this.emptyDraft(); this.showAddEmployee = true; }
 	closeAddEmployee(): void { this.errorMessage = ''; this.showAddEmployee = false; }
