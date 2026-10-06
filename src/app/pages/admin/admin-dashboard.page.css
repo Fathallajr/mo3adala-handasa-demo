@@ -241,6 +241,23 @@ tbody tr:hover { background:#faf9ff; }
   .admin-sidebar .page-group { display:contents; }
   .admin-editor { height:auto; max-height:none; overflow:visible; }
 }
+
+/* Employees page: keep the editor fluid on narrow screens and remove table overflow. */
+@media (max-width:700px) {
+  .admin-dashboard-shell { padding:8px; overflow-x:hidden; }
+  .admin-topbar { min-height:60px; margin-bottom:10px; padding:10px 12px; border-radius:16px; }
+  .admin-topbar .topbar-brand { gap:8px; }
+  .admin-topbar .topbar-actions { gap:6px; }
+  .admin-topbar .site-link,.admin-topbar .admin-logout-btn { min-height:34px; padding:7px 9px; font-size:10px; white-space:nowrap; }
+  .admin-body,.admin-editor,app-employees-form { width:100%; min-width:0; box-sizing:border-box; }
+  .admin-editor { padding:10px; border-radius:16px; overflow-x:hidden; }
+  .editor-toolbar { align-items:stretch; gap:10px; padding-bottom:14px; margin-bottom:14px; }
+  .editor-title { font-size:19px; }
+  .editor-subtitle { font-size:10px; line-height:1.6; }
+  .editor-actions { display:grid; grid-template-columns:1fr; width:100%; }
+  .editor-actions button { width:100%; min-height:38px; }
+  .notice { font-size:10px; line-height:1.7; }
+}
 .wheel-view .editor-toolbar .editor-actions > button:nth-child(2) {
 	display: none;
 }

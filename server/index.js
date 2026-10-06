@@ -386,7 +386,8 @@ function employeeDirectoryItem(item) {
 		name: item.name,
 		titles: Array.isArray(item.titles) ? item.titles : (item.job ? [item.job] : []),
 		description: item.description || '',
-		whatsapp: item.whatsapp || '',
+		// Employee accounts can see the directory, but not coworkers' private phone numbers.
+		whatsapp: '',
 		department: item.department || '',
 		employeeType: item.employeeType || 'employee',
 		managerId: item.managerId ?? null
@@ -1264,6 +1265,50 @@ function normalizeSubscriptionCmsContent(pageKey, content) {
 	return normalized;
 }
 
+function validateEmployeesContent(content) {
+	if (!content || typeof content !== 'object' || Array.isArray(content)) return 'بيانات الموظفين غير صحيحة.';
+	if (!Array.isArray(content.items) || content.items.length > 500) return 'يجب أن تحتوي بيانات الموظفين على قائمة صحيحة لا تتجاوز 500 موظف.';
+	const ids = new Set();
+	const phones = new Set();
+	const emails = new Set();
+	for (const employee of content.items) {
+		if (!employee || typeof employee !== 'object' || Array.isArray(employee)) return 'بيانات أحد الموظفين غير صحيحة.';
+		const id = Number(employee.id);
+		if (!Number.isInteger(id) || id <= 0 || ids.has(id)) return 'معرّف الموظف غير صحيح أو مكرر.';
+		ids.add(id);
+		const name = String(employee.name || '').trim();
+		if (!name || name.length > 200) return 'اسم الموظف مطلوب ولا يتجاوز 200 حرف.';
+		if (!Array.isArray(employee.titles) || employee.titles.length > 30 || employee.titles.some(title => typeof title !== 'string' || !title.trim() || title.length > 120)) return 'المسميات الوظيفية غير صحيحة.';
+		if (employee.whatsapp !== undefined && employee.whatsapp !== null) {
+			const phone = String(employee.whatsapp).trim();
+			if (!/^01[0125]\d{8}$/.test(phone) || phones.has(phone)) return 'رقم واتساب الموظف غير صحيح أو مكرر.';
+			phones.add(phone);
+		}
+		if (employee.email !== undefined && employee.email !== null) {
+			const email = String(employee.email).trim().toLowerCase();
+			if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || emails.has(email)) return 'بريد أحد الموظفين غير صحيح أو مكرر.';
+			emails.add(email);
+		}
+		if (employee.baseSalary !== undefined && employee.baseSalary !== null && (!Number.isFinite(Number(employee.baseSalary)) || Number(employee.baseSalary) < 0 || Number(employee.baseSalary) > 100000000)) return 'الراتب الأساسي غير صحيح.';
+		if (employee.department !== undefined && !Array.isArray(employee.department) && typeof employee.department !== 'string') return 'نوع إدارة الموظف غير صحيح.';
+		if (Array.isArray(employee.department) && (employee.department.length > 20 || employee.department.some(value => typeof value !== 'string' || value.length > 120))) return 'أنواع إدارة الموظف غير صحيحة.';
+		if (employee.description !== undefined && String(employee.description).length > 2000) return 'وصف الموظف طويل جدًا.';
+		if (employee.employeeType !== undefined && !['employee', 'manager', 'general_manager'].includes(employee.employeeType)) return 'نوع الموظف غير صحيح.';
+		if (employee.managerId !== undefined && employee.managerId !== null && (!Number.isInteger(Number(employee.managerId)) || Number(employee.managerId) === id)) return 'المدير المباشر غير صحيح.';
+		if (employee.monthlyRecords !== undefined) {
+			if (!Array.isArray(employee.monthlyRecords) || employee.monthlyRecords.length > 120) return 'السجلات الشهرية غير صحيحة أو كثيرة جدًا.';
+			for (const record of employee.monthlyRecords) {
+				if (!record || typeof record !== 'object' || !/^\d{4}-\d{2}$/.test(String(record.month || ''))) return 'شهر أحد السجلات غير صحيح.';
+				if (record.salary !== undefined && record.salary !== null && (!Number.isFinite(Number(record.salary)) || Number(record.salary) < 0 || Number(record.salary) > 100000000)) return 'راتب أحد السجلات الشهرية غير صحيح.';
+				if (record.notes !== undefined && (!Array.isArray(record.notes) || record.notes.length > 100 || record.notes.some(note => !note || String(note.text || '').length > 2000))) return 'ملاحظات السجل الشهري غير صحيحة.';
+				if (record.adjustments !== undefined && (!Array.isArray(record.adjustments) || record.adjustments.length > 100 || record.adjustments.some(item => !item || !['bonus', 'discount'].includes(item.kind) || !Number.isFinite(Number(item.amount)) || Number(item.amount) <= 0 || Number(item.amount) > 100000000 || String(item.reason || '').length > 500))) return 'تعديلات السجل الشهري غير صحيحة.';
+			}
+		}
+	}
+	for (const employee of content.items) if (employee.managerId !== undefined && employee.managerId !== null && !ids.has(Number(employee.managerId))) return 'المدير المباشر المحدد غير موجود.';
+	return null;
+}
+
 async function migrateSubscriptionContentOnce() {
 	const migrationKey = 'subscription-content-policy-v4-support-whatsapp';
 	if (await database.getMetadata(migrationKey)) return;
@@ -1520,16 +1565,22 @@ app.put('/api/content/:pageKey', requireAdmin, (req, res, next) => {
 		return res.status(404).json({ message: 'Unknown page' });
 	}
 	const normalizedContent = normalizeSubscriptionCmsContent(pageKey, req.body);
+	if (pageKey === 'employees') {
+		const employeesError = validateEmployeesContent(normalizedContent);
+		if (employeesError) return res.status(400).json({ message: employeesError });
+	}
 	const scheduleError = validateScheduleImages(normalizedContent);
 	if (scheduleError) return res.status(400).json({ message: scheduleError });
 
 	if (typeof database.savePage === 'function') {
 		const saved = await database.savePage(pageKey, normalizedContent, getNowIso());
+		if (pageKey === 'employees') await database.createAuditLog({ id: crypto.randomUUID(), action: 'updated', entityType: 'employees', entityId: pageKey, actor: req.adminUsername || '', ip: req.ip, createdAt: getNowIso() });
 		return res.json(saved.data);
 	}
 	const store = await readStore();
 	store.pages[pageKey] = { data: normalizedContent, updatedAt: getNowIso() };
 	await writeStore(store);
+	if (pageKey === 'employees') await database.createAuditLog({ id: crypto.randomUUID(), action: 'updated', entityType: 'employees', entityId: pageKey, actor: req.adminUsername || '', ip: req.ip, createdAt: getNowIso() });
 	res.json(store.pages[pageKey].data);
 });
 

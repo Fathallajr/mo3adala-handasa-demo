@@ -20,9 +20,14 @@
   },
   "private": true,
   "overrides": {
+    "@modelcontextprotocol/sdk": "^1.31.0",
     "uuid": "^11.1.1",
     "piscina": "^5.3.2",
-    "webpack-dev-middleware": "^7.4.6"
+    "webpack-dev-middleware": "^7.4.6",
+    "proxy-addr": "^2.0.8",
+    "shell-quote": "^1.11.0",
+    "source-map-js": "^1.2.2",
+    "postcss-selector-parser": "^7.1.6"
   },
   "dependencies": {
     "@angular-devkit/build-angular": "^21.2.24",

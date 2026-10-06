@@ -24,7 +24,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		@media(max-width:650px){.fields,.detail-section .fields{grid-template-columns:1fr}.add{width:100%}.employee-card{align-items:flex-start}.employee-contact{grid-column:1;grid-row:auto}.actions{flex-direction:column;align-items:stretch}.month-picker{align-items:flex-start;flex-direction:column}.payroll-summary{grid-template-columns:1fr 1fr}}
 		.action-menu-trigger{width:38px;height:38px;border:1px solid #ddd7ff;border-radius:10px;background:#f7f5ff;color:#5b43c9;font-size:23px;font-weight:900;line-height:1;cursor:pointer}.action-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:20;display:grid;min-width:130px;gap:5px;padding:7px;border:1px solid #e5e9f2;border-radius:11px;background:#fff;box-shadow:0 12px 30px #202b4225}.action-menu button{width:100%;white-space:nowrap}.actions{position:relative;justify-content:center}.monthly-save-row{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin-top:12px}.monthly-save-message{color:#13825f;font-size:12px;font-weight:900}.monthly-save-error{color:#b63e58;font-size:12px;font-weight:800}.field textarea{width:100%;min-height:90px;box-sizing:border-box;resize:vertical;border:1px solid #dfe4ed;border-radius:10px;padding:10px 12px;font:inherit;color:#202b42;background:#fff}.salary-readonly{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid #e5e9f2;border-radius:10px;background:#fff}.salary-readonly span{color:#8993a8;font-size:11px;font-weight:800}.salary-readonly strong{color:#293650;font-size:15px}.view-field{display:grid;align-content:center;gap:7px;min-height:42px;padding:0 12px;color:#65718b;font-size:12px;font-weight:800}.view-field strong{color:#293650;font-size:13px;line-height:1.6;white-space:pre-wrap}.view-field--wide{min-height:90px;align-content:start;padding-top:10px}
 		.employee-modal-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;background:rgba(15,22,42,.62);backdrop-filter:blur(4px)}.employee-modal{display:grid;gap:18px;width:min(1100px,100%);max-height:min(92vh,940px);overflow:auto;box-sizing:border-box;padding:24px;border:1px solid #e3e7f0;border-radius:20px;background:#fff;box-shadow:0 24px 80px #11182b50}.employee-add-modal{width:min(760px,100%)}.modal-header{position:sticky;top:-24px;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin:-24px -24px 0;padding:20px 24px 15px;border-bottom:1px solid #edf0f5;background:#fff}.modal-header h3{margin:0 0 5px;font-size:20px}.modal-subtitle{margin:0;color:#7b869b;font-size:12px}.modal-close{width:38px;height:38px;border:0;border-radius:11px;background:#f1f3f7;color:#45516a;font-size:23px;cursor:pointer}.profile-section{display:grid;gap:13px;padding:16px;border:1px solid #edf0f5;border-radius:15px;background:#fbfcff}.profile-section h4{margin:0;font-size:14px}.profile-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.modal-save-row{display:flex;justify-content:flex-start;gap:8px}.modal-month-pill{padding:7px 10px;border-radius:9px;background:#f0edff;color:#5b43c9;font-size:12px;font-weight:900}
-		.employee-detail-page-backdrop{position:static;display:block;padding:0;background:transparent;backdrop-filter:none}.employee-detail-page{width:100%;max-height:none;box-shadow:none;border-radius:16px}.employee-detail-page .modal-header{position:static;margin:-24px -24px 0}.wrap>.payroll-summary{display:none}
+		.employee-detail-page-backdrop{position:static;display:block;padding:0;background:transparent;backdrop-filter:none}.employee-detail-page{width:100%;max-height:none;box-shadow:none;border-radius:16px}.employee-detail-page .modal-header{position:static;margin:-24px -24px 0}.financial-kpi-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:2px}.financial-kpi-head strong{color:#25324d;font-size:16px}.financial-kpi-head span{color:#8993a8;font-size:11px;font-weight:800}.payroll-summary{grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;padding:0;background:transparent;border:0}.summary-card{position:relative;min-height:96px;align-content:center;gap:9px;padding:18px 16px 18px 52px;border:1px solid #e5e9f2;border-top:3px solid #9b8af2;border-radius:18px;background:#fff;box-shadow:0 10px 24px #24365d0d;overflow:hidden;transition:transform .2s,box-shadow .2s}.summary-card:hover{transform:translateY(-3px);box-shadow:0 15px 28px #24365d18}.summary-card::after{content:'◈';position:absolute;left:16px;top:50%;display:grid;place-items:center;width:32px;height:32px;border-radius:11px;color:#6d4aff;background:#f0edff;font-size:14px;transform:translateY(-50%)}.summary-card span{color:#7d899f;font-size:11px;font-weight:800}.summary-card strong{color:#25324d;font-size:19px;letter-spacing:-.3px}.summary-card--base{border-top-color:#6d4aff}.summary-card--base::after{content:'₪';color:#fff;background:#6d4aff}.summary-card--bonus{border-top-color:#18a477}.summary-card--bonus::after{content:'+';color:#087957;background:#e3f8f0}.summary-card--discount{border-top-color:#e06b7e}.summary-card--discount::after{content:'−';color:#b33b57;background:#fff0f3}.summary-card--net{border-color:#d9d1ff;border-top-color:#5137bf;background:linear-gradient(145deg,#faf9ff,#f0edff)}.summary-card--net::after{content:'✓';color:#fff;background:#5137bf}.summary-card--net strong{color:#5137bf}
 		@media(max-width:650px){.employee-modal-backdrop{padding:8px}.employee-modal{max-height:96vh;padding:15px;border-radius:15px}.modal-header{top:-15px;margin:-15px -15px 0;padding:15px}.profile-fields{grid-template-columns:1fr}.modal-header h3{font-size:17px}}
 		.employee-detail-page .profile-fields{gap:14px}.employee-detail-page .view-field{min-height:64px;padding:11px 14px;border:1px solid #e8ebf2;border-radius:12px;background:#fff;box-sizing:border-box}.employee-detail-page .view-field--wide{grid-column:1/-1;min-height:86px}.employee-detail-page .view-field span{color:#8993a8;font-size:11px}.employee-detail-page .view-field strong{color:#293650;font-size:13px}.employee-detail-page .draft-titles{margin-top:2px}.employee-detail-page .title-chip{background:#f0edff}.employee-detail-page .profile-section h4{padding-bottom:2px}.employee-detail-page .profile-section{position:relative;padding-bottom:72px}.employee-detail-page .profile-save-row{position:absolute;left:16px;right:auto;bottom:16px;margin:0;justify-content:flex-start}.required-star{color:#c33d57;font-weight:900}
 		.employee-detail-page{gap:22px;padding:28px;border-color:#dfe6f3;background:#f8faff;box-shadow:0 18px 55px #23345b12}.employee-detail-page .modal-header{margin:-28px -28px 0;padding:24px 28px 20px;border-bottom:1px solid #e7ebf4;border-radius:18px 18px 0 0;background:linear-gradient(135deg,#fff 0%,#f8f9ff 100%)}.employee-detail-page .modal-header h3{font-size:22px;letter-spacing:-.2px}.employee-detail-page .modal-subtitle{color:#7a86a0}.employee-detail-page .profile-section{gap:18px;padding:22px;border:1px solid #e4e9f3;border-radius:18px;background:#fff;box-shadow:0 8px 24px #253b6810}.employee-detail-page .profile-section h4{display:flex;align-items:center;gap:9px;color:#273552;font-size:15px}.employee-detail-page .profile-section h4::before{content:'';width:4px;height:20px;border-radius:4px;background:#6d4aff}.employee-detail-page .view-field{min-height:76px;padding:14px 16px;border-color:#e5eaf3;background:#fbfcff;transition:border-color .2s,box-shadow .2s}.employee-detail-page .view-field:hover{border-color:#cfc5ff;box-shadow:0 5px 16px #5b43c912}.employee-detail-page .view-field--wide{min-height:98px}.employee-detail-page .view-field--salary{border-color:#d7ccff;background:linear-gradient(135deg,#fbfaff,#f4f1ff)}.employee-detail-page .view-field--salary strong{color:#5b43c9;font-size:17px}.employee-detail-page .details-head{margin-top:2px;padding:0 4px}.employee-detail-page .details-head h4{color:#273552;font-size:16px}.employee-detail-page .detail-section{padding:18px;border-color:#e4e9f3;border-radius:16px;background:#fff;box-shadow:0 8px 24px #253b680d}.employee-detail-page .details-total{padding:15px 18px;border:1px solid #ddd5ff;border-radius:14px;background:linear-gradient(135deg,#f4f1ff,#ebe6ff);color:#5137bf}.employee-detail-page .profile-save-row .edit,.employee-detail-page .profile-save-row .save-edit{min-width:104px;box-shadow:0 7px 15px #6d4aff20}.employee-detail-page .profile-save-row .edit{background:#f0edff}.employee-detail-page .month-picker input{min-height:40px;background:#fff;border-color:#dfe5f1}
@@ -37,6 +37,12 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-table-head,.employee-card{grid-template-columns:minmax(150px,1.25fr) minmax(80px,.65fr) minmax(160px,1.35fr) minmax(120px,1fr) minmax(120px,1fr) minmax(130px,auto) auto}
 		@media(max-width:850px){.employee-table-head{display:none}.employee-card{grid-template-columns:1fr auto}.employee-column-label{display:block}.employee-contact{grid-column:1;grid-row:2}}
 		.employee-self-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid #d9d1ff;border-radius:14px;background:linear-gradient(135deg,#f7f5ff,#efebff);color:#4f3bc0;font-size:12px;font-weight:800}.employee-self-banner strong{display:block;margin-bottom:4px;color:#2d3a59;font-size:14px}.employee-self-banner button{min-height:38px;border:0;border-radius:9px;padding:0 14px;background:#6d4aff;color:#fff;font:inherit;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}.employee-self-badge{display:inline-flex;align-items:center;width:max-content;padding:5px 9px;border-radius:999px;background:#e9e4ff;color:#5b43c9;font-size:10px;font-weight:900}.employee-card--own{border-color:#bdb0ff;box-shadow:0 8px 22px #6d4aff12}
+		.employee-delete-backdrop{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.58);backdrop-filter:blur(5px);animation:employeeDeleteFade .18s ease-out}.employee-delete-dialog{width:min(440px,100%);box-sizing:border-box;padding:30px 28px 24px;border:1px solid #f0dce2;border-radius:22px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.28);text-align:center;direction:rtl;animation:employeeDeletePop .2s ease-out}.employee-delete-icon{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 14px;border-radius:18px;color:#c33f5d;background:#fff0f3;font-size:24px}.employee-delete-dialog h3{margin:0 0 10px;color:#202b42;font-size:21px}.employee-delete-dialog p{margin:0 auto 7px;color:#526078;font-size:14px;line-height:1.8}.employee-delete-dialog p strong{color:#202b42}.employee-delete-dialog small{display:block;color:#8993a8;font-size:12px}.employee-delete-error{margin:14px 0 0!important;padding:9px 11px;border:1px solid #f3c5cf;border-radius:10px;color:#b33b57!important;background:#fff3f5;font-size:12px!important;line-height:1.6!important}.employee-delete-actions{display:flex;justify-content:center;gap:10px;margin-top:24px}.employee-delete-actions button{min-width:130px;min-height:42px;border:0;border-radius:10px;padding:9px 16px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}.employee-delete-cancel{color:#526078;background:#eef2f7}.employee-delete-confirm{color:#fff;background:#d95673;box-shadow:0 8px 18px rgba(217,86,115,.24)}.employee-delete-confirm:hover{background:#bd405d}.employee-delete-confirm:disabled{opacity:.65;cursor:wait}.employee-delete-confirm i{margin-inline-end:5px}@keyframes employeeDeleteFade{from{opacity:0}to{opacity:1}}@keyframes employeeDeletePop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+		@media(max-width:700px){.wrap{gap:14px;min-width:0}.intro{font-size:11px;line-height:1.8}.employee-toolbar{align-items:stretch;gap:10px}.employee-toolbar>.add{width:100%;order:-1}.employee-filters{display:grid;grid-template-columns:1fr;gap:9px;width:100%}.employee-filters .field{min-width:0}.clear-filters{width:100%}.head{align-items:flex-start;flex-direction:column;gap:5px}.head h3{font-size:18px}.payroll-summary{grid-template-columns:1fr 1fr;gap:8px;padding:9px}.summary-card{padding:10px}.summary-card span{font-size:10px}.summary-card strong{font-size:13px}.employee-card{grid-template-columns:minmax(0,1fr) auto;gap:11px 10px;padding:14px 12px;border-radius:14px}.employee-card>div:not(.actions){min-width:0}.employee-card .identity{grid-column:1;grid-row:1}.employee-card .actions{grid-column:2;grid-row:1 / span 3;align-self:start}.employee-card .employee-tasks{grid-column:1 / -1}.employee-card .employee-contact{grid-column:1 / -1;grid-row:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px solid #f0f1f6}.employee-column-label{margin-bottom:4px}.employee-tasks{gap:5px}.employee-tasks .tag{max-width:100%;overflow-wrap:anywhere}.contact-value{overflow-wrap:anywhere}.actions{flex-direction:row;align-items:flex-start}.employee-self-banner{align-items:stretch;flex-direction:column}.employee-self-banner button{width:100%}.employee-modal-backdrop{padding:8px}.employee-detail-page{width:100%;box-sizing:border-box}.detail-grid{grid-template-columns:1fr}.details-head{align-items:flex-start;flex-direction:column}.monthly-save-row{align-items:stretch;flex-direction:column}.monthly-save-row button{width:100%}}
+		@media(max-width:430px){.payroll-summary{grid-template-columns:1fr}.employee-card{padding:13px 10px}.employee-card .tag{font-size:10px;padding:5px 8px}.employee-name{font-size:13px}.contact-label,.contact-value{font-size:10px}.employee-modal-backdrop{padding:4px}}
+		/* Add employee: focused two-panel workspace */
+		.add-employee-modal{display:grid;grid-template-columns:255px minmax(0,1fr);gap:0;width:min(980px,100%);max-height:min(88vh,820px);padding:0;overflow:hidden;border:0;border-radius:24px;background:#f7f9fc;box-shadow:0 28px 90px #10182e55;direction:ltr}.add-employee-aside{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:28px;padding:30px 24px;color:#fff;background:linear-gradient(160deg,#172541 0%,#243761 58%,#3d347d 100%);direction:rtl;overflow:hidden}.add-employee-aside::before,.add-employee-aside::after{content:'';position:absolute;border:1px solid #ffffff1c;border-radius:50%;pointer-events:none}.add-employee-aside::before{width:210px;height:210px;top:-88px;left:-88px}.add-employee-aside::after{width:310px;height:310px;bottom:-170px;right:-170px}.add-brand{position:relative;z-index:1;display:flex;align-items:center;gap:11px}.add-brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:#a99aff;color:#1d2850;font-size:23px;font-weight:900;box-shadow:0 8px 20px #0e163630}.add-brand strong{font-size:14px}.add-brand span{display:block;margin-top:3px;color:#c9d0e6;font-size:10px;font-weight:700}.add-aside-copy{position:relative;z-index:1}.add-aside-copy h3{margin:0 0 10px;font-size:24px;line-height:1.35;letter-spacing:-.4px}.add-aside-copy p{margin:0;color:#c2cbe0;font-size:12px;line-height:1.9}.add-progress{position:relative;z-index:1;display:grid;gap:12px}.add-progress-item{display:flex;align-items:center;gap:10px;color:#aeb9d2;font-size:11px;font-weight:800}.add-progress-item b{display:grid;place-items:center;width:26px;height:26px;border:1px solid #7382a3;border-radius:50%;font-size:11px}.add-progress-item.is-active{color:#fff}.add-progress-item.is-active b{border-color:#b3a8ff;background:#9183f5;color:#172541;box-shadow:0 0 0 5px #a99aff1c}.add-aside-note{position:relative;z-index:1;padding:12px 13px;border:1px solid #ffffff1c;border-radius:14px;background:#ffffff0d;color:#bdc7de;font-size:10px;line-height:1.8}.add-aside-note strong{display:block;margin-bottom:3px;color:#fff;font-size:11px}.add-employee-main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-width:0;direction:rtl;background:#f7f9fc}.add-modal-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:25px 30px 20px;border-bottom:1px solid #e7ebf3;background:#fff}.add-modal-top h3{margin:0 0 5px;color:#1d2a47;font-size:20px}.add-modal-top p{margin:0;color:#8290aa;font-size:12px}.add-modal-close{width:36px;height:36px;border:1px solid #e6eaf2;border-radius:11px;background:#f7f8fb;color:#5c6882;font-size:21px;line-height:1;cursor:pointer;transition:.2s}.add-modal-close:hover{background:#ecebff;color:#5948c5;transform:rotate(90deg)}.add-employee-scroll{display:grid;gap:16px;padding:22px 30px;overflow:auto}.add-form-card{display:grid;gap:15px;padding:18px 20px;border:1px solid #e5eaf3;border-radius:17px;background:#fff;box-shadow:0 5px 18px #24365d08}.add-form-card-heading{display:flex;align-items:center;gap:10px;padding-bottom:2px;color:#263653;font-size:14px;font-weight:900}.add-form-card-heading i{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:#eeebff;color:#644ed1;font-style:normal;font-size:13px}.add-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}.add-form-grid .field{gap:7px}.add-form-grid .field>span{color:#62718c}.add-form-grid .field input,.add-form-grid .field select,.add-form-grid .field textarea{border-color:#e0e6f0;border-radius:11px;background:#fbfcfe;transition:border-color .2s,box-shadow .2s,background .2s}.add-form-grid .field input:focus,.add-form-grid .field select:focus,.add-form-grid .field textarea:focus{outline:none;border-color:#8575e7;background:#fff;box-shadow:0 0 0 4px #8171e71c}.add-form-grid .field textarea{min-height:92px}.add-form-grid .field--wide,.add-form-grid .department-field,.add-form-grid .employee-type-field{grid-column:1/-1}.add-form-grid .department-checkboxes{grid-template-columns:repeat(3,minmax(0,1fr));padding:8px;background:#fbfcfe;border-radius:11px}.add-form-grid .department-option{min-height:35px;background:#fff}.add-form-grid .employee-type-field{width:auto;max-width:none;justify-self:stretch}.add-form-grid .employee-type-field select{max-width:50%}.add-form-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:17px 30px;border-top:1px solid #e7ebf3;background:#fff}.add-form-footer .error{margin:0;max-width:55%}.add-save-button{min-width:180px;min-height:46px;border:0;border-radius:12px;padding:0 22px;background:linear-gradient(135deg,#6e5be8,#5643c9);color:#fff;font:inherit;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 9px 18px #6653dc35;transition:transform .2s,box-shadow .2s}.add-save-button:hover{transform:translateY(-2px);box-shadow:0 12px 22px #6653dc45}.add-save-button:disabled{opacity:.65;cursor:wait;transform:none}@media(max-width:760px){.add-employee-modal{grid-template-columns:1fr;max-height:94vh}.add-employee-aside{display:none}.add-modal-top,.add-form-footer{padding-left:18px;padding-right:18px}.add-employee-scroll{padding:16px 18px}.add-form-grid .department-checkboxes{grid-template-columns:1fr 1fr}.add-form-grid .employee-type-field select{max-width:none}.add-form-footer{align-items:stretch;flex-direction:column-reverse}.add-form-footer .error{max-width:none}.add-save-button{width:100%}}
+		.add-employee-modal{height:min(96vh,860px);max-height:min(96vh,860px)}.add-employee-main{min-height:0}.add-employee-scroll{min-height:0}.add-form-card{gap:12px;padding:16px 18px}.add-form-grid{gap:11px 14px}.add-form-grid .field{gap:5px}.add-form-grid .field textarea{min-height:78px}.add-form-grid .employee-type-field{grid-column:auto;max-width:none;justify-self:stretch}.add-form-grid .employee-type-field select{max-width:none}.add-form-grid .department-checkboxes{padding:7px}.add-form-grid .department-option{min-height:32px}.add-form-footer{padding-top:13px;padding-bottom:13px}
 	`],
 	template: `
 		<div class="wrap" *ngIf="content">
@@ -53,32 +59,44 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 				</div>
 			</div>
 			<div class="employee-modal-backdrop" *ngIf="showAddEmployee && !employeePageEmployee" (click)="closeAddEmployee()">
-				<section class="employee-modal employee-add-modal" role="dialog" aria-modal="true" aria-label="إضافة موظف" (click)="$event.stopPropagation()">
-					<header class="modal-header"><div><h3>إضافة موظف جديد</h3><p class="modal-subtitle">أدخل البيانات الأساسية للموظف ثم احفظها.</p></div><button type="button" class="modal-close" aria-label="إغلاق" (click)="closeAddEmployee()">×</button></header>
-					<section class="profile-section"><h4>البيانات الأساسية</h4><div class="profile-fields">
-						<label class="field"><span>اسم الموظف <em class="required-star">*</em></span><input required [(ngModel)]="draft.name" placeholder="اكتب الاسم"></label>
-						<label class="field"><span>رقم الواتساب</span><input type="tel" inputmode="tel" [(ngModel)]="draft.whatsapp" placeholder="مثال: 2010xxxxxxxx"></label>
-						<label class="field"><span>البريد الإلكتروني <em class="required-star">*</em></span><input required type="email" [(ngModel)]="draft.email" placeholder="employee@example.com"></label>
-						<label class="field"><span>كلمة السر <em class="required-star">*</em></span><input required type="password" [(ngModel)]="draft.password" placeholder="10 أحرف على الأقل"></label>
-						<label class="field"><span>الدور في التطبيق</span><textarea [(ngModel)]="draft.description" placeholder="مثال: مسؤول محتوى ومتابعة مهام الفريق"></textarea></label>
-						<label class="field"><span>الراتب الأساسي</span><input type="number" min="0" step="0.01" [(ngModel)]="draft.baseSalary" placeholder="الراتب الشهري"></label>
-						<div class="field"><span>نوع الإدارة <em class="required-star">*</em></span><div class="department-checkboxes"><label class="department-option" *ngFor="let department of employeeDepartmentOptions"><input type="checkbox" [checked]="draft.departments.includes(department)" (change)="toggleDepartment(draft, department, $any($event.target).checked)"><span>{{ department }}</span></label></div></div>
-						<div class="draft-titles" *ngIf="draft.departments.length"><span class="title-chip" *ngFor="let department of draft.departments; let i = index">{{ department }}<button type="button" class="chip-remove" aria-label="حذف نوع الإدارة" (click)="removeDraftDepartment(i)">×</button></span></div>
-						<label class="field" *ngIf="draft.employeeType !== 'general_manager'"><span>{{ draft.employeeType === 'manager' ? 'المدير العام' : 'المدير المباشر' }} <em *ngIf="draft.employeeType === 'manager'" class="required-star">*</em></span><select [required]="draft.employeeType === 'manager'" [(ngModel)]="draft.managerId"><option [ngValue]="null">اختر المسؤول</option><option *ngFor="let manager of employeeManagersFor(draft.employeeType, null)" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
-						<label class="field"><span>مسمى وظيفي <em class="required-star">*</em></span><input [(ngModel)]="draft.titleInput" (keyup.enter)="addDraftTitle()" placeholder="مثال: خدمة عملاء"></label>
-						<button type="button" class="edit" (click)="addDraftTitle()">+ إضافة مسمى</button>
-						<label class="field employee-type-field"><span>نوع الموظف <em class="required-star">*</em></span><select required [(ngModel)]="draft.employeeType" (ngModelChange)="onDraftTypeChange($event)"><option value="employee">موظف</option><option value="manager">مدير مباشر</option><option value="general_manager">مدير عام</option></select></label>
+				<section class="employee-modal add-employee-modal" role="dialog" aria-modal="true" aria-label="إضافة موظف" (click)="$event.stopPropagation()">
+					<aside class="add-employee-aside">
+						<div class="add-brand"><span class="add-brand-mark">+</span><div><strong>مساحة الإدارة</strong><span>نظام إدارة الفريق</span></div></div>
+						<div class="add-aside-copy"><h3>موظف جديد.<br>بداية منظمة.</h3><p>أضف بيانات الموظف الأساسية في خطوات بسيطة، لتسهيل المتابعة وإدارة الفريق.</p></div>
+						<div class="add-progress"><div class="add-progress-item is-active"><b>1</b><span>البيانات الأساسية</span></div><div class="add-progress-item"><b>2</b><span>الصلاحيات والدور</span></div><div class="add-progress-item"><b>3</b><span>المراجعة والحفظ</span></div></div>
+						<div class="add-aside-note"><strong>نصيحة سريعة</strong>استخدم بريداً فعالاً وكلمة سر قوية حتى يتمكن الموظف من تسجيل الدخول بأمان.</div>
+					</aside>
+					<div class="add-employee-main">
+						<header class="add-modal-top"><div><h3>إضافة موظف جديد</h3><p>أدخل البيانات الأساسية للموظف ثم احفظها في دليل الفريق.</p></div><button type="button" class="add-modal-close" aria-label="إغلاق" (click)="closeAddEmployee()">×</button></header>
+						<div class="add-employee-scroll">
+							<section class="add-form-card"><div class="add-form-card-heading"><i>01</i><span>بيانات التواصل</span></div><div class="add-form-grid">
+								<label class="field"><span>اسم الموظف <em class="required-star">*</em></span><input required [(ngModel)]="draft.name" placeholder="اكتب الاسم بالكامل"></label>
+								<label class="field"><span>رقم الهاتف المصري <em class="required-star">*</em></span><input required type="tel" inputmode="numeric" autocomplete="tel" maxlength="11" minlength="11" pattern="01[0125][0-9]{8}" [(ngModel)]="draft.whatsapp" (input)="draft.whatsapp = normalizeEgyptianPhone($any($event.target).value)" placeholder="01xxxxxxxxx" title="أدخل رقم هاتف مصري مكوّن من 11 رقمًا ويبدأ بـ 010 أو 011 أو 012 أو 015"></label>
+								<label class="field"><span>البريد الإلكتروني <em class="required-star">*</em></span><input required type="email" [(ngModel)]="draft.email" placeholder="employee@example.com"></label>
+								<label class="field"><span>كلمة السر <em class="required-star">*</em></span><input required type="password" [(ngModel)]="draft.password" placeholder="10 أحرف على الأقل"></label>
+							</div></section>
+							<section class="add-form-card"><div class="add-form-card-heading"><i>02</i><span>الدور والتخصص</span></div><div class="add-form-grid">
+								<label class="field field--wide"><span>الدور في التطبيق</span><textarea [(ngModel)]="draft.description" placeholder="مثال: مسؤول محتوى ومتابعة مهام الفريق"></textarea></label>
+								<label class="field"><span>الراتب الأساسي</span><input type="number" min="0" step="0.01" [(ngModel)]="draft.baseSalary" placeholder="الراتب الشهري"></label>
+								<label class="field employee-type-field"><span>نوع الموظف <em class="required-star">*</em></span><select required [(ngModel)]="draft.employeeType" (ngModelChange)="onDraftTypeChange($event)"><option value="employee">موظف</option><option value="manager">مدير مباشر</option><option value="general_manager">مدير عام</option></select></label>
+								<div class="field department-field"><span>نوع الإدارة <em class="required-star">*</em></span><div class="department-checkboxes"><label class="department-option" *ngFor="let department of employeeDepartmentOptions"><input type="checkbox" [checked]="draft.departments.includes(department)" (change)="toggleDepartment(draft, department, $any($event.target).checked)"><span>{{ department }}</span></label></div></div>
+								<div class="draft-titles" *ngIf="draft.departments.length"><span class="title-chip" *ngFor="let department of draft.departments; let i = index">{{ department }}<button type="button" class="chip-remove" aria-label="حذف نوع الإدارة" (click)="removeDraftDepartment(i)">×</button></span></div>
+								<label class="field" *ngIf="draft.employeeType !== 'general_manager'"><span>{{ draft.employeeType === 'manager' ? 'المدير العام' : 'المدير المباشر' }} <em *ngIf="draft.employeeType === 'manager'" class="required-star">*</em></span><select [required]="draft.employeeType === 'manager'" [(ngModel)]="draft.managerId"><option [ngValue]="null">اختر المسؤول</option><option *ngFor="let manager of employeeManagersFor(draft.employeeType, null)" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
+								<label class="field"><span>مسمى وظيفي <em class="required-star">*</em></span><input [(ngModel)]="draft.titleInput" (keyup.enter)="addDraftTitle()" placeholder="مثال: خدمة عملاء"></label><button type="button" class="edit" (click)="addDraftTitle()">+ إضافة مسمى</button>
+							</div><div class="draft-titles" *ngIf="draft.titles.length"><span class="title-chip" *ngFor="let title of draft.titles; let i = index">{{ title }}<button type="button" class="chip-remove" aria-label="حذف المسمى" (click)="removeDraftTitle(i)">×</button></span></div></section>
+						</div>
+						<footer class="add-form-footer"><p class="error" *ngIf="errorMessage">{{ errorMessage }}</p><button type="button" class="add-save-button" [disabled]="isSavingEmployee" (click)="addEmployee()"><span>{{ isSavingEmployee ? 'جاري الحفظ...' : 'حفظ الموظف وإضافته' }}</span> <b>↗</b></button></footer>
 					</div>
-					<div class="draft-titles" *ngIf="draft.titles.length"><span class="title-chip" *ngFor="let title of draft.titles; let i = index">{{ title }}<button type="button" class="chip-remove" aria-label="حذف المسمى" (click)="removeDraftTitle(i)">×</button></span></div>
-					<p class="error" *ngIf="errorMessage">{{ errorMessage }}</p><div class="modal-save-row"><button type="button" class="add" [disabled]="isSavingEmployee" (click)="addEmployee()">{{ isSavingEmployee ? 'جاري الحفظ...' : 'حفظ الموظف' }}</button></div></section>
 				</section>
 			</div>
 			<section class="wrap">
 				<div class="head" *ngIf="!employeePageEmployee"><h3>الموظفون</h3><span class="count">{{ filteredEmployees.length }} من {{ employees.length }} موظف</span></div>
+				<div class="financial-kpi-head" *ngIf="!employeePageEmployee"><strong>المؤشرات المالية</strong><span>ملخص مستحقات الشهر الحالي</span></div>
 				<div class="payroll-summary" *ngIf="!employeePageEmployee">
-					<div class="summary-card"><span>إجمالي الرواتب الأساسية</span><strong>{{ formatMoney(monthlySalaryTotal) }}</strong></div>
-					<div class="summary-card"><span>إجمالي البونص</span><strong>{{ formatMoney(monthlyBonusTotal) }}</strong></div>
-					<div class="summary-card"><span>إجمالي الخصومات</span><strong>{{ formatMoney(monthlyDiscountTotal) }}</strong></div>
+					<div class="summary-card"><span>عدد الموظفين</span><strong>{{ employees.length }}</strong></div>
+					<div class="summary-card summary-card--base"><span>إجمالي الرواتب الأساسية</span><strong>{{ formatMoney(monthlySalaryTotal) }}</strong></div>
+					<div class="summary-card summary-card--bonus"><span>إجمالي البونص</span><strong>{{ formatMoney(monthlyBonusTotal) }}</strong></div>
+					<div class="summary-card summary-card--discount"><span>إجمالي الخصومات</span><strong>{{ formatMoney(monthlyDiscountTotal) }}</strong></div>
 					<div class="summary-card summary-card--net"><span>إجمالي المستحق للشهر</span><strong>{{ formatMoney(monthlyNetTotal) }}</strong></div>
 				</div>
 				<div class="employee-table-head" *ngIf="!employeePageEmployee && filteredEmployees.length"><span>الموظف</span><span>النوع</span><span>المهام</span><span>نوع الإدارة</span><span>المدير المباشر</span><span>رقم الواتساب</span><span>الإجراءات</span></div>
@@ -94,7 +112,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<div><span class="employee-column-label">نوع الإدارة</span><span class="contact-value">{{ departmentLabel(employee.department) || 'غير محدد' }}</span></div>
 						<div><span class="employee-column-label">المدير المباشر</span><span class="contact-value">{{ managerName(employee) || 'بدون مدير' }}</span></div>
 						<div class="employee-contact"><span class="contact-label">رقم الواتساب</span><span class="contact-value" [class.contact-value--empty]="!employee.whatsapp">{{ employee.whatsapp || 'غير مسجل' }}</span></div>
-						<div class="actions"><button type="button" class="action-menu-trigger" aria-label="إجراءات الموظف" (click)="toggleActionMenu(employee.id)">⋮</button><div class="action-menu" *ngIf="actionMenuEmployeeId === employee.id"><button type="button" class="edit" (click)="openEmployeePage(employee)">عرض الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="edit" (click)="editEmployee(employee)">تعديل</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(i)">حذف</button></div></div>
+						<div class="actions"><button type="button" class="action-menu-trigger" aria-label="إجراءات الموظف" (click)="toggleActionMenu(employee.id)">⋮</button><div class="action-menu" *ngIf="actionMenuEmployeeId === employee.id"><button type="button" class="edit" (click)="openEmployeePage(employee)">عرض الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="edit" (click)="editEmployee(employee)">تعديل</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(employee)">حذف</button></div></div>
 					</article>
 				</div>
 				<div class="employee-modal-backdrop" *ngIf="selectedEmployee as employee" [class.employee-detail-page-backdrop]="employeePageEmployee" (click)="employeePageEmployee ? null : closeDetails()">
@@ -116,7 +134,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 							<div class="employee-account-actions" *ngIf="isEditingEmployee && !isEmployeeAccount"><label class="field"><span>كلمة مرور جديدة</span><input type="password" [(ngModel)]="editDraft.password" placeholder="10 أحرف على الأقل"></label><button type="button" class="employee-password-button" [disabled]="isUpdatingPassword" (click)="resetEmployeePassword(employee)">{{ isUpdatingPassword ? 'جاري التحديث...' : 'تحديث كلمة المرور' }}</button></div>
 						</div>
 						<div class="draft-titles" *ngIf="editDraft.titles.length"><span class="title-chip" *ngFor="let title of editDraft.titles; let titleIndex = index">{{ title }}<button *ngIf="isEditingEmployee" type="button" class="chip-remove" aria-label="حذف المسمى" (click)="removeEditTitle(titleIndex)">×</button></span></div>
-						<p class="error" *ngIf="editError">{{ editError }}</p><p class="employee-account-status" *ngIf="editSuccess">{{ editSuccess }}</p><div class="modal-save-row profile-save-row"><button *ngIf="isEditingEmployee && !isEmployeeAccount" type="button" class="save-edit" (click)="saveEdit(employee)">حفظ البيانات الأساسية</button><button *ngIf="!isEditingEmployee && !isEmployeeAccount" type="button" class="edit" (click)="startEmployeeEditing()">تعديل</button></div></section>
+						<p class="error" *ngIf="editError">{{ editError }}</p><p class="employee-account-status" *ngIf="editSuccess">{{ editSuccess }}</p><div class="modal-save-row profile-save-row"><button *ngIf="isEditingEmployee && !isEmployeeAccount" type="button" class="save-edit" [disabled]="isSavingEdit" (click)="saveEdit(employee)">{{ isSavingEdit ? 'جاري الحفظ...' : 'حفظ البيانات الأساسية' }}</button><button *ngIf="!isEditingEmployee && !isEmployeeAccount" type="button" class="edit" (click)="startEmployeeEditing()">تعديل</button></div></section>
 						<div class="details-head" *ngIf="!isEmployeeAccount || isOwnEmployee(employee)"><h4>البيانات الشهرية</h4><label class="month-picker"><span>الشهر</span><input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange()"></label></div>
 						<div class="detail-grid" *ngIf="!isEmployeeAccount || isOwnEmployee(employee)">
 							<section class="detail-section"><h5>الملاحظات</h5>
@@ -139,6 +157,16 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 				</div>
 				<ng-template #emptyState><div class="empty" *ngIf="!employeePageEmployee">{{ employees.length ? 'لا توجد نتائج مطابقة للفلاتر.' : 'لم تتم إضافة موظفين بعد.' }}</div></ng-template>
 			</section>
+			<div class="employee-delete-backdrop" *ngIf="employeePendingDeletion as employee" role="presentation" (click)="closeDeleteEmployeeDialog()">
+				<section class="employee-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="employee-delete-title" (click)="$event.stopPropagation()">
+					<div class="employee-delete-icon"><i class="bi bi-trash3"></i></div>
+					<h3 id="employee-delete-title">تأكيد حذف الموظف</h3>
+					<p>هل تريد حذف الموظف <strong>{{ employee.name }}</strong> نهائيًا؟</p>
+					<small>سيتم حذف بيانات الموظف من دليل الفريق، ولن تتأثر باقي بيانات الموظفين.</small>
+					<p class="employee-delete-error" *ngIf="employeeDeleteError">{{ employeeDeleteError }}</p>
+					<div class="employee-delete-actions"><button type="button" class="employee-delete-cancel" (click)="closeDeleteEmployeeDialog()" [disabled]="isDeletingEmployee">إلغاء</button><button type="button" class="employee-delete-confirm" (click)="confirmDeleteEmployee()" [disabled]="isDeletingEmployee"><i class="bi bi-trash3"></i>{{ isDeletingEmployee ? 'جاري الحذف...' : 'حذف نهائي' }}</button></div>
+				</section>
+			</div>
 		</div>
 	`
 })
@@ -153,7 +181,7 @@ export class EmployeesFormComponent implements OnChanges {
 	showAddEmployee = false;
 	isSavingEmployee = false;
 	employeePageId: number | null = null;
-	readonly employeeDepartmentOptions = ['الدعم والكول سنتر', 'الأكواد والاشتراكات', 'المتابعة', 'المنصة والمحتوي', 'سوشيال ميديا', 'مهندسين'];
+	readonly employeeDepartmentOptions = ['الدعم والكول سنتر', 'الأكواد والاشتراكات', 'المتابعة', 'المنصة والمحتوي', 'سوشيال ميديا', 'مدرسين'];
 	draft: EmployeeDraft = this.emptyDraft();
 	editDraft: EmployeeDraft = this.emptyDraft();
 	editingId: number | null = null;
@@ -164,11 +192,15 @@ export class EmployeesFormComponent implements OnChanges {
 	employeeTypeFilter: EmployeeType | '' = '';
 	employeeManagerFilter: number | null = null;
 	actionMenuEmployeeId: number | null = null;
+	employeePendingDeletion: Employee | null = null;
+	isDeletingEmployee = false;
+	employeeDeleteError = '';
 	selectedMonth = this.currentMonth();
 	noteDraft = '';
 	adjustmentDraft: { kind: 'bonus' | 'discount'; amount: number | null; reason: string } = this.emptyAdjustmentDraft();
 	monthlyDirty = false;
 	isSavingMonthly = false;
+	isSavingEdit = false;
 	monthlySaveMessage = '';
 	monthlySaveError = '';
 	errorMessage = '';
@@ -256,22 +288,28 @@ export class EmployeesFormComponent implements OnChanges {
 	closeAddEmployee(): void { this.errorMessage = ''; this.showAddEmployee = false; }
 
 	addDraftTitle(): void { this.pushTitle(this.draft); }
+	normalizeEgyptianPhone(value: string): string { return String(value || '').replace(/\D/g, '').slice(0, 11); }
 	removeDraftTitle(index: number): void { this.draft.titles.splice(index, 1); }
 	onDraftTypeChange(type: EmployeeType): void { if (type === 'general_manager' || (type === 'manager' && !this.employeeManagersFor(type, null).some(manager => manager.id === this.draft.managerId))) this.draft.managerId = null; }
 	onEditTypeChange(type: EmployeeType): void { if (type === 'general_manager' || (type === 'manager' && !this.employeeManagersFor(type, this.selectedEmployeeId).some(manager => manager.id === this.editDraft.managerId))) this.editDraft.managerId = null; }
 
 	addEmployee(): void {
+		if (this.isSavingEmployee) return;
 		this.pushTitle(this.draft);
 		const name = this.draft.name.trim();
 		if (!name || !this.draft.titles.length) { this.errorMessage = 'اكتب اسم الموظف وأضف مسمى وظيفيًا واحدًا على الأقل.'; return; }
+		const whatsapp = this.normalizeEgyptianPhone(this.draft.whatsapp);
+		if (!/^01[0125]\d{8}$/.test(whatsapp)) { this.errorMessage = 'رقم الهاتف مطلوب ويجب أن يكون رقمًا مصريًا صحيحًا من 11 رقمًا ويبدأ بـ 010 أو 011 أو 012 أو 015.'; return; }
 		if (!this.draft.departments.length) { this.errorMessage = 'اختر نوع إدارة واحدًا على الأقل.'; return; }
 		if (!this.draft.employeeType) { this.errorMessage = 'اختر نوع الموظف.'; return; }
 		if (this.draft.employeeType === 'manager' && this.draft.managerId == null) { this.errorMessage = 'اختر المدير العام للمدير المباشر.'; return; }
 		const email = this.draft.email.trim().toLowerCase();
 		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { this.errorMessage = 'اكتب بريدًا إلكترونيًا صحيحًا.'; return; }
 		if (this.draft.password.length < 10) { this.errorMessage = 'كلمة السر يجب ألا تقل عن 10 أحرف.'; return; }
+		const previousContent = structuredClone(this.content);
+		const previousEmployees = structuredClone(this.employees);
 		const id = this.employees.reduce((max, employee) => Math.max(max, Number(employee.id) || 0), 0) + 1;
-		this.employees.push({ id, name, titles: [...this.draft.titles], whatsapp: this.draft.whatsapp.trim(), email, description: this.draft.description.trim(), baseSalary: this.normalizeSalary(this.draft.baseSalary), department: [...this.draft.departments], employeeType: this.draft.employeeType, managerId: this.draft.managerId, monthlyRecords: [] });
+		this.employees.push({ id, name, titles: [...this.draft.titles], whatsapp, email, description: this.draft.description.trim(), baseSalary: this.normalizeSalary(this.draft.baseSalary), department: [...this.draft.departments], employeeType: this.draft.employeeType, managerId: this.draft.managerId, monthlyRecords: [] });
 		this.content.items = this.employees;
 		this.isSavingEmployee = true;
 		this.contentService.savePageState('employees', this.content).pipe(
@@ -279,7 +317,12 @@ export class EmployeesFormComponent implements OnChanges {
 			finalize(() => { this.isSavingEmployee = false; })
 		).subscribe({
 			next: () => { this.draft = this.emptyDraft(); this.errorMessage = ''; this.showAddEmployee = false; },
-			error: err => { this.errorMessage = err?.error?.message || 'تعذر إنشاء الموظف أو حساب الدخول.'; }
+			error: err => {
+				this.content = previousContent;
+				this.employees = previousEmployees;
+				this.errorMessage = err?.error?.message || 'تعذر إنشاء الموظف أو حساب الدخول. لم يتم الاحتفاظ بالموظف جزئيًا.';
+				this.contentService.savePageState('employees', previousContent).subscribe({ error: () => { this.errorMessage = 'فشل إنشاء الحساب وفشل التراجع التلقائي. أوقف الحفظ وراجع نسخة البيانات الاحتياطية فورًا.'; } });
+			}
 		});
 	}
 
@@ -308,26 +351,41 @@ export class EmployeesFormComponent implements OnChanges {
 	}
 
 	saveEdit(employee: Employee): void {
+		if (this.isSavingEdit) return;
 		this.pushTitle(this.editDraft);
 		const name = this.editDraft.name.trim();
 		if (!name || !this.editDraft.titles.length) { this.editError = 'الاسم ومسمى وظيفي واحد على الأقل مطلوبان.'; return; }
 		if (!this.editDraft.departments.length) { this.editError = 'اختر نوع إدارة واحدًا على الأقل.'; return; }
 		if (!this.editDraft.employeeType) { this.editError = 'اختر نوع الموظف.'; return; }
 		if (this.editDraft.employeeType === 'manager' && this.editDraft.managerId == null) { this.editError = 'اختر المدير العام للمدير المباشر.'; return; }
-		employee.name = name;
-		employee.titles = [...this.editDraft.titles];
-		employee.whatsapp = this.editDraft.whatsapp.trim();
-		employee.description = this.editDraft.description.trim();
-		employee.baseSalary = this.normalizeSalary(this.editDraft.baseSalary);
-		employee.department = [...this.editDraft.departments];
-		employee.employeeType = this.editDraft.employeeType;
-		employee.managerId = this.editDraft.employeeType === 'general_manager' ? null : this.editDraft.managerId;
-		delete employee.job;
-		this.content.items = this.employees;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, departments: this.departmentValues(employee.department), employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
-		this.isEditingEmployee = false;
+		const nextEmployees = structuredClone(this.employees);
+		const nextEmployee = nextEmployees.find(item => item.id === employee.id);
+		if (!nextEmployee) { this.editError = 'تعذر العثور على الموظف.'; return; }
+		nextEmployee.name = name;
+		nextEmployee.titles = [...this.editDraft.titles];
+		nextEmployee.whatsapp = this.editDraft.whatsapp.trim();
+		nextEmployee.description = this.editDraft.description.trim();
+		nextEmployee.baseSalary = this.normalizeSalary(this.editDraft.baseSalary);
+		nextEmployee.department = [...this.editDraft.departments];
+		nextEmployee.employeeType = this.editDraft.employeeType;
+		nextEmployee.managerId = this.editDraft.employeeType === 'general_manager' ? null : this.editDraft.managerId;
+		delete nextEmployee.job;
+		const previousContent = structuredClone(this.content);
+		const nextContent = { ...structuredClone(this.content), items: nextEmployees };
+		this.isSavingEdit = true;
 		this.editError = '';
 		this.editSuccess = '';
+		this.contentService.savePageState('employees', nextContent).pipe(finalize(() => { this.isSavingEdit = false; })).subscribe({
+			next: saved => {
+				this.content = saved;
+				this.employees = saved.items || nextEmployees;
+				const savedEmployee = this.employees.find(item => item.id === employee.id) || nextEmployee;
+				this.editDraft = { name: savedEmployee.name, titleInput: '', titles: [...savedEmployee.titles], whatsapp: savedEmployee.whatsapp || '', email: savedEmployee.email || '', password: '', description: savedEmployee.description || '', baseSalary: savedEmployee.baseSalary ?? null, departments: this.departmentValues(savedEmployee.department), employeeType: savedEmployee.employeeType || 'employee', managerId: savedEmployee.managerId ?? null };
+				this.isEditingEmployee = false;
+				this.editSuccess = 'تم حفظ بيانات الموظف بأمان.';
+			},
+			error: err => { this.content = previousContent; this.employees = previousContent.items || this.employees; this.editError = err?.error?.message || 'تعذر حفظ بيانات الموظف.'; }
+		});
 	}
 
 	cancelEdit(): void {
@@ -338,11 +396,32 @@ export class EmployeesFormComponent implements OnChanges {
 		this.editSuccess = '';
 	}
 
-	removeEmployee(index: number): void {
+	removeEmployee(employee: Employee): void {
 		this.actionMenuEmployeeId = null;
-		if (this.editingId === this.employees[index]?.id) this.cancelEdit();
-		if (this.selectedEmployeeId === this.employees[index]?.id) this.selectedEmployeeId = null;
-		this.employees.splice(index, 1);
+		this.employeeDeleteError = '';
+		this.employeePendingDeletion = employee;
+	}
+	closeDeleteEmployeeDialog(): void {
+		if (this.isDeletingEmployee) return;
+		this.employeePendingDeletion = null;
+		this.employeeDeleteError = '';
+	}
+	confirmDeleteEmployee(): void {
+		const employee = this.employeePendingDeletion;
+		if (!employee || this.isDeletingEmployee) return;
+		const previousContent = structuredClone(this.content);
+		const nextEmployees = this.employees
+			.filter(item => item.id !== employee.id)
+			.map(item => item.managerId === employee.id ? { ...item, managerId: null } : item);
+		if (nextEmployees.length === this.employees.length) { this.employeePendingDeletion = null; return; }
+		const nextContent = { ...structuredClone(this.content), items: nextEmployees };
+		this.isDeletingEmployee = true;
+		this.errorMessage = '';
+		this.employeeDeleteError = '';
+		this.contentService.savePageState('employees', nextContent).pipe(finalize(() => { this.isDeletingEmployee = false; })).subscribe({
+			next: saved => { this.content = saved; this.employees = saved.items || nextEmployees; this.employeePendingDeletion = null; this.employeeDeleteError = ''; if (this.editingId === employee.id) this.cancelEdit(); if (this.selectedEmployeeId === employee.id) this.closeDetails(); },
+			error: err => { this.content = previousContent; this.employees = previousContent.items || this.employees; this.employeeDeleteError = err?.error?.message || 'تعذر حذف الموظف، لم يتم تغيير البيانات.'; }
+		});
 	}
 
 	toggleDetails(employee: Employee): void {
@@ -458,7 +537,7 @@ export class EmployeesFormComponent implements OnChanges {
 	removeEditDepartment(index: number): void { this.editDraft.departments.splice(index, 1); }
 	toggleDepartment(target: EmployeeDraft, department: string, checked: boolean): void { target.departments = checked ? [...new Set([...target.departments, department])] : target.departments.filter(item => item !== department); }
 	private departmentValues(value?: string | string[]): string[] { return (Array.isArray(value) ? value.filter(Boolean) : value?.trim() ? [value.trim()] : []).map(item => this.normalizeDepartment(item)); }
-	private normalizeDepartment(value: string): string { const legacy: Record<string, string> = { 'صناعة محتوى': 'المنصة والمحتوي', 'محتوى ومنصة': 'المنصة والمحتوي', 'محتوى تعليمي': 'المنصة والمحتوي', 'ميديا باير': 'الدعم والكول سنتر', 'كول سنتر': 'الدعم والكول سنتر', 'دعم فني': 'الدعم والكول سنتر', 'انتشار ميديا': 'سوشيال ميديا', 'متابعة طلاب': 'المتابعة' }; return legacy[value] || value; }
+	private normalizeDepartment(value: string): string { const legacy: Record<string, string> = { 'صناعة محتوى': 'المنصة والمحتوي', 'محتوى ومنصة': 'المنصة والمحتوي', 'محتوى تعليمي': 'المنصة والمحتوي', 'ميديا باير': 'الدعم والكول سنتر', 'كول سنتر': 'الدعم والكول سنتر', 'دعم فني': 'الدعم والكول سنتر', 'انتشار ميديا': 'سوشيال ميديا', 'متابعة طلاب': 'المتابعة', 'مهندسين': 'مدرسين', 'مدرسين اللغات': 'مدرسين' }; return legacy[value] || value; }
 	departmentLabel(value?: string | string[]): string { return this.departmentValues(value).join('، '); }
 	private emptyDraft(): EmployeeDraft { return { name: '', titleInput: '', titles: [], whatsapp: '', email: '', password: '', description: '', baseSalary: null, departments: [], employeeType: 'employee', managerId: null }; }
 	private emptyAdjustmentDraft(): { kind: 'bonus' | 'discount'; amount: number | null; reason: string } { return { kind: 'bonus', amount: null, reason: '' }; }
