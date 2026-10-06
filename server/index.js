@@ -375,6 +375,17 @@ function requirePagePermission(req, res, next) {
 	return res.status(403).json({ message: 'ليس لديك صلاحية تعديل هذه الصفحة.' });
 }
 
+function getEmployeeIdFromPermissions(permissions = []) {
+	const permission = permissions.find(item => /^employee:\d+$/.test(String(item || '')));
+	return permission ? permission.slice('employee:'.length) : null;
+}
+
+function requireEmployeePageAccess(req, res, next) {
+	if (req.adminRole === 'admin') return next();
+	if (req.params.pageKey === 'employees' && req.adminRole === 'employee' && req.adminPermissions.includes('employees') && getEmployeeIdFromPermissions(req.adminPermissions)) return next();
+	return res.status(403).json({ message: 'هذه الصفحة متاحة للموظف المرتبط بها فقط.' });
+}
+
 const MAINTENANCE_KEY = 'site_maintenance';
 
 async function isSiteMaintenanceEnabled() {
@@ -939,13 +950,13 @@ app.patch('/api/admin/feedback/:id', requireAdmin, requirePermission('feedback:u
 
 function normalizeUserPermissions(value) {
 	if (!Array.isArray(value)) return [];
-	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'feedback']);
+	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'feedback', 'employees']);
 	const normalized = [];
 	for (const rawItem of value) {
 		const item = String(rawItem || '').trim();
 		if (item === 'customers' || item.startsWith('customers:')) {
 			if (!normalized.includes('customers')) normalized.push('customers');
-		} else if (allowed.has(item) && !normalized.includes(item)) {
+		} else if (/^employee:\d+$/.test(item) || (allowed.has(item) && !normalized.includes(item))) {
 			normalized.push(item);
 		}
 	}
@@ -955,6 +966,26 @@ function normalizeUserPermissions(value) {
 app.get('/api/admin/users', requireAdmin, requireFullAdmin, async (_req, res) => {
 	const users = await database.listAdminUsers();
 	res.json({ data: users.map(user => ({ ...user, permissions: normalizeUserPermissions(user.permissions) })) });
+});
+
+app.post('/api/admin/employees/:employeeId/account', requireAdmin, requireFullAdmin, async (req, res, next) => {
+	const employeeId = String(req.params.employeeId || '').trim();
+	const email = String(req.body?.email || '').trim().toLowerCase();
+	const password = String(req.body?.password || '');
+	if (!/^\d+$/.test(employeeId)) return res.status(400).json({ message: 'معرّف الموظف غير صحيح.' });
+	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'اكتب بريدًا إلكترونيًا صحيحًا.' });
+	if (password.length < 10 || password.length > 200) return res.status(400).json({ message: 'كلمة المرور يجب ألا تقل عن 10 أحرف.' });
+	const store = await readStore();
+	const employee = store.pages.employees?.data?.items?.find(item => String(item.id) === employeeId);
+	if (!employee) return res.status(404).json({ message: 'الموظف يجب حفظه أولًا قبل إنشاء حسابه.' });
+	try {
+		const { salt, hash } = hashAdminPassword(password);
+		await database.createAdminUser({ username: email, passwordHash: hash, passwordSalt: salt, role: 'employee', permissions: ['employees', `employee:${employeeId}`], createdAt: getNowIso() });
+		res.status(201).json({ username: email, role: 'employee', permissions: ['employees', `employee:${employeeId}`], employeeId });
+	} catch (error) {
+		if (String(error.message || '').toLowerCase().includes('unique')) return res.status(409).json({ message: 'هذا البريد مستخدم بالفعل.' });
+		next(error);
+	}
 });
 
 app.post('/api/admin/users', requireAdmin, requireFullAdmin, async (req, res, next) => {
@@ -1440,7 +1471,7 @@ app.get('/api/content', async (req, res) => {
 
 app.get('/api/content/:pageKey', (req, res, next) => {
 	if (!ADMIN_ONLY_PAGE_KEYS.has(req.params.pageKey)) return next();
-	return requireAdmin(req, res, () => requireFullAdmin(req, res, next));
+	return requireAdmin(req, res, () => requireEmployeePageAccess(req, res, next));
 }, async (req, res) => {
 	noCache(res);
 	const { pageKey } = req.params;
@@ -1456,7 +1487,11 @@ app.get('/api/content/:pageKey', (req, res, next) => {
 		return res.status(404).json({ message: 'Content not found' });
 	}
 
-	const data = normalizeSubscriptionCmsContent(pageKey, entry.data);
+	let data = normalizeSubscriptionCmsContent(pageKey, entry.data);
+	if (pageKey === 'employees' && req.adminRole === 'employee') {
+		const employeeId = getEmployeeIdFromPermissions(req.adminPermissions);
+		data = { ...data, items: Array.isArray(data.items) ? data.items.filter(item => String(item.id) === employeeId) : [] };
+	}
 	const expiresAt = Date.parse(String(data.enrollmentWindow?.expiresAt || ''));
 	if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) data.isEnrollmentClosed = true;
 	res.json(data);

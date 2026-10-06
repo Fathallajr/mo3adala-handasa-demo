@@ -5,7 +5,7 @@ import { Observable, tap } from 'rxjs';
 interface LoginResponse {
 	token: string;
 	expiresAt: string;
-	role: 'admin' | 'leads' | 'editor';
+	role: 'admin' | 'leads' | 'editor' | 'employee';
 	username?: string;
 	permissions?: string[];
 }
@@ -86,10 +86,10 @@ export class AdminAuthService {
 		return this.getToken() !== null;
 	}
 
-	getRole(): 'admin' | 'leads' | 'editor' {
+	getRole(): 'admin' | 'leads' | 'editor' | 'employee' {
 		if (typeof localStorage === 'undefined') return 'admin';
 		const role = localStorage.getItem(this.roleKey);
-		return role === 'leads' || role === 'editor' ? role : 'admin';
+		return role === 'leads' || role === 'editor' || role === 'employee' ? role : 'admin';
 	}
 
 	getUsername(): string {
@@ -120,7 +120,7 @@ export class AdminAuthService {
 		try { return JSON.parse(localStorage.getItem(this.permissionsKey) || '[]'); } catch { return []; }
 	}
 
-	canAccessPage(pageKey: string): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && pageKey === 'batch-2027') || this.getPermissions().includes('*') || this.getPermissions().includes(pageKey); }
+	canAccessPage(pageKey: string): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && pageKey === 'batch-2027') || (this.getRole() === 'employee' && pageKey === 'employees') || this.getPermissions().includes('*') || this.getPermissions().includes(pageKey); }
 
 	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback'): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && feature === 'leads') || this.getPermissions().includes(feature) || this.getPermissions().includes(`${feature}:read`); }
 	canAccessPermission(permission: string): boolean { return this.getRole() === 'admin' || this.getPermissions().includes('*') || this.getPermissions().includes(permission); }

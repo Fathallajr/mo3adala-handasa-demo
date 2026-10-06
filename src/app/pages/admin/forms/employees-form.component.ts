@@ -1,12 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { finalize, switchMap } from 'rxjs';
+import { AdminApiService } from '../../../core/services/admin-api.service';
+import { AdminAuthService } from '../../../core/services/admin-auth.service';
+import { MonthlyContentService } from '../../../core/services/monthly-content.service';
 
 interface EmployeeNote { id: number; text: string; createdAt: string; }
 interface PayrollAdjustment { id: number; kind: 'bonus' | 'discount'; amount: number; reason: string; }
 interface EmployeeMonth { month: string; salary: number | null; notes: EmployeeNote[]; adjustments: PayrollAdjustment[]; }
-interface Employee { id: number; name: string; titles: string[]; whatsapp?: string; monthlyRecords?: EmployeeMonth[]; job?: string; }
-interface EmployeeDraft { name: string; titleInput: string; titles: string[]; whatsapp: string; }
+interface Employee { id: number; name: string; titles: string[]; whatsapp?: string; email?: string; monthlyRecords?: EmployeeMonth[]; job?: string; }
+interface EmployeeDraft { name: string; titleInput: string; titles: string[]; whatsapp: string; email: string; password: string; }
 
 @Component({
 	selector: 'app-employees-form',
@@ -22,7 +26,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 	template: `
 		<div class="wrap" *ngIf="content">
 			<p class="intro">سجّل الموظفين ومسمياتهم، وافتح ملف الموظف لإدارة ملاحظاته وراتبه والبونص والخصومات لكل شهر. كل البيانات داخل لوحة الإدارة فقط.</p>
-			<div class="employee-toolbar">
+			<div class="employee-toolbar" *ngIf="!isEmployeeAccount">
 				<button type="button" class="add" (click)="openAddEmployee()">+ إضافة موظف</button>
 				<div class="employee-filters">
 					<label class="field"><span>بحث في الموظفين</span><input [(ngModel)]="employeeSearch" placeholder="الاسم، الواتساب أو المسمى"></label>
@@ -36,11 +40,13 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 					<section class="profile-section"><h4>البيانات الأساسية</h4><div class="profile-fields">
 						<label class="field"><span>اسم الموظف</span><input [(ngModel)]="draft.name" placeholder="اكتب الاسم"></label>
 						<label class="field"><span>رقم الواتساب</span><input type="tel" inputmode="tel" [(ngModel)]="draft.whatsapp" placeholder="مثال: 2010xxxxxxxx"></label>
+						<label class="field"><span>البريد الإلكتروني</span><input type="email" [(ngModel)]="draft.email" placeholder="employee@example.com"></label>
+						<label class="field"><span>كلمة السر</span><input type="password" [(ngModel)]="draft.password" placeholder="10 أحرف على الأقل"></label>
 						<label class="field"><span>مسمى وظيفي</span><input [(ngModel)]="draft.titleInput" (keyup.enter)="addDraftTitle()" placeholder="مثال: خدمة عملاء"></label>
 						<button type="button" class="edit" (click)="addDraftTitle()">+ إضافة مسمى</button>
 					</div>
 					<div class="draft-titles" *ngIf="draft.titles.length"><span class="title-chip" *ngFor="let title of draft.titles; let i = index">{{ title }}<button type="button" class="chip-remove" aria-label="حذف المسمى" (click)="removeDraftTitle(i)">×</button></span></div>
-					<p class="error" *ngIf="errorMessage">{{ errorMessage }}</p><div class="modal-save-row"><button type="button" class="add" (click)="addEmployee()">حفظ الموظف</button></div></section>
+					<p class="error" *ngIf="errorMessage">{{ errorMessage }}</p><div class="modal-save-row"><button type="button" class="add" [disabled]="isSavingEmployee" (click)="addEmployee()">{{ isSavingEmployee ? 'جاري الحفظ...' : 'حفظ الموظف' }}</button></div></section>
 				</section>
 			</div>
 			<section class="wrap">
@@ -59,7 +65,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 							<span class="employee-month-total">صافي الشهر: {{ formatMoney(employeeMonthlyTotal(employee)) }}</span>
 						</div>
 						<div class="employee-contact"><span class="contact-label">رقم الواتساب</span><span class="contact-value" [class.contact-value--empty]="!employee.whatsapp">{{ employee.whatsapp || 'غير مسجل' }}</span></div>
-						<div class="actions"><button type="button" class="edit" (click)="toggleDetails(employee)">فتح الملف</button><button type="button" class="delete" (click)="removeEmployee(i)">حذف</button></div>
+						<div class="actions"><button type="button" class="edit" (click)="toggleDetails(employee)">فتح الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(i)">حذف</button></div>
 					</article>
 				</div>
 				<div class="employee-modal-backdrop" *ngIf="selectedEmployee as employee" (click)="closeDetails()">
@@ -100,8 +106,12 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 })
 export class EmployeesFormComponent implements OnChanges {
 	@Input() content: any;
+	private readonly contentService = inject(MonthlyContentService);
+	private readonly adminApi = inject(AdminApiService);
+	private readonly auth = inject(AdminAuthService);
 	employees: Employee[] = [];
 	showAddEmployee = false;
+	isSavingEmployee = false;
 	draft: EmployeeDraft = this.emptyDraft();
 	editDraft: EmployeeDraft = this.emptyDraft();
 	editingId: number | null = null;
@@ -123,6 +133,7 @@ export class EmployeesFormComponent implements OnChanges {
 			if (!Array.isArray(employee.monthlyRecords)) employee.monthlyRecords = [];
 		}
 		this.draft = this.emptyDraft();
+		if (this.isEmployeeAccount && this.employees.length && this.selectedEmployeeId === null) this.toggleDetails(this.employees[0]);
 	}
 
 	get monthlySalaryTotal(): number { return this.employees.reduce((total, employee) => total + (Number(this.getMonthRecord(employee).salary) || 0), 0); }
@@ -130,6 +141,7 @@ export class EmployeesFormComponent implements OnChanges {
 	get monthlyDiscountTotal(): number { return this.employees.reduce((total, employee) => total + this.adjustmentTotal(employee, 'discount'), 0); }
 	get monthlyNetTotal(): number { return this.monthlySalaryTotal + this.monthlyBonusTotal - this.monthlyDiscountTotal; }
 	get selectedEmployee(): Employee | null { return this.employees.find(employee => employee.id === this.selectedEmployeeId) || null; }
+	get isEmployeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
 	get employeeTitles(): string[] { return [...new Set(this.employees.flatMap(employee => employee.titles || []))].sort((a, b) => a.localeCompare(b, 'ar')); }
 	get filteredEmployees(): Employee[] {
 		const query = this.employeeSearch.trim().toLocaleLowerCase();
@@ -151,18 +163,26 @@ export class EmployeesFormComponent implements OnChanges {
 		this.pushTitle(this.draft);
 		const name = this.draft.name.trim();
 		if (!name || !this.draft.titles.length) { this.errorMessage = 'اكتب اسم الموظف وأضف مسمى وظيفيًا واحدًا على الأقل.'; return; }
+		const email = this.draft.email.trim().toLowerCase();
+		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { this.errorMessage = 'اكتب بريدًا إلكترونيًا صحيحًا.'; return; }
+		if (this.draft.password.length < 10) { this.errorMessage = 'كلمة السر يجب ألا تقل عن 10 أحرف.'; return; }
 		const id = this.employees.reduce((max, employee) => Math.max(max, Number(employee.id) || 0), 0) + 1;
-		this.employees.push({ id, name, titles: [...this.draft.titles], whatsapp: this.draft.whatsapp.trim(), monthlyRecords: [] });
+		this.employees.push({ id, name, titles: [...this.draft.titles], whatsapp: this.draft.whatsapp.trim(), email, monthlyRecords: [] });
 		this.content.items = this.employees;
-		this.draft = this.emptyDraft();
-		this.errorMessage = '';
-		this.showAddEmployee = false;
+		this.isSavingEmployee = true;
+		this.contentService.savePageState('employees', this.content).pipe(
+			switchMap(saved => { this.content = saved; this.employees = saved.items || this.employees; return this.adminApi.createEmployeeAccount(id, email, this.draft.password); }),
+			finalize(() => { this.isSavingEmployee = false; })
+		).subscribe({
+			next: () => { this.draft = this.emptyDraft(); this.errorMessage = ''; this.showAddEmployee = false; },
+			error: err => { this.errorMessage = err?.error?.message || 'تعذر إنشاء الموظف أو حساب الدخول.'; }
+		});
 	}
 
 	startEditing(employee: Employee): void {
 		if (this.editingId === employee.id) { this.cancelEdit(); return; }
 		this.editingId = employee.id;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '' };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '' };
 		this.editError = '';
 	}
 
@@ -178,13 +198,13 @@ export class EmployeesFormComponent implements OnChanges {
 		employee.whatsapp = this.editDraft.whatsapp.trim();
 		delete employee.job;
 		this.content.items = this.employees;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '' };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '' };
 		this.editError = '';
 	}
 
 	cancelEdit(): void {
 		const employee = this.selectedEmployee;
-		this.editDraft = employee ? { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '' } : this.emptyDraft();
+		this.editDraft = employee ? { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '' } : this.emptyDraft();
 		this.editingId = employee?.id ?? null;
 		this.editError = '';
 	}
@@ -199,7 +219,7 @@ export class EmployeesFormComponent implements OnChanges {
 		if (this.selectedEmployeeId === employee.id) { this.closeDetails(); return; }
 		this.selectedEmployeeId = employee.id;
 		this.editingId = employee.id;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '' };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '' };
 		this.noteDraft = '';
 		this.adjustmentDraft = this.emptyAdjustmentDraft();
 		this.editError = '';
@@ -277,6 +297,6 @@ export class EmployeesFormComponent implements OnChanges {
 		target.titleInput = '';
 	}
 	private currentMonth(): string { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; }
-	private emptyDraft(): EmployeeDraft { return { name: '', titleInput: '', titles: [], whatsapp: '' }; }
+	private emptyDraft(): EmployeeDraft { return { name: '', titleInput: '', titles: [], whatsapp: '', email: '', password: '' }; }
 	private emptyAdjustmentDraft(): { kind: 'bonus' | 'discount'; amount: number | null; reason: string } { return { kind: 'bonus', amount: null, reason: '' }; }
 }

@@ -114,7 +114,7 @@
 				</div>
 				<div class="editor-actions">
 					<button *ngIf="selectedPageKey !== 'employees'" type="button" class="secondary-btn" (click)="openPreview()">فتح الصفحة للمراجعة ↗</button>
-					<button type="button" class="primary-btn" (click)="save()" [disabled]="isSaving || isLoading">
+					<button *ngIf="!employeeAccount" type="button" class="primary-btn" (click)="save()" [disabled]="isSaving || isLoading">
 						{{ isSaving ? 'جاري الحفظ...' : 'حفظ على السيرفر' }}
 					</button>
 				</div>
