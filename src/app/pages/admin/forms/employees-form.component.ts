@@ -78,7 +78,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<div><span class="employee-column-label">نوع الإدارة</span><span class="contact-value">{{ employee.department || 'غير محدد' }}</span></div>
 						<div><span class="employee-column-label">المدير المباشر</span><span class="contact-value">{{ managerName(employee) || 'بدون مدير' }}</span></div>
 						<div class="employee-contact"><span class="contact-label">رقم الواتساب</span><span class="contact-value" [class.contact-value--empty]="!employee.whatsapp">{{ employee.whatsapp || 'غير مسجل' }}</span></div>
-						<div class="actions"><button type="button" class="edit" (click)="openEmployeePage(employee)">فتح الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(i)">حذف</button></div>
+						<div class="actions"><button type="button" class="edit" (click)="openEmployeePage(employee)">فتح الملف</button><button type="button" class="edit" (click)="editEmployee(employee)">تعديل</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(i)">حذف</button></div>
 					</article>
 				</div>
 				<div class="employee-modal-backdrop" *ngIf="selectedEmployee as employee" [class.employee-detail-page-backdrop]="employeePageEmployee" (click)="employeePageEmployee ? null : closeDetails()">
@@ -204,6 +204,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.selectEmployeeForPage(employee);
 		void this.router.navigate([], { relativeTo: this.route, fragment: `employee-${employee.id}` });
 	}
+	editEmployee(employee: Employee): void { this.openEmployeePage(employee); }
 	closeEmployeePage(): void {
 		this.employeePageId = null;
 		this.closeDetails();
