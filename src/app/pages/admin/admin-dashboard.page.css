@@ -144,6 +144,7 @@ tbody tr:hover { background:#faf9ff; }
 .admin-sidebar .page-list .page-item.page-item--active { color:#fff; background:linear-gradient(90deg,#6d4aff,#5b43c9); border-color:transparent; box-shadow:0 8px 18px #6d4aff35; }
 .admin-sidebar .page-list .page-item--profile { margin-top:-2px; padding-right:24px; border-right:3px solid #8c76ff; background:#ffffff0d; color:#d8d2ff; }
 .admin-sidebar .page-list .page-item--profile:hover { background:#344267; color:#fff; }
+.admin-sidebar .page-list .page-item--profile.page-item--active { color:#fff; background:linear-gradient(90deg,#6d4aff,#5b43c9); border-color:transparent; box-shadow:0 8px 18px #6d4aff35; }
 .sidebar-tools { display:grid; gap:7px; margin:0; padding:0; border:0; }
 .sidebar-tools button { width:100%; border:1px solid #ffffff14; border-radius:11px; padding:11px 13px; color:#c5cce0; background:#ffffff08; text-align:right; cursor:pointer; font:inherit; font-size:13px; font-weight:800; transition:.2s ease; }
 .sidebar-tools button:hover { color:#fff; background:#344267; }.sidebar-tools button.page-item--active { color:#fff; background:linear-gradient(90deg,#6d4aff,#5b43c9); box-shadow:0 8px 18px #6d4aff35; }

@@ -994,6 +994,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	get fullAdminAccount(): boolean { return this.auth.getRole() === 'admin'; }
 	get employeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
+	get employeeProfileActive(): boolean { return this.employeeAccount && /^employee-\d+$/.test(this.route.snapshot.fragment || ''); }
 
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
 
