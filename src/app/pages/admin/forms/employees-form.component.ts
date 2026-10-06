@@ -184,18 +184,13 @@ export class EmployeesFormComponent implements OnChanges {
 			if (!Array.isArray(employee.monthlyRecords)) employee.monthlyRecords = [];
 		}
 		this.draft = this.emptyDraft();
-		if (this.isEmployeeAccount && this.employeeAccountId !== null && this.employeePageId === null) {
-			this.employeePageId = this.employeeAccountId;
-			const employee = this.employees.find(item => item.id === this.employeeAccountId);
-			if (employee) this.selectEmployeeForPage(employee);
-		}
 	}
 
 	ngOnInit(): void {
 		this.route.fragment.subscribe(fragment => {
 			const match = String(fragment || '').match(/^employee-(\d+)$/);
 			const requestedId = match ? Number(match[1]) : null;
-			this.employeePageId = this.isEmployeeAccount ? this.employeeAccountId : requestedId;
+			this.employeePageId = this.isEmployeeAccount ? (requestedId === this.employeeAccountId ? requestedId : null) : requestedId;
 			const employee = this.employeePageEmployee;
 			if (employee) this.selectEmployeeForPage(employee);
 		});

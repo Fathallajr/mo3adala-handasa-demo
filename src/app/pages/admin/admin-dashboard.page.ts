@@ -804,7 +804,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		// component's default. Without this, selecting the first CMS page from
 		// /admin only changed the view in memory; a refresh then returned to the
 		// default data view instead of the page the user was editing.
-		if (pageKey === this.selectedPageKey && currentRoutePageKey === pageKey && !currentQueryView) {
+		if (pageKey === this.selectedPageKey && currentRoutePageKey === pageKey && !currentQueryView && !this.route.snapshot.fragment) {
 			this.activeView = 'cms';
 			return;
 		}
@@ -812,7 +812,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.selectedPageKey = pageKey;
 		this.loadPage(pageKey);
 		this.pendingCmsNavigation = true;
-		void this.router.navigate(['/admin', pageKey], { queryParams: {}, replaceUrl: true });
+		void this.router.navigate(['/admin', pageKey], { queryParams: {}, fragment: undefined, replaceUrl: true });
 	}
 
 	openEmployeeProfile(): void {
