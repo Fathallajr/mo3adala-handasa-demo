@@ -31,7 +31,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		@media(max-width:650px){.employee-detail-page{padding:15px;gap:16px}.employee-detail-page .modal-header{margin:-15px -15px 0;padding:18px 15px 15px}.employee-detail-page .modal-header h3{font-size:18px}.employee-detail-page .profile-section{padding:16px}.employee-detail-page .view-field{min-height:64px}.employee-detail-page .view-field--wide{min-height:82px}}
 		.employee-account-actions{display:flex;align-items:end;gap:8px}.employee-account-actions .field{flex:1}.employee-password-button{min-height:42px;border:0;border-radius:10px;padding:0 13px;background:#f0edff;color:#5b43c9;font:inherit;font-size:12px;font-weight:900;cursor:pointer}.employee-password-button:disabled{opacity:.6;cursor:wait}.employee-account-status{grid-column:1/-1;margin:0;color:#13825f;font-size:12px;font-weight:900}
 		.employee-name:disabled{color:#34415b;cursor:default}
-		.employee-table-head,.employee-card{grid-template-columns:minmax(150px,1.2fr) minmax(80px,.6fr) minmax(150px,1.2fr) minmax(150px,1.25fr) minmax(120px,1fr) minmax(120px,1fr) minmax(130px,auto) auto}.employee-role{min-width:150px}.employee-role .contact-value{display:block;direction:rtl;text-align:right;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+		.employee-table-head,.employee-card{grid-template-columns:minmax(150px,1.25fr) minmax(80px,.65fr) minmax(160px,1.35fr) minmax(120px,1fr) minmax(120px,1fr) minmax(130px,auto) auto}
 		@media(max-width:850px){.employee-table-head{display:none}.employee-card{grid-template-columns:1fr auto}.employee-column-label{display:block}.employee-contact{grid-column:1;grid-row:2}}
 		.employee-self-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid #d9d1ff;border-radius:14px;background:linear-gradient(135deg,#f7f5ff,#efebff);color:#4f3bc0;font-size:12px;font-weight:800}.employee-self-banner strong{display:block;margin-bottom:4px;color:#2d3a59;font-size:14px}.employee-self-banner button{min-height:38px;border:0;border-radius:9px;padding:0 14px;background:#6d4aff;color:#fff;font:inherit;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}.employee-self-badge{display:inline-flex;align-items:center;width:max-content;padding:5px 9px;border-radius:999px;background:#e9e4ff;color:#5b43c9;font-size:10px;font-weight:900}.employee-card--own{border-color:#bdb0ff;box-shadow:0 8px 22px #6d4aff12}
 	`],
@@ -78,7 +78,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 					<div class="summary-card"><span>إجمالي الخصومات</span><strong>{{ formatMoney(monthlyDiscountTotal) }}</strong></div>
 					<div class="summary-card summary-card--net"><span>إجمالي المستحق للشهر</span><strong>{{ formatMoney(monthlyNetTotal) }}</strong></div>
 				</div>
-				<div class="employee-table-head" *ngIf="!employeePageEmployee && filteredEmployees.length"><span>الموظف</span><span>النوع</span><span>المهام</span><span>الدور في التطبيق</span><span>نوع الإدارة</span><span>المدير المباشر</span><span>رقم الواتساب</span><span>الإجراءات</span></div>
+				<div class="employee-table-head" *ngIf="!employeePageEmployee && filteredEmployees.length"><span>الموظف</span><span>النوع</span><span>المهام</span><span>نوع الإدارة</span><span>المدير المباشر</span><span>رقم الواتساب</span><span>الإجراءات</span></div>
 				<div class="list" *ngIf="!employeePageEmployee && filteredEmployees.length; else emptyState">
 					<article class="employee-card" *ngFor="let employee of filteredEmployees; let i = index" [class.employee-card--own]="isEmployeeAccount && isOwnEmployee(employee)">
 						<div class="identity">
@@ -88,7 +88,6 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						</div>
 						<div><span class="employee-column-label">النوع</span><span class="tag tag--type">{{ employeeTypeLabel(employee) }}</span></div>
 						<div class="employee-tasks"><span class="employee-column-label">المهام</span><span class="tag" *ngFor="let title of employee.titles">{{ title }}</span><span class="contact-value contact-value--empty" *ngIf="!employee.titles.length">غير محددة</span></div>
-						<div class="employee-role"><span class="employee-column-label">الدور في التطبيق</span><span class="contact-value" [class.contact-value--empty]="!employee.description">{{ employee.description || 'غير محدد' }}</span></div>
 						<div><span class="employee-column-label">نوع الإدارة</span><span class="contact-value">{{ employee.department || 'غير محدد' }}</span></div>
 						<div><span class="employee-column-label">المدير المباشر</span><span class="contact-value">{{ managerName(employee) || 'بدون مدير' }}</span></div>
 						<div class="employee-contact"><span class="contact-label">رقم الواتساب</span><span class="contact-value" [class.contact-value--empty]="!employee.whatsapp">{{ employee.whatsapp || 'غير مسجل' }}</span></div>
