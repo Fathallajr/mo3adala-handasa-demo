@@ -43,11 +43,10 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 				<button type="button" class="add" (click)="openAddEmployee()">+ إضافة موظف</button>
 				<div class="employee-filters">
 					<label class="field"><span>بحث في الموظفين</span><input [(ngModel)]="employeeSearch" placeholder="الاسم، الواتساب أو المسمى"></label>
-					<label class="field"><span>المسمى الوظيفي</span><select [(ngModel)]="employeeTitleFilter"><option value="">كل المسميات</option><option *ngFor="let title of employeeTitles" [value]="title">{{ title }}</option></select></label>
 					<label class="field"><span>نوع الإدارة</span><select [(ngModel)]="employeeDepartmentFilter"><option value="">كل الإدارات</option><option *ngFor="let department of employeeDepartments" [value]="department">{{ department }}</option></select></label>
 					<label class="field"><span>نوع الموظف</span><select [(ngModel)]="employeeTypeFilter"><option value="">الكل</option><option value="employee">موظف</option><option value="manager">مدير مباشر</option><option value="general_manager">مدير عام</option></select></label>
 					<label class="field"><span>المدير المباشر</span><select [(ngModel)]="employeeManagerFilter"><option [ngValue]="null">كل المديرين</option><option *ngFor="let manager of employeeManagers" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
-					<button type="button" class="clear-filters" *ngIf="employeeSearch || employeeTitleFilter || employeeDepartmentFilter || employeeTypeFilter || employeeManagerFilter" (click)="clearEmployeeFilters()">مسح الفلاتر</button>
+					<button type="button" class="clear-filters" *ngIf="employeeSearch || employeeDepartmentFilter || employeeTypeFilter || employeeManagerFilter" (click)="clearEmployeeFilters()">مسح الفلاتر</button>
 				</div>
 			</div>
 			<div class="employee-modal-backdrop" *ngIf="showAddEmployee && !employeePageEmployee" (click)="closeAddEmployee()">
@@ -155,7 +154,6 @@ export class EmployeesFormComponent implements OnChanges {
 	isEditingEmployee = false;
 	selectedEmployeeId: number | null = null;
 	employeeSearch = '';
-	employeeTitleFilter = '';
 	employeeDepartmentFilter = '';
 	employeeTypeFilter: EmployeeType | '' = '';
 	employeeManagerFilter: number | null = null;
@@ -207,7 +205,6 @@ export class EmployeesFormComponent implements OnChanges {
 	get employeePageEmployee(): Employee | null { return this.employees.find(employee => employee.id === this.employeePageId) || null; }
 	get employeeDepartments(): string[] { return [...new Set(this.employees.map(employee => employee.department).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, 'ar')); }
 	get employeeManagers(): Employee[] { return this.employees.filter(employee => employee.name.trim() && (employee.employeeType === 'manager' || employee.employeeType === 'general_manager')).sort((a, b) => a.name.localeCompare(b.name, 'ar')); }
-	get employeeTitles(): string[] { return [...new Set(this.employees.flatMap(employee => employee.titles || []))].sort((a, b) => a.localeCompare(b, 'ar')); }
 	employeeManagersFor(employeeType: EmployeeType, employeeId: number | null): Employee[] {
 		if (employeeType === 'general_manager') return [];
 		const allowedTypes: EmployeeType[] = employeeType === 'manager' ? ['general_manager'] : ['manager', 'general_manager'];
@@ -219,14 +216,13 @@ export class EmployeesFormComponent implements OnChanges {
 		const query = this.employeeSearch.trim().toLocaleLowerCase();
 		return this.employees.filter(employee => {
 			const matchesQuery = !query || [employee.name, employee.whatsapp || '', employee.department || '', this.managerName(employee), this.employeeTypeLabel(employee), ...(employee.titles || [])].join(' ').toLocaleLowerCase().includes(query);
-			const matchesTitle = !this.employeeTitleFilter || (employee.titles || []).includes(this.employeeTitleFilter);
 			const matchesDepartment = !this.employeeDepartmentFilter || employee.department === this.employeeDepartmentFilter;
 			const matchesType = !this.employeeTypeFilter || (employee.employeeType || 'employee') === this.employeeTypeFilter;
 			const matchesManager = this.employeeManagerFilter === null || employee.managerId === this.employeeManagerFilter;
-			return matchesQuery && matchesTitle && matchesDepartment && matchesType && matchesManager;
+			return matchesQuery && matchesDepartment && matchesType && matchesManager;
 		});
 	}
-	clearEmployeeFilters(): void { this.employeeSearch = ''; this.employeeTitleFilter = ''; this.employeeDepartmentFilter = ''; this.employeeTypeFilter = ''; this.employeeManagerFilter = null; }
+	clearEmployeeFilters(): void { this.employeeSearch = ''; this.employeeDepartmentFilter = ''; this.employeeTypeFilter = ''; this.employeeManagerFilter = null; }
 	toggleActionMenu(employeeId: number): void { this.actionMenuEmployeeId = this.actionMenuEmployeeId === employeeId ? null : employeeId; }
 	openEmployeePage(employee: Employee): void {
 		this.actionMenuEmployeeId = null;
