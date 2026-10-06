@@ -48,9 +48,9 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<label class="field"><span>رقم الواتساب</span><input type="tel" inputmode="tel" [(ngModel)]="draft.whatsapp" placeholder="مثال: 2010xxxxxxxx"></label>
 						<label class="field"><span>البريد الإلكتروني</span><input type="email" [(ngModel)]="draft.email" placeholder="employee@example.com"></label>
 						<label class="field"><span>كلمة السر</span><input type="password" [(ngModel)]="draft.password" placeholder="10 أحرف على الأقل"></label>
-						<label class="field"><span>نوع الموظف</span><select [(ngModel)]="draft.employeeType"><option value="employee">موظف</option><option value="manager">مدير</option></select></label>
+						<label class="field"><span>نوع الموظف</span><select [(ngModel)]="draft.employeeType" (ngModelChange)="onDraftTypeChange($event)"><option value="employee">موظف</option><option value="manager">مدير</option></select></label>
 						<label class="field"><span>نوع الإدارة</span><select [(ngModel)]="draft.department"><option value="">اختر نوع الإدارة</option><option *ngFor="let department of employeeDepartmentOptions" [value]="department">{{ department }}</option></select></label>
-						<label class="field"><span>المدير المباشر</span><select [(ngModel)]="draft.managerId"><option [ngValue]="null">بدون مدير مباشر</option><option *ngFor="let manager of employeeManagers" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
+						<label class="field" *ngIf="draft.employeeType !== 'manager'"><span>المدير المباشر</span><select [(ngModel)]="draft.managerId"><option [ngValue]="null">بدون مدير مباشر</option><option *ngFor="let manager of employeeManagers" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
 						<label class="field"><span>مسمى وظيفي</span><input [(ngModel)]="draft.titleInput" (keyup.enter)="addDraftTitle()" placeholder="مثال: خدمة عملاء"></label>
 						<button type="button" class="edit" (click)="addDraftTitle()">+ إضافة مسمى</button>
 					</div>
@@ -87,9 +87,9 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<section class="profile-section"><h4>البيانات الأساسية</h4><div class="profile-fields">
 							<label class="field"><span>اسم الموظف</span><input [(ngModel)]="editDraft.name" placeholder="اكتب الاسم"></label>
 							<label class="field"><span>رقم الواتساب</span><input type="tel" inputmode="tel" [(ngModel)]="editDraft.whatsapp" placeholder="رقم الواتساب"></label>
-							<label class="field"><span>نوع الموظف</span><select [(ngModel)]="editDraft.employeeType"><option value="employee">موظف</option><option value="manager">مدير</option></select></label>
+							<label class="field"><span>نوع الموظف</span><select [(ngModel)]="editDraft.employeeType" (ngModelChange)="onEditTypeChange($event)"><option value="employee">موظف</option><option value="manager">مدير</option></select></label>
 							<label class="field"><span>نوع الإدارة</span><select [(ngModel)]="editDraft.department"><option value="">اختر نوع الإدارة</option><option *ngFor="let department of employeeDepartmentOptions" [value]="department">{{ department }}</option></select></label>
-							<label class="field"><span>المدير المباشر</span><select [(ngModel)]="editDraft.managerId"><option [ngValue]="null">بدون مدير مباشر</option><option *ngFor="let manager of employeeManagersFor(employee.id)" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
+							<label class="field" *ngIf="editDraft.employeeType !== 'manager'"><span>المدير المباشر</span><select [(ngModel)]="editDraft.managerId"><option [ngValue]="null">بدون مدير مباشر</option><option *ngFor="let manager of employeeManagersFor(employee.id)" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
 							<label class="field"><span>إضافة مسمى وظيفي</span><input [(ngModel)]="editDraft.titleInput" (keyup.enter)="addEditTitle()" placeholder="اكتب المسمى واضغط إضافة"></label>
 							<button type="button" class="edit" (click)="addEditTitle()">+ إضافة مسمى</button>
 						</div>
@@ -154,6 +154,7 @@ export class EmployeesFormComponent implements OnChanges {
 		for (const employee of this.employees) {
 			if (!Array.isArray(employee.titles)) employee.titles = employee.job?.trim() ? [employee.job.trim()] : [];
 			if (employee.employeeType !== 'manager') employee.employeeType = 'employee';
+			if (employee.employeeType === 'manager') employee.managerId = null;
 			if (!Array.isArray(employee.monthlyRecords)) employee.monthlyRecords = [];
 		}
 		this.draft = this.emptyDraft();
@@ -219,6 +220,8 @@ export class EmployeesFormComponent implements OnChanges {
 
 	addDraftTitle(): void { this.pushTitle(this.draft); }
 	removeDraftTitle(index: number): void { this.draft.titles.splice(index, 1); }
+	onDraftTypeChange(type: EmployeeType): void { if (type === 'manager') this.draft.managerId = null; }
+	onEditTypeChange(type: EmployeeType): void { if (type === 'manager') this.editDraft.managerId = null; }
 
 	addEmployee(): void {
 		this.pushTitle(this.draft);
@@ -260,7 +263,7 @@ export class EmployeesFormComponent implements OnChanges {
 		employee.whatsapp = this.editDraft.whatsapp.trim();
 		employee.department = this.editDraft.department;
 		employee.employeeType = this.editDraft.employeeType;
-		employee.managerId = this.editDraft.managerId;
+		employee.managerId = this.editDraft.employeeType === 'manager' ? null : this.editDraft.managerId;
 		delete employee.job;
 		this.content.items = this.employees;
 		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '', employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
