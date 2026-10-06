@@ -59,7 +59,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 				</section>
 			</div>
 			<section class="wrap">
-				<div class="head" *ngIf="!employeePageEmployee"><h3>الموظفون</h3><label class="month-picker"><span>الشهر</span><input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange()"></label><span class="count">{{ filteredEmployees.length }} من {{ employees.length }} موظف</span></div>
+				<div class="head" *ngIf="!employeePageEmployee"><h3>الموظفون</h3><span class="count">{{ filteredEmployees.length }} من {{ employees.length }} موظف</span></div>
 				<div class="payroll-summary" *ngIf="!employeePageEmployee">
 					<div class="summary-card"><span>إجمالي الرواتب الأساسية</span><strong>{{ formatMoney(monthlySalaryTotal) }}</strong></div>
 					<div class="summary-card"><span>إجمالي البونص</span><strong>{{ formatMoney(monthlyBonusTotal) }}</strong></div>
@@ -95,7 +95,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						</div>
 						<div class="draft-titles" *ngIf="editDraft.titles.length"><span class="title-chip" *ngFor="let title of editDraft.titles; let titleIndex = index">{{ title }}<button type="button" class="chip-remove" aria-label="حذف المسمى" (click)="removeEditTitle(titleIndex)">×</button></span></div>
 						<p class="error" *ngIf="editError">{{ editError }}</p><div class="modal-save-row"><button type="button" class="save-edit" (click)="saveEdit(employee)">حفظ البيانات الأساسية</button></div></section>
-						<div class="details-head"><h4>البيانات الشهرية</h4><span class="modal-month-pill">{{ selectedMonth }}</span></div>
+						<div class="details-head"><h4>البيانات الشهرية</h4><label class="month-picker"><span>الشهر</span><input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange()"></label></div>
 						<div class="detail-grid">
 							<section class="detail-section"><h5>الراتب والملاحظات</h5>
 								<label class="field"><span>الراتب الأساسي لهذا الشهر</span><input type="number" min="0" step="0.01" [ngModel]="getMonthRecord(employee).salary" (ngModelChange)="setSalary(employee, $event)" placeholder="اكتب الراتب"></label>
