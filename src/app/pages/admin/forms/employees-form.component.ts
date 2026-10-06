@@ -29,6 +29,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-detail-page .profile-fields{gap:14px}.employee-detail-page .view-field{min-height:64px;padding:11px 14px;border:1px solid #e8ebf2;border-radius:12px;background:#fff;box-sizing:border-box}.employee-detail-page .view-field--wide{grid-column:1/-1;min-height:86px}.employee-detail-page .view-field span{color:#8993a8;font-size:11px}.employee-detail-page .view-field strong{color:#293650;font-size:13px}.employee-detail-page .draft-titles{margin-top:2px}.employee-detail-page .title-chip{background:#f0edff}.employee-detail-page .profile-section h4{padding-bottom:2px}.employee-detail-page .profile-section{position:relative;padding-bottom:72px}.employee-detail-page .profile-save-row{position:absolute;left:16px;right:auto;bottom:16px;margin:0;justify-content:flex-start}.required-star{color:#c33d57;font-weight:900}
 		.employee-detail-page{gap:22px;padding:28px;border-color:#dfe6f3;background:#f8faff;box-shadow:0 18px 55px #23345b12}.employee-detail-page .modal-header{margin:-28px -28px 0;padding:24px 28px 20px;border-bottom:1px solid #e7ebf4;border-radius:18px 18px 0 0;background:linear-gradient(135deg,#fff 0%,#f8f9ff 100%)}.employee-detail-page .modal-header h3{font-size:22px;letter-spacing:-.2px}.employee-detail-page .modal-subtitle{color:#7a86a0}.employee-detail-page .profile-section{gap:18px;padding:22px;border:1px solid #e4e9f3;border-radius:18px;background:#fff;box-shadow:0 8px 24px #253b6810}.employee-detail-page .profile-section h4{display:flex;align-items:center;gap:9px;color:#273552;font-size:15px}.employee-detail-page .profile-section h4::before{content:'';width:4px;height:20px;border-radius:4px;background:#6d4aff}.employee-detail-page .view-field{min-height:76px;padding:14px 16px;border-color:#e5eaf3;background:#fbfcff;transition:border-color .2s,box-shadow .2s}.employee-detail-page .view-field:hover{border-color:#cfc5ff;box-shadow:0 5px 16px #5b43c912}.employee-detail-page .view-field--wide{min-height:98px}.employee-detail-page .view-field--salary{border-color:#d7ccff;background:linear-gradient(135deg,#fbfaff,#f4f1ff)}.employee-detail-page .view-field--salary strong{color:#5b43c9;font-size:17px}.employee-detail-page .details-head{margin-top:2px;padding:0 4px}.employee-detail-page .details-head h4{color:#273552;font-size:16px}.employee-detail-page .detail-section{padding:18px;border-color:#e4e9f3;border-radius:16px;background:#fff;box-shadow:0 8px 24px #253b680d}.employee-detail-page .details-total{padding:15px 18px;border:1px solid #ddd5ff;border-radius:14px;background:linear-gradient(135deg,#f4f1ff,#ebe6ff);color:#5137bf}.employee-detail-page .profile-save-row .edit,.employee-detail-page .profile-save-row .save-edit{min-width:104px;box-shadow:0 7px 15px #6d4aff20}.employee-detail-page .profile-save-row .edit{background:#f0edff}.employee-detail-page .month-picker input{min-height:40px;background:#fff;border-color:#dfe5f1}
 		@media(max-width:650px){.employee-detail-page{padding:15px;gap:16px}.employee-detail-page .modal-header{margin:-15px -15px 0;padding:18px 15px 15px}.employee-detail-page .modal-header h3{font-size:18px}.employee-detail-page .profile-section{padding:16px}.employee-detail-page .view-field{min-height:64px}.employee-detail-page .view-field--wide{min-height:82px}}
+		.employee-account-actions{display:flex;align-items:end;gap:8px}.employee-account-actions .field{flex:1}.employee-password-button{min-height:42px;border:0;border-radius:10px;padding:0 13px;background:#f0edff;color:#5b43c9;font:inherit;font-size:12px;font-weight:900;cursor:pointer}.employee-password-button:disabled{opacity:.6;cursor:wait}.employee-account-status{grid-column:1/-1;margin:0;color:#13825f;font-size:12px;font-weight:900}
 	`],
 	template: `
 		<div class="wrap" *ngIf="content">
@@ -93,6 +94,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<section class="profile-section"><h4>البيانات الأساسية</h4><div class="profile-fields">
 							<div class="view-field" *ngIf="!isEditingEmployee"><span>اسم الموظف</span><strong>{{ editDraft.name || 'غير محدد' }}</strong></div><label class="field" *ngIf="isEditingEmployee"><span>اسم الموظف <em class="required-star">*</em></span><input required [(ngModel)]="editDraft.name" placeholder="اكتب الاسم"></label>
 							<div class="view-field" *ngIf="!isEditingEmployee"><span>رقم الواتساب</span><strong>{{ editDraft.whatsapp || 'غير مسجل' }}</strong></div><label class="field" *ngIf="isEditingEmployee"><span>رقم الواتساب</span><input type="tel" inputmode="tel" [(ngModel)]="editDraft.whatsapp" placeholder="رقم الواتساب"></label>
+							<div class="view-field" *ngIf="!isEmployeeAccount"><span>بريد الدخول</span><strong dir="ltr">{{ editDraft.email || 'لا يوجد حساب دخول' }}</strong></div>
 							<div class="view-field view-field--wide" *ngIf="!isEditingEmployee"><span>وصف الوظيفة</span><strong>{{ editDraft.description || 'غير محدد' }}</strong></div><label class="field" *ngIf="isEditingEmployee"><span>وصف الوظيفة</span><textarea [(ngModel)]="editDraft.description" placeholder="وصف مختصر لمهام الوظيفة"></textarea></label>
 							<div class="view-field view-field--salary" *ngIf="!isEditingEmployee && canViewSalary"><span>الراتب الأساسي</span><strong>{{ editDraft.baseSalary === null ? 'غير محدد' : formatMoney(editDraft.baseSalary) }}</strong></div><label class="field" *ngIf="isEditingEmployee && canViewSalary"><span>الراتب الأساسي</span><input type="number" min="0" step="0.01" [(ngModel)]="editDraft.baseSalary" placeholder="الراتب الشهري"></label>
 							<div class="view-field" *ngIf="!isEditingEmployee"><span>نوع الموظف</span><strong>{{ employeeTypeLabel(employee) }}</strong></div><label class="field" *ngIf="isEditingEmployee"><span>نوع الموظف <em class="required-star">*</em></span><select required [(ngModel)]="editDraft.employeeType" (ngModelChange)="onEditTypeChange($event)"><option value="employee">موظف</option><option value="manager">مدير مباشر</option><option value="general_manager">مدير عام</option></select></label>
@@ -100,9 +102,10 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 							<div class="view-field" *ngIf="!isEditingEmployee && editDraft.employeeType !== 'general_manager'"><span>{{ editDraft.employeeType === 'manager' ? 'المدير العام' : 'المدير المباشر' }}</span><strong>{{ managerName(employee) || 'بدون مدير' }}</strong></div><label class="field" *ngIf="isEditingEmployee && editDraft.employeeType !== 'general_manager'"><span>{{ editDraft.employeeType === 'manager' ? 'المدير العام' : 'المدير المباشر' }} <em *ngIf="editDraft.employeeType === 'manager'" class="required-star">*</em></span><select [required]="editDraft.employeeType === 'manager'" [(ngModel)]="editDraft.managerId"><option [ngValue]="null">اختر المسؤول</option><option *ngFor="let manager of employeeManagersFor(editDraft.employeeType, employee.id)" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
 							<label class="field" *ngIf="isEditingEmployee"><span>إضافة مسمى وظيفي <em class="required-star">*</em></span><input [(ngModel)]="editDraft.titleInput" (keyup.enter)="addEditTitle()" placeholder="اكتب المسمى واضغط إضافة"></label>
 							<button *ngIf="isEditingEmployee" type="button" class="edit" (click)="addEditTitle()">+ إضافة مسمى</button>
+							<div class="employee-account-actions" *ngIf="isEditingEmployee && !isEmployeeAccount"><label class="field"><span>كلمة مرور جديدة</span><input type="password" [(ngModel)]="editDraft.password" placeholder="10 أحرف على الأقل"></label><button type="button" class="employee-password-button" [disabled]="isUpdatingPassword" (click)="resetEmployeePassword(employee)">{{ isUpdatingPassword ? 'جاري التحديث...' : 'تحديث كلمة المرور' }}</button></div>
 						</div>
 						<div class="draft-titles" *ngIf="editDraft.titles.length"><span class="title-chip" *ngFor="let title of editDraft.titles; let titleIndex = index">{{ title }}<button *ngIf="isEditingEmployee" type="button" class="chip-remove" aria-label="حذف المسمى" (click)="removeEditTitle(titleIndex)">×</button></span></div>
-						<p class="error" *ngIf="editError">{{ editError }}</p><div class="modal-save-row profile-save-row"><button *ngIf="isEditingEmployee" type="button" class="save-edit" (click)="saveEdit(employee)">حفظ البيانات الأساسية</button><button *ngIf="!isEditingEmployee" type="button" class="edit" (click)="startEmployeeEditing()">تعديل</button></div></section>
+						<p class="error" *ngIf="editError">{{ editError }}</p><p class="employee-account-status" *ngIf="editSuccess">{{ editSuccess }}</p><div class="modal-save-row profile-save-row"><button *ngIf="isEditingEmployee" type="button" class="save-edit" (click)="saveEdit(employee)">حفظ البيانات الأساسية</button><button *ngIf="!isEditingEmployee" type="button" class="edit" (click)="startEmployeeEditing()">تعديل</button></div></section>
 						<div class="details-head"><h4>البيانات الشهرية</h4><label class="month-picker"><span>الشهر</span><input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange()"></label></div>
 						<div class="detail-grid">
 							<section class="detail-section"><h5>الملاحظات</h5>
@@ -160,6 +163,8 @@ export class EmployeesFormComponent implements OnChanges {
 	monthlySaveError = '';
 	errorMessage = '';
 	editError = '';
+	editSuccess = '';
+	isUpdatingPassword = false;
 
 	ngOnChanges(): void {
 		if (!this.content || typeof this.content !== 'object') return;
@@ -227,7 +232,7 @@ export class EmployeesFormComponent implements OnChanges {
 		void this.router.navigate([], { relativeTo: this.route, fragment: `employee-${employee.id}` });
 	}
 	editEmployee(employee: Employee): void { this.openEmployeePage(employee); this.isEditingEmployee = true; }
-	startEmployeeEditing(): void { this.isEditingEmployee = true; this.editError = ''; }
+	startEmployeeEditing(): void { this.isEditingEmployee = true; this.editError = ''; this.editSuccess = ''; }
 	closeEmployeePage(): void {
 		this.employeePageId = null;
 		this.closeDetails();
@@ -280,6 +285,19 @@ export class EmployeesFormComponent implements OnChanges {
 
 	addEditTitle(): void { this.pushTitle(this.editDraft); this.editError = ''; }
 	removeEditTitle(index: number): void { this.editDraft.titles.splice(index, 1); }
+	resetEmployeePassword(employee: Employee): void {
+		const email = (employee.email || '').trim().toLowerCase();
+		const password = this.editDraft.password;
+		if (!email) { this.editError = 'لا يوجد بريد دخول مرتبط بهذا الموظف.'; return; }
+		if (password.length < 10) { this.editError = 'كلمة المرور الجديدة يجب ألا تقل عن 10 أحرف.'; return; }
+		this.isUpdatingPassword = true;
+		this.editError = '';
+		this.editSuccess = '';
+		this.adminApi.updateAdminUser(email, { password }).pipe(finalize(() => { this.isUpdatingPassword = false; })).subscribe({
+			next: () => { this.editDraft.password = ''; this.editSuccess = 'تم تحديث كلمة مرور حساب الدخول.'; },
+			error: err => { this.editError = err?.error?.message || 'تعذر تحديث كلمة المرور.'; }
+		});
+	}
 
 	saveEdit(employee: Employee): void {
 		this.pushTitle(this.editDraft);
@@ -301,6 +319,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, department: employee.department || '', employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null };
 		this.isEditingEmployee = false;
 		this.editError = '';
+		this.editSuccess = '';
 	}
 
 	cancelEdit(): void {
@@ -308,6 +327,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.editDraft = employee ? { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', description: employee.description || '', baseSalary: employee.baseSalary ?? null, department: employee.department || '', employeeType: employee.employeeType || 'employee', managerId: employee.managerId ?? null } : this.emptyDraft();
 		this.editingId = employee?.id ?? null;
 		this.editError = '';
+		this.editSuccess = '';
 	}
 
 	removeEmployee(index: number): void {
@@ -325,6 +345,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.noteDraft = '';
 		this.adjustmentDraft = this.emptyAdjustmentDraft();
 		this.editError = '';
+		this.editSuccess = '';
 	}
 
 	closeDetails(): void {
@@ -335,6 +356,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.noteDraft = '';
 		this.adjustmentDraft = this.emptyAdjustmentDraft();
 		this.editError = '';
+		this.editSuccess = '';
 	}
 
 	onMonthChange(): void {
