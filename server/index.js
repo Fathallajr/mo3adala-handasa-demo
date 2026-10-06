@@ -380,6 +380,18 @@ function getEmployeeIdFromPermissions(permissions = []) {
 	return permission ? permission.slice('employee:'.length) : null;
 }
 
+function employeeDirectoryItem(item) {
+	return {
+		id: item.id,
+		name: item.name,
+		titles: Array.isArray(item.titles) ? item.titles : (item.job ? [item.job] : []),
+		whatsapp: item.whatsapp || '',
+		department: item.department || '',
+		employeeType: item.employeeType || 'employee',
+		managerId: item.managerId ?? null
+	};
+}
+
 function requireEmployeePageAccess(req, res, next) {
 	if (req.adminRole === 'admin') return next();
 	if (req.params.pageKey === 'employees' && req.adminRole === 'employee' && req.adminPermissions.includes('employees') && getEmployeeIdFromPermissions(req.adminPermissions)) return next();
@@ -1490,7 +1502,7 @@ app.get('/api/content/:pageKey', (req, res, next) => {
 	let data = normalizeSubscriptionCmsContent(pageKey, entry.data);
 	if (pageKey === 'employees' && req.adminRole === 'employee') {
 		const employeeId = getEmployeeIdFromPermissions(req.adminPermissions);
-		data = { ...data, items: Array.isArray(data.items) ? data.items.filter(item => String(item.id) === employeeId) : [] };
+		data = { ...data, items: Array.isArray(data.items) ? data.items.map(item => String(item.id) === employeeId ? item : employeeDirectoryItem(item)) : [] };
 	}
 	const expiresAt = Date.parse(String(data.enrollmentWindow?.expiresAt || ''));
 	if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) data.isEnrollmentClosed = true;
