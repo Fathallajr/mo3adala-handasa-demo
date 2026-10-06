@@ -10,8 +10,8 @@ import { MonthlyContentService } from '../../../core/services/monthly-content.se
 interface EmployeeNote { id: number; text: string; createdAt: string; }
 interface PayrollAdjustment { id: number; kind: 'bonus' | 'discount'; amount: number; reason: string; }
 interface EmployeeMonth { month: string; salary: number | null; notes: EmployeeNote[]; adjustments: PayrollAdjustment[]; }
-interface Employee { id: number; name: string; titles: string[]; whatsapp?: string; email?: string; department?: string; monthlyRecords?: EmployeeMonth[]; job?: string; }
-interface EmployeeDraft { name: string; titleInput: string; titles: string[]; whatsapp: string; email: string; password: string; department: string; }
+interface Employee { id: number; name: string; titles: string[]; whatsapp?: string; email?: string; department?: string; managerId?: number | null; monthlyRecords?: EmployeeMonth[]; job?: string; }
+interface EmployeeDraft { name: string; titleInput: string; titles: string[]; whatsapp: string; email: string; password: string; department: string; managerId: number | null; }
 
 @Component({
 	selector: 'app-employees-form',
@@ -34,7 +34,8 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 					<label class="field"><span>بحث في الموظفين</span><input [(ngModel)]="employeeSearch" placeholder="الاسم، الواتساب أو المسمى"></label>
 					<label class="field"><span>المسمى الوظيفي</span><select [(ngModel)]="employeeTitleFilter"><option value="">كل المسميات</option><option *ngFor="let title of employeeTitles" [value]="title">{{ title }}</option></select></label>
 					<label class="field"><span>نوع الإدارة</span><select [(ngModel)]="employeeDepartmentFilter"><option value="">كل الإدارات</option><option *ngFor="let department of employeeDepartments" [value]="department">{{ department }}</option></select></label>
-					<button type="button" class="clear-filters" *ngIf="employeeSearch || employeeTitleFilter || employeeDepartmentFilter" (click)="clearEmployeeFilters()">مسح الفلاتر</button>
+					<label class="field"><span>المدير المباشر</span><select [(ngModel)]="employeeManagerFilter"><option [ngValue]="null">كل المديرين</option><option *ngFor="let manager of employeeManagers" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
+					<button type="button" class="clear-filters" *ngIf="employeeSearch || employeeTitleFilter || employeeDepartmentFilter || employeeManagerFilter" (click)="clearEmployeeFilters()">مسح الفلاتر</button>
 				</div>
 			</div>
 			<div class="employee-modal-backdrop" *ngIf="showAddEmployee && !employeePageEmployee" (click)="closeAddEmployee()">
@@ -46,6 +47,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<label class="field"><span>البريد الإلكتروني</span><input type="email" [(ngModel)]="draft.email" placeholder="employee@example.com"></label>
 						<label class="field"><span>كلمة السر</span><input type="password" [(ngModel)]="draft.password" placeholder="10 أحرف على الأقل"></label>
 						<label class="field"><span>نوع الإدارة</span><select [(ngModel)]="draft.department"><option value="">اختر نوع الإدارة</option><option *ngFor="let department of employeeDepartmentOptions" [value]="department">{{ department }}</option></select></label>
+						<label class="field"><span>المدير المباشر</span><select [(ngModel)]="draft.managerId"><option [ngValue]="null">بدون مدير مباشر</option><option *ngFor="let manager of employeeManagers" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
 						<label class="field"><span>مسمى وظيفي</span><input [(ngModel)]="draft.titleInput" (keyup.enter)="addDraftTitle()" placeholder="مثال: خدمة عملاء"></label>
 						<button type="button" class="edit" (click)="addDraftTitle()">+ إضافة مسمى</button>
 					</div>
@@ -65,7 +67,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 					<article class="employee-card" *ngFor="let employee of filteredEmployees; let i = index">
 						<div class="identity">
 							<button type="button" class="employee-name" (click)="openEmployeePage(employee)">{{ employee.name }}</button>
-							<div class="tags"><span class="tag" *ngFor="let title of employee.titles">{{ title }}</span><span class="tag tag--department" *ngIf="employee.department">{{ employee.department }}</span></div>
+							<div class="tags"><span class="tag" *ngFor="let title of employee.titles">{{ title }}</span><span class="tag tag--department" *ngIf="employee.department">{{ employee.department }}</span><span class="tag tag--manager" *ngIf="managerName(employee)">مديره: {{ managerName(employee) }}</span></div>
 							<span class="employee-month-total" *ngIf="false">صافي الشهر: {{ formatMoney(employeeMonthlyTotal(employee)) }}</span>
 						</div>
 						<div class="employee-contact"><span class="contact-label">رقم الواتساب</span><span class="contact-value" [class.contact-value--empty]="!employee.whatsapp">{{ employee.whatsapp || 'غير مسجل' }}</span></div>
@@ -79,6 +81,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 							<label class="field"><span>اسم الموظف</span><input [(ngModel)]="editDraft.name" placeholder="اكتب الاسم"></label>
 							<label class="field"><span>رقم الواتساب</span><input type="tel" inputmode="tel" [(ngModel)]="editDraft.whatsapp" placeholder="رقم الواتساب"></label>
 							<label class="field"><span>نوع الإدارة</span><select [(ngModel)]="editDraft.department"><option value="">اختر نوع الإدارة</option><option *ngFor="let department of employeeDepartmentOptions" [value]="department">{{ department }}</option></select></label>
+							<label class="field"><span>المدير المباشر</span><select [(ngModel)]="editDraft.managerId"><option [ngValue]="null">بدون مدير مباشر</option><option *ngFor="let manager of employeeManagersFor(employee.id)" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
 							<label class="field"><span>إضافة مسمى وظيفي</span><input [(ngModel)]="editDraft.titleInput" (keyup.enter)="addEditTitle()" placeholder="اكتب المسمى واضغط إضافة"></label>
 							<button type="button" class="edit" (click)="addEditTitle()">+ إضافة مسمى</button>
 						</div>
@@ -128,6 +131,7 @@ export class EmployeesFormComponent implements OnChanges {
 	employeeSearch = '';
 	employeeTitleFilter = '';
 	employeeDepartmentFilter = '';
+	employeeManagerFilter: number | null = null;
 	selectedMonth = this.currentMonth();
 	noteDraft = '';
 	adjustmentDraft: { kind: 'bonus' | 'discount'; amount: number | null; reason: string } = this.emptyAdjustmentDraft();
@@ -167,17 +171,21 @@ export class EmployeesFormComponent implements OnChanges {
 	get isEmployeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
 	get employeePageEmployee(): Employee | null { return this.employees.find(employee => employee.id === this.employeePageId) || null; }
 	get employeeDepartments(): string[] { return [...new Set(this.employees.map(employee => employee.department).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, 'ar')); }
+	get employeeManagers(): Employee[] { return this.employees.filter(employee => employee.name.trim()).sort((a, b) => a.name.localeCompare(b.name, 'ar')); }
 	get employeeTitles(): string[] { return [...new Set(this.employees.flatMap(employee => employee.titles || []))].sort((a, b) => a.localeCompare(b, 'ar')); }
+	employeeManagersFor(employeeId: number): Employee[] { return this.employeeManagers.filter(employee => employee.id !== employeeId); }
+	managerName(employee: Employee): string { return this.employees.find(manager => manager.id === employee.managerId)?.name || ''; }
 	get filteredEmployees(): Employee[] {
 		const query = this.employeeSearch.trim().toLocaleLowerCase();
 		return this.employees.filter(employee => {
-			const matchesQuery = !query || [employee.name, employee.whatsapp || '', employee.department || '', ...(employee.titles || [])].join(' ').toLocaleLowerCase().includes(query);
+			const matchesQuery = !query || [employee.name, employee.whatsapp || '', employee.department || '', this.managerName(employee), ...(employee.titles || [])].join(' ').toLocaleLowerCase().includes(query);
 			const matchesTitle = !this.employeeTitleFilter || (employee.titles || []).includes(this.employeeTitleFilter);
 			const matchesDepartment = !this.employeeDepartmentFilter || employee.department === this.employeeDepartmentFilter;
-			return matchesQuery && matchesTitle && matchesDepartment;
+			const matchesManager = this.employeeManagerFilter === null || employee.managerId === this.employeeManagerFilter;
+			return matchesQuery && matchesTitle && matchesDepartment && matchesManager;
 		});
 	}
-	clearEmployeeFilters(): void { this.employeeSearch = ''; this.employeeTitleFilter = ''; this.employeeDepartmentFilter = ''; }
+	clearEmployeeFilters(): void { this.employeeSearch = ''; this.employeeTitleFilter = ''; this.employeeDepartmentFilter = ''; this.employeeManagerFilter = null; }
 	openEmployeePage(employee: Employee): void {
 		this.employeePageId = employee.id;
 		this.selectEmployeeForPage(employee);
@@ -191,7 +199,7 @@ export class EmployeesFormComponent implements OnChanges {
 	private selectEmployeeForPage(employee: Employee): void {
 		this.selectedEmployeeId = employee.id;
 		this.editingId = employee.id;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '' };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '', managerId: employee.managerId ?? null };
 	}
 
 	openAddEmployee(): void { this.errorMessage = ''; this.draft = this.emptyDraft(); this.showAddEmployee = true; }
@@ -209,7 +217,7 @@ export class EmployeesFormComponent implements OnChanges {
 		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { this.errorMessage = 'اكتب بريدًا إلكترونيًا صحيحًا.'; return; }
 		if (this.draft.password.length < 10) { this.errorMessage = 'كلمة السر يجب ألا تقل عن 10 أحرف.'; return; }
 		const id = this.employees.reduce((max, employee) => Math.max(max, Number(employee.id) || 0), 0) + 1;
-		this.employees.push({ id, name, titles: [...this.draft.titles], whatsapp: this.draft.whatsapp.trim(), email, department: this.draft.department, monthlyRecords: [] });
+		this.employees.push({ id, name, titles: [...this.draft.titles], whatsapp: this.draft.whatsapp.trim(), email, department: this.draft.department, managerId: this.draft.managerId, monthlyRecords: [] });
 		this.content.items = this.employees;
 		this.isSavingEmployee = true;
 		this.contentService.savePageState('employees', this.content).pipe(
@@ -224,7 +232,7 @@ export class EmployeesFormComponent implements OnChanges {
 	startEditing(employee: Employee): void {
 		if (this.editingId === employee.id) { this.cancelEdit(); return; }
 		this.editingId = employee.id;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '' };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '', managerId: employee.managerId ?? null };
 		this.editError = '';
 	}
 
@@ -239,15 +247,16 @@ export class EmployeesFormComponent implements OnChanges {
 		employee.titles = [...this.editDraft.titles];
 		employee.whatsapp = this.editDraft.whatsapp.trim();
 		employee.department = this.editDraft.department;
+		employee.managerId = this.editDraft.managerId;
 		delete employee.job;
 		this.content.items = this.employees;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '' };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '', managerId: employee.managerId ?? null };
 		this.editError = '';
 	}
 
 	cancelEdit(): void {
 		const employee = this.selectedEmployee;
-		this.editDraft = employee ? { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '' } : this.emptyDraft();
+		this.editDraft = employee ? { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '', managerId: employee.managerId ?? null } : this.emptyDraft();
 		this.editingId = employee?.id ?? null;
 		this.editError = '';
 	}
@@ -262,7 +271,7 @@ export class EmployeesFormComponent implements OnChanges {
 		if (this.selectedEmployeeId === employee.id) { this.closeDetails(); return; }
 		this.selectedEmployeeId = employee.id;
 		this.editingId = employee.id;
-		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '' };
+		this.editDraft = { name: employee.name, titleInput: '', titles: [...employee.titles], whatsapp: employee.whatsapp || '', email: employee.email || '', password: '', department: employee.department || '', managerId: employee.managerId ?? null };
 		this.noteDraft = '';
 		this.adjustmentDraft = this.emptyAdjustmentDraft();
 		this.editError = '';
@@ -340,6 +349,6 @@ export class EmployeesFormComponent implements OnChanges {
 		target.titleInput = '';
 	}
 	private currentMonth(): string { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; }
-	private emptyDraft(): EmployeeDraft { return { name: '', titleInput: '', titles: [], whatsapp: '', email: '', password: '', department: '' }; }
+	private emptyDraft(): EmployeeDraft { return { name: '', titleInput: '', titles: [], whatsapp: '', email: '', password: '', department: '', managerId: null }; }
 	private emptyAdjustmentDraft(): { kind: 'bonus' | 'discount'; amount: number | null; reason: string } { return { kind: 'bonus', amount: null, reason: '' }; }
 }
