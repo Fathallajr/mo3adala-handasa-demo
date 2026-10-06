@@ -1002,6 +1002,40 @@ app.post('/api/admin/employees/:employeeId/account', requireAdmin, requireFullAd
 	}
 });
 
+// Employee creation is intentionally atomic: the directory record and its
+// login must be committed together, so a failed account insert cannot leave a
+// partial employee or require a risky client-side rollback.
+app.post('/api/admin/employees/with-account', requireAdmin, requireFullAdmin, async (req, res) => {
+	const input = req.body?.employee || {};
+	const email = String(input.email || '').trim().toLowerCase();
+	const password = String(req.body?.password || '');
+	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'اكتب بريدًا إلكترونيًا صحيحًا.' });
+	if (password.length < 10 || password.length > 200) return res.status(400).json({ message: 'كلمة المرور يجب ألا تقل عن 10 أحرف.' });
+	const employee = {
+		name: String(input.name || '').trim(),
+		titles: Array.isArray(input.titles) ? input.titles.map(value => String(value || '').trim()).filter(Boolean) : [],
+		whatsapp: String(input.whatsapp || '').trim(),
+		email,
+		description: String(input.description || '').trim(),
+		baseSalary: input.baseSalary === null || input.baseSalary === undefined || input.baseSalary === '' ? null : Number(input.baseSalary),
+		department: Array.isArray(input.department) ? input.department.map(value => String(value || '').trim()).filter(Boolean) : String(input.department || '').trim(),
+		employeeType: ['employee', 'manager', 'general_manager'].includes(input.employeeType) ? input.employeeType : 'employee',
+		managerId: input.managerId === null || input.managerId === undefined || input.managerId === '' ? null : Number(input.managerId),
+		monthlyRecords: []
+	};
+	const validationError = validateEmployeesContent({ items: [{ ...employee, id: 1 }] });
+	if (validationError) return res.status(400).json({ message: validationError });
+	try {
+		const { salt, hash } = hashAdminPassword(password);
+		const result = await database.createEmployeeWithAccount({ employee, email, passwordHash: hash, passwordSalt: salt, createdAt: getNowIso() });
+		res.status(201).json({ data: result.data, employee: result.employee, username: email, role: 'employee', permissions: ['employees', `employee:${result.employeeId}`], employeeId: result.employeeId });
+	} catch (error) {
+		if (String(error.message || '').toLowerCase().includes('unique') || error.code === '23505' || String(error.message || '').includes('UNIQUE constraint failed')) return res.status(409).json({ message: 'هذا البريد مستخدم بالفعل.' });
+		console.error('Atomic employee creation failed', { code: error?.code, message: error?.message });
+		res.status(500).json({ message: 'تعذر إنشاء الموظف والحساب. لم يتم تغيير بيانات الموظفين.' });
+	}
+});
+
 app.post('/api/admin/users', requireAdmin, requireFullAdmin, async (req, res, next) => {
 	const username = String(req.body?.username || '').trim();
 	const password = String(req.body?.password || '');

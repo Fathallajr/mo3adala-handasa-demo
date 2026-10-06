@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 import { AdminApiService } from '../../../core/services/admin-api.service';
 import { AdminAuthService } from '../../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../../core/services/monthly-content.service';
@@ -306,23 +306,10 @@ export class EmployeesFormComponent implements OnChanges {
 		const email = this.draft.email.trim().toLowerCase();
 		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { this.errorMessage = 'اكتب بريدًا إلكترونيًا صحيحًا.'; return; }
 		if (this.draft.password.length < 10) { this.errorMessage = 'كلمة السر يجب ألا تقل عن 10 أحرف.'; return; }
-		const previousContent = structuredClone(this.content);
-		const previousEmployees = structuredClone(this.employees);
-		const id = this.employees.reduce((max, employee) => Math.max(max, Number(employee.id) || 0), 0) + 1;
-		this.employees.push({ id, name, titles: [...this.draft.titles], whatsapp, email, description: this.draft.description.trim(), baseSalary: this.normalizeSalary(this.draft.baseSalary), department: [...this.draft.departments], employeeType: this.draft.employeeType, managerId: this.draft.managerId, monthlyRecords: [] });
-		this.content.items = this.employees;
 		this.isSavingEmployee = true;
-		this.contentService.savePageState('employees', this.content).pipe(
-			switchMap(saved => { this.content = saved; this.employees = saved.items || this.employees; return this.adminApi.createEmployeeAccount(id, email, this.draft.password); }),
-			finalize(() => { this.isSavingEmployee = false; })
-		).subscribe({
-			next: () => { this.draft = this.emptyDraft(); this.errorMessage = ''; this.showAddEmployee = false; },
-			error: err => {
-				this.content = previousContent;
-				this.employees = previousEmployees;
-				this.errorMessage = err?.error?.message || 'تعذر إنشاء الموظف أو حساب الدخول. لم يتم الاحتفاظ بالموظف جزئيًا.';
-				this.contentService.savePageState('employees', previousContent).subscribe({ error: () => { this.errorMessage = 'فشل إنشاء الحساب وفشل التراجع التلقائي. أوقف الحفظ وراجع نسخة البيانات الاحتياطية فورًا.'; } });
-			}
+		this.adminApi.createEmployeeWithAccount({ name, titles: [...this.draft.titles], whatsapp, email, description: this.draft.description.trim(), baseSalary: this.normalizeSalary(this.draft.baseSalary), department: [...this.draft.departments], employeeType: this.draft.employeeType, managerId: this.draft.managerId }, this.draft.password).pipe(finalize(() => { this.isSavingEmployee = false; })).subscribe({
+			next: result => { this.content = result.data; this.employees = result.data.items || this.employees; this.draft = this.emptyDraft(); this.errorMessage = ''; this.showAddEmployee = false; },
+			error: err => { this.errorMessage = err?.error?.message || 'تعذر إنشاء الموظف والحساب. لم يتم تغيير بيانات الموظفين.'; }
 		});
 	}
 

@@ -68,8 +68,8 @@ export class AdminApiService {
 	createAdminUser(payload: { username: string; password: string; permissions: string[] }): Observable<AdminUser> { return this.http.post<AdminUser>(`${this.base}/admin/users`, payload); }
 	updateAdminUser(username: string, payload: { password?: string; permissions?: string[]; isActive?: boolean }): Observable<AdminUser> { return this.http.patch<AdminUser>(`${this.base}/admin/users/${encodeURIComponent(username)}`, payload); }
 	deleteAdminUser(username: string): Observable<void> { return this.http.delete<void>(`${this.base}/admin/users/${encodeURIComponent(username)}`); }
-	createEmployeeAccount(employeeId: number, email: string, password: string): Observable<{ username: string; role: string; permissions: string[]; employeeId: string }> {
-		return this.http.post<{ username: string; role: string; permissions: string[]; employeeId: string }>(`${this.base}/admin/employees/${employeeId}/account`, { email, password });
+	createEmployeeWithAccount(employee: { name: string; titles: string[]; whatsapp: string; email: string; description: string; baseSalary: number | null; department: string[]; employeeType: string; managerId: number | null }, password: string): Observable<{ data: any; employee: any; username: string; role: string; permissions: string[]; employeeId: string }> {
+		return this.http.post<{ data: any; employee: any; username: string; role: string; permissions: string[]; employeeId: string }>(`${this.base}/admin/employees/with-account`, { employee, password });
 	}
 	listPrograms(): Observable<{ data: Program[] }> { return this.http.get<{ data: Program[] }>(`${this.base}/admin/programs`); }
 	createProgram(payload: Partial<Program>): Observable<Program> { return this.http.post<Program>(`${this.base}/admin/programs`, payload); }

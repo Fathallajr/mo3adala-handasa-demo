@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const Database = require('better-sqlite3');
 
 const dataDir = path.join(__dirname, 'data');
@@ -123,6 +124,23 @@ function savePage(key, data, updatedAt) {
 	const timestamp = updatedAt || new Date().toISOString();
 	db.prepare('INSERT INTO pages(key,data,updated_at) VALUES (?,?,?) ON CONFLICT(key) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at').run(key, JSON.stringify(data ?? {}), timestamp);
 	return { data: data ?? {}, updatedAt: timestamp };
+}
+
+function createEmployeeWithAccount({ employee, email, passwordHash, passwordSalt, createdAt }) {
+	return db.transaction(() => {
+		const row = db.prepare('SELECT data FROM pages WHERE key = ?').get('employees');
+		let page = { items: [] };
+		try { page = row?.data ? JSON.parse(row.data) : page; } catch {}
+		const items = Array.isArray(page.items) ? page.items : [];
+		const nextId = items.reduce((max, item) => Math.max(max, Number(item?.id) || 0), 0) + 1;
+		const savedEmployee = { ...employee, id: nextId };
+		const nextPage = { ...page, items: [...items, savedEmployee] };
+		const timestamp = createdAt || new Date().toISOString();
+		db.prepare('INSERT INTO pages(key,data,updated_at) VALUES (?,?,?) ON CONFLICT(key) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at').run('employees', JSON.stringify(nextPage), timestamp);
+		db.prepare('INSERT INTO admin_users(username,password_hash,password_salt,role,permissions,is_active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)').run(email, passwordHash, passwordSalt, 'employee', JSON.stringify(['employees', `employee:${nextId}`]), 1, timestamp, null);
+		db.prepare('INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES (?,?,?,?,?,?,?)').run(crypto.randomUUID(), 'created', 'employee', String(nextId), '', '', timestamp);
+		return { data: nextPage, employee: savedEmployee, employeeId: String(nextId) };
+	})();
 }
 
 function createLead(lead, auditLog) {
@@ -262,4 +280,4 @@ function updateWheelClaim(token, changes) { const result = db.prepare('UPDATE wh
 function deleteWheelClaim(token) { return db.prepare('DELETE FROM wheel_claims WHERE token = ?').run(token).changes > 0; }
 function countWheelClaims() { listWheelClaims(); return db.prepare('SELECT COUNT(*) AS count FROM wheel_claims').get().count; }
 
-module.exports = { readStore, writeStore, savePage, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, databaseFile };
+module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, databaseFile };

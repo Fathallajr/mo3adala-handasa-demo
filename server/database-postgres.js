@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { Pool } = require('pg');
 
 const pool = new Pool({
@@ -119,6 +120,40 @@ async function savePage(key, data, updatedAt) {
 		[key, JSON.stringify(data ?? {}), updatedAt || new Date().toISOString()]
 	);
 	return { data: result.rows[0].data, updatedAt: result.rows[0].updatedAt };
+}
+
+async function createEmployeeWithAccount({ employee, email, passwordHash, passwordSalt, createdAt }) {
+	await ensureSchema();
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+		const pageResult = await client.query('SELECT data FROM pages WHERE key = $1 FOR UPDATE', ['employees']);
+		const page = pageResult.rows[0]?.data || { items: [] };
+		const items = Array.isArray(page.items) ? page.items : [];
+		const nextId = items.reduce((max, item) => Math.max(max, Number(item?.id) || 0), 0) + 1;
+		const savedEmployee = { ...employee, id: nextId };
+		const nextPage = { ...page, items: [...items, savedEmployee] };
+		const updatedAt = createdAt || new Date().toISOString();
+		await client.query(
+			'INSERT INTO pages(key,data,updated_at) VALUES ($1,$2::jsonb,$3) ON CONFLICT(key) DO UPDATE SET data = EXCLUDED.data, updated_at = EXCLUDED.updated_at',
+			['employees', JSON.stringify(nextPage), updatedAt]
+		);
+		await client.query(
+			'INSERT INTO admin_users(username,password_hash,password_salt,role,permissions,is_active,created_at,updated_at) VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8)',
+			[email, passwordHash, passwordSalt, 'employee', JSON.stringify(['employees', `employee:${nextId}`]), true, updatedAt, null]
+		);
+		await client.query(
+			'INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+			[crypto.randomUUID(), 'created', 'employee', String(nextId), '', '', updatedAt]
+		);
+		await client.query('COMMIT');
+		return { data: nextPage, employee: savedEmployee, employeeId: String(nextId) };
+	} catch (error) {
+		await client.query('ROLLBACK');
+		throw error;
+	} finally {
+		client.release();
+	}
 }
 
 async function createLead(lead, auditLog) {
@@ -252,4 +287,4 @@ async function deleteAdminSession(token) {
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, savePage, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, databaseFile: null, pool, ensureSchema };
