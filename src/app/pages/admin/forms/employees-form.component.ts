@@ -153,7 +153,7 @@ export class EmployeesFormComponent implements OnChanges {
 	showAddEmployee = false;
 	isSavingEmployee = false;
 	employeePageId: number | null = null;
-	readonly employeeDepartmentOptions = ['صناعة محتوى', 'محتوى ومنصة', 'ميديا باير', 'محتوى تعليمي', 'كول سنتر', 'دعم فني', 'انتشار ميديا', 'متابعة طلاب'];
+	readonly employeeDepartmentOptions = ['الدعم والكول سنتر', 'الأكواد والاشتراكات', 'المتابعة', 'المنصة والمحتوي', 'سوشيال ميديا', 'مهندسين'];
 	draft: EmployeeDraft = this.emptyDraft();
 	editDraft: EmployeeDraft = this.emptyDraft();
 	editingId: number | null = null;
@@ -182,7 +182,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.employees = this.content.items;
 		for (const employee of this.employees) {
 			if (!Array.isArray(employee.titles)) employee.titles = employee.job?.trim() ? [employee.job.trim()] : [];
-			employee.department = this.departmentValues(employee.department);
+			employee.department = this.departmentValues(employee.department).map(value => this.normalizeDepartment(value));
 			if (!['employee', 'manager', 'general_manager'].includes(employee.employeeType || '')) employee.employeeType = 'employee';
 			if (employee.employeeType === 'general_manager') employee.managerId = null;
 			if (!Array.isArray(employee.monthlyRecords)) employee.monthlyRecords = [];
@@ -457,7 +457,8 @@ export class EmployeesFormComponent implements OnChanges {
 	removeDraftDepartment(index: number): void { this.draft.departments.splice(index, 1); }
 	removeEditDepartment(index: number): void { this.editDraft.departments.splice(index, 1); }
 	toggleDepartment(target: EmployeeDraft, department: string, checked: boolean): void { target.departments = checked ? [...new Set([...target.departments, department])] : target.departments.filter(item => item !== department); }
-	private departmentValues(value?: string | string[]): string[] { return Array.isArray(value) ? value.filter(Boolean) : value?.trim() ? [value.trim()] : []; }
+	private departmentValues(value?: string | string[]): string[] { return (Array.isArray(value) ? value.filter(Boolean) : value?.trim() ? [value.trim()] : []).map(item => this.normalizeDepartment(item)); }
+	private normalizeDepartment(value: string): string { const legacy: Record<string, string> = { 'صناعة محتوى': 'المنصة والمحتوي', 'محتوى ومنصة': 'المنصة والمحتوي', 'محتوى تعليمي': 'المنصة والمحتوي', 'ميديا باير': 'الدعم والكول سنتر', 'كول سنتر': 'الدعم والكول سنتر', 'دعم فني': 'الدعم والكول سنتر', 'انتشار ميديا': 'سوشيال ميديا', 'متابعة طلاب': 'المتابعة' }; return legacy[value] || value; }
 	departmentLabel(value?: string | string[]): string { return this.departmentValues(value).join('، '); }
 	private emptyDraft(): EmployeeDraft { return { name: '', titleInput: '', titles: [], whatsapp: '', email: '', password: '', description: '', baseSalary: null, departments: [], employeeType: 'employee', managerId: null }; }
 	private emptyAdjustmentDraft(): { kind: 'bonus' | 'discount'; amount: number | null; reason: string } { return { kind: 'bonus', amount: null, reason: '' }; }
