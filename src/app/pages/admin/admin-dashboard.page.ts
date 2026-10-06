@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs';
-import { CmsPageKey, cmsPageOptions } from '../../core/cms-page.registry';
+import { CmsPageKey, cmsPageDefaults, cmsPageOptions } from '../../core/cms-page.registry';
 import { displayProgramLabel } from '../../core/program-labels';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
@@ -837,7 +837,9 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		const schoolsFallback = pageKey === 'schools'
 			? { visible: true, title: 'المدارس والمعاهد', items: DEFAULT_SCHOOLS.map((item, index) => ({ ...item, id: item.id ?? index + 1 })) }
 			: undefined;
-		this.contentService.loadPageState(pageKey, schoolsFallback as any, { emitFallback: pageKey === 'schools' }).pipe(timeout({ each: 15000 }), finalize(() => {
+		const employeesFallback = pageKey === 'employees' ? structuredClone(cmsPageDefaults.employees) : undefined;
+		const fallback = (employeesFallback || schoolsFallback) as any;
+		this.contentService.loadPageState(pageKey, fallback, { emitFallback: pageKey === 'schools' || pageKey === 'employees' }).pipe(timeout({ each: 15000 }), finalize(() => {
 			if (requestId === this.pageLoadRequestId) this.isLoading = false;
 			this.refreshView();
 		})).subscribe({
