@@ -21,6 +21,7 @@ import { SuccessStoriesFormComponent } from './forms/success-stories-form.compon
 import { Batch2027FormComponent } from './forms/batch-2027-form.component';
 import { RequirementsFormComponent } from './forms/requirements-form.component';
 import { SchoolsFormComponent } from './forms/schools-form.component';
+import { EmployeesFormComponent } from './forms/employees-form.component';
 
 interface PageOption {
 	key: CmsPageKey;
@@ -49,7 +50,8 @@ type AdminDataView = 'overview' | 'leads' | 'feedback' | 'programs' | 'wheel' | 
 		SuccessStoriesFormComponent,
 		Batch2027FormComponent,
 		RequirementsFormComponent,
-		SchoolsFormComponent
+		SchoolsFormComponent,
+		EmployeesFormComponent
 	],
 	templateUrl: './admin-dashboard.page.html',
 	styleUrls: ['./admin-dashboard.page.css']

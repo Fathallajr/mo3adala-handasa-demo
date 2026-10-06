@@ -38,7 +38,9 @@ const PAGE_KEYS = [
 	,'subscription-engineering-en'
 	,'subscription-computers-ar'
 	,'subscription-computers-en'
+	,'employees'
 ];
+const ADMIN_ONLY_PAGE_KEYS = new Set(['employees']);
 const LEAD_STATUSES = ['new', 'contacted', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
 const FEEDBACK_STATUSES = ['new', 'reviewed', 'published', 'archived'];
 // Keep the admin session active for a practical working period. The token is
@@ -889,7 +891,7 @@ function noCache(res) {
 app.get('/api/content', async (req, res) => {
 	noCache(res);
 	const store = await readStore();
-	const summaries = PAGE_KEYS.map(key => {
+	const summaries = PAGE_KEYS.filter(key => !ADMIN_ONLY_PAGE_KEYS.has(key)).map(key => {
 		const entry = store.pages[key];
 		return {
 			key,
@@ -901,7 +903,10 @@ app.get('/api/content', async (req, res) => {
 	res.json(summaries);
 });
 
-app.get('/api/content/:pageKey', async (req, res) => {
+app.get('/api/content/:pageKey', (req, res, next) => {
+	if (!ADMIN_ONLY_PAGE_KEYS.has(req.params.pageKey)) return next();
+	return requireAdmin(req, res, () => requireFullAdmin(req, res, next));
+}, async (req, res) => {
 	noCache(res);
 	const { pageKey } = req.params;
 
@@ -922,7 +927,10 @@ app.get('/api/content/:pageKey', async (req, res) => {
 	res.json(data);
 });
 
-app.put('/api/content/:pageKey', requireAdmin, requirePagePermission, async (req, res) => {
+app.put('/api/content/:pageKey', requireAdmin, (req, res, next) => {
+	if (!ADMIN_ONLY_PAGE_KEYS.has(req.params.pageKey)) return next();
+	return requireFullAdmin(req, res, next);
+}, requirePagePermission, async (req, res) => {
 	const { pageKey } = req.params;
 
 	if (!PAGE_KEYS.includes(pageKey)) {

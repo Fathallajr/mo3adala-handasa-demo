@@ -23,7 +23,8 @@ export type CmsPageKey =
 	| 'subscription-engineering-ar'
 	| 'subscription-engineering-en'
 	| 'subscription-computers-ar'
-	| 'subscription-computers-en';
+	| 'subscription-computers-en'
+	| 'employees';
 
 export type SubscriptionCmsPageKey = 'subscription-engineering-ar' | 'subscription-engineering-en' | 'subscription-computers-ar' | 'subscription-computers-en';
 
@@ -50,6 +51,7 @@ export const cmsPageOptions: CmsPageOption[] = [
 	{ key: 'news-equation', route: '/news-equation', title: 'أخبار المعادلة', description: 'أخبار المعادلة والمواعيد والتنبيهات', group: 'المحتوى' },
 	{ key: 'engineers', route: '/engineers-ar', title: 'المهندسين والمدرسين', description: 'بيانات المدرسين والمواد والصور', group: 'المحتوى' },
 	{ key: 'schools', route: '/schools', title: 'المدارس والمعاهد', description: 'دليل المدارس والمعاهد والتصنيفات', group: 'المحتوى' },
+	{ key: 'employees', route: '/admin/employees', title: 'الموظفون', description: 'إدارة أسماء الموظفين والوظائف داخل لوحة التحكم', group: 'إدارة داخلية' },
 	{ key: 'subscription-engineering-ar', route: '/subscription-engineering-ar', title: 'اشتراك هندسة عربي — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
 	{ key: 'subscription-engineering-en', route: '/subscription-engineering-en', title: 'اشتراك هندسة إنجليزي — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
 	{ key: 'subscription-computers-ar', route: '/subscription-computers-ar', title: 'اشتراك حاسبات عربي — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
@@ -142,6 +144,7 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 		documents: ['أصل شهادة التخرج', 'صورة الرقم القومي', 'صورة شخصية', 'إيصال الدفع'],
 		steps: [{ title: 'الدخول على الموقع', description: 'اختيار نوع الامتحان وإدخال بيانات المتقدم الأساسية.' }, { title: 'دفع رسوم الامتحانات', description: 'عبر رابط الدفع الإلكتروني.' }, { title: 'إنشاء ملف PDF', description: 'عمل Scan للمستندات وتحويلها إلى PDF.' }, { title: 'رفع الملف', description: 'رفع ملف الـ PDF على نظام التقديم.' }, { title: 'متابعة حالة الطلب', description: 'بعد الاستكمال خلال يومين عمل.' }, { title: 'تعديل الطلب', description: 'في حالة الرفض واستكمال البيانات الناقصة.' }, { title: 'متابعة رقم الجلوس', description: 'بعد قبول الطلب.' }]
 	},
+	employees: { items: [] },
 	schools: {
 		visible: true,
 		title: 'المدارس والمعاهد',
