@@ -102,8 +102,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<p class="error" *ngIf="editError">{{ editError }}</p><div class="modal-save-row profile-save-row"><button *ngIf="isEditingEmployee" type="button" class="save-edit" (click)="saveEdit(employee)">حفظ البيانات الأساسية</button><button *ngIf="!isEditingEmployee" type="button" class="edit" (click)="startEmployeeEditing()">تعديل</button></div></section>
 						<div class="details-head"><h4>البيانات الشهرية</h4><label class="month-picker"><span>الشهر</span><input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange()"></label></div>
 						<div class="detail-grid">
-							<section class="detail-section"><h5>الراتب والملاحظات</h5>
-								<div class="salary-readonly"><span>الراتب الأساسي</span><strong>{{ formatMoney(employeeBaseSalary(employee)) }}</strong></div>
+							<section class="detail-section"><h5>الملاحظات</h5>
 								<div class="fields"><label class="field"><span>ملاحظة جديدة لهذا الشهر</span><input [(ngModel)]="noteDraft" (keyup.enter)="addNote(employee)" placeholder="اكتب الملاحظة"></label><button type="button" class="edit" (click)="addNote(employee)">إضافة ملاحظة</button></div>
 								<div class="note-list" *ngIf="getMonthRecord(employee).notes.length"><div class="note-item" *ngFor="let note of getMonthRecord(employee).notes; let noteIndex = index"><div class="note-text">{{ note.text }}<span class="note-date">{{ note.createdAt | date:'short' }}</span></div><button type="button" class="remove-small" aria-label="حذف الملاحظة" (click)="removeNote(employee, noteIndex)">×</button></div></div>
 								<div class="empty" *ngIf="!getMonthRecord(employee).notes.length">لا توجد ملاحظات لهذا الشهر.</div>
