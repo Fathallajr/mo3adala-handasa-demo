@@ -67,6 +67,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	private feedbackRefreshTimer: ReturnType<typeof setInterval> | null = null;
 	sidebarOpen = false;
 	sidebarCollapsed = false;
+	financeMenuOpen = false;
 	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,
@@ -298,6 +299,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 					this.activeView = 'cms';
 				}
 			}
+		if (this.activeView === 'finance' || this.activeView === 'finance-payroll') this.financeMenuOpen = true;
 		if (!isCmsNavigation) this.loadPage(pageKey);
 		this.routeStateReady = true;
 	}
@@ -330,6 +332,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
 		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
 		if ((view === 'finance' || view === 'finance-payroll') && !this.auth.canAccessFeature('finance')) return;
+		if (view === 'finance' || view === 'finance-payroll') this.financeMenuOpen = true;
 		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'feedback' && view !== 'finance' && view !== 'finance-payroll' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
 			this.sidebarOpen = false;
@@ -352,6 +355,14 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'wheel') this.loadWheelClaims();
 		if (view === 'feedback') this.loadFeedback();
 		if (view === 'admins') this.loadAdminUsers();
+	}
+	toggleFinanceMenu(): void {
+		if (this.activeView !== 'finance') {
+			this.financeMenuOpen = true;
+			this.setView('finance');
+			return;
+		}
+		this.financeMenuOpen = !this.financeMenuOpen;
 	}
 	loadAdminUsers(force = false): void {
 		if (this.isLoadingAdminUsers || (this.adminUsersLoaded && !force)) return;
