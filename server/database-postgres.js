@@ -333,6 +333,28 @@ async function voidFinanceTransaction(id, reason, actor) {
 	await ensureSchema(); const client = await pool.connect(); try { await client.query('BEGIN'); const current = financeTransactionRow((await client.query(`${FINANCE_TRANSACTION_SELECT} WHERE id = $1 FOR UPDATE`, [id])).rows[0]); if (!current) { await client.query('ROLLBACK'); return null; } if (current.status === 'voided') { await client.query('COMMIT'); return current; } const now = new Date().toISOString(); await client.query('UPDATE finance_transactions SET status=$1,void_reason=$2,updated_at=$3 WHERE id=$4', ['voided', String(reason || '').trim(), now, id]); const result = financeTransactionRow((await client.query(`${FINANCE_TRANSACTION_SELECT} WHERE id = $1`, [id])).rows[0]); await createFinanceAuditLog({ entityType:'finance_transaction', entityId:id, action:'voided', beforeData:current, afterData:result, reason, actor, createdAt:now }, client); await client.query('COMMIT'); return result; } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
 }
 async function listFinancePayrollPayments(month) { await ensureSchema(); const result = await pool.query('SELECT id,employee_id AS "employeeId",month,amount,transaction_id AS "transactionId",status,approved_by AS "approvedBy",created_at AS "createdAt",updated_at AS "updatedAt" FROM finance_payroll_payments WHERE month = $1', [month]); return result.rows.map(financePayrollRow); }
+async function resetFinancePayrollPayment(employeeId, month, actor) {
+	await ensureSchema(); const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+		const current = (await client.query('SELECT id,employee_id AS "employeeId",month,amount,transaction_id AS "transactionId",status,approved_by AS "approvedBy",created_at AS "createdAt",updated_at AS "updatedAt" FROM finance_payroll_payments WHERE employee_id=$1 AND month=$2 FOR UPDATE', [employeeId, month])).rows[0];
+		if (!current) { await client.query('COMMIT'); return null; }
+		if (current.status !== 'paid') { await client.query('COMMIT'); return financePayrollRow(current); }
+		const now = new Date().toISOString();
+		if (current.transactionId) {
+			const transaction = (await client.query(`${FINANCE_TRANSACTION_SELECT} WHERE id = $1 FOR UPDATE`, [current.transactionId])).rows[0];
+			if (transaction && transaction.status !== 'voided') {
+				await client.query('UPDATE finance_transactions SET status=$1,void_reason=$2,updated_at=$3 WHERE id=$4', ['voided', `إرجاع راتب ${current.employeeId} إلى مستحق`, now, current.transactionId]);
+				const afterTransaction = financeTransactionRow((await client.query(`${FINANCE_TRANSACTION_SELECT} WHERE id = $1`, [current.transactionId])).rows[0]);
+				await createFinanceAuditLog({ entityType:'finance_transaction', entityId:current.transactionId, action:'voided', beforeData:transaction, afterData:afterTransaction, reason:'إرجاع الحالة إلى مستحق', actor, createdAt:now }, client);
+			}
+		}
+		await client.query('DELETE FROM finance_payroll_payments WHERE id=$1', [current.id]);
+		const result = financePayrollRow({ ...current, status:'due', updatedAt:now });
+		await createFinanceAuditLog({ entityType:'payroll_payment', entityId:current.id, action:'reset_to_due', beforeData:financePayrollRow(current), afterData:result, reason:'إرجاع الحالة إلى مستحق', actor, createdAt:now }, client);
+		await client.query('COMMIT'); return result;
+	} catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+}
 async function listFinanceAuditLogs(entityId = '', limit = 100) { await ensureSchema(); const values = entityId ? [String(entityId), Math.min(Number(limit) || 100, 300)] : [Math.min(Number(limit) || 100, 300)]; const result = await pool.query(entityId ? 'SELECT id,entity_type AS "entityType",entity_id AS "entityId",action,before_data AS "beforeData",after_data AS "afterData",reason,actor,created_at AS "createdAt" FROM finance_audit_logs WHERE entity_id = $1 ORDER BY created_at DESC LIMIT $2' : 'SELECT id,entity_type AS "entityType",entity_id AS "entityId",action,before_data AS "beforeData",after_data AS "afterData",reason,actor,created_at AS "createdAt" FROM finance_audit_logs ORDER BY created_at DESC LIMIT $1', values); return result.rows; }
 async function getFinanceSummary({ from, to }) {
 	await ensureSchema(); const [accountsResult, periodResult, allResult] = await Promise.all([pool.query('SELECT id,name,opening_balance AS "openingBalance",is_active AS "isActive",created_at AS "createdAt",updated_at AS "updatedAt" FROM finance_accounts ORDER BY created_at ASC'), pool.query('SELECT kind,account_id,from_account_id,to_account_id,amount,category FROM finance_transactions WHERE status=$1 AND occurred_at >= $2 AND occurred_at <= $3', ['posted',from,to]), pool.query('SELECT kind,account_id,from_account_id,to_account_id,amount FROM finance_transactions WHERE status=$1', ['posted'])]);

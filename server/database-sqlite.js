@@ -381,6 +381,20 @@ function listFinancePayrollPayments(month) {
 	return db.prepare('SELECT id,employee_id AS employeeId,month,amount,transaction_id AS transactionId,status,approved_by AS approvedBy,created_at AS createdAt,updated_at AS updatedAt FROM finance_payroll_payments WHERE month = ?').all(month).map(item => ({ ...item, amount: Number(item.amount) }));
 }
 
+function resetFinancePayrollPayment(employeeId, month, actor) {
+	return db.transaction(() => {
+		const current = db.prepare('SELECT id,employee_id AS employeeId,month,amount,transaction_id AS transactionId,status,approved_by AS approvedBy,created_at AS createdAt,updated_at AS updatedAt FROM finance_payroll_payments WHERE employee_id = ? AND month = ?').get(employeeId, month);
+		if (!current) return null;
+		if (current.status !== 'paid') return { ...current, amount: Number(current.amount) };
+		const now = new Date().toISOString();
+		if (current.transactionId) voidFinanceTransaction(current.transactionId, `إرجاع راتب ${current.employeeId} إلى مستحق`, actor);
+		db.prepare('DELETE FROM finance_payroll_payments WHERE id = ?').run(current.id);
+		const result = { ...current, amount: Number(current.amount), status: 'due', updatedAt: now };
+		createFinanceAuditLog({ entityType: 'payroll_payment', entityId: current.id, action: 'reset_to_due', beforeData: current, afterData: result, reason: 'إرجاع الحالة إلى مستحق', actor, createdAt: now });
+		return result;
+	})();
+}
+
 function listFinanceAuditLogs(entityId = '', limit = 100) {
 	const rows = entityId
 		? db.prepare('SELECT id,entity_type AS entityType,entity_id AS entityId,action,before_data AS beforeData,after_data AS afterData,reason,actor,created_at AS createdAt FROM finance_audit_logs WHERE entity_id = ? ORDER BY created_at DESC LIMIT ?').all(String(entityId), Math.min(Number(limit) || 100, 300))
@@ -427,14 +441,15 @@ function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 		const result = [];
 		for (const payment of payments) {
 			const existing = db.prepare('SELECT id,employee_id AS employeeId,month,amount,transaction_id AS transactionId,status,approved_by AS approvedBy,created_at AS createdAt,updated_at AS updatedAt FROM finance_payroll_payments WHERE employee_id = ? AND month = ?').get(payment.employeeId, month);
-			if (existing) { result.push({ ...existing, amount: Number(existing.amount) }); continue; }
+			if (existing?.status === 'paid') { result.push({ ...existing, amount: Number(existing.amount) }); continue; }
 			let transactionId = null;
 			if (Number(payment.amount) > 0) {
 				transactionId = crypto.randomUUID();
 				db.prepare('INSERT INTO finance_transactions(id,kind,account_id,amount,occurred_at,category,description,counterparty,status,source_type,source_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(transactionId, 'expense', accountId, Number(payment.amount), `${month}-01`, 'رواتب', `راتب شهر ${month}`, payment.employeeName || '', 'posted', 'payroll', `${payment.employeeId}:${month}`, approvedBy || '', now);
 			}
-			const id = crypto.randomUUID();
-			db.prepare('INSERT INTO finance_payroll_payments(id,employee_id,month,amount,transaction_id,status,approved_by,created_at) VALUES (?,?,?,?,?,?,?,?)').run(id, payment.employeeId, month, Number(payment.amount), transactionId, 'paid', approvedBy || '', now);
+			const id = existing?.id || crypto.randomUUID();
+			if (existing) db.prepare('UPDATE finance_payroll_payments SET amount = ?, transaction_id = ?, status = ?, approved_by = ?, updated_at = ? WHERE id = ?').run(Number(payment.amount), transactionId, 'paid', approvedBy || '', now, id);
+			else db.prepare('INSERT INTO finance_payroll_payments(id,employee_id,month,amount,transaction_id,status,approved_by,created_at) VALUES (?,?,?,?,?,?,?,?)').run(id, payment.employeeId, month, Number(payment.amount), transactionId, 'paid', approvedBy || '', now);
 			result.push({ id, employeeId: payment.employeeId, month, amount: Number(payment.amount), transactionId, status: 'paid', approvedBy, createdAt: now });
 			createFinanceAuditLog({ entityType: 'payroll_payment', entityId: id, action: 'approved', afterData: result[result.length - 1], actor: approvedBy, createdAt: now });
 		}
@@ -442,4 +457,4 @@ function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 	})();
 }
 
-module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };
+module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };
