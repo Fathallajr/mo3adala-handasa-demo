@@ -91,7 +91,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 				</section>
 			</div>
 			<section class="wrap">
-				<div class="head" *ngIf="!employeePageEmployee"><h3>الموظفون</h3><span class="count">{{ filteredEmployees.length }} من {{ employees.length }} موظف</span></div>
+				<div class="head" *ngIf="!employeePageEmployee"><h3>الموظفون</h3><span class="count">{{ paginatedEmployees.length }} من {{ filteredEmployees.length }} موظف</span></div>
 				<div class="employee-table-head" *ngIf="!employeePageEmployee && filteredEmployees.length"><span>الموظف</span><span>النوع</span><span>المهام</span><span>نوع الإدارة</span><span>المدير المباشر</span><span>رقم الواتساب</span><span>الإجراءات</span></div>
 				<div class="list" *ngIf="!employeePageEmployee && filteredEmployees.length; else emptyState">
 					<article class="employee-card" *ngFor="let employee of paginatedEmployees; let i = index" [class.employee-card--own]="isEmployeeAccount && isOwnEmployee(employee)">
