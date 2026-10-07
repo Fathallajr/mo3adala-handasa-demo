@@ -973,6 +973,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	private resolvePageKey(value: string | null): CmsPageKey {
 		if (this.auth.isLeadsOnly()) return 'batch-2027';
 		if (this.auth.getRole() !== 'admin') {
+			const requested = this.pageOptions.find(item => item.key === value);
+			if (requested && this.auth.canAccessPage(requested.key)) return requested.key;
 			const permitted = this.pageOptions.find(item => this.auth.canAccessPage(item.key));
 			return permitted?.key || 'batch-2027';
 		}
