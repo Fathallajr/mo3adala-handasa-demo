@@ -33,7 +33,7 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
     .accounts{order:4;gap:14px}
     .accounts article{min-height:145px;padding:22px 24px;border-radius:22px;background:linear-gradient(135deg,#1c2a4d,#35477a);box-shadow:0 15px 30px #17274624;overflow:hidden}
     .accounts article:nth-child(2){background:linear-gradient(135deg,#183b50,#1d7a72)}
-    .accounts h3{font-size:19px}.accounts strong{font-size:29px}
+    .accounts h3{font-size:19px}.accounts strong{font-size:29px}.accounts .account-kpis span{color:#f3f6ff;opacity:.86}.accounts .account-kpis .positive{color:#62efb2!important;text-shadow:0 0 12px #62efb255}.accounts .account-kpis .negative{color:#ff879b!important;text-shadow:0 0 12px #ff879b44}.accounts .account-kpis b{font-weight:950}
     .trend-card,.category-report,.payroll,.transaction-ledger{border-color:#e3e7f1;border-radius:22px;box-shadow:0 11px 26px #26365d08}
     .trend-card{order:5;padding:22px}.category-report{order:6}.payroll{order:7}.transaction-ledger{order:8}
     .section-head h3{color:#263451;font-size:17px}.section-head p{line-height:1.8}
