@@ -25,6 +25,7 @@ import { SchoolsFormComponent } from './forms/schools-form.component';
 import { ProgramLabelPipe } from '../../shared/pipes/program-label.pipe';
 import { DEFAULT_SCHOOLS } from '../../core/schools.defaults';
 import { EmployeesFormComponent } from './forms/employees-form.component';
+import { FinanceFormComponent } from './forms/finance-form.component';
 
 interface PageOption {
 	key: CmsPageKey;
@@ -34,7 +35,7 @@ interface PageOption {
 	group: string;
 }
 
-type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins';
+type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance';
 type PaginationItem = number | '…';
 
 @Component({
@@ -56,7 +57,8 @@ type PaginationItem = number | '…';
 		RequirementsFormComponent,
 		SchoolsFormComponent,
 		ProgramLabelPipe,
-		EmployeesFormComponent
+		EmployeesFormComponent,
+		FinanceFormComponent
 	],
 	templateUrl: './admin-dashboard.page.html',
 	styleUrls: ['./admin-dashboard.page.css']
@@ -65,7 +67,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	private feedbackRefreshTimer: ReturnType<typeof setInterval> | null = null;
 	sidebarOpen = false;
 	sidebarCollapsed = false;
-	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms' = 'leads';
+	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,
 		todayLeads: 0,
@@ -126,7 +128,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	private wheelClaimsLoaded = false;
 	private adminUsersLoaded = false;
 	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
-	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }];
+	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }, { key: 'finance', title: 'الحسابات والمصروفات' }];
 	wheelSearch = '';
 	wheelGift = '';
 	wheelProgram = '';
@@ -280,12 +282,13 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 				this.loadSiteMode();
 				} else if (canOpenCmsPage) {
 					this.activeView = 'cms';
-				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback')) {
+				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('finance')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
 					const canLoadCustomers = this.auth.canAccessFeature('customers');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
 					const canLoadFeedback = this.auth.canAccessFeature('feedback');
-					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : 'feedback';
+					const canLoadFinance = this.auth.canAccessFeature('finance');
+					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : canLoadFinance ? 'finance' : 'feedback';
 					this.activeView = requestedView || defaultView;
 					if (canLoadLeads) this.loadLeads();
 					if (canLoadCustomers) this.loadCustomers();
@@ -318,7 +321,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	setView(view: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'cms'): void {
+	setView(view: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'cms'): void {
 		this.closeActionMenus();
 		this.statusMessage = '';
 		this.errorMessage = '';
@@ -326,7 +329,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'customers' && !this.auth.canAccessFeature('customers')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
 		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
-		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'feedback' && this.auth.getRole() !== 'admin') return;
+		if (view === 'finance' && !this.auth.canAccessFeature('finance')) return;
+		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'feedback' && view !== 'finance' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
 			this.sidebarOpen = false;
 			return;
@@ -977,7 +981,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	}
 
 	private resolveDataView(value: string | null): AdminDataView | null {
-		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'admins'];
+		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'admins', 'finance'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
 		if (view === 'feedback') return this.auth.canAccessFeature('feedback') ? view : null;
@@ -998,6 +1002,6 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
 
-	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback'): boolean { return this.auth.canAccessFeature(feature); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance'): boolean { return this.auth.canAccessFeature(feature); }
 	canAccessCustomerPermission(_permission: string): boolean { return this.auth.canAccessFeature('customers'); }
 }

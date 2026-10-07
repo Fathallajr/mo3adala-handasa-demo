@@ -20,6 +20,10 @@ export interface WheelClaim { token: string; name: string; whatsapp: string; pro
 export interface Feedback { id: string; name: string; university?: string; batch?: string; rating: number; message: string; status: 'new' | 'reviewed' | 'published' | 'archived'; createdAt: string; updatedAt?: string | null; }
 export interface AdminUser { username: string; role: string; permissions: string[]; isActive: boolean; createdAt?: string; updatedAt?: string; }
 export interface SiteMode { maintenance: boolean; }
+export interface FinanceAccount { id: string; name: string; openingBalance: number; balance?: number; isActive: boolean; }
+export interface FinanceTransaction { id: string; kind: 'income' | 'expense' | 'transfer'; accountId?: string | null; fromAccountId?: string | null; toAccountId?: string | null; amount: number; occurredAt: string; category: string; description: string; counterparty: string; status: string; sourceType?: string; sourceId?: string; voidReason?: string; createdAt: string; }
+export interface FinanceSummary { income: number; expense: number; transfer: number; net: number; balances: FinanceAccount[]; byCategory: Record<string, number>; }
+export interface FinancePayrollLine { employeeId: number; employeeName: string; base: number; bonus: number; discount: number; net: number; status: 'paid' | 'due'; payment?: any; }
 
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {
@@ -68,6 +72,14 @@ export class AdminApiService {
 	createAdminUser(payload: { username: string; password: string; permissions: string[] }): Observable<AdminUser> { return this.http.post<AdminUser>(`${this.base}/admin/users`, payload); }
 	updateAdminUser(username: string, payload: { password?: string; permissions?: string[]; isActive?: boolean }): Observable<AdminUser> { return this.http.patch<AdminUser>(`${this.base}/admin/users/${encodeURIComponent(username)}`, payload); }
 	deleteAdminUser(username: string): Observable<void> { return this.http.delete<void>(`${this.base}/admin/users/${encodeURIComponent(username)}`); }
+	listFinanceAccounts(): Observable<{ data: FinanceAccount[] }> { return this.http.get<{ data: FinanceAccount[] }>(`${this.base}/admin/finance/accounts`); }
+	listFinanceTransactions(filters: { kind?: string; accountId?: string; from?: string; to?: string; search?: string } = {}): Observable<{ data: FinanceTransaction[] }> { let params = new HttpParams(); for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value); return this.http.get<{ data: FinanceTransaction[] }>(`${this.base}/admin/finance/transactions`, { params }); }
+	getFinanceSummary(from: string, to: string): Observable<FinanceSummary> { return this.http.get<FinanceSummary>(`${this.base}/admin/finance/summary`, { params: new HttpParams().set('from', from).set('to', to) }); }
+	createFinanceTransaction(payload: Partial<FinanceTransaction>): Observable<FinanceTransaction> { return this.http.post<FinanceTransaction>(`${this.base}/admin/finance/transactions`, payload); }
+	updateFinanceTransaction(id: string, payload: Partial<FinanceTransaction>): Observable<FinanceTransaction> { return this.http.patch<FinanceTransaction>(`${this.base}/admin/finance/transactions/${encodeURIComponent(id)}`, payload); }
+	voidFinanceTransaction(id: string, reason: string): Observable<FinanceTransaction> { return this.http.post<FinanceTransaction>(`${this.base}/admin/finance/transactions/${encodeURIComponent(id)}/void`, { reason }); }
+	getFinancePayroll(month: string): Observable<{ month: string; lines: FinancePayrollLine[]; totals: { base: number; bonus: number; discount: number; net: number; paid: number; due: number } }> { return this.http.get<any>(`${this.base}/admin/finance/payroll`, { params: new HttpParams().set('month', month) }); }
+	approveFinancePayroll(month: string, accountId: string, payments: Array<{ employeeId: number }>): Observable<{ data: any[] }> { return this.http.post<{ data: any[] }>(`${this.base}/admin/finance/payroll/${month}/approve`, { accountId, payments }); }
 	createEmployeeWithAccount(employee: { name: string; titles: string[]; whatsapp: string; email: string; description: string; baseSalary: number | null; department: string[]; employeeType: string; managerId: number | null }, password: string): Observable<{ data: any; employee: any; username: string; role: string; permissions: string[]; employeeId: string }> {
 		return this.http.post<{ data: any; employee: any; username: string; role: string; permissions: string[]; employeeId: string }>(`${this.base}/admin/employees/with-account`, { employee, password });
 	}

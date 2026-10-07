@@ -58,6 +58,33 @@ db.exec(`
     role TEXT NOT NULL DEFAULT 'editor', permissions TEXT NOT NULL DEFAULT '[]',
     is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT
   );
+  CREATE TABLE IF NOT EXISTS finance_accounts (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE, opening_balance REAL NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT
+  );
+  CREATE TABLE IF NOT EXISTS finance_transactions (
+    id TEXT PRIMARY KEY, kind TEXT NOT NULL, account_id TEXT, from_account_id TEXT,
+    to_account_id TEXT, amount REAL NOT NULL, occurred_at TEXT NOT NULL, category TEXT DEFAULT '',
+    description TEXT DEFAULT '', counterparty TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'posted',
+    source_type TEXT DEFAULT '', source_id TEXT DEFAULT '', created_by TEXT DEFAULT '',
+    created_at TEXT NOT NULL, updated_at TEXT, void_reason TEXT DEFAULT '',
+    FOREIGN KEY(account_id) REFERENCES finance_accounts(id),
+    FOREIGN KEY(from_account_id) REFERENCES finance_accounts(id),
+    FOREIGN KEY(to_account_id) REFERENCES finance_accounts(id)
+  );
+  CREATE INDEX IF NOT EXISTS finance_transactions_date_idx ON finance_transactions(occurred_at);
+  CREATE INDEX IF NOT EXISTS finance_transactions_source_idx ON finance_transactions(source_type, source_id);
+  CREATE TABLE IF NOT EXISTS finance_payroll_payments (
+    id TEXT PRIMARY KEY, employee_id INTEGER NOT NULL, month TEXT NOT NULL, amount REAL NOT NULL,
+    transaction_id TEXT, status TEXT NOT NULL DEFAULT 'paid', approved_by TEXT DEFAULT '',
+    created_at TEXT NOT NULL, updated_at TEXT, UNIQUE(employee_id, month),
+    FOREIGN KEY(transaction_id) REFERENCES finance_transactions(id)
+  );
+  CREATE TABLE IF NOT EXISTS finance_audit_logs (
+    id TEXT PRIMARY KEY, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL, action TEXT NOT NULL,
+    before_data TEXT DEFAULT '{}', after_data TEXT DEFAULT '{}', reason TEXT DEFAULT '',
+    actor TEXT DEFAULT '', created_at TEXT NOT NULL
+  );
 `);
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN username TEXT NOT NULL DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
@@ -87,6 +114,15 @@ function migrateLegacyStore() {
 }
 
 migrateLegacyStore();
+
+function ensureFinanceAccounts() {
+	const insert = db.prepare('INSERT OR IGNORE INTO finance_accounts(id,name,opening_balance,is_active,created_at) VALUES (?,?,?,?,?)');
+	const now = new Date().toISOString();
+	insert.run('application', 'أبلكيشن', 0, 1, now);
+	insert.run('studio', 'استوديو', 0, 1, now);
+}
+
+ensureFinanceAccounts();
 
 function readStore() {
   const pages = {};
@@ -280,4 +316,116 @@ function updateWheelClaim(token, changes) { const result = db.prepare('UPDATE wh
 function deleteWheelClaim(token) { return db.prepare('DELETE FROM wheel_claims WHERE token = ?').run(token).changes > 0; }
 function countWheelClaims() { listWheelClaims(); return db.prepare('SELECT COUNT(*) AS count FROM wheel_claims').get().count; }
 
-module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, databaseFile };
+function listFinanceAccounts() {
+	return db.prepare('SELECT id,name,opening_balance AS openingBalance,is_active AS isActive,created_at AS createdAt,updated_at AS updatedAt FROM finance_accounts ORDER BY created_at ASC').all().map(item => ({ ...item, openingBalance: Number(item.openingBalance), isActive: Boolean(item.isActive) }));
+}
+
+function financeTransactionRow(row) {
+	if (!row) return null;
+	return { ...row, amount: Number(row.amount), accountId: row.accountId || null, fromAccountId: row.fromAccountId || null, toAccountId: row.toAccountId || null };
+}
+
+function listFinanceTransactions(filters = {}) {
+	let sql = `SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE 1=1`;
+	const values = [];
+	const add = (fragment, value) => { values.push(value); sql += ` AND ${fragment} ?`; };
+	if (filters.kind) add('kind =', filters.kind);
+	if (filters.accountId) { values.push(filters.accountId, filters.accountId, filters.accountId); sql += ' AND (account_id = ? OR from_account_id = ? OR to_account_id = ?)'; }
+	if (filters.status) add('status =', filters.status);
+	if (filters.from) add('occurred_at >=', filters.from);
+	if (filters.to) add('occurred_at <=', filters.to);
+	if (filters.search) { const search = `%${filters.search}%`; values.push(search, search, search); sql += ' AND (description LIKE ? OR counterparty LIKE ? OR category LIKE ?)'; }
+	sql += ' ORDER BY occurred_at DESC, created_at DESC';
+	if (filters.limit) { values.push(Number(filters.limit)); sql += ' LIMIT ?'; }
+	if (filters.offset) { values.push(Number(filters.offset)); sql += ' OFFSET ?'; }
+	return db.prepare(sql).all(...values).map(financeTransactionRow);
+}
+
+function createFinanceAuditLog(log) {
+	db.prepare('INSERT INTO finance_audit_logs(id,entity_type,entity_id,action,before_data,after_data,reason,actor,created_at) VALUES (?,?,?,?,?,?,?,?,?)').run(log.id || crypto.randomUUID(), log.entityType, String(log.entityId), log.action, JSON.stringify(log.beforeData || {}), JSON.stringify(log.afterData || {}), log.reason || '', log.actor || '', log.createdAt || new Date().toISOString());
+}
+
+function createFinanceTransaction(input) {
+	const now = input.createdAt || new Date().toISOString();
+	const id = input.id || crypto.randomUUID();
+	db.prepare('INSERT INTO finance_transactions(id,kind,account_id,from_account_id,to_account_id,amount,occurred_at,category,description,counterparty,status,source_type,source_id,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(id, input.kind, input.accountId || null, input.fromAccountId || null, input.toAccountId || null, Number(input.amount), input.occurredAt, input.category || '', input.description || '', input.counterparty || '', input.status || 'posted', input.sourceType || '', input.sourceId || '', input.createdBy || '', now, null);
+	const result = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
+	createFinanceAuditLog({ entityType: 'finance_transaction', entityId: id, action: 'created', afterData: result, actor: input.createdBy, createdAt: now });
+	return result;
+}
+
+function updateFinanceTransaction(id, changes, actor) {
+	const current = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
+	if (!current) return null;
+	if (current.status === 'voided') throw Object.assign(new Error('لا يمكن تعديل حركة ملغاة.'), { code: 'FINANCE_VOIDED' });
+	const next = { ...current, ...changes, amount: current.amount, kind: current.kind, accountId: current.accountId, fromAccountId: current.fromAccountId, toAccountId: current.toAccountId, sourceType: current.sourceType, sourceId: current.sourceId, updatedAt: new Date().toISOString() };
+	db.prepare('UPDATE finance_transactions SET occurred_at=?,category=?,description=?,counterparty=?,updated_at=? WHERE id=?').run(next.occurredAt, next.category || '', next.description || '', next.counterparty || '', next.updatedAt, id);
+	const result = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
+	createFinanceAuditLog({ entityType: 'finance_transaction', entityId: id, action: 'updated', beforeData: current, afterData: result, actor, createdAt: next.updatedAt });
+	return result;
+}
+
+function voidFinanceTransaction(id, reason, actor) {
+	const current = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
+	if (!current) return null;
+	if (current.status === 'voided') return current;
+	const now = new Date().toISOString();
+	db.prepare('UPDATE finance_transactions SET status = ?, void_reason = ?, updated_at = ? WHERE id = ?').run('voided', String(reason || '').trim(), now, id);
+	const result = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
+	createFinanceAuditLog({ entityType: 'finance_transaction', entityId: id, action: 'voided', beforeData: current, afterData: result, reason, actor, createdAt: now });
+	return result;
+}
+
+function listFinancePayrollPayments(month) {
+	return db.prepare('SELECT id,employee_id AS employeeId,month,amount,transaction_id AS transactionId,status,approved_by AS approvedBy,created_at AS createdAt,updated_at AS updatedAt FROM finance_payroll_payments WHERE month = ?').all(month).map(item => ({ ...item, amount: Number(item.amount) }));
+}
+
+function createFinancePayrollPayment(payment) {
+	db.prepare('INSERT INTO finance_payroll_payments(id,employee_id,month,amount,transaction_id,status,approved_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)').run(payment.id || crypto.randomUUID(), payment.employeeId, payment.month, Number(payment.amount), payment.transactionId || null, payment.status || 'paid', payment.approvedBy || '', payment.createdAt || new Date().toISOString(), null);
+}
+
+function getFinanceSummary({ from, to }) {
+	const accounts = listFinanceAccounts();
+	const rows = db.prepare('SELECT * FROM finance_transactions WHERE status = ? AND occurred_at >= ? AND occurred_at <= ?').all('posted', from, to);
+	const allRows = db.prepare('SELECT * FROM finance_transactions WHERE status = ?').all('posted');
+	const totals = { income: 0, expense: 0, transfer: 0 };
+	for (const row of rows) totals[row.kind] = (totals[row.kind] || 0) + Number(row.amount || 0);
+	const balances = accounts.map(account => {
+		let balance = Number(account.openingBalance || 0);
+		for (const row of allRows) {
+			if (row.kind === 'income' && row.account_id === account.id) balance += Number(row.amount);
+			if (row.kind === 'expense' && row.account_id === account.id) balance -= Number(row.amount);
+			if (row.kind === 'transfer' && row.from_account_id === account.id) balance -= Number(row.amount);
+			if (row.kind === 'transfer' && row.to_account_id === account.id) balance += Number(row.amount);
+		}
+		return { ...account, balance };
+	});
+	const byCategory = {};
+	for (const row of rows.filter(item => item.kind === 'expense')) byCategory[row.category || 'أخرى'] = (byCategory[row.category || 'أخرى'] || 0) + Number(row.amount);
+	return { ...totals, net: totals.income - totals.expense, balances, byCategory };
+}
+
+function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
+	return db.transaction(() => {
+		const now = new Date().toISOString();
+		const account = db.prepare('SELECT id FROM finance_accounts WHERE id = ? AND is_active = 1').get(accountId);
+		if (!account) throw Object.assign(new Error('الخزنة غير موجودة.'), { code: 'FINANCE_ACCOUNT_NOT_FOUND' });
+		const result = [];
+		for (const payment of payments) {
+			const existing = db.prepare('SELECT id,employee_id AS employeeId,month,amount,transaction_id AS transactionId,status,approved_by AS approvedBy,created_at AS createdAt,updated_at AS updatedAt FROM finance_payroll_payments WHERE employee_id = ? AND month = ?').get(payment.employeeId, month);
+			if (existing) { result.push({ ...existing, amount: Number(existing.amount) }); continue; }
+			let transactionId = null;
+			if (Number(payment.amount) > 0) {
+				transactionId = crypto.randomUUID();
+				db.prepare('INSERT INTO finance_transactions(id,kind,account_id,amount,occurred_at,category,description,counterparty,status,source_type,source_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(transactionId, 'expense', accountId, Number(payment.amount), `${month}-01`, 'رواتب', `راتب شهر ${month}`, payment.employeeName || '', 'posted', 'payroll', `${payment.employeeId}:${month}`, approvedBy || '', now);
+			}
+			const id = crypto.randomUUID();
+			db.prepare('INSERT INTO finance_payroll_payments(id,employee_id,month,amount,transaction_id,status,approved_by,created_at) VALUES (?,?,?,?,?,?,?,?)').run(id, payment.employeeId, month, Number(payment.amount), transactionId, 'paid', approvedBy || '', now);
+			result.push({ id, employeeId: payment.employeeId, month, amount: Number(payment.amount), transactionId, status: 'paid', approvedBy, createdAt: now });
+			createFinanceAuditLog({ entityType: 'payroll_payment', entityId: id, action: 'approved', afterData: result[result.length - 1], actor: approvedBy, createdAt: now });
+		}
+		return result;
+	})();
+}
+
+module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, createFinancePayrollPayment, getFinanceSummary, approveFinancePayroll, databaseFile };

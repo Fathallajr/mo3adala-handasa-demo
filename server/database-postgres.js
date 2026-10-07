@@ -57,13 +57,39 @@ function ensureSchema() {
 				role TEXT NOT NULL DEFAULT 'editor', permissions JSONB NOT NULL DEFAULT '[]'::jsonb,
 				is_active BOOLEAN NOT NULL DEFAULT TRUE, created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ
 			);
+			CREATE TABLE IF NOT EXISTS finance_accounts (
+				id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE, opening_balance NUMERIC NOT NULL DEFAULT 0,
+				is_active BOOLEAN NOT NULL DEFAULT TRUE, created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ
+			);
+			CREATE TABLE IF NOT EXISTS finance_transactions (
+				id TEXT PRIMARY KEY, kind TEXT NOT NULL, account_id TEXT, from_account_id TEXT,
+				to_account_id TEXT, amount NUMERIC NOT NULL, occurred_at DATE NOT NULL, category TEXT DEFAULT '',
+				description TEXT DEFAULT '', counterparty TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'posted',
+				source_type TEXT DEFAULT '', source_id TEXT DEFAULT '', created_by TEXT DEFAULT '',
+				created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ, void_reason TEXT DEFAULT ''
+			);
+			CREATE INDEX IF NOT EXISTS finance_transactions_date_idx ON finance_transactions(occurred_at);
+			CREATE INDEX IF NOT EXISTS finance_transactions_source_idx ON finance_transactions(source_type, source_id);
+			CREATE TABLE IF NOT EXISTS finance_payroll_payments (
+				id TEXT PRIMARY KEY, employee_id INTEGER NOT NULL, month TEXT NOT NULL, amount NUMERIC NOT NULL,
+				transaction_id TEXT, status TEXT NOT NULL DEFAULT 'paid', approved_by TEXT DEFAULT '',
+				created_at TIMESTAMPTZ NOT NULL, updated_at TIMESTAMPTZ, UNIQUE(employee_id, month)
+			);
+			CREATE TABLE IF NOT EXISTS finance_audit_logs (
+				id TEXT PRIMARY KEY, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL, action TEXT NOT NULL,
+				before_data JSONB NOT NULL DEFAULT '{}'::jsonb, after_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+				reason TEXT DEFAULT '', actor TEXT DEFAULT '', created_at TIMESTAMPTZ NOT NULL
+			);
 			ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'admin';
 			ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS username TEXT NOT NULL DEFAULT '';
 			ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS permissions JSONB NOT NULL DEFAULT '[]'::jsonb;
 			ALTER TABLE leads ADD COLUMN IF NOT EXISTS attribution JSONB NOT NULL DEFAULT '{}'::jsonb;
 			ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS batch TEXT DEFAULT '';
 			ALTER TABLE wheel_claims ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
-		`);
+		`).then(async result => {
+			await pool.query("INSERT INTO finance_accounts(id,name,opening_balance,is_active,created_at) VALUES ('application','أبلكيشن',0,TRUE,NOW()),('studio','استوديو',0,TRUE,NOW()) ON CONFLICT (id) DO NOTHING");
+			return result;
+		});
 	}
 	return schemaPromise;
 }
@@ -281,10 +307,47 @@ async function updateWheelClaim(token, changes) { await ensureSchema(); const re
 async function deleteWheelClaim(token) { await ensureSchema(); const result = await pool.query('DELETE FROM wheel_claims WHERE token = $1 RETURNING token', [token]); return result.rowCount > 0; }
 async function countWheelClaims() { await listWheelClaims(); const result = await pool.query('SELECT COUNT(*)::int AS count FROM wheel_claims'); return result.rows[0].count; }
 
+function financeAccountRow(row) { return row ? { ...row, openingBalance: Number(row.openingBalance), isActive: Boolean(row.isActive) } : null; }
+function financeTransactionRow(row) { return row ? { ...row, amount: Number(row.amount), accountId: row.accountId || null, fromAccountId: row.fromAccountId || null, toAccountId: row.toAccountId || null } : null; }
+function financePayrollRow(row) { return row ? { ...row, employeeId: Number(row.employeeId), amount: Number(row.amount) } : null; }
+const FINANCE_TRANSACTION_SELECT = `SELECT id,kind,account_id AS "accountId",from_account_id AS "fromAccountId",to_account_id AS "toAccountId",amount,occurred_at AS "occurredAt",category,description,counterparty,status,source_type AS "sourceType",source_id AS "sourceId",created_by AS "createdBy",created_at AS "createdAt",updated_at AS "updatedAt",void_reason AS "voidReason" FROM finance_transactions`;
+
+async function listFinanceAccounts() { await ensureSchema(); const result = await pool.query('SELECT id,name,opening_balance AS "openingBalance",is_active AS "isActive",created_at AS "createdAt",updated_at AS "updatedAt" FROM finance_accounts ORDER BY created_at ASC'); return result.rows.map(financeAccountRow); }
+async function listFinanceTransactions(filters = {}) {
+	await ensureSchema(); const values = []; const clauses = ['1=1']; const add = (sql, value) => { values.push(value); clauses.push(`${sql} $${values.length}`); };
+	if (filters.kind) add('kind =', filters.kind); if (filters.accountId) { values.push(filters.accountId); const p = values.length; values.push(filters.accountId); const p2 = values.length; values.push(filters.accountId); const p3 = values.length; clauses.push(`(account_id = $${p} OR from_account_id = $${p2} OR to_account_id = $${p3})`); }
+	if (filters.status) add('status =', filters.status); if (filters.from) add('occurred_at >=', filters.from); if (filters.to) add('occurred_at <=', filters.to);
+	if (filters.search) { const search = `%${filters.search}%`; values.push(search, search, search); clauses.push(`(description ILIKE $${values.length - 2} OR counterparty ILIKE $${values.length - 1} OR category ILIKE $${values.length})`); }
+	let sql = `${FINANCE_TRANSACTION_SELECT} WHERE ${clauses.join(' AND ')} ORDER BY occurred_at DESC, created_at DESC`; if (filters.limit) { values.push(Number(filters.limit)); sql += ` LIMIT $${values.length}`; } if (filters.offset) { values.push(Number(filters.offset)); sql += ` OFFSET $${values.length}`; }
+	return (await pool.query(sql, values)).rows.map(financeTransactionRow);
+}
+async function createFinanceAuditLog(log, client = pool) { await client.query('INSERT INTO finance_audit_logs(id,entity_type,entity_id,action,before_data,after_data,reason,actor,created_at) VALUES ($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7,$8,$9)', [log.id || crypto.randomUUID(), log.entityType, String(log.entityId), log.action, JSON.stringify(log.beforeData || {}), JSON.stringify(log.afterData || {}), log.reason || '', log.actor || '', log.createdAt || new Date().toISOString()]); }
+async function createFinanceTransaction(input) {
+	await ensureSchema(); const client = await pool.connect(); const now = input.createdAt || new Date().toISOString(); const id = input.id || crypto.randomUUID();
+	try { await client.query('BEGIN'); await client.query('INSERT INTO finance_transactions(id,kind,account_id,from_account_id,to_account_id,amount,occurred_at,category,description,counterparty,status,source_type,source_id,created_by,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)', [id,input.kind,input.accountId||null,input.fromAccountId||null,input.toAccountId||null,Number(input.amount),input.occurredAt,input.category||'',input.description||'',input.counterparty||'',input.status||'posted',input.sourceType||'',input.sourceId||'',input.createdBy||'',now]); const result = financeTransactionRow((await client.query(`${FINANCE_TRANSACTION_SELECT} WHERE id = $1`, [id])).rows[0]); await createFinanceAuditLog({ entityType:'finance_transaction', entityId:id, action:'created', afterData:result, actor:input.createdBy, createdAt:now }, client); await client.query('COMMIT'); return result; } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+}
+async function updateFinanceTransaction(id, changes, actor) {
+	await ensureSchema(); const client = await pool.connect(); try { await client.query('BEGIN'); const current = financeTransactionRow((await client.query(`${FINANCE_TRANSACTION_SELECT} WHERE id = $1 FOR UPDATE`, [id])).rows[0]); if (!current) { await client.query('ROLLBACK'); return null; } if (current.status === 'voided') throw Object.assign(new Error('لا يمكن تعديل حركة ملغاة.'), { code:'FINANCE_VOIDED' }); const updatedAt = new Date().toISOString(); await client.query('UPDATE finance_transactions SET occurred_at=$1,category=$2,description=$3,counterparty=$4,updated_at=$5 WHERE id=$6', [changes.occurredAt || current.occurredAt, changes.category ?? current.category, changes.description ?? current.description, changes.counterparty ?? current.counterparty, updatedAt, id]); const result = financeTransactionRow((await client.query(`${FINANCE_TRANSACTION_SELECT} WHERE id = $1`, [id])).rows[0]); await createFinanceAuditLog({ entityType:'finance_transaction', entityId:id, action:'updated', beforeData:current, afterData:result, actor, createdAt:updatedAt }, client); await client.query('COMMIT'); return result; } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+}
+async function voidFinanceTransaction(id, reason, actor) {
+	await ensureSchema(); const client = await pool.connect(); try { await client.query('BEGIN'); const current = financeTransactionRow((await client.query(`${FINANCE_TRANSACTION_SELECT} WHERE id = $1 FOR UPDATE`, [id])).rows[0]); if (!current) { await client.query('ROLLBACK'); return null; } if (current.status === 'voided') { await client.query('COMMIT'); return current; } const now = new Date().toISOString(); await client.query('UPDATE finance_transactions SET status=$1,void_reason=$2,updated_at=$3 WHERE id=$4', ['voided', String(reason || '').trim(), now, id]); const result = financeTransactionRow((await client.query(`${FINANCE_TRANSACTION_SELECT} WHERE id = $1`, [id])).rows[0]); await createFinanceAuditLog({ entityType:'finance_transaction', entityId:id, action:'voided', beforeData:current, afterData:result, reason, actor, createdAt:now }, client); await client.query('COMMIT'); return result; } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+}
+async function listFinancePayrollPayments(month) { await ensureSchema(); const result = await pool.query('SELECT id,employee_id AS "employeeId",month,amount,transaction_id AS "transactionId",status,approved_by AS "approvedBy",created_at AS "createdAt",updated_at AS "updatedAt" FROM finance_payroll_payments WHERE month = $1', [month]); return result.rows.map(financePayrollRow); }
+async function getFinanceSummary({ from, to }) {
+	await ensureSchema(); const [accountsResult, periodResult, allResult] = await Promise.all([pool.query('SELECT id,name,opening_balance AS "openingBalance",is_active AS "isActive",created_at AS "createdAt",updated_at AS "updatedAt" FROM finance_accounts ORDER BY created_at ASC'), pool.query('SELECT kind,account_id,from_account_id,to_account_id,amount,category FROM finance_transactions WHERE status=$1 AND occurred_at >= $2 AND occurred_at <= $3', ['posted',from,to]), pool.query('SELECT kind,account_id,from_account_id,to_account_id,amount FROM finance_transactions WHERE status=$1', ['posted'])]);
+	const totals = { income:0, expense:0, transfer:0 }; const byCategory = {}; for (const row of periodResult.rows) { totals[row.kind] = (totals[row.kind] || 0) + Number(row.amount); if (row.kind === 'expense') byCategory[row.category || 'أخرى'] = (byCategory[row.category || 'أخرى'] || 0) + Number(row.amount); }
+	const balances = accountsResult.rows.map(account => { let balance = Number(account.openingBalance || 0); for (const row of allResult.rows) { if (row.kind === 'income' && row.account_id === account.id) balance += Number(row.amount); if (row.kind === 'expense' && row.account_id === account.id) balance -= Number(row.amount); if (row.kind === 'transfer' && row.from_account_id === account.id) balance -= Number(row.amount); if (row.kind === 'transfer' && row.to_account_id === account.id) balance += Number(row.amount); } return { ...financeAccountRow(account), balance }; });
+	return { ...totals, net: totals.income - totals.expense, balances, byCategory };
+}
+async function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
+	await ensureSchema(); const client = await pool.connect(); try { await client.query('BEGIN'); const account = (await client.query('SELECT id FROM finance_accounts WHERE id=$1 AND is_active=TRUE', [accountId])).rows[0]; if (!account) throw Object.assign(new Error('الخزنة غير موجودة.'), { code:'FINANCE_ACCOUNT_NOT_FOUND' }); const result = []; const now = new Date().toISOString(); for (const payment of payments) { const existing = (await client.query('SELECT id,employee_id AS "employeeId",month,amount,transaction_id AS "transactionId",status,approved_by AS "approvedBy",created_at AS "createdAt",updated_at AS "updatedAt" FROM finance_payroll_payments WHERE employee_id=$1 AND month=$2 FOR UPDATE', [payment.employeeId,month])).rows[0]; if (existing) { result.push(financePayrollRow(existing)); continue; } let transactionId = null; if (Number(payment.amount) > 0) { transactionId = crypto.randomUUID(); const transaction = { id:transactionId, kind:'expense', accountId, amount:Number(payment.amount), occurredAt:`${month}-01`, category:'رواتب', description:`راتب شهر ${month}`, counterparty:payment.employeeName || '', status:'posted', sourceType:'payroll', sourceId:`${payment.employeeId}:${month}`, createdBy:approvedBy || '', createdAt:now }; await client.query('INSERT INTO finance_transactions(id,kind,account_id,amount,occurred_at,category,description,counterparty,status,source_type,source_id,created_by,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)', [transaction.id,transaction.kind,transaction.accountId,transaction.amount,transaction.occurredAt,transaction.category,transaction.description,transaction.counterparty,transaction.status,transaction.sourceType,transaction.sourceId,transaction.createdBy,transaction.createdAt]); await createFinanceAuditLog({ entityType:'finance_transaction',entityId:transactionId,action:'created',afterData:transaction,actor:approvedBy,createdAt:now }, client); }
+		const id = crypto.randomUUID(); await client.query('INSERT INTO finance_payroll_payments(id,employee_id,month,amount,transaction_id,status,approved_by,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [id,payment.employeeId,month,Number(payment.amount),transactionId,'paid',approvedBy||'',now]); const line = { id,employeeId:Number(payment.employeeId),month,amount:Number(payment.amount),transactionId,status:'paid',approvedBy:approvedBy||'',createdAt:now }; await createFinanceAuditLog({ entityType:'payroll_payment',entityId:id,action:'approved',afterData:line,actor:approvedBy,createdAt:now }, client); result.push(line); } await client.query('COMMIT'); return result; } catch (error) { await client.query('ROLLBACK'); if (error?.code === '23505') error.code = 'FINANCE_PAYROLL_DUPLICATE'; throw error; } finally { client.release(); }
+}
+
 async function deleteAdminSession(token) {
 	await ensureSchema();
 	await pool.query('DELETE FROM admin_sessions WHERE token = $1', [token]);
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, getFinanceSummary, approveFinancePayroll, databaseFile: null, pool, ensureSchema };

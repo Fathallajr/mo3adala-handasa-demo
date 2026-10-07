@@ -91,7 +91,7 @@ export class AdminAuthService {
 		const role = localStorage.getItem(this.roleKey);
 		// "editor" was the old name for accounts created from حسابات الأدمن.
 		// They are full admins; only employee-created accounts stay limited.
-		if (role === 'employee') return 'employee';
+		if (role === 'employee' || this.getPermissions().some(item => /^employee:\d+$/.test(item))) return 'employee';
 		if (role === 'leads') return 'leads';
 		return 'admin';
 	}
@@ -126,6 +126,6 @@ export class AdminAuthService {
 
 	canAccessPage(pageKey: string): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && pageKey === 'batch-2027') || (this.getRole() === 'employee' && pageKey === 'employees') || this.getPermissions().includes('*') || this.getPermissions().includes(pageKey); }
 
-	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback'): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && feature === 'leads') || this.getPermissions().includes(feature) || this.getPermissions().includes(`${feature}:read`); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance'): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && feature === 'leads') || this.getPermissions().includes(feature) || this.getPermissions().includes(`${feature}:read`); }
 	canAccessPermission(permission: string): boolean { return this.getRole() === 'admin' || this.getPermissions().includes('*') || this.getPermissions().includes(permission); }
 }

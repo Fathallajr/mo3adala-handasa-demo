@@ -343,7 +343,8 @@ function requirePermission(permission) {
 			leads: new Set(['leads:read', 'leads:update']),
 			customers: new Set(['customers:read', 'customers:update', 'customers:import', 'customers:export', 'customers:delete']),
 			feedback: new Set(['feedback:read', 'feedback:update']),
-			wheel: new Set(['wheel:read'])
+			wheel: new Set(['wheel:read']),
+			finance: new Set(['finance:read', 'finance:write'])
 		};
 		const [group] = permission.split(':');
 		const hasGroupedPermission = groupedReadWritePermissions[group]?.has(permission) && req.adminPermissions.includes(group);
@@ -547,8 +548,13 @@ app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000,
 	}
 
 	try {
-		const role = isFullAdmin ? 'admin' : isLeadsAdmin ? 'leads' : databaseUser.role === 'employee' ? 'employee' : 'admin';
-		const session = await issueToken(role, isFullAdmin ? ADMIN_USERNAME : isLeadsAdmin ? LEADS_ADMIN_USERNAME : databaseUser.username, isFullAdmin ? ['*'] : isLeadsAdmin ? ['leads:read', 'leads:update', 'wheel:read', 'batch-2027'] : normalizeUserPermissions(databaseUser.permissions));
+		const databasePermissions = normalizeUserPermissions(databaseUser?.permissions);
+		// Employee accounts are identified by their role or their scoped employee:id
+		// permission. This keeps older production records limited even if their role
+		// was created before the employee-account migration.
+		const isEmployeeAccount = Boolean(databaseUser && (databaseUser.role === 'employee' || databasePermissions.some(item => /^employee:\d+$/.test(item))));
+		const role = isFullAdmin ? 'admin' : isLeadsAdmin ? 'leads' : isEmployeeAccount ? 'employee' : 'admin';
+		const session = await issueToken(role, isFullAdmin ? ADMIN_USERNAME : isLeadsAdmin ? LEADS_ADMIN_USERNAME : databaseUser.username, isFullAdmin ? ['*'] : isLeadsAdmin ? ['leads:read', 'leads:update', 'wheel:read', 'batch-2027'] : databasePermissions);
 		res.json(session);
 	} catch (error) {
 		next(error);
@@ -967,7 +973,7 @@ app.patch('/api/admin/feedback/:id', requireAdmin, requirePermission('feedback:u
 
 function normalizeUserPermissions(value) {
 	if (!Array.isArray(value)) return [];
-	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'feedback', 'employees']);
+	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'feedback', 'employees', 'finance']);
 	const normalized = [];
 	for (const rawItem of value) {
 		const item = String(rawItem || '').trim();
@@ -979,6 +985,33 @@ function normalizeUserPermissions(value) {
 	}
 	return normalized;
 }
+
+const FINANCE_KINDS = new Set(['income', 'expense', 'transfer']);
+const FINANCE_CATEGORIES = new Set(['اشتراكات ومبيعات', 'رواتب', 'إيجار', 'تسويق', 'أدوات ومستلزمات', 'اشتراكات خدمات', 'مواصلات', 'مصروفات تشغيلية', 'أخرى', 'تحويل داخلي']);
+function validateFinanceDate(value, field = 'التاريخ') { const text = String(value || '').trim(); if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return `${field} غير صحيح.`; return null; }
+function validateFinanceMonth(value) { const text = String(value || '').trim(); if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(text)) return 'الشهر غير صحيح.'; return null; }
+function parseFinanceFilters(query) { const from = String(query.from || '').trim(); const to = String(query.to || '').trim(); if (from && validateFinanceDate(from, 'من تاريخ')) return { error: validateFinanceDate(from, 'من تاريخ') }; if (to && validateFinanceDate(to, 'إلى تاريخ')) return { error: validateFinanceDate(to, 'إلى تاريخ') }; if (from && to && from > to) return { error: 'من تاريخ يجب أن يسبق إلى تاريخ.' }; return { from, to }; }
+function validateFinanceTransactionInput(input, accounts) {
+	const kind = String(input?.kind || '').trim(); const amount = Number(input?.amount); const occurredAt = String(input?.occurredAt || '').trim();
+	if (!FINANCE_KINDS.has(kind)) return 'نوع الحركة غير صحيح.'; if (!Number.isFinite(amount) || amount <= 0 || amount > 100000000) return 'المبلغ يجب أن يكون أكبر من صفر.'; const dateError = validateFinanceDate(occurredAt); if (dateError) return dateError;
+	const accountIds = new Set(accounts.filter(item => item.isActive).map(item => item.id)); if ((kind !== 'transfer' && !accountIds.has(String(input.accountId || ''))) || (kind === 'transfer' && (!accountIds.has(String(input.fromAccountId || '')) || !accountIds.has(String(input.toAccountId || '')) || input.fromAccountId === input.toAccountId))) return 'الخزنة المختارة غير صحيحة.';
+	for (const [key, label, max] of [['category','التصنيف',80], ['description','الوصف',500], ['counterparty','الطرف أو الجهة',160]]) if (String(input[key] || '').length > max) return `${label} طويل جدًا.`;
+	return null;
+}
+function financePayrollPreview(store, month, paidRows) {
+	const paid = new Map(paidRows.map(row => [String(row.employeeId), row])); const employees = store.pages.employees?.data?.items || [];
+	const lines = employees.map(employee => { const record = (employee.monthlyRecords || []).find(item => item.month === month); const base = record?.salary === null || record?.salary === undefined || record?.salary === '' ? Number(employee.baseSalary || 0) : Number(record.salary || 0); const adjustments = Array.isArray(record?.adjustments) ? record.adjustments : []; const bonus = adjustments.filter(item => item.kind === 'bonus').reduce((sum, item) => sum + Number(item.amount || 0), 0); const discount = adjustments.filter(item => item.kind === 'discount').reduce((sum, item) => sum + Number(item.amount || 0), 0); const net = Math.max(0, base + bonus - discount); const payment = paid.get(String(employee.id)); return { employeeId: Number(employee.id), employeeName: employee.name, base, bonus, discount, net, status: payment ? 'paid' : 'due', payment: payment || null }; });
+	return { month, lines, totals: { base: lines.reduce((sum, line) => sum + line.base, 0), bonus: lines.reduce((sum, line) => sum + line.bonus, 0), discount: lines.reduce((sum, line) => sum + line.discount, 0), net: lines.reduce((sum, line) => sum + line.net, 0), paid: lines.filter(line => line.status === 'paid').reduce((sum, line) => sum + line.net, 0), due: lines.filter(line => line.status !== 'paid').reduce((sum, line) => sum + line.net, 0) } };
+}
+
+app.get('/api/admin/finance/accounts', requireAdmin, requirePermission('finance:read'), async (_req, res, next) => { try { res.json({ data: await database.listFinanceAccounts() }); } catch (error) { next(error); } });
+app.get('/api/admin/finance/transactions', requireAdmin, requirePermission('finance:read'), async (req, res, next) => { try { const filters = parseFinanceFilters(req.query); if (filters.error) return res.status(400).json({ message: filters.error }); const data = await database.listFinanceTransactions({ ...filters, kind: String(req.query.kind || '').trim(), accountId: String(req.query.accountId || '').trim(), status: String(req.query.status || '').trim(), search: String(req.query.search || '').trim(), limit: Math.min(Math.max(Number(req.query.limit) || 100, 1), 300), offset: Math.max(Number(req.query.offset) || 0, 0) }); res.json({ data }); } catch (error) { next(error); } });
+app.get('/api/admin/finance/summary', requireAdmin, requirePermission('finance:read'), async (req, res, next) => { try { const parsed = parseFinanceFilters(req.query); if (parsed.error) return res.status(400).json({ message: parsed.error }); const now = new Date(); const from = parsed.from || `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`; const to = parsed.to || new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).toISOString().slice(0, 10); res.json(await database.getFinanceSummary({ from, to })); } catch (error) { next(error); } });
+app.post('/api/admin/finance/transactions', requireAdmin, requirePermission('finance:write'), async (req, res, next) => { try { const accounts = await database.listFinanceAccounts(); const input = { ...req.body, kind: String(req.body?.kind || '').trim(), occurredAt: String(req.body?.occurredAt || '').trim(), category: String(req.body?.category || 'أخرى').trim(), description: String(req.body?.description || '').trim(), counterparty: String(req.body?.counterparty || '').trim(), createdBy: req.adminUsername }; const error = validateFinanceTransactionInput(input, accounts); if (error) return res.status(400).json({ message: error }); if (input.kind === 'transfer') input.category = 'تحويل داخلي'; res.status(201).json(await database.createFinanceTransaction(input)); } catch (error) { next(error); } });
+app.patch('/api/admin/finance/transactions/:id', requireAdmin, requirePermission('finance:write'), async (req, res, next) => { try { const changes = { occurredAt: String(req.body?.occurredAt || '').trim(), category: String(req.body?.category || '').trim(), description: String(req.body?.description || '').trim(), counterparty: String(req.body?.counterparty || '').trim() }; const dateError = validateFinanceDate(changes.occurredAt); if (dateError) return res.status(400).json({ message: dateError }); if (changes.description.length > 500 || changes.counterparty.length > 160 || changes.category.length > 80) return res.status(400).json({ message: 'بيانات الحركة طويلة جدًا.' }); const result = await database.updateFinanceTransaction(req.params.id, changes, req.adminUsername); if (!result) return res.status(404).json({ message: 'الحركة غير موجودة.' }); res.json(result); } catch (error) { if (error.code === 'FINANCE_VOIDED') return res.status(409).json({ message: error.message }); next(error); } });
+app.post('/api/admin/finance/transactions/:id/void', requireAdmin, requirePermission('finance:write'), async (req, res, next) => { try { const reason = String(req.body?.reason || '').trim(); if (reason.length < 3 || reason.length > 300) return res.status(400).json({ message: 'سبب الإلغاء مطلوب.' }); const result = await database.voidFinanceTransaction(req.params.id, reason, req.adminUsername); if (!result) return res.status(404).json({ message: 'الحركة غير موجودة.' }); res.json(result); } catch (error) { next(error); } });
+app.get('/api/admin/finance/payroll', requireAdmin, requirePermission('finance:read'), async (req, res, next) => { try { const month = String(req.query.month || '').trim(); const error = validateFinanceMonth(month); if (error) return res.status(400).json({ message: error }); const payments = await database.listFinancePayrollPayments(month); res.json(financePayrollPreview(await readStore(), month, payments)); } catch (error) { next(error); } });
+app.post('/api/admin/finance/payroll/:month/approve', requireAdmin, requirePermission('finance:write'), async (req, res, next) => { try { const month = String(req.params.month || '').trim(); const monthError = validateFinanceMonth(month); if (monthError) return res.status(400).json({ message: monthError }); const payments = Array.isArray(req.body?.payments) ? req.body.payments : []; if (!payments.length || payments.length > 1000) return res.status(400).json({ message: 'لا توجد رواتب صالحة للاعتماد.' }); const store = await readStore(); const preview = financePayrollPreview(store, month, await database.listFinancePayrollPayments(month)); const byId = new Map(preview.lines.map(line => [String(line.employeeId), line])); const normalized = []; for (const payment of payments) { const line = byId.get(String(payment.employeeId)); if (!line) return res.status(400).json({ message: 'موظف غير موجود في كشف الرواتب.' }); normalized.push({ employeeId: line.employeeId, employeeName: line.employeeName, amount: line.net }); } const accountId = String(req.body?.accountId || '').trim(); const result = await database.approveFinancePayroll({ month, payments: normalized, approvedBy: req.adminUsername, accountId }); res.json({ data: result }); } catch (error) { if (error.code === 'FINANCE_PAYROLL_DUPLICATE') return res.status(409).json({ message: 'تم اعتماد راتب أو أكثر من قبل.' }); next(error); } });
 
 app.get('/api/admin/users', requireAdmin, requireFullAdmin, async (_req, res) => {
 	const users = await database.listAdminUsers();
