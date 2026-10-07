@@ -147,6 +147,25 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
     .finance-page:not(.payroll-only) .accounts .account-kpis{border-top:1px solid #edf1f6;padding-top:11px}
     .finance-page:not(.payroll-only) .accounts .account-kpis span{font-size:10px!important}
     .finance-page:not(.payroll-only) .accounts .account-kpis b{font-size:11px!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child{
+      position:relative;isolation:isolate;min-height:150px!important;border:0!important;border-left:6px solid #8f7cff!important;
+      border-radius:28px 12px 28px 12px!important;background:linear-gradient(135deg,#172442,#2c4280)!important;color:#fff!important;overflow:hidden!important
+    }
+    .finance-page:not(.payroll-only) .accounts article:first-child:before{
+      content:'';position:absolute;z-index:-1;width:190px;height:190px;left:-74px;bottom:-108px;border:1px solid #ffffff28;border-radius:50%;box-shadow:0 0 0 22px #ffffff0c,0 0 0 46px #ffffff06
+    }
+    .finance-page:not(.payroll-only) .accounts article:first-child span{color:#c9d3ee!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child h3,.finance-page:not(.payroll-only) .accounts article:first-child strong{color:#fff!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child .account-kpis{border-color:#ffffff24!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child .account-kpis span{color:#c9d3ee!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2){
+      position:relative;min-height:150px!important;border:1px solid #bfe6d8!important;border-right:6px solid #19a77f!important;
+      border-radius:12px 28px 12px 28px!important;background:linear-gradient(145deg,#f7fffc,#e6f8f1)!important;color:#153c38!important;box-shadow:inset 0 -5px 0 #19a77f18,0 10px 22px #1524450a!important
+    }
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2):after{content:'استوديو';position:absolute;left:18px;bottom:12px;color:#19a77f1f;font-size:35px;font-weight:1000;letter-spacing:-2px}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2) span{color:#66867e!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2) h3,.finance-page:not(.payroll-only) .accounts article:nth-child(2) strong{color:#153c38!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2) .account-kpis{border-color:#cde9df!important}
     .finance-page:not(.payroll-only) .trend-card,.finance-page:not(.payroll-only) .transaction-ledger{
       border:1px solid #dce4f1!important;border-radius:20px!important;background:#fff!important;box-shadow:0 10px 24px #15244509!important
     }
