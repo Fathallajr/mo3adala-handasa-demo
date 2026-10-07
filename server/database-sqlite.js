@@ -381,6 +381,13 @@ function listFinancePayrollPayments(month) {
 	return db.prepare('SELECT id,employee_id AS employeeId,month,amount,transaction_id AS transactionId,status,approved_by AS approvedBy,created_at AS createdAt,updated_at AS updatedAt FROM finance_payroll_payments WHERE month = ?').all(month).map(item => ({ ...item, amount: Number(item.amount) }));
 }
 
+function listFinanceAuditLogs(entityId = '', limit = 100) {
+	const rows = entityId
+		? db.prepare('SELECT id,entity_type AS entityType,entity_id AS entityId,action,before_data AS beforeData,after_data AS afterData,reason,actor,created_at AS createdAt FROM finance_audit_logs WHERE entity_id = ? ORDER BY created_at DESC LIMIT ?').all(String(entityId), Math.min(Number(limit) || 100, 300))
+		: db.prepare('SELECT id,entity_type AS entityType,entity_id AS entityId,action,before_data AS beforeData,after_data AS afterData,reason,actor,created_at AS createdAt FROM finance_audit_logs ORDER BY created_at DESC LIMIT ?').all(Math.min(Number(limit) || 100, 300));
+	return rows.map(row => { try { row.beforeData = JSON.parse(row.beforeData || '{}'); } catch { row.beforeData = {}; } try { row.afterData = JSON.parse(row.afterData || '{}'); } catch { row.afterData = {}; } return row; });
+}
+
 function createFinancePayrollPayment(payment) {
 	db.prepare('INSERT INTO finance_payroll_payments(id,employee_id,month,amount,transaction_id,status,approved_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)').run(payment.id || crypto.randomUUID(), payment.employeeId, payment.month, Number(payment.amount), payment.transactionId || null, payment.status || 'paid', payment.approvedBy || '', payment.createdAt || new Date().toISOString(), null);
 }
@@ -435,4 +442,4 @@ function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 	})();
 }
 
-module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, createFinancePayrollPayment, getFinanceSummary, approveFinancePayroll, databaseFile };
+module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };
