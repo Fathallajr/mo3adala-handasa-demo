@@ -316,7 +316,7 @@ async function listFinanceAccounts() { await ensureSchema(); const result = awai
 async function listFinanceTransactions(filters = {}) {
 	await ensureSchema(); const values = []; const clauses = ['1=1']; const add = (sql, value) => { values.push(value); clauses.push(`${sql} $${values.length}`); };
 	if (filters.kind) add('kind =', filters.kind); if (filters.accountId) { values.push(filters.accountId); const p = values.length; values.push(filters.accountId); const p2 = values.length; values.push(filters.accountId); const p3 = values.length; clauses.push(`(account_id = $${p} OR from_account_id = $${p2} OR to_account_id = $${p3})`); }
-	if (filters.status) add('status =', filters.status); if (filters.from) add('occurred_at >=', filters.from); if (filters.to) add('occurred_at <=', filters.to);
+	if (filters.status) add('status =', filters.status); if (filters.sourceType) add('source_type =', filters.sourceType); if (filters.from) add('occurred_at >=', filters.from); if (filters.to) add('occurred_at <=', filters.to);
 	if (filters.search) { const search = `%${filters.search}%`; values.push(search, search, search); clauses.push(`(description ILIKE $${values.length - 2} OR counterparty ILIKE $${values.length - 1} OR category ILIKE $${values.length})`); }
 	let sql = `${FINANCE_TRANSACTION_SELECT} WHERE ${clauses.join(' AND ')} ORDER BY occurred_at DESC, created_at DESC`; if (filters.limit) { values.push(Number(filters.limit)); sql += ` LIMIT $${values.length}`; } if (filters.offset) { values.push(Number(filters.offset)); sql += ` OFFSET $${values.length}`; }
 	return (await pool.query(sql, values)).rows.map(financeTransactionRow);

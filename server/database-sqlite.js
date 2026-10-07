@@ -332,6 +332,7 @@ function listFinanceTransactions(filters = {}) {
 	if (filters.kind) add('kind =', filters.kind);
 	if (filters.accountId) { values.push(filters.accountId, filters.accountId, filters.accountId); sql += ' AND (account_id = ? OR from_account_id = ? OR to_account_id = ?)'; }
 	if (filters.status) add('status =', filters.status);
+	if (filters.sourceType) add('source_type =', filters.sourceType);
 	if (filters.from) add('occurred_at >=', filters.from);
 	if (filters.to) add('occurred_at <=', filters.to);
 	if (filters.search) { const search = `%${filters.search}%`; values.push(search, search, search); sql += ' AND (description LIKE ? OR counterparty LIKE ? OR category LIKE ?)'; }
