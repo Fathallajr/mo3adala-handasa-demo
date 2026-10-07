@@ -20,7 +20,7 @@ export interface WheelClaim { token: string; name: string; whatsapp: string; pro
 export interface Feedback { id: string; name: string; university?: string; batch?: string; rating: number; message: string; status: 'new' | 'reviewed' | 'published' | 'archived'; createdAt: string; updatedAt?: string | null; }
 export interface AdminUser { username: string; role: string; permissions: string[]; isActive: boolean; createdAt?: string; updatedAt?: string; }
 export interface SiteMode { maintenance: boolean; }
-export interface FinanceAccount { id: string; name: string; openingBalance: number; balance?: number; isActive: boolean; }
+export interface FinanceAccount { id: string; name: string; openingBalance: number; balance?: number; income?: number; expense?: number; net?: number; isActive: boolean; }
 export interface FinanceTransaction { id: string; kind: 'income' | 'expense' | 'transfer'; accountId?: string | null; fromAccountId?: string | null; toAccountId?: string | null; amount: number; occurredAt: string; category: string; description: string; counterparty: string; status: string; sourceType?: string; sourceId?: string; voidReason?: string; createdAt: string; }
 export interface FinanceSummary { income: number; expense: number; transfer: number; net: number; balances: FinanceAccount[]; byCategory: Record<string, number>; }
 export interface FinancePayrollLine { employeeId: number; employeeName: string; base: number; bonus: number; discount: number; net: number; status: 'paid' | 'due'; payment?: any; }

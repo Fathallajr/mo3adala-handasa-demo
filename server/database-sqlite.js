@@ -393,13 +393,19 @@ function getFinanceSummary({ from, to }) {
 	for (const row of rows) totals[row.kind] = (totals[row.kind] || 0) + Number(row.amount || 0);
 	const balances = accounts.map(account => {
 		let balance = Number(account.openingBalance || 0);
+		let income = 0;
+		let expense = 0;
 		for (const row of allRows) {
 			if (row.kind === 'income' && row.account_id === account.id) balance += Number(row.amount);
 			if (row.kind === 'expense' && row.account_id === account.id) balance -= Number(row.amount);
 			if (row.kind === 'transfer' && row.from_account_id === account.id) balance -= Number(row.amount);
 			if (row.kind === 'transfer' && row.to_account_id === account.id) balance += Number(row.amount);
 		}
-		return { ...account, balance };
+		for (const row of rows) {
+			if (row.kind === 'income' && row.account_id === account.id) income += Number(row.amount);
+			if (row.kind === 'expense' && row.account_id === account.id) expense += Number(row.amount);
+		}
+		return { ...account, balance, income, expense, net: income - expense };
 	});
 	const byCategory = {};
 	for (const row of rows.filter(item => item.kind === 'expense')) byCategory[row.category || 'أخرى'] = (byCategory[row.category || 'أخرى'] || 0) + Number(row.amount);
