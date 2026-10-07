@@ -110,6 +110,7 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
     }
     .finance-page:not(.payroll-only) .finance-filters:before{padding-bottom:10px!important;border-bottom:1px solid #edf1f7!important;color:#182542!important;font-size:15px!important}
     .finance-page:not(.payroll-only) .finance-filters:after{display:none!important}
+    .finance-page:not(.payroll-only) .finance-filters label:after{display:none!important}
     .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(1),
     .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(2),
     .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(3),
