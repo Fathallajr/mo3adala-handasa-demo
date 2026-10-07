@@ -123,8 +123,8 @@ export class AdminAuthService {
 		try { return JSON.parse(localStorage.getItem(this.permissionsKey) || '[]'); } catch { return []; }
 	}
 
-	canAccessPage(pageKey: string): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && pageKey === 'batch-2027') || (this.getRole() === 'employee' && pageKey === 'employees') || this.getPermissions().includes('*') || this.getPermissions().includes(pageKey); }
+	canAccessPage(pageKey: string): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && pageKey === 'batch-2027') || this.getPermissions().includes('*') || (this.getRole() !== 'employee' && this.getPermissions().includes(pageKey)); }
 
-	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance'): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && feature === 'leads') || this.getPermissions().includes(feature) || this.getPermissions().includes(`${feature}:read`); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance'): boolean { return this.getRole() === 'admin' || (this.getRole() === 'employee' && feature === 'finance') || (this.getRole() === 'leads' && feature === 'leads') || this.getPermissions().includes(feature) || this.getPermissions().includes(`${feature}:read`); }
 	canAccessPermission(permission: string): boolean { return this.getRole() === 'admin' || this.getPermissions().includes('*') || this.getPermissions().includes(permission); }
 }

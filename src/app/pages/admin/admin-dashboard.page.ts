@@ -281,6 +281,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 				if (this.activeView === 'wheel') this.loadWheelClaims();
 				if (this.activeView === 'admins') this.loadAdminUsers();
 				this.loadSiteMode();
+				} else if (this.auth.getRole() === 'employee') {
+					this.activeView = 'finance-payroll';
 				} else if (canOpenCmsPage) {
 					this.activeView = 'cms';
 				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('finance')) {
@@ -1021,6 +1023,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	get fullAdminAccount(): boolean { return this.auth.getRole() === 'admin'; }
 	get employeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
+	get employeeAccountId(): number | null { const permission = this.auth.getPermissions().find(item => /^employee:\d+$/.test(String(item || ''))); return permission ? Number(permission.slice('employee:'.length)) : null; }
 	get employeeProfileActive(): boolean { return this.employeeAccount && /^employee-\d+$/.test(this.route.snapshot.fragment || ''); }
 
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
