@@ -331,6 +331,19 @@ async function requireAdmin(req, res, next) {
 		req.adminRole = session.role || 'admin';
 		req.adminUsername = session.username || '';
 		req.adminPermissions = Array.isArray(session.permissions) ? session.permissions : [];
+		// Reconcile legacy sessions on every request. Older releases issued
+		// admin/* sessions for scoped accounts; never trust that stale role after
+		// the permission model was tightened. The environment admin is the only
+		// account allowed to remain a full admin without a database record.
+		if (req.adminUsername && req.adminUsername !== ADMIN_USERNAME && req.adminRole === 'admin') {
+			const databaseUser = await database.findAdminUser(req.adminUsername);
+			if (databaseUser) {
+				const permissions = normalizeUserPermissions(databaseUser.permissions).filter(item => item !== '*');
+				const employeeAccount = databaseUser.role === 'employee' || permissions.some(item => /^employee:\d+$/.test(item));
+				req.adminRole = employeeAccount ? 'employee' : 'editor';
+				req.adminPermissions = permissions;
+			}
+		}
 		next();
 	} catch (error) {
 		next(error);
