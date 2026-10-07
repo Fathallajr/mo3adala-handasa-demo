@@ -91,8 +91,8 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 			</div>
 			<section class="wrap">
 				<div class="head" *ngIf="!employeePageEmployee"><h3>الموظفون</h3><span class="count">{{ filteredEmployees.length }} من {{ employees.length }} موظف</span></div>
-				<div class="financial-kpi-head" *ngIf="!employeePageEmployee"><strong>المؤشرات المالية</strong><span>ملخص مستحقات الشهر الحالي</span></div>
-				<div class="payroll-summary" *ngIf="!employeePageEmployee">
+				<div class="financial-kpi-head" *ngIf="!employeePageEmployee && !isEmployeeAccount"><strong>المؤشرات المالية</strong><span>ملخص مستحقات الشهر الحالي</span></div>
+				<div class="payroll-summary" *ngIf="!employeePageEmployee && !isEmployeeAccount">
 					<div class="summary-card"><span>عدد الموظفين</span><strong>{{ employees.length }}</strong></div>
 					<div class="summary-card summary-card--base"><span>إجمالي الرواتب الأساسية</span><strong>{{ formatMoney(monthlySalaryTotal) }}</strong></div>
 					<div class="summary-card summary-card--bonus"><span>إجمالي البونص</span><strong>{{ formatMoney(monthlyBonusTotal) }}</strong></div>
