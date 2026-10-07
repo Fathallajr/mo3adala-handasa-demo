@@ -985,6 +985,9 @@ function normalizeUserPermissions(value) {
 	}
 	return normalized;
 }
+function isEmployeeAdminUser(user) {
+	return user?.role === 'employee' || normalizeUserPermissions(user?.permissions).some(item => /^employee:\d+$/.test(item));
+}
 
 const FINANCE_KINDS = new Set(['income', 'expense', 'transfer']);
 const FINANCE_CATEGORIES = new Set(['اشتراكات ومبيعات', 'رواتب', 'إيجار', 'تسويق', 'أدوات ومستلزمات', 'اشتراكات خدمات', 'مواصلات', 'مصروفات تشغيلية', 'أخرى', 'تحويل داخلي']);
@@ -1015,7 +1018,9 @@ app.post('/api/admin/finance/payroll/:month/approve', requireAdmin, requirePermi
 
 app.get('/api/admin/users', requireAdmin, requireFullAdmin, async (_req, res) => {
 	const users = await database.listAdminUsers();
-	res.json({ data: users.map(user => ({ ...user, permissions: normalizeUserPermissions(user.permissions) })) });
+	// Employee logins belong to the Employees page and must never be managed
+	// from the admin-accounts directory.
+	res.json({ data: users.filter(user => !isEmployeeAdminUser(user)).map(user => ({ ...user, permissions: normalizeUserPermissions(user.permissions) })) });
 });
 
 app.post('/api/admin/employees/:employeeId/account', requireAdmin, requireFullAdmin, async (req, res, next) => {
@@ -1094,6 +1099,7 @@ app.patch('/api/admin/users/:username', requireAdmin, requireFullAdmin, async (r
 	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(400).json({ message: 'الحسابات الأساسية يتم ضبطها من متغيرات السيرفر.' });
 	const user = await database.findAdminUser(username);
 	if (!user) return res.status(404).json({ message: 'الحساب غير موجود.' });
+	if (isEmployeeAdminUser(user)) return res.status(403).json({ message: 'حساب الموظف يتم إدارته من صفحة الموظفين فقط.' });
 	const changes = { updatedAt: getNowIso() };
 	if (req.body?.permissions !== undefined) changes.permissions = normalizeUserPermissions(req.body.permissions);
 	if (req.body?.isActive !== undefined) changes.isActive = Boolean(req.body.isActive);
@@ -1114,7 +1120,7 @@ app.patch('/api/admin/users/:username', requireAdmin, requireFullAdmin, async (r
 app.delete('/api/admin/users/:username', requireAdmin, requireFullAdmin, async (req, res, next) => {
 	const username = String(req.params.username || '').trim();
 	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(400).json({ message: 'لا يمكن حذف الحساب الأساسي.' });
-	try { await database.deleteAdminUser(username); res.sendStatus(204); } catch (error) { next(error); }
+	try { const user = await database.findAdminUser(username); if (!user) return res.status(404).json({ message: 'الحساب غير موجود.' }); if (isEmployeeAdminUser(user)) return res.status(403).json({ message: 'حساب الموظف يتم إدارته من صفحة الموظفين فقط.' }); await database.deleteAdminUser(username); res.sendStatus(204); } catch (error) { next(error); }
 });
 
 app.get('/api/admin/audit-logs', requireAdmin, requireFullAdmin, async (req, res) => {
