@@ -50,7 +50,7 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
     .transaction-editor .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:20px}
     .transaction-editor .form-grid label{gap:7px;color:#52617a;font-size:11px}
     .transaction-editor .form-grid label>span{font-size:11px;color:#52617a}
-    .transaction-editor .form-grid input,.transaction-editor .form-grid select{min-height:46px;border-radius:12px;background:#fbfcff;border-color:#dfe5f0;transition:border-color .2s,box-shadow .2s}
+    .transaction-editor .form-grid input,.transaction-editor .form-grid select{min-height:46px;border-radius:12px;background:#fbfcff;border-color:#dfe5f0;transition:border-color .2s,box-shadow .2s}.transaction-editor .form-grid select{appearance:none;-webkit-appearance:none;padding-inline-start:38px!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='m3.25 5.25 3.75 3.5 3.75-3.5' stroke='%236d4aff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:left 13px center!important;background-size:14px!important;cursor:pointer}
     .transaction-editor .form-grid input:focus,.transaction-editor .form-grid select:focus,.transaction-editor .form-grid textarea:focus{outline:0;border-color:#8068ed;box-shadow:0 0 0 4px #8068ed18}
     .transaction-editor .form-grid textarea{min-height:96px;border-radius:12px;background:#fbfcff;border-color:#dfe5f0}
     .transaction-editor .transaction-summary{margin-top:20px;padding:15px 17px;border-radius:15px;background:linear-gradient(135deg,#faf9ff,#f2efff);border:1px solid #e6e0ff}
