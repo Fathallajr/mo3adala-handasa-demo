@@ -20,6 +20,7 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
     .trend-range-panel strong{margin-left:auto;font-size:13px!important}
     .trend-range-panel label{min-width:150px}
     .finance-filters{order:2;padding:18px;border-radius:20px;background:#fff;box-shadow:0 10px 25px #26365d08}
+    .finance-filters:before{content:'فلترة دفتر الحركات';grid-column:1/-1;color:#293650;font-size:14px;font-weight:950}.finance-filters:after{content:'حدد الفترة ونوع الحركة والخزنة أو ابحث عن حركة محددة.';grid-column:1/-1;margin-top:-5px;color:#8993a8;font-size:11px;font-weight:700}.finance-filters label:after{display:block;margin-top:-1px;color:#9aa4b5;font-size:10px;font-weight:700}.finance-filters label:nth-of-type(1):after{content:'بداية الفترة المالية'}.finance-filters label:nth-of-type(2):after{content:'نهاية الفترة المالية'}.finance-filters label:nth-of-type(3):after{content:'إيراد = أموال داخلة · مصروف = أموال خارجة'}.finance-filters label:nth-of-type(4):after{content:'أبلكيشن أو استوديو'}.finance-filters label:nth-of-type(5):after{content:'ابحث بالوصف أو الجهة'}
     .finance-filters label{gap:8px}
     .finance-filters input,.finance-filters select{min-height:44px;border-radius:12px;background:#fbfcff;transition:border-color .2s,box-shadow .2s}
     .finance-filters input:focus,.finance-filters select:focus{outline:0;border-color:#8068ed;box-shadow:0 0 0 4px #8068ed17}
