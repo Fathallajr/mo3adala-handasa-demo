@@ -113,6 +113,11 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
     .finance-page:not(.payroll-only) .finance-filters input,.finance-page:not(.payroll-only) .finance-filters select{
       min-height:44px!important;border:1px solid #dce4f0!important;border-radius:11px!important;background:#f8faff!important;color:#243352!important
     }
+    .finance-page:not(.payroll-only) .finance-filters select{
+      appearance:none!important;-webkit-appearance:none!important;padding-inline-start:38px!important;cursor:pointer!important;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='m3.25 5.25 3.75 3.5 3.75-3.5' stroke='%236d4aff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important;
+      background-repeat:no-repeat!important;background-position:left 13px center!important;background-size:14px!important
+    }
     .finance-page:not(.payroll-only) .finance-filters .ghost{border:1px solid #d7dff0!important;border-radius:11px!important;background:#eef2f9!important;color:#354563!important}
     .finance-page:not(.payroll-only) .kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}
     .finance-page:not(.payroll-only) .kpis article{
