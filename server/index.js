@@ -348,7 +348,7 @@ function requirePermission(permission) {
 		};
 		const [group] = permission.split(':');
 		const hasGroupedPermission = groupedReadWritePermissions[group]?.has(permission) && req.adminPermissions.includes(group);
-		if (req.adminRole === 'admin' || req.adminRole === 'editor' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission)) || req.adminPermissions.includes(permission) || hasGroupedPermission) return next();
+		if (req.adminRole === 'admin' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission)) || req.adminPermissions.includes(permission) || hasGroupedPermission) return next();
 		return res.status(403).json({ message: 'ليس لديك صلاحية للوصول إلى هذا القسم.' });
 	};
 }
@@ -357,7 +357,7 @@ function requireFullAdmin(req, res, next) {
 	// Accounts created from the Admin Accounts page are full admins. Older
 	// records used the legacy "editor" role, so keep them equivalent. Employee
 	// accounts are the only intentionally limited role.
-	if (req.adminRole === 'admin' || req.adminRole === 'editor') return next();
+	if (req.adminRole === 'admin') return next();
 	return res.status(403).json({ message: 'هذا القسم متاح للأدمن الرئيسي فقط.' });
 }
 
@@ -548,12 +548,12 @@ app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000,
 	}
 
 	try {
-		const databasePermissions = normalizeUserPermissions(databaseUser?.permissions);
+		const databasePermissions = normalizeUserPermissions(databaseUser?.permissions).filter(item => item !== '*');
 		// Employee accounts are identified by their role or their scoped employee:id
 		// permission. This keeps older production records limited even if their role
 		// was created before the employee-account migration.
 		const isEmployeeAccount = Boolean(databaseUser && (databaseUser.role === 'employee' || databasePermissions.some(item => /^employee:\d+$/.test(item))));
-		const role = isFullAdmin ? 'admin' : isLeadsAdmin ? 'leads' : isEmployeeAccount ? 'employee' : 'admin';
+		const role = isFullAdmin ? 'admin' : isLeadsAdmin ? 'leads' : isEmployeeAccount ? 'employee' : 'editor';
 		const session = await issueToken(role, isFullAdmin ? ADMIN_USERNAME : isLeadsAdmin ? LEADS_ADMIN_USERNAME : databaseUser.username, isFullAdmin ? ['*'] : isLeadsAdmin ? ['leads:read', 'leads:update', 'wheel:read', 'batch-2027'] : databasePermissions);
 		res.json(session);
 	} catch (error) {
@@ -1086,8 +1086,8 @@ app.post('/api/admin/users', requireAdmin, requireFullAdmin, async (req, res, ne
 	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(409).json({ message: 'اسم المستخدم محجوز.' });
 	try {
 		const { salt, hash } = hashAdminPassword(password);
-		await database.createAdminUser({ username, passwordHash: hash, passwordSalt: salt, role: 'admin', permissions: ['*'], createdAt: getNowIso() });
-		res.status(201).json({ username, role: 'admin', permissions: ['*'] });
+		await database.createAdminUser({ username, passwordHash: hash, passwordSalt: salt, role: 'editor', permissions, createdAt: getNowIso() });
+		res.status(201).json({ username, role: 'editor', permissions });
 	} catch (error) {
 		if (String(error.message || '').toLowerCase().includes('unique')) return res.status(409).json({ message: 'اسم المستخدم مستخدم بالفعل.' });
 		next(error);
