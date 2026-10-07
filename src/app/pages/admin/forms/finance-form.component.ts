@@ -17,6 +17,7 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
     .finance-page:not(.payroll-only) .finance-head{position:relative;isolation:isolate;min-height:210px;padding:30px 34px;overflow:hidden;border:0;border-radius:28px;background:linear-gradient(120deg,#121d3b 0%,#263866 58%,#513bb0 100%);box-shadow:0 22px 45px #1b28512b;color:#fff}
     .finance-page:not(.payroll-only) .finance-head:before{content:'';position:absolute;z-index:-1;width:310px;height:310px;left:-105px;bottom:-190px;border:1px solid #ffffff25;border-radius:50%;box-shadow:0 0 0 28px #ffffff08,0 0 0 58px #ffffff05}
     .finance-page:not(.payroll-only) .finance-head:after{display:none}
+    .finance-page.payroll-only .finance-head:after{display:none}
     .finance-page:not(.payroll-only) .finance-head h2{margin:12px 0 7px;color:#fff;font-size:34px;letter-spacing:-1px}
     .finance-page:not(.payroll-only) .finance-head p{color:#d3daf0;font-size:13px}
     .finance-page:not(.payroll-only) .eyebrow{display:none}
