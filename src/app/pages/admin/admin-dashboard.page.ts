@@ -364,6 +364,16 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		}
 		this.financeMenuOpen = !this.financeMenuOpen;
 	}
+	openEmployeesFromFinance(): void {
+		if (!this.canAccessPage('employees')) return;
+		this.financeMenuOpen = true;
+		this.sidebarOpen = false;
+		this.activeView = 'cms';
+		this.selectedPageKey = 'employees';
+		this.loadPage('employees');
+		this.pendingCmsNavigation = true;
+		void this.router.navigateByUrl('/admin/employees', { replaceUrl: true });
+	}
 	loadAdminUsers(force = false): void {
 		if (this.isLoadingAdminUsers || (this.adminUsersLoaded && !force)) return;
 		this.isLoadingAdminUsers = true;
