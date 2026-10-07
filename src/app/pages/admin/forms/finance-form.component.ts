@@ -80,6 +80,89 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
     @media(max-width:700px){.finance-page{padding:0 0 20px;gap:13px}.finance-head{min-height:170px;padding:22px 18px;border-radius:18px}.finance-head h2{font-size:23px}.finance-head:after{font-size:64px;left:10px}.finance-quick-actions{position:static;margin-top:-7px;width:100%;padding:0!important}.finance-quick-actions--demo{margin-top:-7px}.finance-quick-actions button{width:100%}.trend-range-panel{align-items:stretch!important;flex-direction:column;padding:14px!important}.trend-range-panel strong{margin-left:0}.trend-range-panel label{width:100%}.trend-range-panel input{width:100%;box-sizing:border-box}.kpis{grid-template-columns:1fr 1fr!important;gap:8px}.kpis article{min-height:90px;padding:13px}.payroll-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.payroll-kpis article{min-height:78px;padding:12px}.payroll-kpis strong{font-size:16px}.accounts{grid-template-columns:1fr!important}.accounts article{min-height:125px;padding:18px}.finance-filters{padding:12px}.trend-card,.category-report,.payroll,.transaction-ledger{padding:14px}.trend-chart{min-height:190px!important}}
   </style>
   <style>
+    /* Finance dashboard v2: calm workspace layout with clear visual hierarchy */
+    .finance-page:not(.payroll-only){
+      max-width:1180px!important;padding:26px 22px 42px!important;gap:18px!important;
+      background:#f3f6fb!important;color:#17233f!important
+    }
+    .finance-page:not(.payroll-only) .finance-head{
+      min-height:174px!important;padding:28px 32px!important;border:1px solid #dce4f2!important;
+      border-radius:24px!important;background:#fff!important;box-shadow:0 12px 28px #1524450b!important;
+      overflow:hidden!important
+    }
+    .finance-page:not(.payroll-only) .finance-head:before{
+      z-index:0!important;inset:0 auto 0 0!important;width:9px!important;height:auto!important;
+      border:0!important;border-radius:0!important;background:linear-gradient(180deg,#7354f4,#22a98b)!important;
+      box-shadow:none!important
+    }
+    .finance-page:not(.payroll-only) .finance-head>div{position:relative;z-index:1}
+    .finance-page:not(.payroll-only) .finance-head h2{margin:0 0 8px!important;color:#182542!important;font-size:32px!important;letter-spacing:-1.1px!important}
+    .finance-page:not(.payroll-only) .finance-head p{color:#72809a!important;font-size:13px!important}
+    .finance-page:not(.payroll-only) .finance-head .primary{
+      position:relative;z-index:1;min-width:156px!important;min-height:48px!important;border:0!important;
+      border-radius:13px!important;background:#182542!important;color:#fff!important;box-shadow:0 10px 20px #18254220!important
+    }
+    .finance-page:not(.payroll-only) .finance-head .primary:hover{background:#7354f4!important}
+    .finance-page:not(.payroll-only) .finance-filters{
+      grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:12px!important;padding:18px!important;
+      border:1px solid #dce4f2!important;border-radius:20px!important;background:#fff!important;box-shadow:0 10px 24px #15244509!important
+    }
+    .finance-page:not(.payroll-only) .finance-filters:before{padding-bottom:10px!important;border-bottom:1px solid #edf1f7!important;color:#182542!important;font-size:15px!important}
+    .finance-page:not(.payroll-only) .finance-filters:after{padding-bottom:2px!important}
+    .finance-page:not(.payroll-only) .finance-filters label{gap:7px!important;color:#63718a!important}
+    .finance-page:not(.payroll-only) .finance-filters input,.finance-page:not(.payroll-only) .finance-filters select{
+      min-height:44px!important;border:1px solid #dce4f0!important;border-radius:11px!important;background:#f8faff!important;color:#243352!important
+    }
+    .finance-page:not(.payroll-only) .finance-filters .ghost{border:1px solid #d7dff0!important;border-radius:11px!important;background:#eef2f9!important;color:#354563!important}
+    .finance-page:not(.payroll-only) .kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}
+    .finance-page:not(.payroll-only) .kpis article{
+      min-height:108px!important;padding:18px 19px!important;border:1px solid #dce4f1!important;border-top:0!important;
+      border-radius:17px!important;background:#fff!important;box-shadow:0 10px 22px #1524450a!important
+    }
+    .finance-page:not(.payroll-only) .kpis article:before{width:5px!important;background:#7354f4!important}
+    .finance-page:not(.payroll-only) .kpis article.green:before{background:#19a77f!important}
+    .finance-page:not(.payroll-only) .kpis article.red:before{background:#e46979!important}
+    .finance-page:not(.payroll-only) .kpis span{color:#7b879c!important;font-size:11px!important}
+    .finance-page:not(.payroll-only) .kpis strong{margin-top:10px!important;color:#17233f!important;font-size:23px!important}
+    .finance-page:not(.payroll-only) .accounts{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+    .finance-page:not(.payroll-only) .accounts article{
+      min-height:142px!important;padding:20px!important;border:1px solid #dce4f1!important;border-right:5px solid #7354f4!important;
+      border-radius:17px!important;background:#fff!important;color:#182542!important;box-shadow:0 10px 22px #1524450a!important
+    }
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2){border-right-color:#19a77f!important;background:#fff!important}
+    .finance-page:not(.payroll-only) .accounts span{color:#8590a5!important;opacity:1!important}
+    .finance-page:not(.payroll-only) .accounts h3{margin:5px 0 0!important;color:#182542!important;font-size:18px!important}
+    .finance-page:not(.payroll-only) .accounts strong{color:#182542!important;font-size:25px!important}
+    .finance-page:not(.payroll-only) .accounts .account-kpis{border-top:1px solid #edf1f6;padding-top:11px}
+    .finance-page:not(.payroll-only) .accounts .account-kpis span{font-size:10px!important}
+    .finance-page:not(.payroll-only) .accounts .account-kpis b{font-size:11px!important}
+    .finance-page:not(.payroll-only) .trend-card,.finance-page:not(.payroll-only) .transaction-ledger{
+      border:1px solid #dce4f1!important;border-radius:20px!important;background:#fff!important;box-shadow:0 10px 24px #15244509!important
+    }
+    .finance-page:not(.payroll-only) .section-head h3{color:#182542!important;font-size:17px!important}
+    .finance-page:not(.payroll-only) .trend-range-panel{border:1px solid #e2e8f2!important;border-radius:13px!important;background:#f7f9fd!important}
+    .finance-page:not(.payroll-only) .trend-chart{border:1px solid #edf1f6!important;background:#fbfcff!important}
+    @media(max-width:900px){
+      .finance-page:not(.payroll-only){padding:18px 14px 30px!important}
+      .finance-page:not(.payroll-only) .finance-filters{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+      .finance-page:not(.payroll-only) .finance-filters:before,.finance-page:not(.payroll-only) .finance-filters:after{grid-column:1/-1!important}
+      .finance-page:not(.payroll-only) .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+    }
+    @media(max-width:600px){
+      .finance-page:not(.payroll-only){padding:12px 9px 24px!important;gap:12px!important}
+      .finance-page:not(.payroll-only) .finance-head{min-height:170px!important;padding:23px 20px!important;border-radius:18px!important;align-items:flex-start!important}
+      .finance-page:not(.payroll-only) .finance-head h2{font-size:25px!important}
+      .finance-page:not(.payroll-only) .finance-head .primary{width:100%!important;margin-top:10px}
+      .finance-page:not(.payroll-only) .finance-filters{grid-template-columns:1fr!important;padding:13px!important}
+      .finance-page:not(.payroll-only) .finance-filters:before,.finance-page:not(.payroll-only) .finance-filters:after{grid-column:auto!important}
+      .finance-page:not(.payroll-only) .kpis{grid-template-columns:1fr 1fr!important;gap:8px!important}
+      .finance-page:not(.payroll-only) .kpis article{min-height:88px!important;padding:14px!important}
+      .finance-page:not(.payroll-only) .kpis strong{font-size:18px!important}
+      .finance-page:not(.payroll-only) .accounts{grid-template-columns:1fr!important}
+      .finance-page:not(.payroll-only) .accounts article{min-height:128px!important}
+    }
+  </style>
+  <style>
     .finance-modal-backdrop{background:rgba(20,29,52,.62)!important;backdrop-filter:blur(8px);padding:24px!important}
     .transaction-editor{padding:26px!important;border:1px solid #e2e7f2!important;border-radius:24px!important;background:#fff!important;box-shadow:0 30px 90px rgba(22,34,65,.28)!important}
     .transaction-editor .section-head{align-items:flex-start;margin-bottom:4px;padding-bottom:18px;border-bottom:1px solid #edf0f6}
