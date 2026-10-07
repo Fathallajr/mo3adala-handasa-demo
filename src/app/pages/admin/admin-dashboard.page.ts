@@ -35,7 +35,7 @@ interface PageOption {
 	group: string;
 }
 
-type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance';
+type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll';
 type PaginationItem = number | '…';
 
 @Component({
@@ -67,7 +67,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	private feedbackRefreshTimer: ReturnType<typeof setInterval> | null = null;
 	sidebarOpen = false;
 	sidebarCollapsed = false;
-	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'cms' = 'leads';
+	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,
 		todayLeads: 0,
@@ -321,7 +321,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	setView(view: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'cms'): void {
+	setView(view: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'cms'): void {
 		this.closeActionMenus();
 		this.statusMessage = '';
 		this.errorMessage = '';
@@ -329,8 +329,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'customers' && !this.auth.canAccessFeature('customers')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
 		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
-		if (view === 'finance' && !this.auth.canAccessFeature('finance')) return;
-		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'feedback' && view !== 'finance' && this.auth.getRole() !== 'admin') return;
+		if ((view === 'finance' || view === 'finance-payroll') && !this.auth.canAccessFeature('finance')) return;
+		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'feedback' && view !== 'finance' && view !== 'finance-payroll' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
 			this.sidebarOpen = false;
 			return;
@@ -983,7 +983,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	}
 
 	private resolveDataView(value: string | null): AdminDataView | null {
-		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'admins', 'finance'];
+		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'admins', 'finance', 'finance-payroll'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
 		if (view === 'feedback') return this.auth.canAccessFeature('feedback') ? view : null;
@@ -991,7 +991,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'overview' || view === 'programs' || view === 'admins') {
 			return this.auth.getRole() === 'admin' ? view : null;
 		}
-		return this.auth.canAccessFeature(view) ? view : null;
+		return this.auth.canAccessFeature(view === 'finance-payroll' ? 'finance' : view) ? view : null;
 	}
 
 	get leadsOnlyAccount(): boolean {
