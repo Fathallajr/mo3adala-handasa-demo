@@ -37,6 +37,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-table-head,.employee-card{grid-template-columns:minmax(150px,1.25fr) minmax(80px,.65fr) minmax(160px,1.35fr) minmax(120px,1fr) minmax(120px,1fr) minmax(130px,auto) auto}
 		@media(max-width:850px){.employee-table-head{display:none}.employee-card{grid-template-columns:1fr auto}.employee-column-label{display:block}.employee-contact{grid-column:1;grid-row:2}}
 		.employee-self-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid #d9d1ff;border-radius:14px;background:linear-gradient(135deg,#f7f5ff,#efebff);color:#4f3bc0;font-size:12px;font-weight:800}.employee-self-banner strong{display:block;margin-bottom:4px;color:#2d3a59;font-size:14px}.employee-self-banner button{min-height:38px;border:0;border-radius:9px;padding:0 14px;background:#6d4aff;color:#fff;font:inherit;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}.employee-self-badge{display:inline-flex;align-items:center;width:max-content;padding:5px 9px;border-radius:999px;background:#e9e4ff;color:#5b43c9;font-size:10px;font-weight:900}.employee-card--own{border-color:#bdb0ff;box-shadow:0 8px 22px #6d4aff12}
+		.employee-pagination{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px;padding:14px 0 2px;color:#8993a8;font-size:12px}.employee-pagination__pages{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center}.employee-pagination__button,.employee-pagination__page{min-height:35px;padding:7px 12px;border:1px solid #e1e6f0;border-radius:9px;color:#59647b;background:#fff;font:inherit;font-weight:800;cursor:pointer;transition:.18s}.employee-pagination__page{min-width:35px;padding:0 9px}.employee-pagination__page:hover,.employee-pagination__button:hover:not(:disabled){border-color:#bdb0ff;color:#5b43c9;transform:translateY(-1px)}.employee-pagination__page.is-active{border-color:#6d4aff;color:#fff;background:#6d4aff;box-shadow:0 5px 14px #6d4aff2b}.employee-pagination__ellipsis{min-width:20px;color:#8993a8;text-align:center}.employee-pagination__button:disabled{opacity:.5;cursor:not-allowed}.employee-pagination__summary{white-space:nowrap}
 		.employee-delete-backdrop{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.58);backdrop-filter:blur(5px);animation:employeeDeleteFade .18s ease-out}.employee-delete-dialog{width:min(440px,100%);box-sizing:border-box;padding:30px 28px 24px;border:1px solid #f0dce2;border-radius:22px;background:#fff;box-shadow:0 24px 70px rgba(15,23,42,.28);text-align:center;direction:rtl;animation:employeeDeletePop .2s ease-out}.employee-delete-icon{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 14px;border-radius:18px;color:#c33f5d;background:#fff0f3;font-size:24px}.employee-delete-dialog h3{margin:0 0 10px;color:#202b42;font-size:21px}.employee-delete-dialog p{margin:0 auto 7px;color:#526078;font-size:14px;line-height:1.8}.employee-delete-dialog p strong{color:#202b42}.employee-delete-dialog small{display:block;color:#8993a8;font-size:12px}.employee-delete-error{margin:14px 0 0!important;padding:9px 11px;border:1px solid #f3c5cf;border-radius:10px;color:#b33b57!important;background:#fff3f5;font-size:12px!important;line-height:1.6!important}.employee-delete-actions{display:flex;justify-content:center;gap:10px;margin-top:24px}.employee-delete-actions button{min-width:130px;min-height:42px;border:0;border-radius:10px;padding:9px 16px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}.employee-delete-cancel{color:#526078;background:#eef2f7}.employee-delete-confirm{color:#fff;background:#d95673;box-shadow:0 8px 18px rgba(217,86,115,.24)}.employee-delete-confirm:hover{background:#bd405d}.employee-delete-confirm:disabled{opacity:.65;cursor:wait}.employee-delete-confirm i{margin-inline-end:5px}@keyframes employeeDeleteFade{from{opacity:0}to{opacity:1}}@keyframes employeeDeletePop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 		@media(max-width:700px){.wrap{gap:14px;min-width:0}.intro{font-size:11px;line-height:1.8}.employee-toolbar{align-items:stretch;gap:10px}.employee-toolbar>.add{width:100%;order:-1}.employee-filters{display:grid;grid-template-columns:1fr;gap:9px;width:100%}.employee-filters .field{min-width:0}.clear-filters{width:100%}.head{align-items:flex-start;flex-direction:column;gap:5px}.head h3{font-size:18px}.payroll-summary{grid-template-columns:1fr 1fr;gap:8px;padding:9px}.summary-card{padding:10px}.summary-card span{font-size:10px}.summary-card strong{font-size:13px}.employee-card{grid-template-columns:minmax(0,1fr) auto;gap:11px 10px;padding:14px 12px;border-radius:14px}.employee-card>div:not(.actions){min-width:0}.employee-card .identity{grid-column:1;grid-row:1}.employee-card .actions{grid-column:2;grid-row:1 / span 3;align-self:start}.employee-card .employee-tasks{grid-column:1 / -1}.employee-card .employee-contact{grid-column:1 / -1;grid-row:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px solid #f0f1f6}.employee-column-label{margin-bottom:4px}.employee-tasks{gap:5px}.employee-tasks .tag{max-width:100%;overflow-wrap:anywhere}.contact-value{overflow-wrap:anywhere}.actions{flex-direction:row;align-items:flex-start}.employee-self-banner{align-items:stretch;flex-direction:column}.employee-self-banner button{width:100%}.employee-modal-backdrop{padding:8px}.employee-detail-page{width:100%;box-sizing:border-box}.detail-grid{grid-template-columns:1fr}.details-head{align-items:flex-start;flex-direction:column}.monthly-save-row{align-items:stretch;flex-direction:column}.monthly-save-row button{width:100%}}
 		@media(max-width:430px){.payroll-summary{grid-template-columns:1fr}.employee-card{padding:13px 10px}.employee-card .tag{font-size:10px;padding:5px 8px}.employee-name{font-size:13px}.contact-label,.contact-value{font-size:10px}.employee-modal-backdrop{padding:4px}}
@@ -52,10 +53,10 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 			<div class="employee-toolbar" *ngIf="!isEmployeeAccount && !employeePageEmployee">
 				<button type="button" class="add" (click)="openAddEmployee()">+ إضافة موظف</button>
 				<div class="employee-filters">
-					<label class="field"><span>بحث في الموظفين</span><input [(ngModel)]="employeeSearch" placeholder="الاسم، الواتساب أو المسمى"></label>
-					<label class="field"><span>نوع الإدارة</span><select [(ngModel)]="employeeDepartmentFilter"><option value="">كل الإدارات</option><option *ngFor="let department of employeeDepartments" [value]="department">{{ department }}</option></select></label>
-					<label class="field"><span>نوع الموظف</span><select [(ngModel)]="employeeTypeFilter"><option value="">الكل</option><option value="employee">موظف</option><option value="manager">مدير مباشر</option><option value="general_manager">مدير عام</option></select></label>
-					<label class="field"><span>المدير المباشر</span><select [(ngModel)]="employeeManagerFilter"><option [ngValue]="null">كل المديرين</option><option *ngFor="let manager of employeeManagers" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
+					<label class="field"><span>بحث في الموظفين</span><input [(ngModel)]="employeeSearch" (ngModelChange)="resetEmployeePage()" placeholder="الاسم، الواتساب أو المسمى"></label>
+					<label class="field"><span>نوع الإدارة</span><select [(ngModel)]="employeeDepartmentFilter" (ngModelChange)="resetEmployeePage()"><option value="">كل الإدارات</option><option *ngFor="let department of employeeDepartments" [value]="department">{{ department }}</option></select></label>
+					<label class="field"><span>نوع الموظف</span><select [(ngModel)]="employeeTypeFilter" (ngModelChange)="resetEmployeePage()"><option value="">الكل</option><option value="employee">موظف</option><option value="manager">مدير مباشر</option><option value="general_manager">مدير عام</option></select></label>
+					<label class="field"><span>المدير المباشر</span><select [(ngModel)]="employeeManagerFilter" (ngModelChange)="resetEmployeePage()"><option [ngValue]="null">كل المديرين</option><option *ngFor="let manager of employeeManagers" [ngValue]="manager.id">{{ manager.name }}</option></select></label>
 					<button type="button" class="clear-filters" *ngIf="employeeSearch || employeeDepartmentFilter || employeeTypeFilter || employeeManagerFilter" (click)="clearEmployeeFilters()">مسح الفلاتر</button>
 				</div>
 			</div>
@@ -93,7 +94,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 				<div class="head" *ngIf="!employeePageEmployee"><h3>الموظفون</h3><span class="count">{{ filteredEmployees.length }} من {{ employees.length }} موظف</span></div>
 				<div class="employee-table-head" *ngIf="!employeePageEmployee && filteredEmployees.length"><span>الموظف</span><span>النوع</span><span>المهام</span><span>نوع الإدارة</span><span>المدير المباشر</span><span>رقم الواتساب</span><span>الإجراءات</span></div>
 				<div class="list" *ngIf="!employeePageEmployee && filteredEmployees.length; else emptyState">
-					<article class="employee-card" *ngFor="let employee of filteredEmployees; let i = index" [class.employee-card--own]="isEmployeeAccount && isOwnEmployee(employee)">
+					<article class="employee-card" *ngFor="let employee of paginatedEmployees; let i = index" [class.employee-card--own]="isEmployeeAccount && isOwnEmployee(employee)">
 						<div class="identity">
 							<button type="button" class="employee-name" [disabled]="isEmployeeAccount && !isOwnEmployee(employee)" (click)="openEmployeePage(employee)">{{ employee.name }}</button>
 							<span class="employee-self-badge" *ngIf="isEmployeeAccount && isOwnEmployee(employee)">ملفي الشخصي</span>
@@ -107,6 +108,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 						<div class="actions"><button type="button" class="action-menu-trigger" aria-label="إجراءات الموظف" (click)="toggleActionMenu(employee.id)">⋮</button><div class="action-menu" *ngIf="actionMenuEmployeeId === employee.id"><button type="button" class="edit" (click)="openEmployeePage(employee)">عرض الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="edit" (click)="editEmployee(employee)">تعديل</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(employee)">حذف</button></div></div>
 					</article>
 				</div>
+				<nav class="employee-pagination" *ngIf="!employeePageEmployee && filteredEmployees.length" aria-label="صفحات الموظفين"><button type="button" class="employee-pagination__button" (click)="goToEmployeePage(employeePage - 1)" [disabled]="employeePage <= 1">السابق</button><div class="employee-pagination__pages"><ng-container *ngFor="let page of employeePageNumbers"><button *ngIf="page !== '…'" type="button" class="employee-pagination__page" [class.is-active]="page === employeePage" [attr.aria-current]="page === employeePage ? 'page' : null" [attr.aria-label]="'الصفحة ' + page" (click)="goToEmployeePage(page)">{{ page }}</button><span *ngIf="page === '…'" class="employee-pagination__ellipsis" aria-hidden="true">…</span></ng-container></div><span class="employee-pagination__summary">صفحة {{ employeePage }} من {{ employeePages }}</span><button type="button" class="employee-pagination__button" (click)="goToEmployeePage(employeePage + 1)" [disabled]="employeePage >= employeePages">التالي</button></nav>
 				<div class="employee-modal-backdrop" *ngIf="selectedEmployee as employee" [class.employee-detail-page-backdrop]="employeePageEmployee" (click)="employeePageEmployee ? null : closeDetails()">
 					<section class="employee-modal" [class.employee-detail-page]="employeePageEmployee" role="region" [attr.aria-label]="'ملف الموظف ' + employee.name" (click)="$event.stopPropagation()">
 						<header class="modal-header"><div><h3>ملف {{ employee.name }}</h3><p class="modal-subtitle">بيانات الموظف وملاحظاته الشهرية</p></div><button type="button" class="modal-close" aria-label="العودة للموظفين" (click)="closeEmployeePage()">×</button></header>
@@ -173,6 +175,8 @@ export class EmployeesFormComponent implements OnChanges {
 	employeeDepartmentFilter = '';
 	employeeTypeFilter: EmployeeType | '' = '';
 	employeeManagerFilter: number | null = null;
+	employeePage = 1;
+	readonly employeePageSize = 10;
 	actionMenuEmployeeId: number | null = null;
 	employeePendingDeletion: Employee | null = null;
 	isDeletingEmployee = false;
@@ -230,6 +234,9 @@ export class EmployeesFormComponent implements OnChanges {
 	get employeePageEmployee(): Employee | null { return this.employees.find(employee => employee.id === this.employeePageId) || null; }
 	get employeeDepartments(): string[] { return [...new Set(this.employees.flatMap(employee => this.departmentValues(employee.department)))].sort((a, b) => a.localeCompare(b, 'ar')); }
 	get employeeManagers(): Employee[] { return this.employees.filter(employee => employee.name.trim() && (employee.employeeType === 'manager' || employee.employeeType === 'general_manager')).sort((a, b) => a.name.localeCompare(b.name, 'ar')); }
+	get employeePages(): number { return Math.max(1, Math.ceil(this.filteredEmployees.length / this.employeePageSize)); }
+	get paginatedEmployees(): Employee[] { const page = Math.min(Math.max(this.employeePage, 1), this.employeePages); const start = (page - 1) * this.employeePageSize; return this.filteredEmployees.slice(start, start + this.employeePageSize); }
+	get employeePageNumbers(): Array<number | '…'> { return this.buildEmployeePaginationItems(Math.min(this.employeePage, this.employeePages), this.employeePages); }
 	employeeManagersFor(employeeType: EmployeeType, employeeId: number | null): Employee[] {
 		if (employeeType === 'general_manager') return [];
 		const allowedTypes: EmployeeType[] = employeeType === 'manager' ? ['general_manager'] : ['manager', 'general_manager'];
@@ -247,7 +254,20 @@ export class EmployeesFormComponent implements OnChanges {
 			return matchesQuery && matchesDepartment && matchesType && matchesManager;
 		});
 	}
-	clearEmployeeFilters(): void { this.employeeSearch = ''; this.employeeDepartmentFilter = ''; this.employeeTypeFilter = ''; this.employeeManagerFilter = null; }
+	buildEmployeePaginationItems(currentPage: number, totalPages: number): Array<number | '…'> {
+		if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
+		const items: Array<number | '…'> = [1];
+		const start = Math.max(2, currentPage - 1);
+		const end = Math.min(totalPages - 1, currentPage + 1);
+		if (start > 2) items.push('…');
+		for (let page = start; page <= end; page += 1) items.push(page);
+		if (end < totalPages - 1) items.push('…');
+		items.push(totalPages);
+		return items;
+	}
+	resetEmployeePage(): void { this.employeePage = 1; this.actionMenuEmployeeId = null; }
+	goToEmployeePage(page: number | '…'): void { if (page === '…') return; this.employeePage = Math.min(Math.max(page, 1), this.employeePages); this.actionMenuEmployeeId = null; }
+	clearEmployeeFilters(): void { this.employeeSearch = ''; this.employeeDepartmentFilter = ''; this.employeeTypeFilter = ''; this.employeeManagerFilter = null; this.resetEmployeePage(); }
 	toggleActionMenu(employeeId: number): void { this.actionMenuEmployeeId = this.actionMenuEmployeeId === employeeId ? null : employeeId; }
 	openEmployeePage(employee: Employee): void {
 		this.actionMenuEmployeeId = null;
