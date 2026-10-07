@@ -299,7 +299,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 					this.activeView = 'cms';
 				}
 			}
-		if (this.activeView === 'finance' || this.activeView === 'finance-payroll') this.financeMenuOpen = true;
+		if (this.activeView === 'finance' || this.activeView === 'finance-payroll' || (this.activeView === 'cms' && pageKey === 'employees')) this.financeMenuOpen = true;
 		if (!isCmsNavigation) this.loadPage(pageKey);
 		this.routeStateReady = true;
 	}
