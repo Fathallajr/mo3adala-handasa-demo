@@ -219,6 +219,10 @@ export class EmployeesFormComponent implements OnChanges {
 			if (employee.employeeType === 'general_manager') employee.managerId = null;
 			if (!Array.isArray(employee.monthlyRecords)) employee.monthlyRecords = [];
 		}
+		if (this.employeePageId !== null) {
+			const employee = this.employeePageEmployee;
+			if (employee) this.selectEmployeeForPage(employee);
+		}
 		this.draft = this.emptyDraft();
 	}
 

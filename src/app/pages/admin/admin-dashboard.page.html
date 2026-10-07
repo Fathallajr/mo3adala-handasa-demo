@@ -93,7 +93,7 @@
 			</section>
 
 			<section *ngIf="activeView === 'finance'" class="data-view finance-view"><app-finance-form (openPayroll)="setView('finance-payroll')"></app-finance-form></section>
-			<section *ngIf="activeView === 'finance-payroll'" class="data-view finance-view"><app-finance-form [payrollOnly]="true" [employeeOnly]="employeeAccount" [employeeId]="employeeAccountId" (backToFinance)="setView('finance')"></app-finance-form></section>
+			<section *ngIf="activeView === 'finance-payroll'" class="data-view finance-view"><app-finance-form [payrollOnly]="true" [employeeOnly]="employeeAccount" [employeeId]="employeeAccountId" (openEmployee)="openEmployeeFromPayroll($event)" (backToFinance)="setView('finance')"></app-finance-form></section>
 
 			<section *ngIf="activeView === 'admins'" class="data-view admin-users-view">
 				<div class="editor-toolbar"><div><h2 class="editor-title">حسابات الأدمن</h2><p class="editor-subtitle">أي حساب يتم إنشاؤه من هنا يحصل على صلاحيات الأدمن الكاملة. الحسابات المحدودة للموظفين يتم إنشاؤها من صفحة الموظفين فقط.</p></div></div>
