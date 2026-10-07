@@ -7,9 +7,43 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
 @Component({ selector: 'app-finance-form', standalone: true, imports: [CommonModule, FormsModule], template: `
 <div class="finance-page" [class.payroll-only]="payrollOnly" dir="rtl">
   <style>.finance-page.payroll-only > :not(.payroll){display:none!important}</style>
-  <div *ngIf="!payrollOnly" class="payroll" style="display:flex;justify-content:flex-start"><button type="button" class="ghost" (click)="openPayroll.emit()">فتح كشف الرواتب في صفحة مستقلة ↗</button></div>
-  <div *ngIf="!payrollOnly" class="payroll" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><button type="button" class="ghost" (click)="loadDemoData()">عرض بيانات تجريبية</button><button *ngIf="demoMode" type="button" class="ghost" (click)="demoMode=false;reload()">العودة للبيانات الحقيقية</button><span *ngIf="demoMode" style="color:#8a6a16;font-size:11px;font-weight:800">وضع معاينة فقط — لم يتم حفظ أي بيانات</span></div>
-  <div *ngIf="!payrollOnly" class="payroll" style="display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:12px 14px;border:1px solid #e7eaf2;border-radius:14px;background:#fff"><strong style="color:#293650;font-size:12px">اتجاه الربح الشهري</strong><label style="display:grid;gap:5px;color:#728098;font-size:11px;font-weight:900">من شهر<input type="month" [(ngModel)]="trendFromMonth" (change)="loadTrend()" style="min-height:36px;border:1px solid #dfe5f0;border-radius:9px;padding:0 8px;background:#fbfcff;color:#273552;font:inherit"></label><label style="display:grid;gap:5px;color:#728098;font-size:11px;font-weight:900">إلى شهر<input type="month" [(ngModel)]="trendToMonth" (change)="loadTrend()" style="min-height:36px;border:1px solid #dfe5f0;border-radius:9px;padding:0 8px;background:#fbfcff;color:#273552;font:inherit"></label></div>
+  <style>
+    .finance-page{position:relative;max-width:1180px;margin:0 auto;padding:4px 2px 28px;gap:20px;background:linear-gradient(180deg,#fbfcff 0%,#f7f8fc 100%)}
+    .finance-head{order:1;position:relative;min-height:142px;padding:28px 30px;border:1px solid #e5e8f3;border-radius:24px;background:radial-gradient(circle at 12% 20%,#8e78ff22 0,transparent 35%),linear-gradient(135deg,#fff 0%,#f6f4ff 100%);box-shadow:0 16px 35px #26365d0d;overflow:hidden}
+    .finance-head:after{content:'جنيه';position:absolute;left:28px;bottom:-24px;color:#684cf01c;font-size:90px;font-weight:1000;line-height:1}
+    .finance-head h2{position:relative;z-index:1;margin:7px 0 9px;font-size:30px;letter-spacing:-.8px;color:#202d4b}
+    .finance-head p{position:relative;z-index:1;font-size:13px}
+    .finance-head .eyebrow{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#eeeaff;color:#6349dc}
+    .finance-head .eyebrow:before{content:'';width:6px;height:6px;border-radius:50%;background:#7455ef;box-shadow:0 0 0 4px #7455ef1f}
+    .finance-quick-actions{order:3;position:absolute;z-index:3;top:42px;left:30px;padding:0!important;border:0!important;background:transparent!important}
+    .finance-quick-actions--demo{top:91px}
+    .finance-quick-actions button{border-radius:12px;padding:10px 13px;background:#fff;box-shadow:0 8px 20px #26365d10}
+    .trend-range-panel{order:2;justify-content:flex-start!important;box-shadow:0 8px 22px #26365d08}
+    .trend-range-panel strong{margin-left:auto;font-size:13px!important}
+    .trend-range-panel label{min-width:150px}
+    .finance-filters{order:2;padding:18px;border-radius:20px;background:#fff;box-shadow:0 10px 25px #26365d08}
+    .finance-filters label{gap:8px}
+    .finance-filters input,.finance-filters select{min-height:44px;border-radius:12px;background:#fbfcff;transition:border-color .2s,box-shadow .2s}
+    .finance-filters input:focus,.finance-filters select:focus{outline:0;border-color:#8068ed;box-shadow:0 0 0 4px #8068ed17}
+    .finance-filters .ghost{min-height:44px;align-self:end}
+    .kpis{order:3;gap:12px}
+    .kpis article{position:relative;min-height:112px;display:flex;flex-direction:column;justify-content:center;padding:19px 20px;border:1px solid #e4e8f2;border-top:0;border-radius:18px;overflow:hidden;box-shadow:0 11px 26px #26365d0b}
+    .kpis article:before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:#7455ef}
+    .kpis article.green:before{background:#13a477}.kpis article.red:before{background:#e06b7e}.kpis article.violet:before{background:#9b6aff}
+    .kpis strong{font-size:22px;letter-spacing:-.6px}
+    .accounts{order:4;gap:14px}
+    .accounts article{min-height:145px;padding:22px 24px;border-radius:22px;background:linear-gradient(135deg,#1c2a4d,#35477a);box-shadow:0 15px 30px #17274624;overflow:hidden}
+    .accounts article:nth-child(2){background:linear-gradient(135deg,#183b50,#1d7a72)}
+    .accounts h3{font-size:19px}.accounts strong{font-size:29px}
+    .trend-card,.category-report,.payroll,.transaction-ledger{border-color:#e3e7f1;border-radius:22px;box-shadow:0 11px 26px #26365d08}
+    .trend-card{order:5;padding:22px}.category-report{order:6}.payroll{order:7}.transaction-ledger{order:8}
+    .section-head h3{color:#263451;font-size:17px}.section-head p{line-height:1.8}
+    .trend-chart{min-height:245px!important;border-top:0!important;background:linear-gradient(180deg,#fafbff,#fff);border-radius:16px}
+    @media(max-width:700px){.finance-page{padding:0 0 20px;gap:13px}.finance-head{min-height:170px;padding:22px 18px;border-radius:18px}.finance-head h2{font-size:23px}.finance-head:after{font-size:64px;left:10px}.finance-quick-actions{position:static;margin-top:-7px;padding:0!important}.finance-quick-actions--demo{margin-top:-7px}.finance-quick-actions button{width:100%}.trend-range-panel{align-items:stretch!important;flex-direction:column;padding:14px!important}.trend-range-panel strong{margin-left:0}.trend-range-panel label{width:100%}.trend-range-panel input{width:100%;box-sizing:border-box}.kpis{grid-template-columns:1fr 1fr!important;gap:8px}.kpis article{min-height:90px;padding:13px}.kpis strong{font-size:16px}.accounts{grid-template-columns:1fr!important}.accounts article{min-height:125px;padding:18px}.finance-filters{padding:12px}.trend-card,.category-report,.payroll,.transaction-ledger{padding:14px}.trend-chart{min-height:190px!important}}
+  </style>
+  <div *ngIf="!payrollOnly" class="payroll finance-quick-actions finance-quick-actions--payroll" style="display:flex;justify-content:flex-start"><button type="button" class="ghost" (click)="openPayroll.emit()">فتح كشف الرواتب في صفحة مستقلة ↗</button></div>
+  <div *ngIf="!payrollOnly" class="payroll finance-quick-actions finance-quick-actions--demo" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><button type="button" class="ghost" (click)="loadDemoData()">عرض بيانات تجريبية</button><button *ngIf="demoMode" type="button" class="ghost" (click)="demoMode=false;reload()">العودة للبيانات الحقيقية</button><span *ngIf="demoMode" style="color:#8a6a16;font-size:11px;font-weight:800">وضع معاينة فقط — لم يتم حفظ أي بيانات</span></div>
+  <div *ngIf="!payrollOnly" class="payroll trend-range-panel" style="display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:12px 14px;border:1px solid #e7eaf2;border-radius:14px;background:#fff"><strong style="color:#293650;font-size:12px">اتجاه الربح الشهري</strong><label style="display:grid;gap:5px;color:#728098;font-size:11px;font-weight:900">من شهر<input type="month" [(ngModel)]="trendFromMonth" (change)="loadTrend()" style="min-height:36px;border:1px solid #dfe5f0;border-radius:9px;padding:0 8px;background:#fbfcff;color:#273552;font:inherit"></label><label style="display:grid;gap:5px;color:#728098;font-size:11px;font-weight:900">إلى شهر<input type="month" [(ngModel)]="trendToMonth" (change)="loadTrend()" style="min-height:36px;border:1px solid #dfe5f0;border-radius:9px;padding:0 8px;background:#fbfcff;color:#273552;font:inherit"></label></div>
   <div *ngIf="payrollOnly" class="payroll" style="display:flex;justify-content:flex-start"><button type="button" class="ghost" (click)="backToFinance.emit()">العودة إلى الحسابات والمصروفات</button></div>
   <div class="finance-head"><div><span class="eyebrow">لوحة مالية مبسطة</span><h2>الحسابات والمصروفات</h2><p>تابع الإيرادات والمصروفات والرواتب في مكان واحد.</p></div><button class="primary" (click)="openTransaction = !openTransaction">+ إضافة حركة</button></div>
   <div class="finance-filters"><label>من تاريخ<input type="date" [(ngModel)]="from" (change)="reload()"></label><label>إلى تاريخ<input type="date" [(ngModel)]="to" (change)="reload()"></label><label>نوع الحركة<select [(ngModel)]="filterKind" (change)="reload()"><option value="">كل الحركات</option><option value="income">إيرادات</option><option value="expense">مصروفات</option></select></label><label>الخزنة<select [(ngModel)]="accountFilter" (change)="reload()"><option value="">كل الخزائن</option><option *ngFor="let a of accounts" [value]="a.id">{{ a.name }}</option></select></label><label>بحث<input [(ngModel)]="search" (keyup.enter)="reload()" placeholder="الوصف أو الجهة"></label><button class="ghost" (click)="reload()">تحديث</button></div>
