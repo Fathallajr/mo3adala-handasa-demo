@@ -108,7 +108,13 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
       border:1px solid #dce4f2!important;border-radius:20px!important;background:#fff!important;box-shadow:0 10px 24px #15244509!important
     }
     .finance-page:not(.payroll-only) .finance-filters:before{padding-bottom:10px!important;border-bottom:1px solid #edf1f7!important;color:#182542!important;font-size:15px!important}
-    .finance-page:not(.payroll-only) .finance-filters:after{padding-bottom:2px!important}
+    .finance-page:not(.payroll-only) .finance-filters:after{display:none!important}
+    .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(1),
+    .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(2),
+    .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(3),
+    .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(4){grid-column:auto!important}
+    .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(5){grid-column:1/3!important}
+    .finance-page:not(.payroll-only) .finance-filters>button{grid-column:3/5!important;align-self:end!important}
     .finance-page:not(.payroll-only) .finance-filters label{gap:7px!important;color:#63718a!important}
     .finance-page:not(.payroll-only) .finance-filters input,.finance-page:not(.payroll-only) .finance-filters select{
       min-height:44px!important;border:1px solid #dce4f0!important;border-radius:11px!important;background:#f8faff!important;color:#243352!important
@@ -151,6 +157,7 @@ import { AdminApiService, FinanceAccount, FinanceAuditLog, FinancePayrollLine, F
       .finance-page:not(.payroll-only){padding:18px 14px 30px!important}
       .finance-page:not(.payroll-only) .finance-filters{grid-template-columns:repeat(2,minmax(0,1fr))!important}
       .finance-page:not(.payroll-only) .finance-filters:before,.finance-page:not(.payroll-only) .finance-filters:after{grid-column:1/-1!important}
+      .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(5),.finance-page:not(.payroll-only) .finance-filters>button{grid-column:auto!important}
       .finance-page:not(.payroll-only) .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
     }
     @media(max-width:600px){
