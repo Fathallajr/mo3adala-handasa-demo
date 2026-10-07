@@ -989,7 +989,7 @@ function isEmployeeAdminUser(user) {
 	return user?.role === 'employee' || normalizeUserPermissions(user?.permissions).some(item => /^employee:\d+$/.test(item));
 }
 
-const FINANCE_KINDS = new Set(['income', 'expense', 'transfer']);
+const FINANCE_KINDS = new Set(['income', 'expense']);
 const FINANCE_CATEGORIES = new Set(['اشتراكات ومبيعات', 'رواتب', 'إيجار', 'تسويق', 'أدوات ومستلزمات', 'اشتراكات خدمات', 'مواصلات', 'مصروفات تشغيلية', 'أخرى', 'تحويل داخلي']);
 function validateFinanceDate(value, field = 'التاريخ') { const text = String(value || '').trim(); if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return `${field} غير صحيح.`; return null; }
 function validateFinanceMonth(value) { const text = String(value || '').trim(); if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(text)) return 'الشهر غير صحيح.'; return null; }
@@ -997,7 +997,7 @@ function parseFinanceFilters(query) { const from = String(query.from || '').trim
 function validateFinanceTransactionInput(input, accounts) {
 	const kind = String(input?.kind || '').trim(); const amount = Number(input?.amount); const occurredAt = String(input?.occurredAt || '').trim();
 	if (!FINANCE_KINDS.has(kind)) return 'نوع الحركة غير صحيح.'; if (!Number.isFinite(amount) || amount <= 0 || amount > 100000000) return 'المبلغ يجب أن يكون أكبر من صفر.'; const dateError = validateFinanceDate(occurredAt); if (dateError) return dateError;
-	const accountIds = new Set(accounts.filter(item => item.isActive).map(item => item.id)); if ((kind !== 'transfer' && !accountIds.has(String(input.accountId || ''))) || (kind === 'transfer' && (!accountIds.has(String(input.fromAccountId || '')) || !accountIds.has(String(input.toAccountId || '')) || input.fromAccountId === input.toAccountId))) return 'الخزنة المختارة غير صحيحة.';
+	const accountIds = new Set(accounts.filter(item => item.isActive).map(item => item.id)); if (!accountIds.has(String(input.accountId || ''))) return 'الخزنة المختارة غير صحيحة.';
 	for (const [key, label, max] of [['category','التصنيف',80], ['description','الوصف',500], ['counterparty','الطرف أو الجهة',160]]) if (String(input[key] || '').length > max) return `${label} طويل جدًا.`;
 	return null;
 }
