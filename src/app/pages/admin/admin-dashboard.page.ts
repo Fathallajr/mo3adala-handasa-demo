@@ -129,7 +129,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	private wheelClaimsLoaded = false;
 	private adminUsersLoaded = false;
 	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
-	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }, { key: 'finance', title: 'الحسابات والمصروفات' }];
+	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }, { key: 'finance', title: 'الحسابات والمصروفات' }, { key: 'finance-payroll', title: 'كشف الرواتب' }];
 	wheelSearch = '';
 	wheelGift = '';
 	wheelProgram = '';
@@ -285,13 +285,14 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 					this.activeView = 'finance-payroll';
 				} else if (canOpenCmsPage) {
 					this.activeView = 'cms';
-				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('finance')) {
+				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('finance') || this.auth.canAccessFeature('finance-payroll')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
 					const canLoadCustomers = this.auth.canAccessFeature('customers');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
 					const canLoadFeedback = this.auth.canAccessFeature('feedback');
 					const canLoadFinance = this.auth.canAccessFeature('finance');
-					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : canLoadFinance ? 'finance' : 'feedback';
+					const canLoadPayroll = this.auth.canAccessFeature('finance-payroll');
+					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : canLoadFinance ? 'finance' : canLoadPayroll ? 'finance-payroll' : 'feedback';
 					this.activeView = requestedView || defaultView;
 					if (canLoadLeads) this.loadLeads();
 					if (canLoadCustomers) this.loadCustomers();
@@ -334,7 +335,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'customers' && !this.auth.canAccessFeature('customers')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
 		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
-		if ((view === 'finance' || view === 'finance-payroll') && !this.auth.canAccessFeature('finance')) return;
+		if (view === 'finance' && !this.auth.canAccessFeature('finance')) return;
+		if (view === 'finance-payroll' && !this.auth.canAccessFeature('finance-payroll')) return;
 		if (view === 'finance' || view === 'finance-payroll') this.financeMenuOpen = true;
 		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'feedback' && view !== 'finance' && view !== 'finance-payroll' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
@@ -1026,7 +1028,9 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'overview' || view === 'programs' || view === 'admins') {
 			return this.auth.getRole() === 'admin' ? view : null;
 		}
-		return this.auth.canAccessFeature(view === 'finance-payroll' ? 'finance' : view) ? view : null;
+		if (view === 'finance') return this.auth.canAccessFeature('finance') ? view : null;
+		if (view === 'finance-payroll') return this.auth.canAccessFeature('finance-payroll') ? view : null;
+		return this.auth.canAccessFeature(view) ? view : null;
 	}
 
 	get leadsOnlyAccount(): boolean {
@@ -1040,6 +1044,6 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
 
-	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance'): boolean { return this.auth.canAccessFeature(feature); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance' | 'finance-payroll'): boolean { return this.auth.canAccessFeature(feature); }
 	canAccessCustomerPermission(_permission: string): boolean { return this.auth.canAccessFeature('customers'); }
 }
