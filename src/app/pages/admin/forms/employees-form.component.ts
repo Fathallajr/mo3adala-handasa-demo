@@ -135,8 +135,8 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		@media(max-width:480px){.employee-detail-page--editing .modal-header h3{font-size:18px!important}.employee-detail-page--editing .profile-section{padding:16px!important}.employee-detail-page--editing .profile-fields{gap:13px!important;padding:13px!important}.employee-detail-page--editing .profile-fields>.department-field .department-checkboxes{grid-template-columns:1fr!important}.employee-detail-page--editing .profile-fields>.field input,.employee-detail-page--editing .profile-fields>.field select{min-height:44px!important}}
 		.employee-detail-page .view-field--external-label{display:grid!important;align-content:start!important;gap:7px!important;min-height:0!important;padding:0!important;border:0!important;background:transparent!important}
 		.employee-detail-page .view-field--external-label>span{display:block!important;padding:0 3px!important;color:#7f8da5!important;font-size:11px!important;font-weight:900!important}
-		.employee-detail-page .view-field--external-label>strong{display:flex!important;align-items:center!important;min-height:64px!important;box-sizing:border-box!important;padding:11px 14px!important;border:1px solid #e7ecf4!important;border-radius:12px!important;background:#fbfcff!important;color:#263653!important;font-size:13px!important;overflow-wrap:anywhere!important}
-		@media(max-width:800px){.employee-detail-page .view-field--external-label>strong{min-height:60px!important}}
+		.employee-detail-page .view-field--external-label>strong{display:flex!important;align-items:center!important;min-height:46px!important;box-sizing:border-box!important;padding:0 13px!important;border:1px solid #dfe6f0!important;border-radius:11px!important;background:#fbfcff!important;color:#263653!important;font-size:13px!important;overflow-wrap:anywhere!important}
+		@media(max-width:800px){.employee-detail-page .view-field--external-label>strong{min-height:44px!important}}
 	`],
 	template: `
 		<div class="wrap" *ngIf="content">
