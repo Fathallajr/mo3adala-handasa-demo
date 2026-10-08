@@ -222,6 +222,24 @@ import { MonthlyContentService } from '../../../core/services/monthly-content.se
     .finance-page:not(.payroll-only) .accounts .account-kpis .positive{color:#12805d!important}
     .finance-page:not(.payroll-only) .accounts .account-kpis .negative{color:#c34860!important}
     @media(max-width:600px){.finance-page:not(.payroll-only) .accounts article{min-height:160px!important;padding:18px!important}.finance-page:not(.payroll-only) .accounts article:after{top:16px!important;left:18px!important}.finance-page:not(.payroll-only) .accounts .account-head h3{font-size:18px!important}.finance-page:not(.payroll-only) .accounts .account-head strong{font-size:24px!important}}
+    .finance-page:not(.payroll-only) .accounts article:first-child{border-color:#fed7aa!important;background:linear-gradient(145deg,#fffaf5 0%,#fff1e6 100%)!important;color:#7c2d12!important;box-shadow:0 14px 30px #ea580c14!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child:before{background:linear-gradient(180deg,#f97316,#c2410c)!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child:after{color:#c2410c!important;background:#ffedd5!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child .account-head>span{color:#c2410c!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child .account-head h3{color:#7c2d12!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child .account-head strong{color:#9a3412!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child .account-kpis{border-color:#fed7aa!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child .account-kpis span{color:#b45309!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child .account-kpis b{color:#7c2d12!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2){border-color:#a5f3fc!important;background:linear-gradient(145deg,#f0fdff 0%,#cffafe 100%)!important;color:#164e63!important;box-shadow:0 14px 30px #0891b214!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2):before{background:linear-gradient(180deg,#06b6d4,#0e7490)!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2):after{color:#0e7490!important;background:#cffafe!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2) .account-head>span{color:#0e7490!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2) .account-head h3{color:#164e63!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2) .account-head strong{color:#155e75!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2) .account-kpis{border-color:#a5f3fc!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2) .account-kpis span{color:#0e7490!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2) .account-kpis b{color:#164e63!important}
   </style>
   <style>
     .finance-modal-backdrop{background:rgba(20,29,52,.62)!important;backdrop-filter:blur(8px);padding:24px!important}
