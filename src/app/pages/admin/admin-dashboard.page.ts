@@ -329,6 +329,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.closeActionMenus();
 		this.statusMessage = '';
 		this.errorMessage = '';
+		if (this.employeeAccount && view !== 'finance-payroll') return;
 		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
 		if (view === 'customers' && !this.auth.canAccessFeature('customers')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
@@ -1019,6 +1020,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'admins', 'finance', 'finance-payroll'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
+		if (this.employeeAccount && view !== 'finance-payroll') return null;
 		if (view === 'feedback') return this.auth.canAccessFeature('feedback') ? view : null;
 		if (view === 'customers') return this.auth.canAccessFeature('customers') ? view : null;
 		if (view === 'overview' || view === 'programs' || view === 'admins') {
