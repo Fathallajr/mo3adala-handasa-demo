@@ -203,6 +203,25 @@ import { MonthlyContentService } from '../../../core/services/monthly-content.se
       .finance-page:not(.payroll-only) .accounts{grid-template-columns:1fr!important}
       .finance-page:not(.payroll-only) .accounts article{min-height:128px!important}
     }
+    .finance-page:not(.payroll-only) .accounts article{
+      position:relative!important;display:grid!important;grid-template-rows:auto auto 1fr!important;gap:16px!important;min-height:176px!important;padding:22px 24px!important;border:1px solid #dfe5f0!important;border-right:0!important;border-radius:20px!important;background:#fff!important;box-shadow:0 14px 30px #253b6810!important;overflow:hidden!important
+    }
+    .finance-page:not(.payroll-only) .accounts article:before{content:''!important;position:absolute!important;inset:0 auto 0 0!important;width:6px!important;background:#7256ef!important;border-radius:20px 0 0 20px!important;box-shadow:none!important}
+    .finance-page:not(.payroll-only) .accounts article:first-child:before{z-index:0!important;width:6px!important;height:auto!important;inset:0 auto 0 0!important;border:0!important;border-radius:20px 0 0 20px!important;box-shadow:none!important;background:#7256ef!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2):before{background:#19a77f!important}
+    .finance-page:not(.payroll-only) .accounts article:after{content:'حساب نشط'!important;position:absolute!important;top:20px!important;left:22px!important;right:auto!important;bottom:auto!important;padding:5px 9px!important;border-radius:999px!important;color:#6751d4!important;background:#f0edff!important;font-size:9px!important;font-weight:900!important;letter-spacing:0!important}
+    .finance-page:not(.payroll-only) .accounts article:nth-child(2):after{content:'حساب نشط'!important;color:#12805d!important;background:#e6f8f1!important}
+    .finance-page:not(.payroll-only) .accounts .account-head{display:grid!important;gap:4px!important}
+    .finance-page:not(.payroll-only) .accounts .account-head>span{color:#8a95a9!important;font-size:10px!important;font-weight:800!important}
+    .finance-page:not(.payroll-only) .accounts .account-head h3{margin:0!important;color:#263653!important;font-size:20px!important}
+    .finance-page:not(.payroll-only) .accounts .account-head strong{color:#1d2b49!important;font-size:28px!important;letter-spacing:-.6px!important}
+    .finance-page:not(.payroll-only) .accounts .account-kpis{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin-top:auto!important;padding-top:13px!important;border-top:1px solid #edf1f6!important}
+    .finance-page:not(.payroll-only) .accounts .account-kpis div{display:grid!important;gap:4px!important}
+    .finance-page:not(.payroll-only) .accounts .account-kpis span{color:#8993a8!important;font-size:9px!important;white-space:nowrap!important}
+    .finance-page:not(.payroll-only) .accounts .account-kpis b{color:#263653!important;font-size:11px!important}
+    .finance-page:not(.payroll-only) .accounts .account-kpis .positive{color:#12805d!important}
+    .finance-page:not(.payroll-only) .accounts .account-kpis .negative{color:#c34860!important}
+    @media(max-width:600px){.finance-page:not(.payroll-only) .accounts article{min-height:160px!important;padding:18px!important}.finance-page:not(.payroll-only) .accounts article:after{top:16px!important;left:18px!important}.finance-page:not(.payroll-only) .accounts .account-head h3{font-size:18px!important}.finance-page:not(.payroll-only) .accounts .account-head strong{font-size:24px!important}}
   </style>
   <style>
     .finance-modal-backdrop{background:rgba(20,29,52,.62)!important;backdrop-filter:blur(8px);padding:24px!important}
