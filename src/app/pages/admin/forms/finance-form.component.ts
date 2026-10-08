@@ -240,6 +240,26 @@ import { MonthlyContentService } from '../../../core/services/monthly-content.se
     .finance-page:not(.payroll-only) .accounts article:nth-child(2) .account-kpis{border-color:#a5f3fc!important}
     .finance-page:not(.payroll-only) .accounts article:nth-child(2) .account-kpis span{color:#0e7490!important}
     .finance-page:not(.payroll-only) .accounts article:nth-child(2) .account-kpis b{color:#164e63!important}
+    /* Finance filters rebuilt: explicit desktop grid, stacked responsive layout. */
+    .finance-page:not(.payroll-only) .finance-filters{
+      direction:ltr!important;display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:14px 12px!important;padding:22px!important;border:1px solid #e0e7f2!important;border-radius:22px!important;background:linear-gradient(180deg,#ffffff 0%,#f8faff 100%)!important;box-shadow:0 16px 34px #20375d0d!important
+    }
+    .finance-page:not(.payroll-only) .finance-filters:before{grid-column:1/-1!important;padding:0 0 13px!important;border-bottom:1px solid #e9eef6!important;color:#1d2b49!important;font-size:16px!important;text-align:right!important}
+    .finance-page:not(.payroll-only) .finance-filters label{display:grid!important;grid-column:span 3!important;gap:8px!important;direction:rtl!important;color:#68758d!important;font-size:11px!important;font-weight:900!important}
+    .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(1){grid-column:10/13!important}
+    .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(2){grid-column:7/10!important}
+    .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(3){grid-column:4/7!important}
+    .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(4){grid-column:1/4!important}
+    .finance-page:not(.payroll-only) .finance-filters label input,.finance-page:not(.payroll-only) .finance-filters label select{width:100%!important;min-height:46px!important;box-sizing:border-box!important;border:1px solid #dce4f1!important;border-radius:12px!important;background:#fff!important;color:#263653!important;font-size:12px!important;font-weight:800!important;box-shadow:0 3px 8px #24365d06!important}
+    .finance-page:not(.payroll-only) .finance-filters label input:hover,.finance-page:not(.payroll-only) .finance-filters label select:hover{border-color:#bdb3f4!important}
+    .finance-page:not(.payroll-only) .finance-filters label input:focus,.finance-page:not(.payroll-only) .finance-filters label select:focus{outline:0!important;border-color:#7354f4!important;box-shadow:0 0 0 4px #7354f41a!important}
+    .finance-page:not(.payroll-only) .finance-filter-actions{grid-column:1/4!important;grid-row:3!important;justify-self:stretch!important;width:auto!important;position:static!important;display:flex!important;direction:rtl!important;align-items:stretch!important;gap:9px!important;margin:0!important}
+    .finance-page:not(.payroll-only) .finance-filter-actions button{flex:1!important;width:auto!important;min-height:44px!important;border-radius:12px!important}
+    .finance-page:not(.payroll-only) .finance-filter-actions .primary{background:#1d2b49!important;box-shadow:0 8px 16px #1d2b4930!important}
+    .finance-page:not(.payroll-only) .finance-filter-actions .primary:hover{background:#7354f4!important}
+    .finance-page:not(.payroll-only) .finance-filter-actions .ghost{border:1px solid #d7e0ee!important;background:#eef3fa!important;color:#40506c!important}
+    @media(max-width:900px){.finance-page:not(.payroll-only) .finance-filters{grid-template-columns:repeat(2,minmax(0,1fr))!important}.finance-page:not(.payroll-only) .finance-filters label:nth-of-type(1),.finance-page:not(.payroll-only) .finance-filters label:nth-of-type(2),.finance-page:not(.payroll-only) .finance-filters label:nth-of-type(3),.finance-page:not(.payroll-only) .finance-filters label:nth-of-type(4){grid-column:auto!important}.finance-page:not(.payroll-only) .finance-filter-actions{grid-column:1/-1!important;grid-row:auto!important;justify-self:start!important;width:min(330px,100%)!important}}
+    @media(max-width:600px){.finance-page:not(.payroll-only) .finance-filters{grid-template-columns:1fr!important;gap:11px!important;padding:16px!important}.finance-page:not(.payroll-only) .finance-filters label:nth-of-type(1),.finance-page:not(.payroll-only) .finance-filters label:nth-of-type(2),.finance-page:not(.payroll-only) .finance-filters label:nth-of-type(3),.finance-page:not(.payroll-only) .finance-filters label:nth-of-type(4){grid-column:1!important}.finance-page:not(.payroll-only) .finance-filter-actions{grid-column:1!important;width:100%!important}.finance-page:not(.payroll-only) .finance-filter-actions button{min-height:46px!important}}
   </style>
   <style>
     .finance-modal-backdrop{background:rgba(20,29,52,.62)!important;backdrop-filter:blur(8px);padding:24px!important}
