@@ -176,6 +176,11 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-detail-page--editing .profile-fields>.draft-titles{order:10!important}
 		.employee-detail-page--editing .profile-fields>.employee-account-actions{order:11!important}
 		.employee-detail-page--editing .profile-fields>.draft-titles{display:none!important}
+		.employee-detail-page--editing .profile-fields>.add-title-button{grid-column:auto!important;order:9!important;width:100%!important;margin-top:24px!important}
+		.employee-detail-page--editing .profile-fields>.employee-account-actions{grid-column:auto!important;order:9!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:end!important;gap:10px!important;margin:0!important;padding:13px 14px!important;border:1px solid #e0e7f1!important;border-radius:15px!important;background:#fff!important;box-shadow:0 5px 14px #23365a07!important}
+		.employee-detail-page--editing .profile-fields>.employee-account-actions .field{min-width:0!important}
+		.employee-detail-page--editing .profile-fields>.employee-account-actions .employee-password-button{min-height:44px!important;white-space:nowrap!important;border-radius:10px!important}
+		@media(max-width:800px){.employee-detail-page--editing .profile-fields>.add-title-button,.employee-detail-page--editing .profile-fields>.employee-account-actions{grid-column:1!important}.employee-detail-page--editing .profile-fields>.employee-account-actions{grid-template-columns:1fr!important}.employee-detail-page--editing .profile-fields>.employee-account-actions .employee-password-button{width:100%!important}}
 	`],
 	template: `
 		<div class="wrap" *ngIf="content">
