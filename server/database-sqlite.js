@@ -375,7 +375,7 @@ function createFinanceAuditLog(log) {
 function createFinanceTransaction(input) {
 	const now = input.createdAt || new Date().toISOString();
 	const id = input.id || crypto.randomUUID();
-	db.prepare('INSERT INTO finance_transactions(id,kind,account_id,from_account_id,to_account_id,amount,occurred_at,category,description,status,source_type,source_id,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(id, input.kind, input.accountId || null, input.fromAccountId || null, input.toAccountId || null, Number(input.amount), input.occurredAt, input.category || '', input.description || '', input.status || 'posted', input.sourceType || '', input.sourceId || '', input.createdBy || '', now, null);
+	db.prepare('INSERT INTO finance_transactions(id,kind,account_id,from_account_id,to_account_id,amount,occurred_at,category,description,status,source_type,source_id,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(id, input.kind, input.accountId || null, input.fromAccountId || null, input.toAccountId || null, Number(input.amount), input.occurredAt, input.category || '', input.description || '', input.status || 'posted', input.sourceType || '', input.sourceId || '', input.createdBy || '', now, null);
 	const result = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
 	createFinanceAuditLog({ entityType: 'finance_transaction', entityId: id, action: 'created', afterData: result, actor: input.createdBy, createdAt: now });
 	return result;
@@ -467,11 +467,11 @@ function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 		const result = [];
 		for (const payment of payments) {
 			const existing = db.prepare('SELECT id,employee_id AS employeeId,month,amount,transaction_id AS transactionId,status,approved_by AS approvedBy,created_at AS createdAt,updated_at AS updatedAt FROM finance_payroll_payments WHERE employee_id = ? AND month = ?').get(payment.employeeId, month);
-			if (existing?.status === 'paid') { result.push({ ...existing, amount: Number(existing.amount) }); continue; }
+			if (existing?.status === 'paid') { if (Math.abs(Number(existing.amount) - Number(payment.amount)) >= 0.005) throw Object.assign(new Error('المبلغ المعتمد لا يطابق صافي الراتب.'), { code: 'FINANCE_PAYROLL_AMOUNT_MISMATCH' }); result.push({ ...existing, amount: Number(existing.amount) }); continue; }
 			let transactionId = null;
 			if (Number(payment.amount) > 0) {
 				transactionId = crypto.randomUUID();
-				db.prepare('INSERT INTO finance_transactions(id,kind,account_id,amount,occurred_at,category,description,status,source_type,source_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(transactionId, 'expense', accountId, Number(payment.amount), `${month}-01`, 'رواتب', `راتب شهر ${month}`, 'posted', 'payroll', `${payment.employeeId}:${month}`, approvedBy || '', now);
+				db.prepare('INSERT INTO finance_transactions(id,kind,account_id,amount,occurred_at,category,description,status,source_type,source_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)').run(transactionId, 'expense', accountId, Number(payment.amount), `${month}-01`, 'رواتب', `راتب شهر ${month}`, 'posted', 'payroll', `${payment.employeeId}:${month}`, approvedBy || '', now);
 			}
 			const id = existing?.id || crypto.randomUUID();
 			if (existing) db.prepare('UPDATE finance_payroll_payments SET amount = ?, transaction_id = ?, status = ?, approved_by = ?, updated_at = ? WHERE id = ?').run(Number(payment.amount), transactionId, 'paid', approvedBy || '', now, id);

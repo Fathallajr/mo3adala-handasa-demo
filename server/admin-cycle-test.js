@@ -2,8 +2,8 @@ const Database = require('better-sqlite3');
 const path = require('path');
 
 const base = process.env.API_BASE_URL || 'http://localhost:3001/api';
-const username = process.env.ADMIN_USERNAME || 'jr1';
-const password = process.env.ADMIN_PASSWORD || 'jr1';
+const username = process.env.ADMIN_USERNAME || '';
+const password = process.env.ADMIN_PASSWORD || '';
 const databaseFile = process.env.SQLITE_FILE || path.join(__dirname, 'data', 'app.db');
 const subscriptionKeys = [
   'subscription-engineering-ar',
@@ -27,6 +27,7 @@ function assert(condition, message) {
 }
 
 async function main() {
+	if (!username || !password) throw new Error('Set ADMIN_USERNAME and ADMIN_PASSWORD before running the admin cycle test.');
   const touched = new Map();
   try {
     let result = await request('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });

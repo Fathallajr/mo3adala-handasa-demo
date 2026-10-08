@@ -3,7 +3,7 @@ import { Component, Input, OnChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 import { AdminApiService } from '../../../core/services/admin-api.service';
 import { AdminAuthService } from '../../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../../core/services/monthly-content.service';
@@ -379,7 +379,7 @@ export class EmployeesFormComponent implements OnChanges {
 	get employeePages(): number { return Math.max(1, Math.ceil(this.filteredEmployees.length / this.employeePageSize)); }
 	get paginatedEmployees(): Employee[] { const page = Math.min(Math.max(this.employeePage, 1), this.employeePages); const start = (page - 1) * this.employeePageSize; return this.filteredEmployees.slice(start, start + this.employeePageSize); }
 	get employeePageNumbers(): Array<number | '…'> { return this.buildEmployeePaginationItems(Math.min(this.employeePage, this.employeePages), this.employeePages); }
-	exportEmployeesExcel(): void { const rows = this.filteredEmployees.map(employee => ({ الموظف: employee.name, النوع: this.employeeTypeLabel(employee), المهام: employee.titles.join('، ') || 'غير محددة', 'نوع الإدارة': this.departmentLabel(employee.department) || 'غير محدد', 'المدير المباشر': this.managerName(employee) || 'بدون مدير', 'رقم الواتساب': employee.whatsapp || '', 'البريد الإلكتروني': employee.email || '' })); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), 'الموظفون'); XLSX.writeFile(workbook, `الموظفون-${new Date().toISOString().slice(0,10)}.xlsx`); }
+	async exportEmployeesExcel(): Promise<void> { const rows = this.filteredEmployees.map(employee => ({ الموظف: employee.name, النوع: this.employeeTypeLabel(employee), المهام: employee.titles.join('، ') || 'غير محددة', 'نوع الإدارة': this.departmentLabel(employee.department) || 'غير محدد', 'المدير المباشر': this.managerName(employee) || 'بدون مدير', 'رقم الواتساب': employee.whatsapp || '', 'البريد الإلكتروني': employee.email || '' })); const workbook = new ExcelJS.Workbook(); const sheet = workbook.addWorksheet('الموظفون'); const keys = Object.keys(rows[0] || { الموظف: '' }); sheet.columns = keys.map(key => ({ header: key, key, width: Math.min(Math.max(key.length + 4, 14), 32) })); sheet.addRows(rows); sheet.getRow(1).font = { bold: true }; sheet.views = [{ rightToLeft: true }]; const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `الموظفون-${new Date().toISOString().slice(0,10)}.xlsx`; link.click(); URL.revokeObjectURL(url); }
 	employeeManagersFor(employeeType: EmployeeType, employeeId: number | null): Employee[] {
 		if (employeeType === 'general_manager') return [];
 		const allowedTypes: EmployeeType[] = employeeType === 'manager' ? ['general_manager'] : ['manager', 'general_manager'];

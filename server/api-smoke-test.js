@@ -3,13 +3,14 @@ const path = require('path');
 const Database = require('better-sqlite3');
 
 const base = process.env.API_BASE_URL || 'http://localhost:3001/api';
-const username = process.env.ADMIN_USERNAME || 'jr1';
-const password = process.env.ADMIN_PASSWORD || 'jr1';
+const username = process.env.ADMIN_USERNAME || '';
+const password = process.env.ADMIN_PASSWORD || '';
 const storeFile = path.join(__dirname, 'data', 'content-store.json');
 const databaseFile = process.env.SQLITE_FILE || path.join(__dirname, 'data', 'app.db');
 
 async function request(route, options = {}) {
-	const response = await fetch(`${base}${route}`, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
+	const { headers: optionHeaders = {}, ...requestOptions } = options;
+	const response = await fetch(`${base}${route}`, { ...requestOptions, headers: { 'Content-Type': 'application/json', ...optionHeaders } });
 	let body = null;
 	try { body = await response.json(); } catch {}
 	return { response, body };
@@ -20,6 +21,7 @@ function assert(condition, message) {
 }
 
 async function main() {
+	if (!username || !password) throw new Error('Set ADMIN_USERNAME and ADMIN_PASSWORD before running API smoke tests.');
 	const originalStore = await fs.readFile(storeFile, 'utf8');
 	let testPhone = '';
 	try {
@@ -33,6 +35,14 @@ async function main() {
 		assert(result.response.ok && result.body?.token, 'admin login failed');
 		const token = result.body.token;
 		const headers = { Authorization: `Bearer ${token}` };
+		if (username !== 'jr1' || password !== 'jr1') {
+			result = await request('/auth/login', { method: 'POST', body: JSON.stringify({ username: 'jr1', password: 'jr1' }) });
+			assert(result.response.status === 401, 'retired default admin credentials are still accepted');
+		}
+		result = await request('/admin/finance/transactions', { method: 'POST', headers, body: JSON.stringify({ kind: 'expense', amount: 1, accountId: 'application', occurredAt: '2026-99-99', category: 'أخرى', description: 'date validation test' }) });
+		assert(result.response.status === 400 && result.body?.message === 'التاريخ غير صحيح.', 'invalid finance date was accepted');
+		result = await request('/admin/finance/payroll/2026-10/approve', { method: 'POST', headers, body: JSON.stringify({ accountId: 'missing-account', payments: [{ employeeId: 1 }] }) });
+		assert(result.response.status === 404 && result.body?.message, 'invalid payroll account did not return a JSON 404');
 
 		for (const route of ['/auth/me', '/admin/dashboard/summary', '/admin/leads?page=1&limit=5', '/admin/programs', '/admin/wheel/claims']) {
 			result = await request(route, { headers });

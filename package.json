@@ -8,6 +8,7 @@
     "test:api": "node server/api-smoke-test.js",
     "test:demo": "node server/api-demo-test.js",
     "test:cycle": "node server/admin-cycle-test.js",
+    "repair:finance": "node server/repair-finance-integrity.js",
     "migrate:postgres": "node server/migrate-sqlite-to-postgres.js",
     "build": "ng build",
     "postinstall": "npm run build",
@@ -48,6 +49,7 @@
     "better-sqlite3": "^11.10.0",
     "bootstrap-icons": "^1.13.1",
     "compression": "^1.8.2",
+    "exceljs": "^4.4.0",
     "express": "^4.18.2",
     "gray-matter": "^4.0.3",
     "jasmine-core": "~5.2.0",
@@ -66,7 +68,6 @@
     "tailwindcss": "^3.4.13",
     "tslib": "^2.3.0",
     "typescript": "~5.9.3",
-    "xlsx": "^0.18.5",
     "zone.js": "~0.16.0"
   }
 }

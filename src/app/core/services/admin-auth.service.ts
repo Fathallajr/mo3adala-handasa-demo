@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, timeout } from 'rxjs';
 
 interface LoginResponse {
 	token: string;
@@ -36,6 +36,7 @@ export class AdminAuthService {
 
 	login(credentials: LoginRequest): Observable<LoginResponse> {
 		return this.http.post<LoginResponse>(`${this.apiBase}/auth/login`, credentials).pipe(
+			timeout({ first: 10000 }),
 			tap(response => {
 				localStorage.setItem(this.tokenKey, response.token);
 				localStorage.setItem(`${this.tokenKey}-expires`, response.expiresAt);
@@ -125,6 +126,6 @@ export class AdminAuthService {
 
 	canAccessPage(pageKey: string): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && pageKey === 'batch-2027') || this.getPermissions().includes('*') || (this.getRole() !== 'employee' && this.getPermissions().includes(pageKey)); }
 
-	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance' | 'finance-payroll'): boolean { return this.getRole() === 'admin' || (this.getRole() === 'employee' && feature === 'finance') || (this.getRole() === 'leads' && feature === 'leads') || this.getPermissions().includes(feature) || this.getPermissions().includes(`${feature}:read`); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance' | 'finance-payroll' | 'finance-studio'): boolean { return this.getRole() === 'admin' || (this.getRole() === 'employee' && feature === 'finance') || (this.getRole() === 'leads' && feature === 'leads') || this.getPermissions().includes(feature) || this.getPermissions().includes(`${feature}:read`); }
 	canAccessPermission(permission: string): boolean { return this.getRole() === 'admin' || this.getPermissions().includes('*') || this.getPermissions().includes(permission); }
 }

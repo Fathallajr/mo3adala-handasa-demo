@@ -57,6 +57,25 @@ body:has(.delete-dialog-backdrop) .route-page-transition {
   will-change: auto !important;
 }
 
+/* Payroll approval is rendered inside the admin page. Remove the page-entry
+   containing block while it is open so the fixed backdrop stays viewport-bound
+   on narrow/mobile layouts instead of following the editor scroll position. */
+body:has(.payroll-confirm-backdrop) .route-page-transition,
+body:has(.payroll-confirm-backdrop) .admin-dashboard-shell {
+  transform: none !important;
+  will-change: auto !important;
+  animation: none !important;
+}
+
+/* The studio expense editor is also a fixed mobile dialog. Keep it attached
+   to the viewport instead of the scrollable admin page. */
+body:has(.studio-modal-backdrop) .route-page-transition,
+body:has(.studio-modal-backdrop) .admin-dashboard-shell {
+  transform: none !important;
+  will-change: auto !important;
+  animation: none !important;
+}
+
 /* Each page opts into its own entrance animation; this does not depend on router animations. */
 .page-enter-animation {
   animation: page-enter-animation .32s cubic-bezier(.22, 1, .36, 1) both;

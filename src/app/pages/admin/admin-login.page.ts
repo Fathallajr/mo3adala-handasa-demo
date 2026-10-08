@@ -48,10 +48,14 @@ export class AdminLoginPageComponent {
 				this.isSubmitting = false;
 				void this.router.navigateByUrl('/admin');
 			},
-			error: (error: unknown) => {
+			 error: (error: unknown) => {
 				this.isSubmitting = false;
 				if (error instanceof HttpErrorResponse && error.status === 401) {
 					this.errorMessage = 'اسم المستخدم أو كلمة المرور غير صحيح.';
+					return;
+				}
+				if (error instanceof HttpErrorResponse && error.status === 429) {
+					this.errorMessage = 'تم إيقاف المحاولات مؤقتًا لكثرتها. انتظر قليلًا ثم حاول مرة أخرى.';
 					return;
 				}
 
