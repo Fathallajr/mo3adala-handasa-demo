@@ -86,6 +86,17 @@ import { MonthlyContentService } from '../../../core/services/monthly-content.se
     @media(max-width:700px){.finance-page{padding:0 0 20px;gap:13px}.finance-head{min-height:170px;padding:22px 18px;border-radius:18px}.finance-head h2{font-size:23px}.finance-head:after{font-size:64px;left:10px}.finance-quick-actions{position:static;margin-top:-7px;width:100%;padding:0!important}.finance-quick-actions--demo{margin-top:-7px}.finance-quick-actions button{width:100%}.trend-range-panel{align-items:stretch!important;flex-direction:column;padding:14px!important}.trend-range-panel strong{margin-left:0}.trend-range-panel label{width:100%}.trend-range-panel input{width:100%;box-sizing:border-box}.kpis{grid-template-columns:1fr 1fr!important;gap:8px}.kpis article{min-height:90px;padding:13px}.payroll-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.payroll-kpis article{min-height:78px;padding:12px}.payroll-kpis strong{font-size:16px}.accounts{grid-template-columns:1fr!important}.accounts article{min-height:125px;padding:18px}.finance-filters{padding:12px}.trend-card,.category-report,.payroll,.transaction-ledger{padding:14px}.trend-chart{min-height:190px!important}}
   </style>
   <style>
+    /* Keep medium screens compact; stack only on phones. */
+    @media (max-width:1200px) and (min-width:601px){
+      .finance-page:not(.payroll-only) .finance-filters{grid-template-columns:repeat(12,minmax(0,1fr))!important;grid-auto-flow:row!important;gap:12px!important}
+      .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(1){grid-column:10/13!important;grid-row:2!important}
+      .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(2){grid-column:7/10!important;grid-row:2!important}
+      .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(3){grid-column:4/7!important;grid-row:2!important}
+      .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(4){grid-column:1/4!important;grid-row:2!important}
+      .finance-page:not(.payroll-only) .finance-filter-actions{grid-column:1/4!important;grid-row:3!important;justify-self:stretch!important;width:auto!important}
+    }
+  </style>
+  <style>
     /* Finance dashboard v2: calm workspace layout with clear visual hierarchy */
     .finance-page:not(.payroll-only){
       max-width:1180px!important;padding:26px 22px 42px!important;gap:18px!important;
