@@ -42,6 +42,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-detail-page .profile-fields>.field--description textarea{min-height:84px!important;max-height:112px!important;resize:vertical!important}
 		.employee-detail-page .profile-fields>.department-field .department-checkboxes{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 		.employee-detail-page .profile-fields>.add-title-button{grid-column:1/-1!important;justify-self:start!important;min-height:42px!important;min-width:150px!important}
+		.employee-detail-page .profile-fields>.view-field--wide{grid-column:auto!important;min-height:76px!important;align-content:center!important}
 		.employee-detail-page .profile-fields>.draft-titles,.employee-detail-page .profile-fields>.employee-account-actions,.employee-detail-page .profile-fields>.employee-type-field{grid-column:1/-1!important}
 		.employee-detail-page .profile-fields>.employee-type-field{width:100%!important;max-width:none!important;justify-self:stretch!important}
 		.employee-detail-page .profile-save-row{position:absolute!important;left:28px!important;right:28px!important;bottom:22px!important;z-index:2!important;margin:0!important;padding-top:14px!important;border-top:1px solid #e4e9f2!important;background:#f7f9fc!important}
