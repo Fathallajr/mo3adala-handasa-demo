@@ -3,6 +3,7 @@ import { Component, Input, OnChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
+import * as XLSX from 'xlsx';
 import { AdminApiService } from '../../../core/services/admin-api.service';
 import { AdminAuthService } from '../../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../../core/services/monthly-content.service';
@@ -51,7 +52,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 			<p class="intro" *ngIf="!employeePageEmployee">سجّل الموظفين ومسمياتهم، وافتح ملف الموظف لإدارة ملاحظاته الشهرية. كل البيانات داخل لوحة الإدارة فقط.</p>
 			<div class="employee-self-banner" *ngIf="isEmployeeAccount && !employeePageEmployee"><div><strong>أنت داخل حساب الموظف</strong><span>يمكنك مشاهدة جدول الموظفين وعرض بيانات زملائك، وفتح ملفك الشخصي لعرض بياناتك الكاملة.</span></div><button type="button" (click)="openOwnEmployeePage()">فتح ملفي الشخصي</button></div>
 			<div class="employee-toolbar" *ngIf="!isEmployeeAccount && !employeePageEmployee">
-				<button type="button" class="add" (click)="openAddEmployee()">+ إضافة موظف</button>
+				<button type="button" class="add" (click)="openAddEmployee()">+ إضافة موظف</button><button type="button" class="clear-filters" (click)="exportEmployeesExcel()">تصدير Excel ↓</button>
 				<div class="employee-filters">
 					<label class="field"><span>بحث في الموظفين</span><input [(ngModel)]="employeeSearch" (ngModelChange)="resetEmployeePage()" placeholder="الاسم، الواتساب أو المسمى"></label>
 					<label class="field"><span>نوع الإدارة</span><select [(ngModel)]="employeeDepartmentFilter" (ngModelChange)="resetEmployeePage()"><option value="">كل الإدارات</option><option *ngFor="let department of employeeDepartments" [value]="department">{{ department }}</option></select></label>
@@ -237,6 +238,7 @@ export class EmployeesFormComponent implements OnChanges {
 	get employeePages(): number { return Math.max(1, Math.ceil(this.filteredEmployees.length / this.employeePageSize)); }
 	get paginatedEmployees(): Employee[] { const page = Math.min(Math.max(this.employeePage, 1), this.employeePages); const start = (page - 1) * this.employeePageSize; return this.filteredEmployees.slice(start, start + this.employeePageSize); }
 	get employeePageNumbers(): Array<number | '…'> { return this.buildEmployeePaginationItems(Math.min(this.employeePage, this.employeePages), this.employeePages); }
+	exportEmployeesExcel(): void { const rows = this.filteredEmployees.map(employee => ({ الموظف: employee.name, النوع: this.employeeTypeLabel(employee), المهام: employee.titles.join('، ') || 'غير محددة', 'نوع الإدارة': this.departmentLabel(employee.department) || 'غير محدد', 'المدير المباشر': this.managerName(employee) || 'بدون مدير', 'رقم الواتساب': employee.whatsapp || '', 'البريد الإلكتروني': employee.email || '' })); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), 'الموظفون'); XLSX.writeFile(workbook, `الموظفون-${new Date().toISOString().slice(0,10)}.xlsx`); }
 	employeeManagersFor(employeeType: EmployeeType, employeeId: number | null): Employee[] {
 		if (employeeType === 'general_manager') return [];
 		const allowedTypes: EmployeeType[] = employeeType === 'manager' ? ['general_manager'] : ['manager', 'general_manager'];
