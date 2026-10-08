@@ -87,6 +87,9 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-detail-page-backdrop>.employee-detail-page .modal-header{position:static!important;margin:0!important;padding:24px 30px 20px!important;border-radius:22px 22px 0 0!important}
 		.employee-detail-page-backdrop>.employee-detail-page .profile-section{max-height:none!important;overflow:visible!important;padding:24px 30px 30px!important;border-radius:0 0 22px 22px!important}
 		.employee-detail-page-backdrop>.employee-detail-page .profile-save-row{position:static!important;left:auto!important;right:auto!important;bottom:auto!important;margin-top:4px!important;padding:16px 0 0!important}
+		.employee-detail-page--editing .profile-fields>.department-field{max-width:760px!important;justify-self:end!important}
+		.employee-detail-page--editing .profile-fields>.department-field .department-checkboxes{width:min(100%,760px)!important;box-sizing:border-box!important;gap:6px!important;padding:7px!important}
+		.employee-detail-page--editing .profile-fields>.department-field .department-option{min-height:34px!important;padding:4px 7px!important;font-size:10px!important}
 		@media(max-width:800px){.employee-detail-page-backdrop>.employee-detail-page{width:100%!important;border-radius:17px!important}.employee-detail-page-backdrop>.employee-detail-page .modal-header{padding:18px!important;border-radius:17px 17px 0 0!important}.employee-detail-page-backdrop>.employee-detail-page .profile-section{padding:18px!important;border-radius:0 0 17px 17px!important}.employee-detail-page-backdrop>.employee-detail-page .profile-fields{grid-template-columns:1fr!important}.employee-detail-page-backdrop>.employee-detail-page .profile-save-row{padding-top:14px!important}}
 	`],
 	template: `
