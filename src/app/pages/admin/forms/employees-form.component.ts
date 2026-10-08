@@ -167,6 +167,14 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-detail-page--editing .profile-save-row .cancel-edit{min-width:110px!important;min-height:46px!important;border-radius:12px!important;background:#e8edf5!important;color:#526078!important}
 		@media(max-width:800px){.employee-detail-page--editing{width:calc(100vw - 20px)!important;border-radius:18px!important}.employee-detail-page--editing .modal-header{min-height:84px!important;padding:18px 20px!important;border-radius:18px 18px 0 0!important}.employee-detail-page--editing .modal-header h3{font-size:19px!important}.employee-detail-page--editing .profile-section{padding:20px!important;border-radius:0 0 18px 18px!important}.employee-detail-page--editing .profile-fields{grid-template-columns:1fr!important}.employee-detail-page--editing .profile-fields>.department-field,.employee-detail-page--editing .profile-fields>.field--description,.employee-detail-page--editing .profile-fields>.employee-account-actions{grid-column:1!important}.employee-detail-page--editing .profile-fields>.department-field .department-checkboxes{grid-template-columns:repeat(2,minmax(0,1fr))!important}.employee-detail-page--editing .profile-fields>label.field:nth-of-type(5),.employee-detail-page--editing .profile-fields>.employee-type-field,.employee-detail-page--editing .profile-fields>label.field:nth-of-type(6){grid-column:1!important}.employee-detail-page--editing .profile-fields>.add-title-button{width:100%!important;margin-top:0!important}.employee-detail-page--editing .profile-fields>.employee-account-actions{grid-template-columns:1fr!important}.employee-detail-page--editing .profile-save-row{flex-direction:column!important;align-items:stretch!important}.employee-detail-page--editing .profile-save-row button{width:100%!important}}
 		@media(max-width:480px){.employee-detail-page--editing .modal-header{padding:16px!important}.employee-detail-page--editing .profile-section{padding:16px!important}.employee-detail-page--editing .profile-fields{gap:11px!important}.employee-detail-page--editing .profile-fields>.department-field .department-checkboxes{grid-template-columns:1fr!important}}
+		/* Keep employee type and manager before department selection */
+		.employee-detail-page--editing .profile-fields>label.field:nth-of-type(5){order:5!important}
+		.employee-detail-page--editing .profile-fields>.employee-type-field{order:6!important}
+		.employee-detail-page--editing .profile-fields>.department-field{order:7!important}
+		.employee-detail-page--editing .profile-fields>label.field:nth-of-type(6){order:8!important}
+		.employee-detail-page--editing .profile-fields>.add-title-button{order:9!important}
+		.employee-detail-page--editing .profile-fields>.draft-titles{order:10!important}
+		.employee-detail-page--editing .profile-fields>.employee-account-actions{order:11!important}
 	`],
 	template: `
 		<div class="wrap" *ngIf="content">
