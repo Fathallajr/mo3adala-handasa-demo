@@ -282,6 +282,7 @@ import { MonthlyContentService } from '../../../core/services/monthly-content.se
     .finance-page:not(.payroll-only) .finance-filters input:focus,.finance-page:not(.payroll-only) .finance-filters select:focus{outline:0;border-color:#7354f4;background:#fff;box-shadow:0 0 0 4px #7354f41a}
     .finance-page:not(.payroll-only) .finance-filters label:nth-of-type(5){grid-column:1/3}
     .finance-page:not(.payroll-only) .finance-filter-actions{grid-column:1/3;justify-self:start;width:min(270px,100%);display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:8px;margin-top:-2px}
+    @media(min-width:901px){.finance-page:not(.payroll-only) .finance-filter-actions{position:relative;left:-160px}}
     .finance-page:not(.payroll-only) .finance-filter-actions button{width:100%;min-height:45px;border-radius:12px}
     .finance-page:not(.payroll-only) .finance-filter-actions .primary{background:#182542;box-shadow:0 8px 16px #1825421f}
     .finance-page:not(.payroll-only) .finance-filter-actions .primary:hover{background:#7354f4}
