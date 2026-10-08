@@ -149,6 +149,37 @@ async function savePage(key, data, updatedAt) {
 	return { data: result.rows[0].data, updatedAt: result.rows[0].updatedAt };
 }
 
+async function updateEmployeeProfile({ employeeId, employee, email, updatedAt }) {
+	await ensureSchema();
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+		const pageResult = await client.query('SELECT data FROM pages WHERE key = $1 FOR UPDATE', ['employees']);
+		const page = pageResult.rows[0]?.data || { items: [] };
+		const items = Array.isArray(page.items) ? page.items : [];
+		const index = items.findIndex(item => String(item?.id) === String(employeeId));
+		if (index < 0) throw Object.assign(new Error('الموظف غير موجود.'), { code: 'EMPLOYEE_NOT_FOUND' });
+		const current = items[index];
+		const currentEmail = String(current.email || '').trim().toLowerCase();
+		const nextEmail = String(email || '').trim().toLowerCase();
+		if (nextEmail !== currentEmail) {
+			if ((await client.query('SELECT 1 FROM admin_users WHERE username = $1', [nextEmail])).rowCount) throw Object.assign(new Error('هذا البريد مستخدم بالفعل.'), { code: 'DUPLICATE_EMAIL' });
+			const result = await client.query('UPDATE admin_users SET username = $1, updated_at = $2 WHERE username = $3 AND role = $4', [nextEmail, updatedAt, currentEmail, 'employee']);
+			if (!result.rowCount) throw Object.assign(new Error('لا يوجد حساب دخول مرتبط بهذا الموظف.'), { code: 'EMPLOYEE_ACCOUNT_NOT_FOUND' });
+			await client.query('DELETE FROM admin_sessions WHERE username = $1', [currentEmail]);
+		}
+		const savedEmployee = { ...current, ...employee, id: current.id, email: nextEmail };
+		const nextPage = { ...page, items: items.map((item, itemIndex) => itemIndex === index ? savedEmployee : item) };
+		await client.query('UPDATE pages SET data = $1::jsonb, updated_at = $2 WHERE key = $3', [JSON.stringify(nextPage), updatedAt, 'employees']);
+		await client.query('INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)', [crypto.randomUUID(), 'updated', 'employee', String(employeeId), '', '', updatedAt]);
+		await client.query('COMMIT');
+		return { data: nextPage, employee: savedEmployee };
+	} catch (error) {
+		await client.query('ROLLBACK');
+		throw error;
+	} finally { client.release(); }
+}
+
 async function createEmployeeWithAccount({ employee, email, passwordHash, passwordSalt, createdAt }) {
 	await ensureSchema();
 	const client = await pool.connect();
@@ -374,4 +405,4 @@ async function deleteAdminSession(token) {
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile: null, pool, ensureSchema };

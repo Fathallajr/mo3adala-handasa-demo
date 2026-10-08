@@ -495,10 +495,12 @@ export class EmployeesFormComponent implements OnChanges {
 		if (!this.editDraft.departments.length) { this.editError = 'اختر نوع إدارة واحدًا على الأقل.'; return; }
 		if (!this.editDraft.employeeType) { this.editError = 'اختر نوع الموظف.'; return; }
 		if (this.editDraft.employeeType === 'manager' && this.editDraft.managerId == null) { this.editError = 'اختر المدير العام للمدير المباشر.'; return; }
+		const email = this.editDraft.email.trim().toLowerCase();
+		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { this.editError = 'اكتب بريدًا إلكترونيًا صحيحًا.'; return; }
 		const nextEmployees = structuredClone(this.employees);
 		const nextEmployee = nextEmployees.find(item => item.id === employee.id);
 		if (!nextEmployee) { this.editError = 'تعذر العثور على الموظف.'; return; }
-		nextEmployee.name = name;
+		nextEmployee.name = name; nextEmployee.email = email;
 		nextEmployee.titles = [...this.editDraft.titles];
 		nextEmployee.whatsapp = this.editDraft.whatsapp.trim();
 		nextEmployee.description = this.editDraft.description.trim();
@@ -508,11 +510,10 @@ export class EmployeesFormComponent implements OnChanges {
 		nextEmployee.managerId = this.editDraft.employeeType === 'general_manager' ? null : this.editDraft.managerId;
 		delete nextEmployee.job;
 		const previousContent = structuredClone(this.content);
-		const nextContent = { ...structuredClone(this.content), items: nextEmployees };
 		this.isSavingEdit = true;
 		this.editError = '';
 		this.editSuccess = '';
-		this.contentService.savePageState('employees', nextContent).pipe(finalize(() => { this.isSavingEdit = false; })).subscribe({
+		this.adminApi.updateEmployeeProfile(employee.id, nextEmployee).pipe(finalize(() => { this.isSavingEdit = false; })).subscribe({
 			next: saved => {
 				this.content = saved;
 				this.employees = saved.items || nextEmployees;

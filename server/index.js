@@ -1097,6 +1097,30 @@ app.post('/api/admin/employees/with-account', requireAdmin, requireFullAdmin, as
 	}
 });
 
+app.patch('/api/admin/employees/:id/profile', requireAdmin, requireFullAdmin, async (req, res, next) => {
+	const employeeId = Number(req.params.id);
+	const input = req.body?.employee || {};
+	const email = String(input.email || '').trim().toLowerCase();
+	if (!Number.isInteger(employeeId) || employeeId < 1) return res.status(400).json({ message: 'معرّف الموظف غير صحيح.' });
+	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'اكتب بريدًا إلكترونيًا صحيحًا.' });
+	try {
+		const store = await readStore();
+		const employees = store.pages?.employees?.data;
+		const current = Array.isArray(employees?.items) ? employees.items.find(item => Number(item?.id) === employeeId) : null;
+		if (!current) return res.status(404).json({ message: 'الموظف غير موجود.' });
+		const nextEmployee = { ...current, ...input, id: current.id, email };
+		const nextContent = { ...employees, items: employees.items.map(item => Number(item?.id) === employeeId ? nextEmployee : item) };
+		const validationError = validateEmployeesContent(nextContent);
+		if (validationError) return res.status(400).json({ message: validationError });
+		const result = await database.updateEmployeeProfile({ employeeId, employee: nextEmployee, email, updatedAt: getNowIso() });
+		res.json(result.data);
+	} catch (error) {
+		if (error.code === 'DUPLICATE_EMAIL' || error.code === '23505' || String(error.message || '').toLowerCase().includes('unique')) return res.status(409).json({ message: 'هذا البريد مستخدم بالفعل.' });
+		if (error.code === 'EMPLOYEE_ACCOUNT_NOT_FOUND') return res.status(409).json({ message: 'لا يوجد حساب دخول مرتبط بهذا الموظف.' });
+		next(error);
+	}
+});
+
 app.post('/api/admin/users', requireAdmin, requireFullAdmin, async (req, res, next) => {
 	const username = String(req.body?.username || '').trim();
 	const password = String(req.body?.password || '');

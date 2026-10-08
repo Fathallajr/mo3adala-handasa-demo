@@ -163,6 +163,31 @@ function savePage(key, data, updatedAt) {
 	return { data: data ?? {}, updatedAt: timestamp };
 }
 
+function updateEmployeeProfile({ employeeId, employee, email, updatedAt }) {
+	return db.transaction(() => {
+		const row = db.prepare('SELECT data FROM pages WHERE key = ?').get('employees');
+		let page = { items: [] };
+		try { page = row?.data ? JSON.parse(row.data) : page; } catch {}
+		const items = Array.isArray(page.items) ? page.items : [];
+		const index = items.findIndex(item => String(item?.id) === String(employeeId));
+		if (index < 0) throw Object.assign(new Error('الموظف غير موجود.'), { code: 'EMPLOYEE_NOT_FOUND' });
+		const current = items[index];
+		const currentEmail = String(current.email || '').trim().toLowerCase();
+		const nextEmail = String(email || '').trim().toLowerCase();
+		if (nextEmail !== currentEmail) {
+			if (db.prepare('SELECT 1 FROM admin_users WHERE username = ?').get(nextEmail)) throw Object.assign(new Error('هذا البريد مستخدم بالفعل.'), { code: 'DUPLICATE_EMAIL' });
+			const result = db.prepare('UPDATE admin_users SET username = ?, updated_at = ? WHERE username = ? AND role = ?').run(nextEmail, updatedAt, currentEmail, 'employee');
+			if (!result.changes) throw Object.assign(new Error('لا يوجد حساب دخول مرتبط بهذا الموظف.'), { code: 'EMPLOYEE_ACCOUNT_NOT_FOUND' });
+			db.prepare('DELETE FROM admin_sessions WHERE username = ?').run(currentEmail);
+		}
+		const savedEmployee = { ...current, ...employee, id: current.id, email: nextEmail };
+		const nextPage = { ...page, items: items.map((item, itemIndex) => itemIndex === index ? savedEmployee : item) };
+		db.prepare('INSERT INTO pages(key,data,updated_at) VALUES (?,?,?) ON CONFLICT(key) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at').run('employees', JSON.stringify(nextPage), updatedAt);
+		db.prepare('INSERT INTO audit_logs(id,action,entity_type,entity_id,actor,ip,created_at) VALUES (?,?,?,?,?,?,?)').run(crypto.randomUUID(), 'updated', 'employee', String(employeeId), '', '', updatedAt);
+		return { data: nextPage, employee: savedEmployee };
+	})();
+}
+
 function createEmployeeWithAccount({ employee, email, passwordHash, passwordSalt, createdAt }) {
 	return db.transaction(() => {
 		const row = db.prepare('SELECT data FROM pages WHERE key = ?').get('employees');
@@ -458,4 +483,4 @@ function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 	})();
 }
 
-module.exports = { readStore, writeStore, savePage, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };
+module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };

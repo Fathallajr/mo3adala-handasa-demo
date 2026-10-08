@@ -86,6 +86,7 @@ export class AdminApiService {
 	createEmployeeWithAccount(employee: { name: string; titles: string[]; whatsapp: string; email: string; description: string; baseSalary: number | null; department: string[]; employeeType: string; managerId: number | null }, password: string): Observable<{ data: any; employee: any; username: string; role: string; permissions: string[]; employeeId: string }> {
 		return this.http.post<{ data: any; employee: any; username: string; role: string; permissions: string[]; employeeId: string }>(`${this.base}/admin/employees/with-account`, { employee, password });
 	}
+	updateEmployeeProfile(employeeId: number, employee: any): Observable<any> { return this.http.patch<any>(`${this.base}/admin/employees/${employeeId}/profile`, { employee }); }
 	listPrograms(): Observable<{ data: Program[] }> { return this.http.get<{ data: Program[] }>(`${this.base}/admin/programs`); }
 	createProgram(payload: Partial<Program>): Observable<Program> { return this.http.post<Program>(`${this.base}/admin/programs`, payload); }
 	updateProgram(id: string, payload: Partial<Program>): Observable<Program> { return this.http.patch<Program>(`${this.base}/admin/programs/${id}`, payload); }
