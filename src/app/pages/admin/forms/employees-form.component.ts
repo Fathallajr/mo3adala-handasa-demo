@@ -90,7 +90,13 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-detail-page--editing .profile-fields>.department-field{max-width:760px!important;justify-self:end!important}
 		.employee-detail-page--editing .profile-fields>.department-field .department-checkboxes{width:min(100%,760px)!important;box-sizing:border-box!important;gap:6px!important;padding:7px!important}
 		.employee-detail-page--editing .profile-fields>.department-field .department-option{min-height:34px!important;padding:4px 7px!important;font-size:10px!important}
+		.employee-detail-page .details-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;margin-top:10px!important;padding:14px 16px!important;border:1px solid #e1e7f1!important;border-radius:15px!important;background:#fff!important;box-shadow:0 7px 18px #253b6808!important}
+		.employee-detail-page .details-head h4{margin:0!important;color:#273552!important;font-size:16px!important}
+		.employee-detail-page .month-picker{display:grid!important;grid-template-columns:auto minmax(150px,190px)!important;align-items:center!important;gap:9px!important;margin:0!important;color:#7b879c!important;font-size:11px!important;font-weight:900!important;direction:rtl!important}
+		.employee-detail-page .month-picker input{width:190px!important;min-height:42px!important;box-sizing:border-box!important;border:1px solid #dce4f0!important;border-radius:11px!important;padding:0 11px!important;background:#f8faff!important;color:#293650!important;font:inherit!important;font-weight:800!important}
+		.employee-detail-page .month-picker input:focus{outline:0!important;border-color:#7354f4!important;box-shadow:0 0 0 4px #7354f41a!important;background:#fff!important}
 		@media(max-width:800px){.employee-detail-page-backdrop>.employee-detail-page{width:100%!important;border-radius:17px!important}.employee-detail-page-backdrop>.employee-detail-page .modal-header{padding:18px!important;border-radius:17px 17px 0 0!important}.employee-detail-page-backdrop>.employee-detail-page .profile-section{padding:18px!important;border-radius:0 0 17px 17px!important}.employee-detail-page-backdrop>.employee-detail-page .profile-fields{grid-template-columns:1fr!important}.employee-detail-page-backdrop>.employee-detail-page .profile-save-row{padding-top:14px!important}}
+		@media(max-width:600px){.employee-detail-page .details-head{align-items:stretch!important;flex-direction:column!important;gap:10px!important}.employee-detail-page .month-picker{grid-template-columns:1fr!important;gap:6px!important}.employee-detail-page .month-picker input{width:100%!important}}
 	`],
 	template: `
 		<div class="wrap" *ngIf="content">
