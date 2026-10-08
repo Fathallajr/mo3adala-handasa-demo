@@ -8,6 +8,35 @@ import { MonthlyContentService } from '../../../core/services/monthly-content.se
 
 @Component({ selector: 'app-finance-form', standalone: true, imports: [CommonModule, FormsModule], template: `
 <div class="finance-page" [class.payroll-only]="payrollOnly" [class.payroll-employee]="employeeOnly" dir="rtl">
+  <section class="finance-filters-v2" *ngIf="!payrollOnly" aria-label="تصفية الحركات">
+    <div class="finance-filters-v2__heading"><div><span>الفلاتر</span><h3>تصفية دفتر الحركات</h3></div><small>حدد الشهر ثم استخدم الفلاتر لتضييق النتائج.</small></div>
+    <div class="finance-filters-v2__fields">
+      <label><span>الشهر</span><input #financeMonthInputV2 type="month" [(ngModel)]="financeMonth" (click)="openPayrollMonthPicker(financeMonthInputV2)" (change)="applyFinanceMonthFilter()"></label>
+      <label><span>نوع الحركة</span><select [(ngModel)]="filterKind" (change)="applyFinanceFilters()"><option value="">كل الحركات</option><option value="income">إيرادات</option><option value="expense">مصروفات</option></select></label>
+      <label><span>الخزنة</span><select [(ngModel)]="accountFilter" (change)="applyFinanceFilters()"><option value="">كل الخزائن</option><option *ngFor="let a of accounts" [value]="a.id">{{ a.name }}</option></select></label>
+      <label class="finance-filters-v2__search"><span>بحث في الوصف أو الجهة</span><input [(ngModel)]="search" (keyup.enter)="applyFinanceFilters()" placeholder="اكتب كلمة البحث"></label>
+    </div>
+    <div class="finance-filters-v2__actions"><button type="button" class="primary" (click)="applyFinanceFilters()">بحث</button><button type="button" class="ghost" (click)="resetFinanceFilters()">إعادة تعيين</button></div>
+  </section>
+  <style>
+    .finance-page:not(.payroll-only)>.finance-filters{display:none!important}
+    .finance-filters-v2{order:2;display:grid;gap:20px;padding:24px;border:1px solid #dfe6f1;border-radius:22px;background:#fff;box-shadow:0 14px 32px #24365d0b}
+    .finance-filters-v2__heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding-bottom:15px;border-bottom:1px solid #edf1f6}
+    .finance-filters-v2__heading span{display:block;margin-bottom:5px;color:#7354f4;font-size:10px;font-weight:900}
+    .finance-filters-v2__heading h3{margin:0;color:#1e2c49;font-size:17px}
+    .finance-filters-v2__heading small{color:#8994a8;font-size:11px;font-weight:700}
+    .finance-filters-v2__fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    .finance-filters-v2__fields label{display:grid;gap:8px;min-width:0;color:#63718a;font-size:11px;font-weight:900}
+    .finance-filters-v2__fields label span{white-space:nowrap}
+    .finance-filters-v2__fields input,.finance-filters-v2__fields select{width:100%;min-height:46px;box-sizing:border-box;border:1px solid #dce4f0;border-radius:12px;padding:0 12px;background:#f9fbfe;color:#263653;font:inherit;font-size:12px;font-weight:800}
+    .finance-filters-v2__fields input:focus,.finance-filters-v2__fields select:focus{outline:0;border-color:#7354f4;background:#fff;box-shadow:0 0 0 4px #7354f41a}
+    .finance-filters-v2__actions{display:flex;justify-content:flex-start;gap:9px;width:min(300px,100%);direction:rtl}
+    .finance-filters-v2__actions button{flex:1;min-height:44px;border-radius:12px}
+    .finance-filters-v2__actions .primary{background:#1d2b49;box-shadow:0 8px 16px #1d2b4930}
+    .finance-filters-v2__actions .ghost{border:1px solid #d7e0ee;background:#eef3fa;color:#40506c}
+    @media(max-width:900px){.finance-filters-v2{padding:18px}.finance-filters-v2__fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:600px){.finance-filters-v2{gap:15px;padding:15px;border-radius:17px}.finance-filters-v2__heading{align-items:flex-start;flex-direction:column;gap:5px}.finance-filters-v2__fields{grid-template-columns:1fr;gap:10px}.finance-filters-v2__actions{width:100%}}
+  </style>
   <div class="payroll-adjustment-editor" *ngIf="payrollOnly && !employeeOnly"><div><strong>تعديلات الشهر</strong><small>أضف الحوافز والخصومات من كشف الرواتب فقط.</small></div><select [(ngModel)]="payrollAdjustmentDraft.employeeId"><option [ngValue]="null">اختر الموظف</option><option *ngFor="let line of payrollLines" [ngValue]="line.employeeId">{{ line.employeeName }}</option></select><select [(ngModel)]="payrollAdjustmentDraft.kind"><option value="bonus">حافز</option><option value="discount">خصم</option></select><input type="number" min="0.01" step="0.01" [(ngModel)]="payrollAdjustmentDraft.amount" placeholder="المبلغ"><input type="text" [(ngModel)]="payrollAdjustmentDraft.reason" placeholder="سبب التعديل"><button type="button" class="primary" (click)="savePayrollAdjustment()" [disabled]="isSavingPayrollAdjustment">{{ isSavingPayrollAdjustment ? 'جاري الحفظ...' : 'إضافة التعديل' }}</button></div>
   <style>.finance-page.payroll-only > :not(.payroll):not(.finance-head):not(.finance-error):not(.finance-success):not(.payroll-adjustment-editor){display:none!important}.finance-page:not(.payroll-only) > section.payroll{display:none!important}.payroll-adjustment-editor{display:grid;grid-template-columns:1.2fr 1.1fr 1fr 1fr 1.5fr auto;align-items:end;gap:10px;margin:0 0 16px;padding:14px;border:1px solid #e4e0ff;border-radius:14px;background:linear-gradient(135deg,#fbfaff,#f5f2ff)}.payroll-adjustment-editor>div{display:grid;gap:4px}.payroll-adjustment-editor strong{color:#293650;font-size:12px}.payroll-adjustment-editor small{color:#8993a8;font-size:10px;font-weight:700}.payroll-adjustment-editor input,.payroll-adjustment-editor select{min-height:42px;box-sizing:border-box;border:1px solid #dfe5f0;border-radius:10px;padding:0 10px;background:#fff;color:#273552;font:inherit;font-size:11px;font-weight:800}@media(max-width:900px){.payroll-adjustment-editor{grid-template-columns:repeat(2,minmax(0,1fr))}.payroll-adjustment-editor>div{grid-column:1/-1}.payroll-adjustment-editor button{width:100%}}@media(max-width:600px){.payroll-adjustment-editor{grid-template-columns:1fr}}
   <style>.payroll-only .payroll-strip select{display:none!important}.payroll-employee .payroll-strip button{display:none!important}</style>
