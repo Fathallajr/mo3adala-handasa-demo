@@ -110,6 +110,14 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-detail-page--editing .profile-fields>.field input:focus,.employee-detail-page--editing .profile-fields>.field select:focus,.employee-detail-page--editing .profile-fields>.field textarea:focus{outline:0!important;border-color:#7660e8!important;box-shadow:0 0 0 4px #7660e81a!important;background:#fff!important}
 		.employee-detail-page--editing .profile-fields>.field--description,.employee-detail-page--editing .profile-fields>.department-field,.employee-detail-page--editing .profile-fields>.draft-titles,.employee-detail-page--editing .profile-fields>.employee-account-actions{grid-column:1/-1!important}
 		.employee-detail-page--editing .profile-fields>.field--description textarea{min-height:92px!important}
+		.employee-detail-page--editing .profile-fields>.field--description{grid-column:1/-1!important;order:4!important}
+		.employee-detail-page--editing .profile-fields>.field--description textarea{min-height:46px!important;max-height:46px!important;resize:none!important;overflow:hidden!important;padding:0 13px!important;line-height:46px!important}
+		.employee-detail-page--editing .profile-fields>.department-field{order:5!important}
+		.employee-detail-page--editing .profile-fields>label.field:nth-of-type(5){order:6!important;grid-column:auto!important}
+		.employee-detail-page--editing .profile-fields>.employee-type-field{order:7!important;grid-column:auto!important}
+		.employee-detail-page--editing .profile-fields>label.field:nth-of-type(6){order:8!important;grid-column:auto!important}
+		.employee-detail-page--editing .profile-fields>.add-title-button{order:9!important}
+		.employee-detail-page--editing .profile-fields>.employee-account-actions{order:10!important}
 		.employee-detail-page--editing .profile-fields>.department-field{width:100%!important;max-width:none!important;justify-self:stretch!important}
 		.employee-detail-page--editing .profile-fields>.department-field .department-checkboxes{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;width:100%!important;padding:9px!important;border:1px solid #e1e7f0!important;border-radius:14px!important;background:#f9faff!important}
 		.employee-detail-page--editing .profile-fields>.department-field .department-option{display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:40px!important;padding:7px 10px!important;border:1px solid #e5e9f2!important;border-radius:10px!important;background:#fff!important;font-size:11px!important}
