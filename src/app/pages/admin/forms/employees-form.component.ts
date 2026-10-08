@@ -175,6 +175,7 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-detail-page--editing .profile-fields>.add-title-button{order:9!important}
 		.employee-detail-page--editing .profile-fields>.draft-titles{order:10!important}
 		.employee-detail-page--editing .profile-fields>.employee-account-actions{order:11!important}
+		.employee-detail-page--editing .profile-fields>.draft-titles{display:none!important}
 	`],
 	template: `
 		<div class="wrap" *ngIf="content">
