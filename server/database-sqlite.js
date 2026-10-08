@@ -65,7 +65,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS finance_transactions (
     id TEXT PRIMARY KEY, kind TEXT NOT NULL, account_id TEXT, from_account_id TEXT,
     to_account_id TEXT, amount REAL NOT NULL, occurred_at TEXT NOT NULL, category TEXT DEFAULT '',
-    description TEXT DEFAULT '', counterparty TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'posted',
+    description TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'posted',
     source_type TEXT DEFAULT '', source_id TEXT DEFAULT '', created_by TEXT DEFAULT '',
     created_at TEXT NOT NULL, updated_at TEXT, void_reason TEXT DEFAULT '',
     FOREIGN KEY(account_id) REFERENCES finance_accounts(id),
@@ -92,6 +92,7 @@ try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN permissions TEXT NOT NUL
 try { db.prepare("ALTER TABLE leads ADD COLUMN attribution TEXT DEFAULT '{}'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE feedbacks ADD COLUMN batch TEXT DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE wheel_claims ADD COLUMN notes TEXT DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
+try { db.prepare("ALTER TABLE finance_transactions DROP COLUMN counterparty").run(); } catch (error) { if (!String(error.message).includes('no such column')) throw error; }
 
 function migrateLegacyStore() {
   if (db.prepare('SELECT value FROM metadata WHERE key = ?').get('legacy-json-migrated')) return;
@@ -326,7 +327,7 @@ function financeTransactionRow(row) {
 }
 
 function listFinanceTransactions(filters = {}) {
-	let sql = `SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE 1=1`;
+	let sql = `SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE 1=1`;
 	const values = [];
 	const add = (fragment, value) => { values.push(value); sql += ` AND ${fragment} ?`; };
 	if (filters.kind) add('kind =', filters.kind);
@@ -335,7 +336,7 @@ function listFinanceTransactions(filters = {}) {
 	if (filters.sourceType) add('source_type =', filters.sourceType);
 	if (filters.from) add('occurred_at >=', filters.from);
 	if (filters.to) add('occurred_at <=', filters.to);
-	if (filters.search) { const search = `%${filters.search}%`; values.push(search, search, search); sql += ' AND (description LIKE ? OR counterparty LIKE ? OR category LIKE ?)'; }
+	if (filters.search) { const search = `%${filters.search}%`; values.push(search, search); sql += ' AND (description LIKE ? OR category LIKE ?)'; }
 	sql += ' ORDER BY occurred_at DESC, created_at DESC';
 	if (filters.limit) { values.push(Number(filters.limit)); sql += ' LIMIT ?'; }
 	if (filters.offset) { values.push(Number(filters.offset)); sql += ' OFFSET ?'; }
@@ -349,30 +350,30 @@ function createFinanceAuditLog(log) {
 function createFinanceTransaction(input) {
 	const now = input.createdAt || new Date().toISOString();
 	const id = input.id || crypto.randomUUID();
-	db.prepare('INSERT INTO finance_transactions(id,kind,account_id,from_account_id,to_account_id,amount,occurred_at,category,description,counterparty,status,source_type,source_id,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(id, input.kind, input.accountId || null, input.fromAccountId || null, input.toAccountId || null, Number(input.amount), input.occurredAt, input.category || '', input.description || '', input.counterparty || '', input.status || 'posted', input.sourceType || '', input.sourceId || '', input.createdBy || '', now, null);
-	const result = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
+	db.prepare('INSERT INTO finance_transactions(id,kind,account_id,from_account_id,to_account_id,amount,occurred_at,category,description,status,source_type,source_id,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(id, input.kind, input.accountId || null, input.fromAccountId || null, input.toAccountId || null, Number(input.amount), input.occurredAt, input.category || '', input.description || '', input.status || 'posted', input.sourceType || '', input.sourceId || '', input.createdBy || '', now, null);
+	const result = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
 	createFinanceAuditLog({ entityType: 'finance_transaction', entityId: id, action: 'created', afterData: result, actor: input.createdBy, createdAt: now });
 	return result;
 }
 
 function updateFinanceTransaction(id, changes, actor) {
-	const current = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
+	const current = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
 	if (!current) return null;
 	if (current.status === 'voided') throw Object.assign(new Error('لا يمكن تعديل حركة ملغاة.'), { code: 'FINANCE_VOIDED' });
 	const next = { ...current, ...changes, amount: current.amount, kind: current.kind, accountId: current.accountId, fromAccountId: current.fromAccountId, toAccountId: current.toAccountId, sourceType: current.sourceType, sourceId: current.sourceId, updatedAt: new Date().toISOString() };
-	db.prepare('UPDATE finance_transactions SET occurred_at=?,category=?,description=?,counterparty=?,updated_at=? WHERE id=?').run(next.occurredAt, next.category || '', next.description || '', next.counterparty || '', next.updatedAt, id);
-	const result = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
+	db.prepare('UPDATE finance_transactions SET occurred_at=?,category=?,description=?,updated_at=? WHERE id=?').run(next.occurredAt, next.category || '', next.description || '', next.updatedAt, id);
+	const result = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
 	createFinanceAuditLog({ entityType: 'finance_transaction', entityId: id, action: 'updated', beforeData: current, afterData: result, actor, createdAt: next.updatedAt });
 	return result;
 }
 
 function voidFinanceTransaction(id, reason, actor) {
-	const current = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
+	const current = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
 	if (!current) return null;
 	if (current.status === 'voided') return current;
 	const now = new Date().toISOString();
 	db.prepare('UPDATE finance_transactions SET status = ?, void_reason = ?, updated_at = ? WHERE id = ?').run('voided', String(reason || '').trim(), now, id);
-	const result = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,counterparty,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
+	const result = financeTransactionRow(db.prepare('SELECT id,kind,account_id AS accountId,from_account_id AS fromAccountId,to_account_id AS toAccountId,amount,occurred_at AS occurredAt,category,description,status,source_type AS sourceType,source_id AS sourceId,created_by AS createdBy,created_at AS createdAt,updated_at AS updatedAt,void_reason AS voidReason FROM finance_transactions WHERE id = ?').get(id));
 	createFinanceAuditLog({ entityType: 'finance_transaction', entityId: id, action: 'voided', beforeData: current, afterData: result, reason, actor, createdAt: now });
 	return result;
 }
@@ -445,7 +446,7 @@ function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 			let transactionId = null;
 			if (Number(payment.amount) > 0) {
 				transactionId = crypto.randomUUID();
-				db.prepare('INSERT INTO finance_transactions(id,kind,account_id,amount,occurred_at,category,description,counterparty,status,source_type,source_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(transactionId, 'expense', accountId, Number(payment.amount), `${month}-01`, 'رواتب', `راتب شهر ${month}`, payment.employeeName || '', 'posted', 'payroll', `${payment.employeeId}:${month}`, approvedBy || '', now);
+				db.prepare('INSERT INTO finance_transactions(id,kind,account_id,amount,occurred_at,category,description,status,source_type,source_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(transactionId, 'expense', accountId, Number(payment.amount), `${month}-01`, 'رواتب', `راتب شهر ${month}`, 'posted', 'payroll', `${payment.employeeId}:${month}`, approvedBy || '', now);
 			}
 			const id = existing?.id || crypto.randomUUID();
 			if (existing) db.prepare('UPDATE finance_payroll_payments SET amount = ?, transaction_id = ?, status = ?, approved_by = ?, updated_at = ? WHERE id = ?').run(Number(payment.amount), transactionId, 'paid', approvedBy || '', now, id);
