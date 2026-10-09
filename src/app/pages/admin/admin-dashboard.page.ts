@@ -36,7 +36,7 @@ interface PageOption {
 	group: string;
 }
 
-type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio';
+type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application';
 type PaginationItem = number | '…';
 
 @Component({
@@ -70,7 +70,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	sidebarOpen = false;
 	sidebarCollapsed = false;
 	financeMenuOpen = false;
-	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'cms' = 'leads';
+	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,
 		todayLeads: 0,
@@ -131,7 +131,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	private wheelClaimsLoaded = false;
 	private adminUsersLoaded = false;
 	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
-	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }, { key: 'finance', title: 'الحسابات والمصروفات' }, { key: 'finance-payroll', title: 'كشف الرواتب' }, { key: 'finance-studio', title: 'حسابات الاستوديو' }];
+	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }, { key: 'finance', title: 'الحسابات والمصروفات' }, { key: 'finance-payroll', title: 'كشف الرواتب' }, { key: 'finance-studio', title: 'حسابات الاستوديو' }, { key: 'finance-application', title: 'حسابات الأبلكيشن' }];
 	wheelSearch = '';
 	wheelGift = '';
 	wheelProgram = '';
@@ -287,7 +287,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 					this.activeView = 'finance-payroll';
 				} else if (canOpenCmsPage) {
 					this.activeView = 'cms';
-				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('finance') || this.auth.canAccessFeature('finance-payroll') || this.auth.canAccessFeature('finance-studio')) {
+				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('finance') || this.auth.canAccessFeature('finance-payroll') || this.auth.canAccessFeature('finance-studio') || this.auth.canAccessFeature('finance-application')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
 					const canLoadCustomers = this.auth.canAccessFeature('customers');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
@@ -295,7 +295,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 					const canLoadFinance = this.auth.canAccessFeature('finance');
 					const canLoadPayroll = this.auth.canAccessFeature('finance-payroll');
 					const canLoadStudio = this.auth.canAccessFeature('finance-studio');
-					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : canLoadFinance ? 'finance' : canLoadPayroll ? 'finance-payroll' : canLoadStudio ? 'finance-studio' : 'feedback';
+					const canLoadApplication = this.auth.canAccessFeature('finance-application');
+					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : canLoadFinance ? 'finance' : canLoadPayroll ? 'finance-payroll' : canLoadStudio ? 'finance-studio' : canLoadApplication ? 'finance-application' : 'feedback';
 					this.activeView = requestedView || defaultView;
 					if (canLoadLeads) this.loadLeads();
 					if (canLoadCustomers) this.loadCustomers();
@@ -305,7 +306,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 					this.activeView = 'cms';
 				}
 			}
-		if (this.activeView === 'finance' || this.activeView === 'finance-payroll' || this.activeView === 'finance-studio' || (this.activeView === 'cms' && pageKey === 'employees')) this.financeMenuOpen = true;
+		if (this.activeView === 'finance' || this.activeView === 'finance-payroll' || this.activeView === 'finance-studio' || this.activeView === 'finance-application' || (this.activeView === 'cms' && pageKey === 'employees')) this.financeMenuOpen = true;
 		if (!isCmsNavigation) this.loadPage(pageKey);
 		this.routeStateReady = true;
 	}
@@ -329,7 +330,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	setView(view: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'cms'): void {
+	setView(view: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms'): void {
 		this.closeActionMenus();
 		this.statusMessage = '';
 		this.errorMessage = '';
@@ -341,8 +342,9 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'finance' && !this.auth.canAccessFeature('finance')) return;
 		if (view === 'finance-payroll' && !this.auth.canAccessFeature('finance-payroll')) return;
 		if (view === 'finance-studio' && !this.auth.canAccessFeature('finance-studio')) return;
-		if (view === 'finance' || view === 'finance-payroll' || view === 'finance-studio') this.financeMenuOpen = true;
-		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'feedback' && view !== 'finance' && view !== 'finance-payroll' && view !== 'finance-studio' && this.auth.getRole() !== 'admin') return;
+		if (view === 'finance-application' && !this.auth.canAccessFeature('finance-application')) return;
+		if (view === 'finance' || view === 'finance-payroll' || view === 'finance-studio' || view === 'finance-application') this.financeMenuOpen = true;
+		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'feedback' && view !== 'finance' && view !== 'finance-payroll' && view !== 'finance-studio' && view !== 'finance-application' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
 			this.sidebarOpen = false;
 			return;
@@ -1023,7 +1025,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	}
 
 	private resolveDataView(value: string | null): AdminDataView | null {
-		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'admins', 'finance', 'finance-payroll', 'finance-studio'];
+		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'admins', 'finance', 'finance-payroll', 'finance-studio', 'finance-application'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
 		if (this.employeeAccount && view !== 'finance-payroll') return null;
@@ -1035,6 +1037,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'finance') return this.auth.canAccessFeature('finance') ? view : null;
 		if (view === 'finance-payroll') return this.auth.canAccessFeature('finance-payroll') ? view : null;
 		if (view === 'finance-studio') return this.auth.canAccessFeature('finance-studio') ? view : null;
+		if (view === 'finance-application') return this.auth.canAccessFeature('finance-application') ? view : null;
 		return this.auth.canAccessFeature(view) ? view : null;
 	}
 
@@ -1049,6 +1052,6 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
 
-	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance' | 'finance-payroll' | 'finance-studio'): boolean { return this.auth.canAccessFeature(feature); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application'): boolean { return this.auth.canAccessFeature(feature); }
 	canAccessCustomerPermission(_permission: string): boolean { return this.auth.canAccessFeature('customers'); }
 }

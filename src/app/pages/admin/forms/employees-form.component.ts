@@ -186,6 +186,45 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 		.employee-detail-page--editing .title-entry-control input{width:100%!important;min-width:0!important;min-height:44px!important;height:44px!important;box-sizing:border-box!important;padding:0 12px!important;border:1px solid #dfe6f0!important;border-radius:10px!important;background:#f8faff!important;color:#293650!important;font:inherit!important;font-size:13px!important;font-weight:800!important}
 		.employee-detail-page--editing .title-entry-control .add-title-button{width:auto!important;min-width:118px!important;min-height:44px!important;height:44px!important;margin:0!important;padding:0 13px!important;border-radius:10px!important;white-space:nowrap!important}
 		@media(max-width:800px){.employee-detail-page--editing .profile-fields>.title-entry-field{grid-column:1!important}.employee-detail-page--editing .title-entry-control .add-title-button{min-width:112px!important}}
+		/* Keep the employee filters usable inside the narrower admin content column. */
+		.employee-toolbar{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:end;gap:12px;width:100%;min-width:0}
+		.employee-toolbar>.add{grid-column:1;grid-row:1;min-width:0;white-space:nowrap}
+		.employee-toolbar>.clear-filters{grid-column:2;grid-row:1;min-width:0;white-space:nowrap}
+		.employee-filters{grid-column:3;grid-row:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:end;gap:9px;min-width:0;width:100%}
+		.employee-filters .field{min-width:0;width:100%}
+		@media(max-width:1100px){.employee-toolbar{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}.employee-filters{grid-column:1/-1;grid-row:1;grid-template-columns:repeat(2,minmax(0,1fr))}.employee-toolbar>.add{grid-column:1;grid-row:2;width:100%}.employee-toolbar>.clear-filters{grid-column:2;grid-row:2;width:100%}}
+		@media(max-width:600px){.employee-toolbar{grid-template-columns:1fr;gap:9px}.employee-filters{grid-column:1;grid-row:1;grid-template-columns:1fr}.employee-toolbar>.add{grid-column:1;grid-row:2;width:100%}.employee-toolbar>.clear-filters{grid-column:1;grid-row:3;width:100%}.employee-filters .clear-filters{width:100%}}
+		:host{min-width:0;max-width:100%;overflow-x:hidden;container-type:inline-size;container-name:employees}
+		@container employees (max-width:1000px){.employee-toolbar{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}.employee-filters{grid-column:1/-1;grid-row:1;grid-template-columns:repeat(2,minmax(0,1fr))}.employee-toolbar>.add{grid-column:1;grid-row:2;width:100%}.employee-toolbar>.clear-filters{grid-column:2;grid-row:2;width:100%}.employee-table-head{display:none}.employee-card{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:11px 12px}.employee-card .identity{grid-column:1;grid-row:1}.employee-card>div:nth-child(2){grid-column:2;grid-row:1}.employee-card .employee-tasks{grid-column:1/-1;grid-row:2}.employee-card>div:nth-child(4){grid-column:1;grid-row:3}.employee-card>div:nth-child(5){grid-column:2;grid-row:3}.employee-card .employee-contact{grid-column:1/-1;grid-row:4;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px solid #f0f1f6}.employee-card .actions{grid-column:1/-1;grid-row:5;justify-content:flex-start}.employee-column-label{display:block;margin-bottom:4px}}
+		@container employees (max-width:600px){.employee-toolbar{grid-template-columns:1fr;gap:9px}.employee-filters{grid-column:1;grid-row:1;grid-template-columns:1fr}.employee-toolbar>.add{grid-column:1;grid-row:2}.employee-toolbar>.clear-filters{grid-column:1;grid-row:3}.employee-card{grid-template-columns:1fr;gap:9px;padding:13px 11px}.employee-card .identity,.employee-card>div:nth-child(2),.employee-card .employee-tasks,.employee-card>div:nth-child(4),.employee-card>div:nth-child(5),.employee-card .employee-contact,.employee-card .actions{grid-column:1;grid-row:auto}.employee-card .actions{justify-content:flex-start}.employee-card .employee-contact{align-items:flex-start;flex-direction:column;gap:4px}.employee-card .employee-contact .contact-value{direction:ltr;text-align:right}.employee-pagination{gap:6px}.employee-pagination__summary{width:100%;text-align:center;order:-1}}
+		/* A compact employee card with a clear visual hierarchy on desktop and mobile. */
+		.employee-card{position:relative;display:grid;grid-template-columns:minmax(190px,1.05fr) minmax(250px,1.55fr) minmax(150px,.9fr) auto;grid-template-areas:"header details contact footer";align-items:stretch;gap:0;min-width:0;padding:0;overflow:visible;border:1px solid #e2e7f1;border-radius:20px;background:linear-gradient(135deg,#fff 0%,#fbfcff 100%);box-shadow:0 10px 24px rgba(31,45,78,.07);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+		.employee-card::before{content:"";position:absolute;inset:10px auto 10px 0;width:4px;border-radius:0 8px 8px 0;background:linear-gradient(180deg,#7658f6,#5b43c9);opacity:.9}
+		.employee-card:hover{transform:translateY(-2px);border-color:#cfc7ff;box-shadow:0 15px 30px rgba(31,45,78,.11)}
+		.employee-card__header{grid-area:header;display:flex;flex-direction:column;justify-content:center;gap:13px;min-width:0;padding:20px 22px;border-inline-end:1px solid #edf0f6}
+		.employee-card__eyebrow{color:#8b96aa;font-size:10px;font-weight:900;letter-spacing:.3px}
+		.employee-card__header .identity{gap:6px;min-width:0}
+		.employee-card__header .employee-name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px;line-height:1.35}
+		.employee-card__type{display:flex;align-items:center;gap:8px;min-width:0}
+		.employee-card__type .employee-column-label{display:block;margin:0;color:#9aa4b5;font-size:10px}
+		.employee-card__details{grid-area:details;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;gap:12px 16px;min-width:0;padding:19px 22px}
+		.employee-card__field{display:grid;align-content:start;gap:7px;min-width:0;padding:0 0 10px;border-bottom:1px solid #eef1f6}
+		.employee-card__field--tasks{grid-column:1/-1}
+		.employee-card__field .employee-column-label{display:block;margin:0;color:#9aa4b5;font-size:10px}
+		.employee-card__field .contact-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+		.employee-card__field .employee-tasks{min-width:0;margin:0}
+		.employee-card__contact{grid-area:contact;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:8px;min-width:0;padding:19px 20px;border-inline-start:1px solid #edf0f6}
+		.employee-card__contact .contact-label{font-size:10px}
+		.employee-card__contact .contact-value{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+		.employee-card__footer{grid-area:footer;display:flex;align-items:center;justify-content:center;min-width:62px;padding:16px 13px;border-inline-start:1px solid #edf0f6}
+		.employee-card__status{display:inline-flex;align-items:center;gap:5px;position:absolute;top:13px;left:20px;color:#13825f;font-size:10px;font-weight:900}
+		.employee-card__status i{width:6px;height:6px;border-radius:50%;background:#16a875;box-shadow:0 0 0 4px #dff8ed}
+		.employee-card__footer .actions{justify-content:center;position:relative}
+		.employee-card__footer .action-menu-trigger{width:40px;height:40px;border-radius:12px;background:#f5f2ff;box-shadow:0 5px 12px rgba(91,67,201,.1)}
+		.employee-card__footer .action-menu{right:0;left:auto;top:calc(100% + 8px)}
+		@container employees (max-width:1000px){.employee-card{grid-template-columns:minmax(0,1.15fr) minmax(0,1.65fr) auto;grid-template-areas:"header details footer" "header contact footer"}.employee-card__header{padding:18px}.employee-card__details{padding:18px 16px}.employee-card__contact{padding:14px 16px;border-top:1px solid #edf0f6}.employee-card__status{top:11px;left:16px}}
+		@container employees (max-width:600px){.employee-card{grid-template-columns:1fr;grid-template-areas:"header" "details" "contact" "footer";gap:0;border-radius:18px}.employee-card::before{inset:0 0 auto;width:100%;height:4px;border-radius:18px 18px 0 0}.employee-card__header{flex-direction:row;align-items:flex-start;justify-content:space-between;gap:15px;padding:20px 16px 15px;border:0;border-bottom:1px solid #edf0f6}.employee-card__header .employee-name{font-size:16px}.employee-card__type{flex-direction:column;align-items:flex-end;gap:5px}.employee-card__details{grid-template-columns:1fr 1fr;gap:10px 12px;padding:16px}.employee-card__field{padding-bottom:9px}.employee-card__field--tasks{grid-column:1/-1}.employee-card__contact{flex-direction:row;align-items:center;justify-content:space-between;padding:13px 16px;border-inline-start:0;border-top:1px solid #edf0f6}.employee-card__footer{justify-content:flex-start;padding:11px 16px;border-inline-start:0;border-top:1px solid #edf0f6}.employee-card__status{top:17px;left:auto;right:16px}.employee-card__footer .action-menu{right:0;left:auto}.employee-card:hover{transform:none}}
+		@container employees (max-width:390px){.employee-card__details{grid-template-columns:1fr}.employee-card__field--tasks{grid-column:auto}.employee-card__header{padding-inline:13px}.employee-card__details,.employee-card__contact,.employee-card__footer{padding-inline:13px}}
 	`],
 	template: `
 		<div class="wrap" *ngIf="content">
@@ -237,17 +276,22 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 				<div class="employee-table-head" *ngIf="!employeePageEmployee && filteredEmployees.length"><span>الموظف</span><span>النوع</span><span>المهام</span><span>نوع الإدارة</span><span>المدير المباشر</span><span>رقم الواتساب</span><span>الإجراءات</span></div>
 				<div class="list" *ngIf="!employeePageEmployee && filteredEmployees.length; else emptyState">
 					<article class="employee-card" *ngFor="let employee of paginatedEmployees; let i = index" [class.employee-card--own]="isEmployeeAccount && isOwnEmployee(employee)">
-						<div class="identity">
-							<button type="button" class="employee-name" [disabled]="isEmployeeAccount && !isOwnEmployee(employee)" (click)="openEmployeePage(employee)">{{ employee.name }}</button>
-							<span class="employee-self-badge" *ngIf="isEmployeeAccount && isOwnEmployee(employee)">ملفي الشخصي</span>
-							<span class="employee-month-total" *ngIf="false">صافي الشهر: {{ formatMoney(employeeMonthlyTotal(employee)) }}</span>
+						<header class="employee-card__header">
+							<div class="identity">
+								<span class="employee-card__eyebrow">الموظف</span>
+								<button type="button" class="employee-name" [disabled]="isEmployeeAccount && !isOwnEmployee(employee)" (click)="openEmployeePage(employee)">{{ employee.name }}</button>
+								<span class="employee-self-badge" *ngIf="isEmployeeAccount && isOwnEmployee(employee)">ملفي الشخصي</span>
+								<span class="employee-month-total" *ngIf="false">صافي الشهر: {{ formatMoney(employeeMonthlyTotal(employee)) }}</span>
+							</div>
+							<div class="employee-card__type"><span class="employee-column-label">نوع الموظف</span><span class="tag tag--type">{{ employeeTypeLabel(employee) }}</span></div>
+						</header>
+						<div class="employee-card__details">
+							<div class="employee-card__field employee-card__field--tasks"><span class="employee-column-label">المهام والمسميات</span><div class="employee-tasks"><span class="tag" *ngFor="let title of employee.titles">{{ title }}</span><span class="contact-value contact-value--empty" *ngIf="!employee.titles.length">غير محددة</span></div></div>
+							<div class="employee-card__field"><span class="employee-column-label">نوع الإدارة</span><span class="contact-value">{{ departmentLabel(employee.department) || 'غير محدد' }}</span></div>
+							<div class="employee-card__field"><span class="employee-column-label">المدير المباشر</span><span class="contact-value">{{ managerName(employee) || 'بدون مدير' }}</span></div>
 						</div>
-						<div><span class="employee-column-label">النوع</span><span class="tag tag--type">{{ employeeTypeLabel(employee) }}</span></div>
-						<div class="employee-tasks"><span class="employee-column-label">المهام</span><span class="tag" *ngFor="let title of employee.titles">{{ title }}</span><span class="contact-value contact-value--empty" *ngIf="!employee.titles.length">غير محددة</span></div>
-						<div><span class="employee-column-label">نوع الإدارة</span><span class="contact-value">{{ departmentLabel(employee.department) || 'غير محدد' }}</span></div>
-						<div><span class="employee-column-label">المدير المباشر</span><span class="contact-value">{{ managerName(employee) || 'بدون مدير' }}</span></div>
-						<div class="employee-contact"><span class="contact-label">رقم الواتساب</span><span class="contact-value" [class.contact-value--empty]="!employee.whatsapp">{{ employee.whatsapp || 'غير مسجل' }}</span></div>
-						<div class="actions"><button type="button" class="action-menu-trigger" aria-label="إجراءات الموظف" (click)="toggleActionMenu(employee.id)">⋮</button><div class="action-menu" *ngIf="actionMenuEmployeeId === employee.id"><button type="button" class="edit" (click)="openEmployeePage(employee)">عرض الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="edit" (click)="editEmployee(employee)">تعديل</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(employee)">حذف</button></div></div>
+						<div class="employee-contact employee-card__contact"><span class="contact-label">رقم الواتساب</span><span class="contact-value" [class.contact-value--empty]="!employee.whatsapp">{{ employee.whatsapp || 'غير مسجل' }}</span></div>
+						<footer class="employee-card__footer"><span class="employee-card__status"><i aria-hidden="true"></i> نشط</span><div class="actions"><button type="button" class="action-menu-trigger" aria-label="إجراءات الموظف" (click)="toggleActionMenu(employee.id)">⋮</button><div class="action-menu" *ngIf="actionMenuEmployeeId === employee.id"><button type="button" class="edit" (click)="openEmployeePage(employee)">عرض الملف</button><button *ngIf="!isEmployeeAccount" type="button" class="edit" (click)="editEmployee(employee)">تعديل</button><button *ngIf="!isEmployeeAccount" type="button" class="delete" (click)="removeEmployee(employee)">حذف</button></div></div></footer>
 					</article>
 				</div>
 				<nav class="employee-pagination" *ngIf="!employeePageEmployee && filteredEmployees.length" aria-label="صفحات الموظفين"><button type="button" class="employee-pagination__button" (click)="goToEmployeePage(employeePage - 1)" [disabled]="employeePage <= 1">السابق</button><div class="employee-pagination__pages"><ng-container *ngFor="let page of employeePageNumbers"><button *ngIf="page !== '…'" type="button" class="employee-pagination__page" [class.is-active]="page === employeePage" [attr.aria-current]="page === employeePage ? 'page' : null" [attr.aria-label]="'الصفحة ' + page" (click)="goToEmployeePage(page)">{{ page }}</button><span *ngIf="page === '…'" class="employee-pagination__ellipsis" aria-hidden="true">…</span></ng-container></div><span class="employee-pagination__summary">صفحة {{ employeePage }} من {{ employeePages }}</span><button type="button" class="employee-pagination__button" (click)="goToEmployeePage(employeePage + 1)" [disabled]="employeePage >= employeePages">التالي</button></nav>

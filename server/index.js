@@ -365,11 +365,13 @@ function requirePermission(permission) {
 			feedback: new Set(['feedback:read', 'feedback:update']),
 			wheel: new Set(['wheel:read']),
 			finance: new Set(['finance:read', 'finance:write']),
-			'finance-studio': new Set(['finance-studio'])
+			'finance-studio': new Set(['finance-studio']),
+			'finance-application': new Set(['finance-application'])
 		};
 		const [group] = permission.split(':');
 		const hasGroupedPermission = groupedReadWritePermissions[group]?.has(permission) && req.adminPermissions.includes(group);
-		if (req.adminRole === 'admin' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission)) || req.adminPermissions.includes(permission) || hasGroupedPermission) return next();
+		const hasFinanceApplicationAccess = permission === 'finance-application' && (req.adminPermissions.includes('finance') || req.adminPermissions.includes('finance:read') || req.adminPermissions.includes('finance:write'));
+		if (req.adminRole === 'admin' || (req.adminRole === 'leads' && ['leads:read', 'leads:update', 'wheel:read'].includes(permission)) || req.adminPermissions.includes(permission) || hasGroupedPermission || hasFinanceApplicationAccess) return next();
 		return res.status(403).json({ message: 'ليس لديك صلاحية للوصول إلى هذا القسم.' });
 	};
 }
@@ -1025,7 +1027,7 @@ app.patch('/api/admin/feedback/:id', requireAdmin, requirePermission('feedback:u
 
 function normalizeUserPermissions(value) {
 	if (!Array.isArray(value)) return [];
-	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'feedback', 'employees', 'finance', 'finance-payroll', 'finance-studio']);
+	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'feedback', 'employees', 'finance', 'finance-payroll', 'finance-studio', 'finance-application']);
 	const normalized = [];
 	for (const rawItem of value) {
 		const item = String(rawItem || '').trim();
@@ -1045,6 +1047,8 @@ const FINANCE_KINDS = new Set(['income', 'expense']);
 const FINANCE_CATEGORIES = new Set(['اشتراكات ومبيعات', 'رواتب', 'إيجار', 'تسويق', 'أدوات ومستلزمات', 'اشتراكات خدمات', 'مواصلات', 'مصروفات تشغيلية', 'أخرى', 'تحويل داخلي']);
 const STUDIO_FINANCE_CATEGORIES = new Set(['إيجار', 'أدوات ومستلزمات', 'مصاريف إدارية']);
 const STUDIO_FINANCE_INCOME_CATEGORIES = new Set(['اشتراكات ومبيعات', 'خدمات الاستوديو', 'أخرى']);
+const APPLICATION_FINANCE_CATEGORIES = new Set(['الأكواد', 'تسويق', 'المهندسين', 'مصروفات تشغيلية', 'رواتب', 'اشتراكات خدمات', 'مواصلات', 'أخرى']);
+const APPLICATION_FINANCE_INCOME_CATEGORIES = new Set(['اشتراكات ومبيعات', 'أخرى']);
 function validateFinanceDate(value, field = 'التاريخ') { const text = String(value || '').trim(); if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return `${field} غير صحيح.`; const date = new Date(`${text}T00:00:00.000Z`); if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== text) return `${field} غير صحيح.`; return null; }
 function validateFinanceMonth(value) { const text = String(value || '').trim(); if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(text)) return 'الشهر غير صحيح.'; return null; }
 function parseFinanceFilters(query) { const from = String(query.from || '').trim(); const to = String(query.to || '').trim(); if (from && validateFinanceDate(from, 'من تاريخ')) return { error: validateFinanceDate(from, 'من تاريخ') }; if (to && validateFinanceDate(to, 'إلى تاريخ')) return { error: validateFinanceDate(to, 'إلى تاريخ') }; if (from && to && from > to) return { error: 'من تاريخ يجب أن يسبق إلى تاريخ.' }; return { from, to }; }
@@ -1127,10 +1131,93 @@ app.patch('/api/admin/finance/studio/transactions/:id', requireAdmin, requirePer
 		next(error);
 	}
 });
+app.post('/api/admin/finance/studio/transactions/:id/void', requireAdmin, requirePermission('finance-studio'), async (req, res, next) => {
+	try {
+		const rows = await database.listFinanceTransactions({ accountId: 'studio', limit: 10000 });
+		if (!rows.some(item => item.id === req.params.id)) return res.status(404).json({ message: 'حركة الاستوديو غير موجودة.' });
+		const reason = String(req.body?.reason || '').trim();
+		if (reason.length < 3 || reason.length > 300) return res.status(400).json({ message: 'سبب حذف الحركة مطلوب.' });
+		const result = await database.voidFinanceTransaction(req.params.id, reason, req.adminUsername);
+		if (!result) return res.status(404).json({ message: 'الحركة غير موجودة.' });
+		res.json(result);
+	} catch (error) {
+		next(error);
+	}
+});
 app.get('/api/admin/finance/studio/audit/:id', requireAdmin, requirePermission('finance-studio'), async (req, res, next) => {
 	try {
 		const rows = await database.listFinanceTransactions({ accountId: 'studio', limit: 10000 });
 		if (!rows.some(item => item.id === req.params.id)) return res.status(404).json({ message: 'حركة الاستوديو غير موجودة.' });
+		res.json({ data: await database.listFinanceAuditLogs(req.params.id, 100) });
+	} catch (error) { next(error); }
+});
+
+app.get('/api/admin/finance/application', requireAdmin, requirePermission('finance-application'), async (req, res, next) => {
+	try {
+		const parsed = parseFinanceFilters(req.query);
+		if (parsed.error) return res.status(400).json({ message: parsed.error });
+		const now = new Date();
+		const from = parsed.from || `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
+		const to = parsed.to || new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).toISOString().slice(0, 10);
+		const [accounts, allSummary, transactions] = await Promise.all([
+			database.listFinanceAccounts(),
+			database.getFinanceSummary({ from, to }),
+			database.listFinanceTransactions({ accountId: 'application', from, to, limit: 300 })
+		]);
+		const account = accounts.find(item => item.id === 'application');
+		if (!account) return res.status(503).json({ message: 'حساب الأبلكيشن غير مهيأ.' });
+		const periodRows = transactions.filter(item => item.status === 'posted');
+		const totals = periodRows.reduce((result, item) => {
+			result[item.kind] = (result[item.kind] || 0) + Number(item.amount || 0);
+			return result;
+		}, { income: 0, expense: 0, transfer: 0 });
+		const balance = allSummary.balances.find(item => item.id === 'application') || account;
+		res.json({ from, to, account: { ...account, ...balance }, summary: { ...totals, net: totals.income - totals.expense, balance: Number(balance.balance || 0) }, transactions });
+	} catch (error) { next(error); }
+});
+app.post('/api/admin/finance/application/transactions', requireAdmin, requirePermission('finance-application'), async (req, res, next) => {
+	try {
+		const accounts = await database.listFinanceAccounts();
+		const kind = String(req.body?.kind || 'expense').trim();
+		const input = { ...req.body, kind: kind === 'income' ? 'income' : 'expense', accountId: 'application', occurredAt: String(req.body?.occurredAt || '').trim(), category: String(req.body?.category || 'أخرى').trim(), description: String(req.body?.description || '').trim(), createdBy: req.adminUsername };
+		const error = validateFinanceTransactionInput(input, accounts);
+		if (error) return res.status(400).json({ message: error });
+		const categories = input.kind === 'income' ? APPLICATION_FINANCE_INCOME_CATEGORIES : APPLICATION_FINANCE_CATEGORIES;
+		if (!categories.has(input.category)) return res.status(400).json({ message: input.kind === 'income' ? 'تصنيف إيراد الأبلكيشن غير صحيح.' : 'تصنيف مصروف الأبلكيشن غير صحيح.' });
+		res.status(201).json(await database.createFinanceTransaction(input));
+	} catch (error) { next(error); }
+});
+app.patch('/api/admin/finance/application/transactions/:id', requireAdmin, requirePermission('finance-application'), async (req, res, next) => {
+	try {
+		const rows = await database.listFinanceTransactions({ accountId: 'application', limit: 10000 });
+		const current = rows.find(item => item.id === req.params.id);
+		if (!current) return res.status(404).json({ message: 'حركة الأبلكيشن غير موجودة.' });
+		const changes = { occurredAt: String(req.body?.occurredAt || '').trim(), category: String(req.body?.category || '').trim(), description: String(req.body?.description || '').trim() };
+		const dateError = validateFinanceDate(changes.occurredAt);
+		if (dateError) return res.status(400).json({ message: dateError });
+		const categories = current.kind === 'income' ? APPLICATION_FINANCE_INCOME_CATEGORIES : APPLICATION_FINANCE_CATEGORIES;
+		if (!categories.has(changes.category)) return res.status(400).json({ message: current.kind === 'income' ? 'تصنيف إيراد الأبلكيشن غير صحيح.' : 'تصنيف مصروف الأبلكيشن غير صحيح.' });
+		if (changes.description.length > 500) return res.status(400).json({ message: 'التفاصيل طويلة جدًا.' });
+		const result = await database.updateFinanceTransaction(req.params.id, changes, req.adminUsername);
+		if (!result) return res.status(404).json({ message: 'الحركة غير موجودة.' });
+		res.json(result);
+	} catch (error) { if (error.code === 'FINANCE_VOIDED') return res.status(409).json({ message: error.message }); next(error); }
+});
+app.post('/api/admin/finance/application/transactions/:id/void', requireAdmin, requirePermission('finance-application'), async (req, res, next) => {
+	try {
+		const rows = await database.listFinanceTransactions({ accountId: 'application', limit: 10000 });
+		if (!rows.some(item => item.id === req.params.id)) return res.status(404).json({ message: 'حركة الأبلكيشن غير موجودة.' });
+		const reason = String(req.body?.reason || '').trim();
+		if (reason.length < 3 || reason.length > 300) return res.status(400).json({ message: 'سبب حذف الحركة مطلوب.' });
+		const result = await database.voidFinanceTransaction(req.params.id, reason, req.adminUsername);
+		if (!result) return res.status(404).json({ message: 'الحركة غير موجودة.' });
+		res.json(result);
+	} catch (error) { next(error); }
+});
+app.get('/api/admin/finance/application/audit/:id', requireAdmin, requirePermission('finance-application'), async (req, res, next) => {
+	try {
+		const rows = await database.listFinanceTransactions({ accountId: 'application', limit: 10000 });
+		if (!rows.some(item => item.id === req.params.id)) return res.status(404).json({ message: 'حركة الأبلكيشن غير موجودة.' });
 		res.json({ data: await database.listFinanceAuditLogs(req.params.id, 100) });
 	} catch (error) { next(error); }
 });

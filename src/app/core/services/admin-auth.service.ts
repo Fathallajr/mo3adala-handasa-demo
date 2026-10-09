@@ -126,6 +126,6 @@ export class AdminAuthService {
 
 	canAccessPage(pageKey: string): boolean { return this.getRole() === 'admin' || (this.getRole() === 'leads' && pageKey === 'batch-2027') || this.getPermissions().includes('*') || (this.getRole() !== 'employee' && this.getPermissions().includes(pageKey)); }
 
-	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance' | 'finance-payroll' | 'finance-studio'): boolean { return this.getRole() === 'admin' || (this.getRole() === 'employee' && feature === 'finance') || (this.getRole() === 'leads' && feature === 'leads') || this.getPermissions().includes(feature) || this.getPermissions().includes(`${feature}:read`); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application'): boolean { const permissions = this.getPermissions(); const inheritedFinance = feature === 'finance-application' && (permissions.includes('finance') || permissions.includes('finance:read')); return this.getRole() === 'admin' || (this.getRole() === 'employee' && feature === 'finance') || (this.getRole() === 'leads' && feature === 'leads') || inheritedFinance || permissions.includes(feature) || permissions.includes(`${feature}:read`); }
 	canAccessPermission(permission: string): boolean { return this.getRole() === 'admin' || this.getPermissions().includes('*') || this.getPermissions().includes(permission); }
 }
