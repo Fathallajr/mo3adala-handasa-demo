@@ -8,6 +8,7 @@
     "test:api": "node server/api-smoke-test.js",
     "test:demo": "node server/api-demo-test.js",
     "test:cycle": "node server/admin-cycle-test.js",
+    "test:security": "node server/security-cycle-test.js",
     "repair:finance": "node server/repair-finance-integrity.js",
     "migrate:postgres": "node server/migrate-sqlite-to-postgres.js",
     "build": "ng build",

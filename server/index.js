@@ -342,14 +342,19 @@ async function requireAdmin(req, res, next) {
 		// admin/* sessions for scoped accounts; never trust that stale role after
 		// the permission model was tightened. The environment admin is the only
 		// account allowed to remain a full admin without a database record.
-		if (req.adminUsername && req.adminUsername !== ADMIN_USERNAME && req.adminRole === 'admin') {
+		if (req.adminRole === 'admin' && req.adminUsername !== ADMIN_USERNAME) {
 			const databaseUser = await database.findAdminUser(req.adminUsername);
-			if (databaseUser) {
-				const permissions = normalizeUserPermissions(databaseUser.permissions).filter(item => item !== '*');
-				const employeeAccount = databaseUser.role === 'employee' || permissions.some(item => /^employee:\d+$/.test(item));
-				req.adminRole = employeeAccount ? 'employee' : 'editor';
-				req.adminPermissions = permissions;
+			// A deleted/disabled account must never keep an old session with admin
+			// privileges. Only the configured environment account may be admin
+			// without a database user record.
+			if (!databaseUser || !databaseUser.isActive) {
+				await database.deleteAdminSession(token);
+				return res.status(401).json({ message: 'Session is no longer valid' });
 			}
+			const permissions = normalizeUserPermissions(databaseUser.permissions).filter(item => item !== '*');
+			const employeeAccount = databaseUser.role === 'employee' || permissions.some(item => /^employee:\d+$/.test(item));
+			req.adminRole = employeeAccount ? 'employee' : 'editor';
+			req.adminPermissions = permissions;
 		}
 		next();
 	} catch (error) {
@@ -393,12 +398,12 @@ function requireUploadPagePermission(req, res, next) {
 		return res.status(400).json({ message: 'يجب تحديد صفحة الصورة قبل الرفع.' });
 	}
 	if (!PAGE_KEYS.includes(pageKey)) return res.status(400).json({ message: 'صفحة الصورة غير صحيحة.' });
-	if (req.adminRole === 'admin' || req.adminRole === 'editor' || req.adminPermissions.includes('*') || req.adminPermissions.includes(pageKey)) return next();
+	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes(pageKey)) return next();
 	return res.status(403).json({ message: 'ليس لديك صلاحية رفع صورة لهذه الصفحة.' });
 }
 
 function requirePagePermission(req, res, next) {
-	if (req.adminRole === 'admin' || req.adminRole === 'editor' || (req.adminRole === 'leads' && req.params.pageKey === 'batch-2027') || req.adminPermissions.includes('*') || req.adminPermissions.includes(req.params.pageKey)) return next();
+	if (req.adminRole === 'admin' || (req.adminRole === 'leads' && req.params.pageKey === 'batch-2027') || req.adminPermissions.includes('*') || req.adminPermissions.includes(req.params.pageKey)) return next();
 	return res.status(403).json({ message: 'ليس لديك صلاحية تعديل هذه الصفحة.' });
 }
 
@@ -434,7 +439,7 @@ function employeeDirectoryItem(item) {
 }
 
 function requireEmployeePageAccess(req, res, next) {
-	if (req.adminRole === 'admin' || req.adminRole === 'editor') return next();
+	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes('employees')) return next();
 	if (req.params.pageKey === 'employees' && req.adminRole === 'employee' && req.adminPermissions.includes('employees') && getEmployeeIdFromPermissions(req.adminPermissions)) return next();
 	return res.status(403).json({ message: 'هذه الصفحة متاحة للموظف المرتبط بها فقط.' });
 }
@@ -1069,6 +1074,11 @@ app.get('/api/admin/finance/accounts', requireAdmin, requirePermission('finance:
 app.get('/api/admin/finance/transactions', requireAdmin, requirePermission('finance:read'), async (req, res, next) => { try { const filters = parseFinanceFilters(req.query); if (filters.error) return res.status(400).json({ message: filters.error }); const data = await database.listFinanceTransactions({ ...filters, kind: String(req.query.kind || '').trim(), accountId: String(req.query.accountId || '').trim(), status: String(req.query.status || '').trim(), search: String(req.query.search || '').trim(), limit: Math.min(Math.max(Number(req.query.limit) || 100, 1), 300), offset: Math.max(Number(req.query.offset) || 0, 0) }); res.json({ data }); } catch (error) { next(error); } });
 app.get('/api/admin/finance/summary', requireAdmin, requirePermission('finance:read'), async (req, res, next) => { try { const parsed = parseFinanceFilters(req.query); if (parsed.error) return res.status(400).json({ message: parsed.error }); const now = new Date(); const from = parsed.from || `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`; const to = parsed.to || new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).toISOString().slice(0, 10); res.json(await database.getFinanceSummary({ from, to })); } catch (error) { next(error); } });
 app.post('/api/admin/finance/transactions', requireAdmin, requirePermission('finance:write'), async (req, res, next) => { try { const accounts = await database.listFinanceAccounts(); const input = { ...req.body, kind: String(req.body?.kind || '').trim(), occurredAt: String(req.body?.occurredAt || '').trim(), category: String(req.body?.category || 'أخرى').trim(), description: String(req.body?.description || '').trim(), createdBy: req.adminUsername }; const error = validateFinanceTransactionInput(input, accounts); if (error) return res.status(400).json({ message: error }); if (input.kind === 'transfer') input.category = 'تحويل داخلي'; res.status(201).json(await database.createFinanceTransaction(input)); } catch (error) { next(error); } });
+
+app.get('/api/admin/finance/loans', requireAdmin, requirePermission('finance:read'), async (_req, res, next) => { try { res.json({ data: await database.listFinanceLoans() }); } catch (error) { next(error); } });
+app.post('/api/admin/finance/loans', requireAdmin, requirePermission('finance:write'), async (req, res, next) => { try { const lenderAccountId=String(req.body?.lenderAccountId||'').trim(); const borrowerAccountId=String(req.body?.borrowerAccountId||'').trim(); const amount=Number(req.body?.amount); const occurredAt=String(req.body?.occurredAt||'').trim(); const dueAt=String(req.body?.dueAt||'').trim(); const reason=String(req.body?.reason||'').trim(); const accounts=await database.listFinanceAccounts(); if (!lenderAccountId || !borrowerAccountId || lenderAccountId===borrowerAccountId) return res.status(400).json({message:'اختر خزنتين مختلفتين.'}); if (!accounts.some(a=>a.id===lenderAccountId&&a.isActive) || !accounts.some(a=>a.id===borrowerAccountId&&a.isActive)) return res.status(400).json({message:'الخزنة المختارة غير صحيحة.'}); if (!Number.isFinite(amount)||amount<=0||amount>100000000) return res.status(400).json({message:'مبلغ السلفة يجب أن يكون أكبر من صفر.'}); const dateError=validateFinanceDate(occurredAt); if(dateError) return res.status(400).json({message:dateError}); if(dueAt && validateFinanceDate(dueAt,'تاريخ الاستحقاق')) return res.status(400).json({message:'تاريخ الاستحقاق غير صحيح.'}); if(reason.length>500) return res.status(400).json({message:'سبب السلفة طويل جدًا.'}); res.status(201).json(await database.createFinanceLoan({lenderAccountId,borrowerAccountId,amount,occurredAt,dueAt,reason,createdBy:req.adminUsername})); } catch(error){ next(error); } });
+app.post('/api/admin/finance/loans/:id/repay', requireAdmin, requirePermission('finance:write'), async (req,res,next)=>{ try { const amount=Number(req.body?.amount); const reason=String(req.body?.reason||'').trim(); res.json(await database.repayFinanceLoan(req.params.id,amount,req.adminUsername,reason)); } catch(error){ if(['FINANCE_LOAN_NOT_FOUND','FINANCE_LOAN_CLOSED','FINANCE_LOAN_AMOUNT'].includes(error.code)) return res.status(error.code==='FINANCE_LOAN_NOT_FOUND'?404:409).json({message:error.message}); next(error); } });
+app.post('/api/admin/finance/loans/:id/cancel', requireAdmin, requirePermission('finance:write'), async (req,res,next)=>{ try { const reason=String(req.body?.reason||'').trim(); if(reason.length<3||reason.length>300) return res.status(400).json({message:'سبب إلغاء السلفة مطلوب.'}); const result=await database.cancelFinanceLoan(req.params.id,reason,req.adminUsername); if(!result) return res.status(404).json({message:'السلفة غير موجودة.'}); res.json(result); } catch(error){ if(error.code==='FINANCE_LOAN_CLOSED') return res.status(409).json({message:error.message}); next(error); } });
 
 app.get('/api/admin/finance/studio', requireAdmin, requirePermission('finance-studio'), async (req, res, next) => {
 	try {

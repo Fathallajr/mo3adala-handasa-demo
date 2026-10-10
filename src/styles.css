@@ -2,6 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Payroll actions are rendered in the document body so the popup can escape the table overflow. */
+.payroll-actions-menu__trigger {
+  display: grid !important;
+  place-items: center !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 30px !important;
+  padding: 0 !important;
+  border: 1px solid #cfc5ff !important;
+  border-radius: 8px !important;
+  color: #6241df !important;
+  background: #f4f1ff !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+}
+
+.payroll-actions-menu__trigger:hover {
+  background: #e9e3ff !important;
+}
+
+.payroll-actions-menu__panel {
+  position: fixed !important;
+  z-index: 10000 !important;
+  display: grid !important;
+  width: max-content !important;
+  min-width: 140px !important;
+  max-width: calc(100vw - 20px) !important;
+  box-sizing: border-box !important;
+  padding: 5px !important;
+  border: 1px solid #e2e5ee !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .16) !important;
+  direction: rtl !important;
+}
+
+.payroll-actions-menu__panel[hidden],
+.payroll-actions-menu__panel[style*="display: none"] {
+  display: none !important;
+}
+
+.payroll-actions-menu__panel button {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  width: 100% !important;
+  min-height: 34px !important;
+  padding: 8px 9px !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  color: #526078 !important;
+  background: transparent !important;
+  font: inherit !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+}
+
+.payroll-actions-menu__panel button:hover {
+  color: #6241df !important;
+  background: #f4f1ff !important;
+}
+
+.payroll-actions-menu__panel button:disabled {
+  opacity: .55 !important;
+  cursor: default !important;
+}
+
+.finance-audit-backdrop .mini-table .row > span:last-child {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+
 /* Site-wide responsive baseline: pages must never widen the viewport. */
 html,
 body,
@@ -483,3 +561,82 @@ main.app-page-shell.route-home {
 .launch-offer-form app-styled-select .styled-select__menu button { padding: .45rem .55rem; font-size: .68rem; line-height: 1.25; }
 @media(max-width:700px){.launch-offer-form app-styled-select .styled-select__trigger{height:2.45rem;min-height:2.45rem}}
 .bi-lightning-charge-fill::before{content:"\f46c"}.bi-book-half::before{content:"\f193"}.bi-person-check-fill::before{content:"\f4d5"}.bi-calendar2-check::before{content:"\f1f8"}.bi-check-circle-fill::before{content:"\f26a"}.bi-shield-check::before{content:"\f52f"}.bi-tag-fill::before{content:"\f5af"}.bi-wallet2::before{content:"\f615"}.bi-ui-checks-grid::before{content:"\f5f8"}.bi-key-fill::before{content:"\f44e"}.bi-diagram-3-fill::before{content:"\f2ed"}.bi-stars::before{content:"\f589"}.bi-copy::before{content:"\f759"}.bi-check2::before{content:"\f272"}.bi-clipboard-check::before{content:"\f28b"}.bi-file-earmark-text::before{content:"\f38b"}.bi-pencil-square::before{content:"\f4ca"}.bi-arrow-up-left::before{content:"\f13f"}.bi-whatsapp::before{content:"\f618"}.bi-play-fill::before{content:"\f4f4"}.bi-calendar3::before{content:"\f214"}.bi-arrows-fullscreen::before{content:"\f14d"}.bi-download::before{content:"\f30a"}.bi-x-lg::before{content:"\f659"}.bi-person::before{content:"\f4e1"}.bi-box-arrow-in-left::before{content:"\f1bd"}.bi-person-plus::before{content:"\f4dd"}.bi-headset::before{content:"\f414"}
+.finance-page.payroll-only .payroll-strip{display:none!important}
+.finance-page.payroll-only .payroll-adjustment-toolbar{grid-column:1/-1;display:grid;grid-template-columns:minmax(170px,1fr) minmax(150px,1fr) auto;align-items:end;gap:10px;padding:10px;border:1px solid #e5e0ff;border-radius:12px;background:#fff}
+.finance-page.payroll-only .payroll-adjustment-toolbar label{display:grid;gap:5px;color:#65718b;font-size:10px;font-weight:900}
+.finance-page.payroll-only .payroll-adjustment-toolbar input,.finance-page.payroll-only .payroll-adjustment-toolbar select{width:100%;min-height:42px;box-sizing:border-box;border:1px solid #dfe5f0;border-radius:10px;padding:0 10px;background:#fff;color:#273552;font:inherit;font-size:11px;font-weight:800}
+.finance-page.payroll-only .payroll-adjustment-toolbar button{min-height:42px;white-space:nowrap}
+@media(max-width:900px){.finance-page.payroll-only .payroll-adjustment-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.finance-page.payroll-only .payroll-adjustment-toolbar button{width:100%;grid-column:1/-1}}
+@media(max-width:600px){.finance-page.payroll-only .payroll-adjustment-toolbar{grid-template-columns:1fr}.finance-page.payroll-only .payroll-adjustment-toolbar button{grid-column:auto}}
+.employee-table-scroll{border:1px solid #e5e9f2;border-radius:14px;background:#fff;overflow-x:auto;overflow-y:visible;padding:0 8px 4px}
+.employee-table-scroll>.employee-table-head,.employee-table-scroll>.list{min-width:980px!important}
+.employee-table-scroll .employee-table-head{grid-template-columns:minmax(145px,1.25fr) minmax(80px,.7fr) minmax(175px,1.35fr) minmax(125px,1fr) minmax(125px,1fr) minmax(125px,1fr) 52px!important;gap:12px!important;padding:0 12px!important;min-height:44px;border-bottom:1px solid #edf0f5}
+.employee-table-scroll .employee-card{grid-template-columns:minmax(145px,1.25fr) minmax(80px,.7fr) minmax(175px,1.35fr) minmax(125px,1fr) minmax(125px,1fr) minmax(125px,1fr) 52px!important;gap:12px!important;min-width:980px!important;min-height:64px!important;height:auto!important;padding:10px 12px!important;border:0!important;border-bottom:1px solid #edf0f5!important;border-radius:0!important;box-shadow:none!important;background:#fff!important}
+.employee-table-scroll .employee-card:last-child{border-bottom:0!important}
+.employee-table-scroll .employee-card__header,.employee-table-scroll .employee-card__details,.employee-table-scroll .employee-card__contact,.employee-table-scroll .employee-card__footer{display:contents!important}
+.employee-table-scroll .employee-card__header .identity{display:grid!important;grid-column:1;gap:3px!important;min-width:0}
+.employee-table-scroll .employee-card__eyebrow,.employee-table-scroll .employee-column-label{display:none!important}
+.employee-table-scroll .employee-name{font-size:13px!important;line-height:1.4!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.employee-table-scroll .employee-card__type{grid-column:2;display:flex!important;align-items:center;min-width:0}
+.employee-table-scroll .employee-card__details .employee-card__field{display:block!important;min-width:0;padding:0!important;border:0!important}
+.employee-table-scroll .employee-card__details .employee-card__field--tasks{grid-column:3}
+.employee-table-scroll .employee-card__details .employee-card__field:nth-child(2){grid-column:4}
+.employee-table-scroll .employee-card__details .employee-card__field:nth-child(3){grid-column:5}
+.employee-table-scroll .employee-tasks{max-height:30px;overflow:hidden;flex-wrap:nowrap}
+.employee-table-scroll .employee-tasks .tag{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.employee-table-scroll .employee-card__contact .contact-value{grid-column:6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
+.employee-table-scroll .employee-card__footer .actions{grid-column:7;justify-content:center}
+@media(max-width:700px){.employee-table-scroll{border-radius:12px;padding-inline:4px}.employee-table-scroll>.employee-table-head,.employee-table-scroll>.list,.employee-table-scroll .employee-card{min-width:900px!important}.employee-table-scroll .employee-table-head{grid-template-columns:130px 75px 170px 115px 115px 115px 48px!important;gap:9px!important;font-size:10px}.employee-table-scroll .employee-card{grid-template-columns:130px 75px 170px 115px 115px 115px 48px!important;gap:9px!important;min-height:58px!important;padding:9px 10px!important}.employee-table-scroll .employee-name{font-size:12px!important}.employee-table-scroll .tag{font-size:9px!important;padding:5px 7px!important}}
+.employee-table-scroll .employee-table-head{grid-template-columns:minmax(160px,1.3fr) minmax(190px,1.5fr) minmax(135px,1fr) minmax(135px,1fr) minmax(135px,1fr) 52px!important}
+.employee-table-scroll .employee-table-head span:nth-child(2),.employee-table-scroll .employee-card__type{display:none!important}
+.employee-table-scroll .employee-card{grid-template-columns:minmax(160px,1.3fr) minmax(190px,1.5fr) minmax(135px,1fr) minmax(135px,1fr) minmax(135px,1fr) 52px!important}
+.employee-table-scroll .employee-card__details .employee-card__field--tasks{grid-column:2!important}
+.employee-table-scroll .employee-card__details .employee-card__field:nth-child(2){grid-column:3!important}
+.employee-table-scroll .employee-card__details .employee-card__field:nth-child(3){grid-column:4!important}
+.employee-table-scroll .employee-card__contact .contact-value{grid-column:5!important}
+.employee-table-scroll .employee-card__footer .actions{grid-column:6!important}
+@media(max-width:700px){.employee-table-scroll .employee-table-head{grid-template-columns:130px 170px 115px 115px 115px 48px!important}.employee-table-scroll .employee-card{grid-template-columns:130px 170px 115px 115px 115px 48px!important;min-width:850px!important}.employee-table-scroll>.employee-table-head,.employee-table-scroll>.list{min-width:850px!important}}
+.employee-table-scroll .employee-table-head{grid-template-columns:minmax(180px,1.4fr) minmax(220px,1.7fr) minmax(160px,1.1fr) minmax(150px,1fr) 52px!important}
+.employee-table-scroll .employee-table-head span:nth-child(4),.employee-table-scroll .employee-card__details .employee-card__field:nth-child(2){display:none!important}
+.employee-table-scroll .employee-card{grid-template-columns:minmax(180px,1.4fr) minmax(220px,1.7fr) minmax(160px,1.1fr) minmax(150px,1fr) 52px!important}
+.employee-table-scroll .employee-card__details .employee-card__field:nth-child(3){grid-column:3!important}
+.employee-table-scroll .employee-card__contact .contact-value{grid-column:4!important}
+.employee-table-scroll .employee-card__footer .actions{grid-column:5!important}
+@media(max-width:700px){.employee-table-scroll .employee-table-head{grid-template-columns:140px 190px 130px 120px 48px!important}.employee-table-scroll .employee-card{grid-template-columns:140px 190px 130px 120px 48px!important;min-width:780px!important}.employee-table-scroll>.employee-table-head,.employee-table-scroll>.list{min-width:780px!important}}
+.employee-table-scroll{border:0!important;border-radius:18px!important;background:#f7f9fc!important;padding:8px!important;box-shadow:inset 0 0 0 1px #e8edf5,0 10px 24px rgba(31,45,78,.05)!important}
+.employee-table-scroll .employee-table-head{min-height:48px!important;padding:0 16px!important;border:0!important;border-radius:12px!important;background:#eef2f8!important;color:#6d7890!important;letter-spacing:.1px}
+.employee-table-scroll .employee-card{position:relative!important;min-height:72px!important;margin:6px 0!important;padding:12px 16px!important;border:1px solid #e7ebf2!important;border-radius:14px!important;background:#fff!important;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease!important}
+.employee-table-scroll .employee-card:hover{transform:translateY(-1px)!important;border-color:#d7d0ff!important;box-shadow:0 8px 18px rgba(91,67,201,.08)!important}
+.employee-table-scroll .employee-card__header .identity{padding-inline-start:10px;border-inline-start:3px solid #7354f4}
+.employee-table-scroll .employee-name{color:#202b42!important;font-size:14px!important}
+.employee-table-scroll .employee-tasks{gap:5px!important}
+.employee-table-scroll .employee-tasks .tag{border:1px solid #e3defe!important;background:#f5f2ff!important;color:#5b43c9!important}
+.employee-table-scroll .employee-card__details .employee-card__field:nth-child(3) .contact-value,.employee-table-scroll .employee-card__contact .contact-value{color:#34415b!important;font-size:12px!important;font-weight:800!important}
+.employee-table-scroll .employee-card__footer .actions{justify-content:flex-end!important}
+.employee-table-scroll .action-menu-trigger{width:34px!important;height:32px!important;border-radius:9px!important;background:#f2efff!important;box-shadow:none!important}
+@media(max-width:700px){.employee-table-scroll{padding:5px!important;border-radius:14px!important}.employee-table-scroll .employee-table-head{min-height:42px!important;padding:0 12px!important}.employee-table-scroll .employee-card{min-height:62px!important;margin:5px 0!important;padding:10px 12px!important;border-radius:11px!important}.employee-table-scroll .employee-card__header .identity{padding-inline-start:7px}.employee-table-scroll .employee-name{font-size:12px!important}.employee-table-scroll .employee-tasks .tag{font-size:9px!important}}
+.employee-leads-table{width:100%;min-width:820px;border-collapse:separate;border-spacing:0 6px;direction:rtl}
+.employee-leads-table thead th{height:42px;padding:0 14px;color:#7b869b;background:#eef2f8;font-size:11px;font-weight:900;text-align:right;white-space:nowrap}
+.employee-leads-table thead th:first-child{border-radius:0 10px 10px 0}.employee-leads-table thead th:last-child{border-radius:10px 0 0 10px;text-align:center}
+.employee-leads-table tbody tr{background:#fff;box-shadow:0 2px 8px rgba(31,45,78,.04)}
+.employee-leads-table tbody td{height:64px;padding:10px 14px;border-top:1px solid #e7ebf2;border-bottom:1px solid #e7ebf2;color:#34415b;font-size:12px;vertical-align:middle}
+.employee-leads-table tbody td:first-child{border-right:1px solid #e7ebf2;border-radius:0 12px 12px 0}.employee-leads-table tbody td:last-child{border-left:1px solid #e7ebf2;border-radius:12px 0 0 12px;text-align:center}
+.employee-leads-table tbody tr:hover td{background:#fbfaff;border-color:#dcd6ff}
+.employee-leads-table .employee-card__header,.employee-leads-table .employee-card__details,.employee-leads-table .employee-card__contact,.employee-leads-table .employee-card__footer{display:table-cell!important;min-width:0!important;padding:10px 14px!important;border:0!important;background:transparent!important;box-shadow:none!important}
+.employee-leads-table .employee-card__header .identity{display:block!important;border:0!important;padding:0!important}.employee-leads-table .employee-card__eyebrow,.employee-leads-table .employee-column-label{display:none!important}.employee-leads-table .employee-name{font-size:13px!important}.employee-leads-table .employee-tasks{display:flex!important;gap:5px;max-width:260px;overflow:hidden;flex-wrap:nowrap}.employee-leads-table .employee-tasks .tag{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.employee-leads-table .employee-card__manager .contact-value,.employee-leads-table .employee-card__contact .contact-value{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.employee-leads-table .employee-card__footer .actions{display:flex!important;justify-content:center!important;position:relative}.employee-leads-table .action-menu{position:absolute!important;top:calc(100% + 6px)!important;right:0!important;left:auto!important;z-index:100;min-width:150px!important}
+@media(max-width:700px){.employee-leads-table-wrap{overflow-x:auto!important;padding:5px!important}.employee-leads-table{min-width:820px!important}.employee-leads-table thead th{height:38px;padding:0 10px;font-size:10px}.employee-leads-table tbody td{height:56px;padding:8px 10px;font-size:11px}.employee-leads-table .employee-name{font-size:12px!important}.employee-leads-table .employee-tasks{max-width:210px}.employee-leads-table .employee-tasks .tag{font-size:9px!important;padding:5px 7px!important}}
+.employee-leads-table{table-layout:fixed!important;width:100%!important;min-width:820px!important}
+.employee-leads-table th,.employee-leads-table td{box-sizing:border-box!important}
+.employee-leads-table th:nth-child(1),.employee-leads-table td:nth-child(1){width:25%!important}
+.employee-leads-table th:nth-child(2),.employee-leads-table td:nth-child(2){width:35%!important}
+.employee-leads-table th:nth-child(3),.employee-leads-table td:nth-child(3){width:18%!important}
+.employee-leads-table th:nth-child(4),.employee-leads-table td:nth-child(4){width:17%!important}
+.employee-leads-table th:nth-child(5),.employee-leads-table td:nth-child(5){width:70px!important;text-align:center!important}
+.employee-leads-table td:nth-child(1) .identity,.employee-leads-table td:nth-child(2) .employee-tasks,.employee-leads-table td:nth-child(3) .contact-value,.employee-leads-table td:nth-child(4) .contact-value{max-width:100%!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.employee-leads-table td:nth-child(2) .employee-tasks{display:flex!important;overflow:hidden!important;flex-wrap:nowrap!important}
+.employee-leads-table td:nth-child(5) .actions{display:flex!important;justify-content:center!important;align-items:center!important;width:100%!important}
+.employee-leads-table tbody tr>td.employee-card__header,.employee-leads-table tbody tr>td.employee-card__details,.employee-leads-table tbody tr>td.employee-card__manager,.employee-leads-table tbody tr>td.employee-card__contact,.employee-leads-table tbody tr>td.employee-card__footer{display:table-cell!important;position:static!important;grid-area:auto!important;grid-column:auto!important;vertical-align:middle!important}
+.employee-leads-table tbody tr>td.employee-card__footer{width:70px!important;min-width:70px!important;text-align:center!important}
+.employee-leads-table tbody tr>td.employee-card__footer .actions{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:34px!important}
+.employee-leads-table tbody tr>td.employee-card__footer .action-menu-trigger{flex:0 0 34px!important;margin:0 auto!important}
+@media(max-width:700px){.employee-leads-table{min-width:820px!important}.employee-leads-table th:nth-child(1),.employee-leads-table td:nth-child(1){width:24%!important}.employee-leads-table th:nth-child(2),.employee-leads-table td:nth-child(2){width:34%!important}.employee-leads-table th:nth-child(3),.employee-leads-table td:nth-child(3){width:18%!important}.employee-leads-table th:nth-child(4),.employee-leads-table td:nth-child(4){width:16%!important}.employee-leads-table th:nth-child(5),.employee-leads-table td:nth-child(5){width:66px!important}}

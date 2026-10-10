@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, HostListener, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize, timeout } from 'rxjs';
+import * as ExcelJS from 'exceljs';
 import { AdminApiService, FinanceAuditLog, FinanceTransaction, StudioFinanceResponse } from '../../../core/services/admin-api.service';
 
 @Component({
@@ -11,7 +12,9 @@ import { AdminApiService, FinanceAuditLog, FinanceTransaction, StudioFinanceResp
   template: `
 <div class="studio-finance" dir="rtl">
   <style>
-    .studio-row{grid-template-columns:1fr 1fr 1.4fr 1fr .8fr 1.05fr!important;min-width:720px!important}
+    .studio-row{grid-template-columns:1fr 1.1fr 1.8fr 2fr 1fr .8fr auto!important;min-width:900px!important}
+    .studio-row--head{align-items:center!important;white-space:nowrap}
+    .studio-row--head > span:last-child,.studio-row > .lead-actions-cell{text-align:center}
     .lead-actions-cell{white-space:nowrap}
     .lead-actions-menu{position:relative;display:inline-block}
     .lead-actions-menu__trigger{display:grid;place-items:center;width:32px;height:30px;border:1px solid #cfc5ff;border-radius:8px;color:#6241df;background:#f4f1ff;cursor:pointer}
@@ -42,7 +45,7 @@ import { AdminApiService, FinanceAuditLog, FinanceTransaction, StudioFinanceResp
   <section class="studio-filters">
     <div class="studio-filter-heading"><div><span>الفترة</span><h3>ملخص {{ accountLabel }}</h3></div><small>الإيرادات والمصروفات محفوظة في نفس دفتر الحسابات.</small></div>
     <label><span>الشهر</span><input type="month" [(ngModel)]="month" (change)="applyMonth()"></label>
-    <button type="button" class="studio-secondary" (click)="load()" [disabled]="loading">{{ loading ? 'جاري التحديث...' : 'تحديث البيانات' }}</button>
+    <div class="studio-filter-actions"><button type="button" class="studio-secondary" (click)="load()" [disabled]="loading">{{ loading ? 'جاري التحديث...' : 'تحديث البيانات' }}</button><button type="button" class="studio-secondary studio-export-button" (click)="exportExcel()" [disabled]="loading || !data">تصدير Excel ↓</button></div>
   </section>
   <section class="studio-kpis" *ngIf="data as finance">
     <article class="studio-kpi studio-kpi--balance"><span>الرصيد الحالي</span><strong>{{ finance.summary.balance | number:'1.0-2' }} ج</strong><small>{{ finance.account.name }}</small></article>
@@ -52,9 +55,40 @@ import { AdminApiService, FinanceAuditLog, FinanceTransaction, StudioFinanceResp
   </section>
   <section class="studio-ledger">
     <div class="studio-section-head"><div><span>دفتر {{ accountLabel }}</span><h3>الحركات المسجلة</h3></div><small *ngIf="data">{{ data.transactions.length }} حركة</small></div>
-    <div class="studio-table" *ngIf="data?.transactions?.length; else emptyStudio">
-      <div class="studio-row studio-row--head"><span>التاريخ</span><span>النوع</span><span>التصنيف</span><span>المبلغ</span><span>الحالة</span><span>الإجراءات</span></div>
-      <div class="studio-row" *ngFor="let item of paginatedStudioTransactions; trackBy: trackById"><span>{{ item.occurredAt }}</span><span [class.studio-income]="item.kind === 'income'">{{ item.kind === 'income' ? 'إيراد' : 'مصروف' }}</span><span>{{ item.category || 'أخرى' }}</span><strong [class.studio-income]="item.kind === 'income'">{{ item.amount | number:'1.0-2' }} ج</strong><span [class.is-voided]="item.status === 'voided'">{{ item.status === 'voided' ? 'ملغاة' : 'مسجلة' }}</span><div class="lead-actions-cell"><div class="lead-actions-menu"><button type="button" class="lead-actions-menu__trigger" (click)="toggleActions(item.id, $event)" [attr.aria-expanded]="actionMenuId === item.id" aria-label="إجراءات" title="الإجراءات"><i class="bi bi-three-dots"></i></button></div></div></div>
+     <style>
+       .studio-modal-backdrop { z-index: 4000 !important; pointer-events: auto !important; }
+     </style>
+     <style>
+       .studio-table .studio-row { grid-template-columns: 1fr 1.1fr 1.8fr 2fr 1fr .8fr auto; min-width: 900px; }
+       .studio-table .studio-description { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+       @media (max-width: 760px) {
+         .studio-table { overflow: visible; }
+         .studio-table .studio-row:not(.studio-row--head) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; grid-template-areas: 'date date' 'type category' 'description description' 'amount status' 'actions actions'; min-width: 0 !important; }
+         .studio-table .studio-row:not(.studio-row--head) > span:nth-child(1) { grid-area: date; }
+         .studio-table .studio-row:not(.studio-row--head) > span:nth-child(2) { grid-area: type; }
+         .studio-table .studio-row:not(.studio-row--head) > span:nth-child(3) { grid-area: category; }
+         .studio-table .studio-row:not(.studio-row--head) > span:nth-child(4) { grid-area: description; }
+         .studio-table .studio-row:not(.studio-row--head) > strong:nth-child(5) { grid-area: amount; }
+         .studio-table .studio-row:not(.studio-row--head) > span:nth-child(6) { grid-area: status; }
+         .studio-table .studio-row:not(.studio-row--head) > div:nth-child(7) { grid-area: actions; }
+         .studio-table .studio-row:not(.studio-row--head) > span:nth-child(4) { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 3px; white-space: normal; overflow-wrap: anywhere; }
+         .studio-table .studio-row:not(.studio-row--head) > span:nth-child(4)::before { content: 'السبب'; color: #8993a8; font-size: 9px; font-weight: 900; }
+         .studio-table .studio-row:not(.studio-row--head){position:relative;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-areas:'date date' 'type category' 'description description' 'amount status' 'actions actions';gap:8px 14px!important;padding:14px 13px 11px!important;border:1px solid #e1e7f2;border-radius:18px!important;background:linear-gradient(145deg,#ffffff 0%,#f7f9ff 100%);box-shadow:0 8px 20px rgba(36,54,93,.09);overflow:hidden}
+         .studio-table .studio-row:not(.studio-row--head)::before{content:'';position:absolute;inset:0 0 0 auto;width:4px;background:linear-gradient(180deg,#7354f4,#a18bff);border-radius:0 18px 18px 0}
+         .studio-table .studio-row:not(.studio-row--head)>span,.studio-table .studio-row:not(.studio-row--head)>strong{display:grid!important;align-content:start;justify-items:start;min-width:0;min-height:36px;gap:3px!important;overflow:hidden;font-size:11px;line-height:1.45}
+         .studio-table .studio-row:not(.studio-row--head)>span:before,.studio-table .studio-row:not(.studio-row--head)>strong:before{font-size:9px!important;line-height:1.2}
+         .studio-table .studio-row:not(.studio-row--head)>span:nth-child(1){min-height:26px;align-items:start}
+         .studio-table .studio-row:not(.studio-row--head)>span:nth-child(4){min-height:40px;padding:8px 9px;border:1px solid #e8ecf4;border-radius:10px;background:#fff}
+         .studio-table .studio-row:not(.studio-row--head)>strong:nth-child(5){padding-top:2px}
+         .studio-table .studio-row:not(.studio-row--head)>span:nth-child(6){justify-items:start;align-content:center;min-height:36px;padding:7px 9px;border-radius:10px;background:#eefbf6;color:#12805d}
+         .studio-table .studio-row:not(.studio-row--head)>span:nth-child(6).is-voided{background:#fff1f4;color:#b63e58}
+         .studio-table .studio-row:not(.studio-row--head)>div:nth-child(7){grid-area:actions;display:flex;align-items:center;justify-content:flex-end;min-height:36px;padding-top:8px;border-top:1px solid #edf0f6}
+         .studio-table .studio-row:not(.studio-row--head)>div:nth-child(7)::before{content:'الإجراءات';margin-inline-end:auto;color:#8993a8;font-size:9px;font-weight:900}
+       }
+     </style>
+     <div class="studio-table" *ngIf="data?.transactions?.length; else emptyStudio">
+      <div class="studio-row studio-row--head"><span>التاريخ</span><span>النوع</span><span>التصنيف</span><span>السبب</span><span>المبلغ</span><span>الحالة</span><span>الإجراءات</span></div>
+       <div class="studio-row" *ngFor="let item of paginatedStudioTransactions; trackBy: trackById"><span>{{ item.occurredAt }}</span><span [class.studio-income]="item.kind === 'income'">{{ item.kind === 'income' ? 'إيراد' : 'مصروف' }}</span><span>{{ item.category || 'أخرى' }}</span><span class="studio-description" [title]="item.description || 'بدون سبب مسجل'">{{ item.description || 'بدون سبب مسجل' }}</span><strong [class.studio-income]="item.kind === 'income'">{{ item.amount | number:'1.0-2' }} ج</strong><span [class.is-voided]="item.status === 'voided'">{{ item.status === 'voided' ? 'ملغاة' : 'مسجلة' }}</span><div class="lead-actions-cell"><div class="lead-actions-menu"><button type="button" class="lead-actions-menu__trigger" (click)="toggleActions(item.id, $event)" [attr.aria-expanded]="actionMenuId === item.id" aria-label="إجراءات" title="الإجراءات"><i class="bi bi-three-dots"></i></button></div></div></div>
     </div>
     <nav class="studio-pagination" *ngIf="studioPages > 1" aria-label="صفحات حركات الاستوديو"><button type="button" (click)="goToStudioPage(studioPage - 1)" [disabled]="studioPage <= 1">السابق</button><button type="button" *ngFor="let page of studioPageNumbers" [class.is-active]="page === studioPage" [attr.aria-current]="page === studioPage ? 'page' : null" (click)="goToStudioPage(page)">{{ page }}</button><span class="studio-pagination__summary">صفحة {{ studioPage }} من {{ studioPages }}</span><button type="button" (click)="goToStudioPage(studioPage + 1)" [disabled]="studioPage >= studioPages">التالي</button></nav>
     <ng-template #emptyStudio><div class="studio-empty">لا توجد حركات في {{ accountLabel }} خلال الشهر المختار.</div></ng-template>
@@ -73,7 +107,7 @@ import { AdminApiService, FinanceAuditLog, FinanceTransaction, StudioFinanceResp
   <div class="studio-modal-backdrop" *ngIf="voidingTransaction" (click)="closeVoidDialog()" role="presentation"><section class="studio-editor studio-void-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-void-title" (click)="$event.stopPropagation()"><div class="studio-editor-head"><div><span>حذف آمن</span><h3 id="studio-void-title">إلغاء حركة {{ accountLabel }}</h3><p>{{ voidingTransaction.description || 'حركة مالية' }}</p></div><button type="button" class="studio-close" (click)="closeVoidDialog()" [disabled]="voiding" aria-label="إغلاق">×</button></div><div class="studio-void-warning">سيتم إخفاء الحركة من إجمالي الحسابات مع الاحتفاظ بها في سجل الأنشطة. لا يوجد حذف نهائي للبيانات المالية.</div><textarea [(ngModel)]="voidReasonDraft" maxlength="300" placeholder="اكتب سبب الإلغاء (مطلوب)"></textarea><div *ngIf="voidError" class="studio-editor-error" role="alert" style="margin-top:10px;padding:10px 12px;border:1px solid #f0cbd4;border-radius:11px;color:#b63e58;background:#fff1f4;font-size:12px;font-weight:800">{{ voidError }}</div><div class="studio-editor-actions"><button type="button" class="studio-primary studio-delete-button" (click)="confirmVoid()" [disabled]="voiding">{{ voiding ? 'جاري الحذف...' : 'تأكيد الحذف' }}</button><button type="button" class="studio-secondary" (click)="closeVoidDialog()" [disabled]="voiding">إلغاء</button></div></section></div>
 </div>`,
   styles: [`
-:host{display:block;min-width:0;max-width:100%;overflow-x:hidden}.studio-finance{display:grid;gap:18px;width:100%;min-width:0;max-width:1180px;box-sizing:border-box;margin:0 auto;padding:4px 2px 34px;color:#263451;overflow-x:hidden}.studio-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;width:100%;min-width:0;box-sizing:border-box;min-height:170px;padding:30px 34px;border-radius:28px;background:linear-gradient(120deg,#10233e,#16475a 58%,#087f74);color:#fff;box-shadow:0 20px 45px #12334a25}.studio-eyebrow{display:inline-flex;padding:6px 10px;border-radius:999px;background:#ffffff1c;color:#c5fff3;font-size:10px;font-weight:900}.studio-hero h2{margin:13px 0 7px;font-size:31px}.studio-hero p{margin:0;color:#cbe4e6;font-size:13px}.studio-primary,.studio-secondary{border:0;border-radius:12px;padding:12px 18px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;transition:.18s}.studio-primary{color:#fff;background:linear-gradient(135deg,#7354f4,#5136c8);box-shadow:0 9px 18px #6548dc2b}.studio-hero .studio-primary{color:#16424c;background:#fff}.studio-secondary{border:1px solid #d9e1ec;background:#f5f8fc;color:#43536e}.studio-primary:hover,.studio-secondary:hover{transform:translateY(-1px)}button:disabled{opacity:.55;cursor:wait;transform:none}.studio-notice{padding:11px 14px;border-radius:12px;font-size:12px;font-weight:800}.studio-notice--error{border:1px solid #f0cbd4;background:#fff1f4;color:#b63e58}.studio-notice--success{border:1px solid #c7eddf;background:#edfbf5;color:#12805d}.studio-filters,.studio-ledger{width:100%;min-width:0;box-sizing:border-box;padding:22px;border:1px solid #dfe6f1;border-radius:23px;background:#fff;box-shadow:0 12px 30px #26365d0a}.studio-filters{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:14px}.studio-filter-heading,.studio-section-head{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;min-width:0;padding-bottom:15px;border-bottom:1px solid #edf1f6}.studio-filter-heading span,.studio-section-head span{color:#7354f4;font-size:10px;font-weight:900}.studio-filter-heading h3,.studio-section-head h3{margin:5px 0 0;color:#1e2c49;font-size:18px}.studio-filter-heading small,.studio-section-head small{color:#8994a8;font-size:11px;font-weight:700}.studio-filter-heading small{overflow-wrap:anywhere}.studio-filters label{display:grid;gap:7px;color:#63718a;font-size:11px;font-weight:900;min-width:0}.studio-filters input{width:100%;min-height:46px;box-sizing:border-box;border:1px solid #dce4f0;border-radius:12px;padding:0 12px;background:#f9fbfe;color:#263653;font:inherit;font-weight:800}.studio-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%;min-width:0;box-sizing:border-box}.studio-kpi{display:grid;gap:7px;min-width:0;min-height:108px;padding:18px 20px;border:1px solid #e0e6f1;border-top:4px solid #7354f4;border-radius:18px;background:#fff;box-shadow:0 12px 25px #26365d0c}.studio-kpi--balance{border-top-color:#079b87;background:linear-gradient(145deg,#f0fffb,#fff)}.studio-kpi span{color:#7b879c;font-size:11px;font-weight:850}.studio-kpi strong{color:#1d2b49;font-size:22px}.studio-kpi--balance strong{color:#087f74}.studio-kpi small{color:#9aa4b5;font-size:10px;font-weight:700;overflow-wrap:anywhere}.studio-table{overflow:auto;margin-top:18px}.studio-row{display:grid;grid-template-columns:1fr 1.1fr 2.2fr 1fr .8fr;align-items:center;gap:12px;min-width:700px;padding:13px 10px;border-bottom:1px solid #edf0f5;color:#506078;font-size:12px}.studio-row--head{border-radius:10px;color:#8a95a9;background:#fafbfe;font-size:10px;font-weight:900}.studio-row strong{color:#b64b5e}.studio-description{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.is-voided{color:#b63e58}.studio-empty{padding:36px 15px;text-align:center;color:#8792a6}.studio-modal-backdrop{position:fixed;inset:0;z-index:1400;display:grid;place-items:center;padding:18px;background:#101a31a6;backdrop-filter:blur(7px)}.studio-editor{width:min(620px,100%);box-sizing:border-box;padding:25px;border:1px solid #e1e6f2;border-radius:24px;background:#fff;box-shadow:0 30px 90px #111a3350}.studio-editor-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;padding-bottom:17px;border-bottom:1px solid #edf0f6}.studio-editor-head span{color:#7354f4;font-size:10px;font-weight:900}.studio-editor-head h3{margin:6px 0;color:#202d4b;font-size:20px}.studio-editor-head p{margin:0;color:#8993a8;font-size:11px}.studio-close{width:38px;height:38px;border:1px solid #ddd8ff;border-radius:12px;color:#5b43c9;background:#f8f6ff;font:inherit;font-size:20px;cursor:pointer}.studio-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:20px}.studio-form-grid label{display:grid;gap:7px;color:#52617a;font-size:11px;font-weight:900}.studio-form-grid label span b{color:#d35d70}.studio-form-grid input,.studio-form-grid select,.studio-form-grid textarea{width:100%;box-sizing:border-box;min-height:46px;border:1px solid #dfe5f0;border-radius:12px;padding:0 12px;background:#fbfcff;color:#273552;font:inherit;font-size:12px}.studio-form-grid textarea{min-height:100px;padding-top:11px;resize:vertical}.studio-form-wide{grid-column:1/-1}.studio-editor-actions{display:flex;gap:9px;margin-top:20px;padding-top:18px;border-top:1px solid #edf0f6}.studio-editor-actions button{min-width:130px}.studio-editor-actions .studio-secondary{order:2}@media(max-width:800px){.studio-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.studio-finance{gap:13px;padding:0 0 20px}.studio-hero{align-items:stretch;flex-direction:column;min-height:0;padding:23px 20px;border-radius:20px}.studio-hero h2{font-size:25px}.studio-hero .studio-primary{width:100%}.studio-filters{grid-template-columns:1fr;padding:16px}.studio-filters .studio-secondary{width:100%}.studio-filter-heading,.studio-section-head{align-items:flex-start;flex-direction:column;gap:5px}.studio-kpis{grid-template-columns:1fr 1fr;gap:8px}.studio-kpi{min-height:94px;padding:14px}.studio-kpi strong{font-size:17px}.studio-ledger{padding:14px}.studio-editor{max-height:calc(100dvh - 24px);overflow:auto;padding:20px;border-radius:20px}.studio-form-grid{grid-template-columns:1fr}.studio-form-wide{grid-column:auto}.studio-editor-actions{flex-direction:column}.studio-editor-actions button{width:100%}.studio-editor-actions .studio-secondary{order:0}}
+:host{display:block;min-width:0;max-width:100%;overflow-x:hidden}.studio-finance{display:grid;gap:18px;width:100%;min-width:0;max-width:1180px;box-sizing:border-box;margin:0 auto;padding:4px 2px 34px;color:#263451;overflow-x:hidden}.studio-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;width:100%;min-width:0;box-sizing:border-box;min-height:170px;padding:30px 34px;border-radius:28px;background:linear-gradient(120deg,#10233e,#16475a 58%,#087f74);color:#fff;box-shadow:0 20px 45px #12334a25}.studio-eyebrow{display:inline-flex;padding:6px 10px;border-radius:999px;background:#ffffff1c;color:#c5fff3;font-size:10px;font-weight:900}.studio-hero h2{margin:13px 0 7px;font-size:31px}.studio-hero p{margin:0;color:#cbe4e6;font-size:13px}.studio-primary,.studio-secondary{border:0;border-radius:12px;padding:12px 18px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;transition:.18s}.studio-primary{color:#fff;background:linear-gradient(135deg,#7354f4,#5136c8);box-shadow:0 9px 18px #6548dc2b}.studio-hero .studio-primary{color:#16424c;background:#fff}.studio-secondary{border:1px solid #d9e1ec;background:#f5f8fc;color:#43536e}.studio-primary:hover,.studio-secondary:hover{transform:translateY(-1px)}button:disabled{opacity:.55;cursor:wait;transform:none}.studio-notice{padding:11px 14px;border-radius:12px;font-size:12px;font-weight:800}.studio-notice--error{border:1px solid #f0cbd4;background:#fff1f4;color:#b63e58}.studio-notice--success{border:1px solid #c7eddf;background:#edfbf5;color:#12805d}.studio-filters,.studio-ledger{width:100%;min-width:0;box-sizing:border-box;padding:22px;border:1px solid #dfe6f1;border-radius:23px;background:#fff;box-shadow:0 12px 30px #26365d0a}.studio-filters{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:14px}.studio-filter-heading,.studio-section-head{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;min-width:0;padding-bottom:15px;border-bottom:1px solid #edf1f6}.studio-filter-heading span,.studio-section-head span{color:#7354f4;font-size:10px;font-weight:900}.studio-filter-heading h3,.studio-section-head h3{margin:5px 0 0;color:#1e2c49;font-size:18px}.studio-filter-heading small,.studio-section-head small{color:#8994a8;font-size:11px;font-weight:700}.studio-filter-heading small{overflow-wrap:anywhere}.studio-filters label{display:grid;gap:7px;color:#63718a;font-size:11px;font-weight:900;min-width:0}.studio-filters input{width:100%;min-height:46px;box-sizing:border-box;border:1px solid #dce4f0;border-radius:12px;padding:0 12px;background:#f9fbfe;color:#263653;font:inherit;font-weight:800}.studio-filter-actions{display:flex;gap:8px;flex-wrap:wrap}.studio-filter-actions .studio-secondary{min-width:135px}.studio-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%;min-width:0;box-sizing:border-box}.studio-kpi{display:grid;gap:7px;min-width:0;min-height:108px;padding:18px 20px;border:1px solid #e0e6f1;border-top:4px solid #7354f4;border-radius:18px;background:#fff;box-shadow:0 12px 25px #26365d0c}.studio-kpi--balance{border-top-color:#079b87;background:linear-gradient(145deg,#f0fffb,#fff)}.studio-kpi span{color:#7b879c;font-size:11px;font-weight:850}.studio-kpi strong{color:#1d2b49;font-size:22px}.studio-kpi--balance strong{color:#087f74}.studio-kpi small{color:#9aa4b5;font-size:10px;font-weight:700;overflow-wrap:anywhere}.studio-table{overflow:auto;margin-top:18px}.studio-row{display:grid;grid-template-columns:1fr 1.1fr 2.2fr 1fr .8fr;align-items:center;gap:12px;min-width:700px;padding:13px 10px;border-bottom:1px solid #edf0f5;color:#506078;font-size:12px}.studio-row--head{border-radius:10px;color:#8a95a9;background:#fafbfe;font-size:10px;font-weight:900}.studio-row strong{color:#b64b5e}.studio-description{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.is-voided{color:#b63e58}.studio-empty{padding:36px 15px;text-align:center;color:#8792a6}.studio-modal-backdrop{position:fixed;inset:0;z-index:1400;display:grid;place-items:center;padding:18px;background:#101a31a6;backdrop-filter:blur(7px)}.studio-editor{width:min(620px,100%);box-sizing:border-box;padding:25px;border:1px solid #e1e6f2;border-radius:24px;background:#fff;box-shadow:0 30px 90px #111a3350}.studio-editor-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;padding-bottom:17px;border-bottom:1px solid #edf0f6}.studio-editor-head span{color:#7354f4;font-size:10px;font-weight:900}.studio-editor-head h3{margin:6px 0;color:#202d4b;font-size:20px}.studio-editor-head p{margin:0;color:#8993a8;font-size:11px}.studio-close{width:38px;height:38px;border:1px solid #ddd8ff;border-radius:12px;color:#5b43c9;background:#f8f6ff;font:inherit;font-size:20px;cursor:pointer}.studio-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:20px}.studio-form-grid label{display:grid;gap:7px;color:#52617a;font-size:11px;font-weight:900}.studio-form-grid label span b{color:#d35d70}.studio-form-grid input,.studio-form-grid select,.studio-form-grid textarea{width:100%;box-sizing:border-box;min-height:46px;border:1px solid #dfe5f0;border-radius:12px;padding:0 12px;background:#fbfcff;color:#273552;font:inherit;font-size:12px}.studio-form-grid textarea{min-height:100px;padding-top:11px;resize:vertical}.studio-form-wide{grid-column:1/-1}.studio-editor-actions{display:flex;gap:9px;margin-top:20px;padding-top:18px;border-top:1px solid #edf0f6}.studio-editor-actions button{min-width:130px}.studio-editor-actions .studio-secondary{order:2}@media(max-width:800px){.studio-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.studio-finance{gap:13px;padding:0 0 20px}.studio-hero{align-items:stretch;flex-direction:column;min-height:0;padding:23px 20px;border-radius:20px}.studio-hero h2{font-size:25px}.studio-hero .studio-primary{width:100%}.studio-filters{grid-template-columns:1fr;padding:16px}.studio-filters .studio-secondary{width:100%}.studio-filter-actions{display:grid;grid-template-columns:1fr;width:100%}.studio-filter-actions .studio-secondary{width:100%}.studio-filter-heading,.studio-section-head{align-items:flex-start;flex-direction:column;gap:5px}.studio-kpis{grid-template-columns:1fr 1fr;gap:8px}.studio-kpi{min-height:94px;padding:14px}.studio-kpi strong{font-size:17px}.studio-ledger{padding:14px}.studio-editor{max-height:calc(100dvh - 24px);overflow:auto;padding:20px;border-radius:20px}.studio-form-grid{grid-template-columns:1fr}.studio-form-wide{grid-column:auto}.studio-editor-actions{flex-direction:column}.studio-editor-actions button{width:100%}.studio-editor-actions .studio-secondary{order:0}}
 `]
 })
 export class StudioFinanceFormComponent implements OnInit, OnDestroy {
@@ -147,6 +181,51 @@ export class StudioFinanceFormComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  async exportExcel(): Promise<void> {
+    if (!this.data) return;
+    this.error = '';
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet(`حركات ${this.accountLabel}`);
+      sheet.views = [{ rightToLeft: true }];
+      sheet.mergeCells('A1:G1');
+      sheet.getCell('A1').value = `${this.accountLabel} — تقرير شهر ${this.month}`;
+      sheet.getCell('A1').font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
+      sheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '16475A' } };
+      sheet.getCell('A1').alignment = { horizontal: 'center' };
+      sheet.mergeCells('A2:G2');
+      sheet.getCell('A2').value = `الرصيد الحالي: ${this.data.summary.balance} ج | الإيرادات: ${this.data.summary.income} ج | المصروفات: ${this.data.summary.expense} ج | الصافي: ${this.data.summary.net} ج`;
+      sheet.getCell('A2').font = { bold: true, color: { argb: '087F74' } };
+      sheet.getRow(4).values = ['التاريخ', 'النوع', 'التصنيف', 'السبب', 'المبلغ', 'الحالة', 'أنشأها'];
+      sheet.getRow(4).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      sheet.getRow(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '293650' } };
+      this.data.transactions.forEach(item => sheet.addRow([
+        item.occurredAt,
+        item.kind === 'income' ? 'إيراد' : 'مصروف',
+        item.category || 'أخرى',
+        item.description || 'بدون سبب مسجل',
+        item.amount,
+        item.status === 'voided' ? 'ملغاة' : 'مسجلة',
+        item.createdBy || 'غير معروف'
+      ]));
+      sheet.columns = [{ width: 15 }, { width: 14 }, { width: 24 }, { width: 42 }, { width: 16 }, { width: 14 }, { width: 20 }];
+      sheet.getColumn(5).numFmt = '#,##0.00';
+      sheet.autoFilter = { from: 'A4', to: 'G4' };
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${this.accountLabel}-تقرير-${this.month}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(url);
+      this.showSuccess(`تم تصدير تقرير ${this.accountLabel} لشهر ${this.month}.`);
+    } catch (error: any) {
+      this.error = error?.message || `تعذر تصدير تقرير ${this.accountLabel}.`;
+      this.cdr.detectChanges();
+    }
+  }
+
   applyMonth(): void { if (typeof localStorage !== 'undefined' && /^\d{4}-\d{2}$/.test(this.month)) localStorage.setItem(this.monthStorageKey, this.month); this.studioPage = 1; this.actionMenuId = ''; this.load(); }
 
   goToStudioPage(page: number): void {
@@ -185,7 +264,7 @@ export class StudioFinanceFormComponent implements OnInit, OnDestroy {
   }
 
   openEditor(): void { this.error = ''; this.success = ''; this.editorMode = 'create'; this.editingTransaction = null; this.draft = { kind: 'expense', amount: null, occurredAt: this.localDateInput(), category: '', description: '' }; this.editorOpen = true; }
-  openEdit(item: FinanceTransaction): void { this.actionMenuId = ''; this.error = ''; this.success = ''; this.editorMode = 'edit'; this.editingTransaction = item; this.draft = { kind: item.kind === 'income' ? 'income' : 'expense', amount: item.amount, occurredAt: item.occurredAt, category: item.category || '', description: item.description || '' }; this.editorOpen = true; }
+  openEdit(item: FinanceTransaction): void { this.closeDetails(); this.closeAudit(); this.closeVoidDialog(); this.actionMenuId = ''; this.error = ''; this.success = ''; this.editorMode = 'edit'; this.editingTransaction = item; this.draft = { kind: item.kind === 'income' ? 'income' : 'expense', amount: item.amount, occurredAt: item.occurredAt, category: item.category || '', description: item.description || '' }; this.editorOpen = true; }
   onKindChange(): void { if (!this.activeCategories.includes(this.draft.category)) this.draft.category = ''; }
   closeEditor(): void { if (!this.saving) { this.editorOpen = false; this.editorMode = 'create'; this.editingTransaction = null; } }
   toggleActions(id: string, event: MouseEvent): void {
@@ -236,12 +315,12 @@ export class StudioFinanceFormComponent implements OnInit, OnDestroy {
     requestAnimationFrame(applyPosition);
     setTimeout(applyPosition, 0);
   }
-  openDetails(item: FinanceTransaction): void { this.actionMenuId = ''; this.viewingTransaction = item; }
+  openDetails(item: FinanceTransaction): void { this.actionMenuId = ''; this.editorOpen = false; this.editingTransaction = null; this.closeAudit(); this.closeVoidDialog(); this.viewingTransaction = item; }
   closeDetails(): void { this.viewingTransaction = null; }
-  openAudit(item: FinanceTransaction): void { this.actionMenuId = ''; this.auditTransaction = item; this.auditLogs = []; this.auditLoading = true; this.auditOpen = true; const request = this.accountId === 'studio' ? this.api.listStudioFinanceAuditLogs(item.id) : this.api.listApplicationFinanceAuditLogs(item.id); request.subscribe({ next: value => { this.auditLogs = value.data; this.auditLoading = false; this.cdr.detectChanges(); }, error: err => { this.auditLoading = false; this.error = err?.error?.message || 'تعذر تحميل سجل الأنشطة.'; this.cdr.detectChanges(); } }); }
+  openAudit(item: FinanceTransaction): void { this.actionMenuId = ''; this.editorOpen = false; this.editingTransaction = null; this.closeDetails(); this.closeVoidDialog(); this.auditTransaction = item; this.auditLogs = []; this.auditLoading = true; this.auditOpen = true; const request = this.accountId === 'studio' ? this.api.listStudioFinanceAuditLogs(item.id) : this.api.listApplicationFinanceAuditLogs(item.id); request.subscribe({ next: value => { this.auditLogs = value.data; this.auditLoading = false; this.cdr.detectChanges(); }, error: err => { this.auditLoading = false; this.error = err?.error?.message || 'تعذر تحميل سجل الأنشطة.'; this.cdr.detectChanges(); } }); }
   closeAudit(): void { this.auditOpen = false; this.auditTransaction = null; }
   auditLabel(action: string): string { return action === 'created' ? 'إنشاء' : action === 'updated' ? 'تعديل' : action === 'voided' ? 'إلغاء' : action; }
-  openVoidDialog(item: FinanceTransaction): void { this.actionMenuId = ''; this.voidingTransaction = item; this.voidReasonDraft = ''; this.voidError = ''; }
+  openVoidDialog(item: FinanceTransaction): void { this.actionMenuId = ''; this.editorOpen = false; this.editingTransaction = null; this.closeDetails(); this.closeAudit(); this.voidingTransaction = item; this.voidReasonDraft = ''; this.voidError = ''; }
   closeVoidDialog(): void { if (this.voiding) return; this.voidingTransaction = null; this.voidReasonDraft = ''; this.voidError = ''; }
   confirmVoid(): void {
     if (!this.voidingTransaction) return;

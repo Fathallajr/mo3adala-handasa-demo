@@ -85,6 +85,17 @@ db.exec(`
     before_data TEXT DEFAULT '{}', after_data TEXT DEFAULT '{}', reason TEXT DEFAULT '',
     actor TEXT DEFAULT '', created_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS finance_loans (
+    id TEXT PRIMARY KEY, lender_account_id TEXT NOT NULL, borrower_account_id TEXT NOT NULL,
+    amount REAL NOT NULL, repaid_amount REAL NOT NULL DEFAULT 0, occurred_at TEXT NOT NULL,
+    due_at TEXT DEFAULT '', reason TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'open',
+    transfer_transaction_id TEXT NOT NULL, created_by TEXT DEFAULT '', created_at TEXT NOT NULL,
+    updated_at TEXT, cancel_reason TEXT DEFAULT '',
+    FOREIGN KEY(lender_account_id) REFERENCES finance_accounts(id),
+    FOREIGN KEY(borrower_account_id) REFERENCES finance_accounts(id),
+    FOREIGN KEY(transfer_transaction_id) REFERENCES finance_transactions(id)
+  );
+  CREATE INDEX IF NOT EXISTS finance_loans_status_idx ON finance_loans(status);
 `);
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN username TEXT NOT NULL DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
@@ -403,6 +414,51 @@ function voidFinanceTransaction(id, reason, actor) {
 	return result;
 }
 
+function financeLoanRow(row) {
+	return row ? { ...row, amount: Number(row.amount), repaidAmount: Number(row.repaidAmount || 0), remainingAmount: Math.max(0, Number(row.amount) - Number(row.repaidAmount || 0)) } : null;
+}
+function listFinanceLoans() {
+	return db.prepare(`SELECT l.id,l.lender_account_id AS lenderAccountId,l.borrower_account_id AS borrowerAccountId,
+	 l.amount,l.repaid_amount AS repaidAmount,l.occurred_at AS occurredAt,l.due_at AS dueAt,l.reason,l.status,
+	 l.transfer_transaction_id AS transferTransactionId,l.created_by AS createdBy,l.created_at AS createdAt,
+	 l.updated_at AS updatedAt,l.cancel_reason AS cancelReason, la.name AS lenderName, ba.name AS borrowerName
+	 FROM finance_loans l JOIN finance_accounts la ON la.id=l.lender_account_id JOIN finance_accounts ba ON ba.id=l.borrower_account_id
+	 ORDER BY l.occurred_at DESC,l.created_at DESC`).all().map(financeLoanRow);
+}
+function createFinanceLoan(input) {
+	return db.transaction(() => {
+		const now = input.createdAt || new Date().toISOString();
+		const id = input.id || crypto.randomUUID(); const transferId = crypto.randomUUID();
+		db.prepare('INSERT INTO finance_transactions(id,kind,from_account_id,to_account_id,amount,occurred_at,category,description,status,source_type,source_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(transferId, 'transfer', input.lenderAccountId, input.borrowerAccountId, Number(input.amount), input.occurredAt, 'سلفة بين الخزائن', input.reason || '', 'posted', 'inter-vault-loan', id, input.createdBy || '', now);
+		const loan = { id, lenderAccountId: input.lenderAccountId, borrowerAccountId: input.borrowerAccountId, amount: Number(input.amount), repaidAmount: 0, occurredAt: input.occurredAt, dueAt: input.dueAt || '', reason: input.reason || '', status: 'open', transferTransactionId: transferId, createdBy: input.createdBy || '', createdAt: now, updatedAt: null, cancelReason: '' };
+		db.prepare('INSERT INTO finance_loans(id,lender_account_id,borrower_account_id,amount,repaid_amount,occurred_at,due_at,reason,status,transfer_transaction_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)').run(id, loan.lenderAccountId, loan.borrowerAccountId, loan.amount, 0, loan.occurredAt, loan.dueAt, loan.reason, loan.status, transferId, loan.createdBy, now);
+		createFinanceAuditLog({ entityType:'finance_loan', entityId:id, action:'created', afterData:loan, actor:input.createdBy, createdAt:now });
+		return financeLoanRow(db.prepare(`SELECT l.*, l.lender_account_id AS lenderAccountId,l.borrower_account_id AS borrowerAccountId,l.repaid_amount AS repaidAmount,l.occurred_at AS occurredAt,l.due_at AS dueAt,l.transfer_transaction_id AS transferTransactionId,l.created_by AS createdBy,l.created_at AS createdAt,l.updated_at AS updatedAt,l.cancel_reason AS cancelReason,la.name AS lenderName,ba.name AS borrowerName FROM finance_loans l JOIN finance_accounts la ON la.id=l.lender_account_id JOIN finance_accounts ba ON ba.id=l.borrower_account_id WHERE l.id=?`).get(id));
+	})();
+}
+function repayFinanceLoan(id, amount, actor, reason = '') {
+	return db.transaction(() => {
+		const current = financeLoanRow(db.prepare(`SELECT l.*, l.lender_account_id AS lenderAccountId,l.borrower_account_id AS borrowerAccountId,l.repaid_amount AS repaidAmount,l.occurred_at AS occurredAt,l.due_at AS dueAt,l.transfer_transaction_id AS transferTransactionId,l.created_by AS createdBy,l.created_at AS createdAt,l.updated_at AS updatedAt,l.cancel_reason AS cancelReason,la.name AS lenderName,ba.name AS borrowerName FROM finance_loans l JOIN finance_accounts la ON la.id=l.lender_account_id JOIN finance_accounts ba ON ba.id=l.borrower_account_id WHERE l.id=?`).get(id));
+		if (!current) throw Object.assign(new Error('السلفة غير موجودة.'), { code:'FINANCE_LOAN_NOT_FOUND' });
+		if (!['open','partial'].includes(current.status)) throw Object.assign(new Error('السلفة ليست قابلة للسداد.'), { code:'FINANCE_LOAN_CLOSED' });
+		const payment = Number(amount); if (!Number.isFinite(payment) || payment <= 0 || payment > current.remainingAmount + 0.005) throw Object.assign(new Error('مبلغ السداد أكبر من المتبقي.'), { code:'FINANCE_LOAN_AMOUNT' });
+		const now = new Date().toISOString(); const txId = crypto.randomUUID();
+		db.prepare('INSERT INTO finance_transactions(id,kind,from_account_id,to_account_id,amount,occurred_at,category,description,status,source_type,source_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(txId,'transfer',current.borrowerAccountId,current.lenderAccountId,payment,current.occurredAt,'سداد سلفة',reason || 'سداد سلفة','posted','inter-vault-loan-repayment',id,actor || '',now);
+		const repaid = current.repaidAmount + payment; const status = repaid >= current.amount - 0.005 ? 'repaid' : 'partial';
+		db.prepare('UPDATE finance_loans SET repaid_amount=?,status=?,updated_at=? WHERE id=?').run(repaid,status,now,id);
+		const next = financeLoanRow(db.prepare(`SELECT l.*, l.lender_account_id AS lenderAccountId,l.borrower_account_id AS borrowerAccountId,l.repaid_amount AS repaidAmount,l.occurred_at AS occurredAt,l.due_at AS dueAt,l.transfer_transaction_id AS transferTransactionId,l.created_by AS createdBy,l.created_at AS createdAt,l.updated_at AS updatedAt,l.cancel_reason AS cancelReason,la.name AS lenderName,ba.name AS borrowerName FROM finance_loans l JOIN finance_accounts la ON la.id=l.lender_account_id JOIN finance_accounts ba ON ba.id=l.borrower_account_id WHERE l.id=?`).get(id));
+		createFinanceAuditLog({entityType:'finance_loan',entityId:id,action:'repaid',beforeData:current,afterData:next,reason,actor,createdAt:now}); return next;
+	})();
+}
+function cancelFinanceLoan(id, reason, actor) {
+	return db.transaction(() => {
+		const current = financeLoanRow(db.prepare(`SELECT l.*, l.lender_account_id AS lenderAccountId,l.borrower_account_id AS borrowerAccountId,l.repaid_amount AS repaidAmount,l.occurred_at AS occurredAt,l.due_at AS dueAt,l.transfer_transaction_id AS transferTransactionId,l.created_by AS createdBy,l.created_at AS createdAt,l.updated_at AS updatedAt,l.cancel_reason AS cancelReason,la.name AS lenderName,ba.name AS borrowerName FROM finance_loans l JOIN finance_accounts la ON la.id=l.lender_account_id JOIN finance_accounts ba ON ba.id=l.borrower_account_id WHERE l.id=?`).get(id));
+		if (!current) return null; if (!['open','partial'].includes(current.status)) throw Object.assign(new Error('السلفة مغلقة بالفعل.'), {code:'FINANCE_LOAN_CLOSED'});
+		const remaining=current.remainingAmount; const now=new Date().toISOString(); if (remaining > 0) db.prepare('INSERT INTO finance_transactions(id,kind,from_account_id,to_account_id,amount,occurred_at,category,description,status,source_type,source_id,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(crypto.randomUUID(),'transfer',current.borrowerAccountId,current.lenderAccountId,remaining,current.occurredAt,'إلغاء سلفة',reason,'posted','inter-vault-loan-cancel',id,actor || '',now);
+		db.prepare('UPDATE finance_loans SET repaid_amount=amount,status=?,cancel_reason=?,updated_at=? WHERE id=?').run('cancelled',reason,now,id); const next=financeLoanRow(db.prepare(`SELECT l.*,l.lender_account_id AS lenderAccountId,l.borrower_account_id AS borrowerAccountId,l.repaid_amount AS repaidAmount,l.occurred_at AS occurredAt,l.due_at AS dueAt,l.transfer_transaction_id AS transferTransactionId,l.created_by AS createdBy,l.created_at AS createdAt,l.updated_at AS updatedAt,l.cancel_reason AS cancelReason,la.name AS lenderName,ba.name AS borrowerName FROM finance_loans l JOIN finance_accounts la ON la.id=l.lender_account_id JOIN finance_accounts ba ON ba.id=l.borrower_account_id WHERE l.id=?`).get(id)); createFinanceAuditLog({entityType:'finance_loan',entityId:id,action:'cancelled',beforeData:current,afterData:next,reason,actor,createdAt:now}); return next;
+	})();
+}
+
 function listFinancePayrollPayments(month) {
 	return db.prepare('SELECT id,employee_id AS employeeId,month,amount,transaction_id AS transactionId,status,approved_by AS approvedBy,created_at AS createdAt,updated_at AS updatedAt FROM finance_payroll_payments WHERE month = ?').all(month).map(item => ({ ...item, amount: Number(item.amount) }));
 }
@@ -483,4 +539,4 @@ function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 	})();
 }
 
-module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };
+module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };
