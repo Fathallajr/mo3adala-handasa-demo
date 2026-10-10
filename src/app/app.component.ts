@@ -151,18 +151,20 @@ export class AppComponent implements OnInit, OnDestroy {
 		this.launchOfferSubscription = this.contentService.loadPageState<any>('launch-offer').subscribe({
 			next: state => {
 				this.launchOfferLoaded = true;
-				this.launchOfferVisible = state?.visible === true;
+				const expiresAt = String(state?.expiresAt || '');
+				this.launchOfferVisible = state?.visible === true && this.isLaunchOfferOpen(expiresAt);
 				this.launchOffer = {
 					eyebrow: String(state?.eyebrow || ''),
 					title: String(state?.title || ''),
 					highlight: String(state?.highlight || ''),
 					description: String(state?.description || '')
 				};
-				this.launchOfferExpiresAt = String(state?.expiresAt || '');
+				this.launchOfferExpiresAt = expiresAt;
 				this.startOfferCountdown(this.launchOfferExpiresAt);
+				if (this.offerOpenTimer) clearTimeout(this.offerOpenTimer);
 				if (this.launchOfferVisible && this.isHomeRoute && !localStorage.getItem('launch-offer-submitted')) {
 					this.offerOpenTimer = setTimeout(() => {
-						if (!this.launchOfferVisible) return;
+						if (!this.launchOfferVisible || !this.isLaunchOfferOpen(this.launchOfferExpiresAt)) return;
 						this.showLaunchOffer = true;
 						this.cdr.detectChanges();
 					}, 300);
@@ -176,6 +178,11 @@ export class AppComponent implements OnInit, OnDestroy {
 				this.cdr.detectChanges();
 			}
 		});
+	}
+
+	private isLaunchOfferOpen(expiresAt: string): boolean {
+		const deadline = Date.parse(expiresAt || '');
+		return !Number.isFinite(deadline) || deadline > Date.now();
 	}
 
 	private startOfferCountdown(expiresAt: string) {
@@ -196,6 +203,7 @@ export class AppComponent implements OnInit, OnDestroy {
 			this.countdownMinutes = Math.floor((remaining % 3600000) / 60000);
 			this.countdownSeconds = Math.floor((remaining % 60000) / 1000);
 			if (remaining <= 0) {
+				this.launchOfferVisible = false;
 				this.showLaunchOffer = false;
 				if (this.offerCountdownTimer) clearInterval(this.offerCountdownTimer);
 			}
