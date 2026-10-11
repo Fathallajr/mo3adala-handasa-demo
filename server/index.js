@@ -430,18 +430,21 @@ function getEmployeeIdFromPermissions(permissions = []) {
 	return permission ? permission.slice('employee:'.length) : null;
 }
 
-function employeeDirectoryItem(item) {
-	return {
+function employeeDirectoryItem(item, includeOwnNotes = false) {
+	const result = {
 		id: item.id,
 		name: item.name,
-		titles: Array.isArray(item.titles) ? item.titles : (item.job ? [item.job] : []),
+		whatsapp: item.whatsapp || '',
 		description: item.description || '',
-		// Employee accounts can see the directory, but not coworkers' private phone numbers.
-		whatsapp: '',
 		department: item.department || '',
-		employeeType: item.employeeType || 'employee',
 		managerId: item.managerId ?? null
 	};
+	if (includeOwnNotes) {
+		result.monthlyRecords = Array.isArray(item.monthlyRecords)
+			? item.monthlyRecords.map(record => ({ month: record.month, notes: Array.isArray(record.notes) ? record.notes : [] }))
+			: [];
+	}
+	return result;
 }
 
 function requireEmployeePageAccess(req, res, next) {
@@ -1877,7 +1880,7 @@ app.get('/api/content/:pageKey', (req, res, next) => {
 	let data = normalizeSubscriptionCmsContent(pageKey, entry.data);
 	if (pageKey === 'employees' && req.adminRole === 'employee') {
 		const employeeId = getEmployeeIdFromPermissions(req.adminPermissions);
-		data = { ...data, items: Array.isArray(data.items) ? data.items.map(item => String(item.id) === employeeId ? item : employeeDirectoryItem(item)) : [] };
+		data = { ...data, items: Array.isArray(data.items) ? data.items.map(item => employeeDirectoryItem(item, String(item.id) === employeeId)) : [] };
 	}
 	const expiresAt = Date.parse(String(data.enrollmentWindow?.expiresAt || ''));
 	if (Number.isFinite(expiresAt) && expiresAt <= Date.now()) data.isEnrollmentClosed = true;
