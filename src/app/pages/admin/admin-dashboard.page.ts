@@ -334,7 +334,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.closeActionMenus();
 		this.statusMessage = '';
 		this.errorMessage = '';
-		if (this.employeeAccount && view !== 'finance-payroll') return;
+		if (this.employeeAccount && !this.canManageEmployees && view !== 'finance-payroll') return;
 		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
 		if (view === 'customers' && !this.auth.canAccessFeature('customers')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
@@ -1028,7 +1028,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'admins', 'finance', 'finance-payroll', 'finance-studio', 'finance-application'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
-		if (this.employeeAccount && view !== 'finance-payroll') return null;
+		if (this.employeeAccount && !this.canManageEmployees && view !== 'finance-payroll') return null;
 		if (view === 'feedback') return this.auth.canAccessFeature('feedback') ? view : null;
 		if (view === 'customers') return this.auth.canAccessFeature('customers') ? view : null;
 		if (view === 'overview' || view === 'programs' || view === 'admins') {
@@ -1047,6 +1047,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	get fullAdminAccount(): boolean { return this.auth.getRole() === 'admin'; }
 	get employeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
+	get canManageEmployees(): boolean { return this.auth.getRole() === 'admin' || this.auth.getPermissions().includes('*') || this.auth.getPermissions().includes('employees'); }
 	get employeeAccountId(): number | null { const permission = this.auth.getPermissions().find(item => /^employee:\d+$/.test(String(item || ''))); return permission ? Number(permission.slice('employee:'.length)) : null; }
 	get employeeProfileActive(): boolean { return this.employeeAccount && /^employee-\d+$/.test(this.route.snapshot.fragment || ''); }
 

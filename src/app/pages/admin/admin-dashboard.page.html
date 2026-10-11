@@ -32,7 +32,7 @@
 						<button
 							type="button"
 							class="page-item"
-							*ngIf="page.key !== 'employees' || !canAccessFeature('finance')"
+							*ngIf="page.key !== 'employees' || !canAccessFeature('finance') || canManageEmployees"
 							[hidden]="!fullAdminAccount && !canAccessPage(page.key)"
 							[class.page-item--active]="activeView === 'cms' && isSelected(page.key) && !(employeeAccount && page.key === 'employees' && employeeProfileActive)"
 							(click)="selectPage(page.key)">

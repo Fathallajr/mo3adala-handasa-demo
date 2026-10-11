@@ -389,6 +389,11 @@ function requireFullAdmin(req, res, next) {
 	return res.status(403).json({ message: 'هذا القسم متاح للأدمن الرئيسي فقط.' });
 }
 
+function requireEmployeesPermission(req, res, next) {
+	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes('employees')) return next();
+	return res.status(403).json({ message: 'ليس لديك صلاحية إدارة الموظفين.' });
+}
+
 function requireUploadPagePermission(req, res, next) {
 	const pageKey = String(req.body?.pageKey || '').trim();
 	if (!pageKey) {
@@ -1245,7 +1250,7 @@ app.get('/api/admin/users', requireAdmin, requireFullAdmin, async (_req, res) =>
 	res.json({ data: users.filter(user => !isEmployeeAdminUser(user)).map(user => ({ ...user, permissions: normalizeUserPermissions(user.permissions) })) });
 });
 
-app.post('/api/admin/employees/:employeeId/account', requireAdmin, requireFullAdmin, async (req, res, next) => {
+app.post('/api/admin/employees/:employeeId/account', requireAdmin, requireEmployeesPermission, async (req, res, next) => {
 	const employeeId = String(req.params.employeeId || '').trim();
 	const email = String(req.body?.email || '').trim().toLowerCase();
 	const password = String(req.body?.password || '');
@@ -1268,7 +1273,7 @@ app.post('/api/admin/employees/:employeeId/account', requireAdmin, requireFullAd
 // Employee creation is intentionally atomic: the directory record and its
 // login must be committed together, so a failed account insert cannot leave a
 // partial employee or require a risky client-side rollback.
-app.post('/api/admin/employees/with-account', requireAdmin, requireFullAdmin, async (req, res) => {
+app.post('/api/admin/employees/with-account', requireAdmin, requireEmployeesPermission, async (req, res) => {
 	const input = req.body?.employee || {};
 	const email = String(input.email || '').trim().toLowerCase();
 	const password = String(req.body?.password || '');
@@ -1299,7 +1304,7 @@ app.post('/api/admin/employees/with-account', requireAdmin, requireFullAdmin, as
 	}
 });
 
-app.patch('/api/admin/employees/:id/profile', requireAdmin, requireFullAdmin, async (req, res, next) => {
+app.patch('/api/admin/employees/:id/profile', requireAdmin, requireEmployeesPermission, async (req, res, next) => {
 	const employeeId = Number(req.params.id);
 	const input = req.body?.employee || {};
 	const email = String(input.email || '').trim().toLowerCase();
@@ -1340,12 +1345,13 @@ app.post('/api/admin/users', requireAdmin, requireFullAdmin, async (req, res, ne
 	}
 });
 
-app.patch('/api/admin/users/:username', requireAdmin, requireFullAdmin, async (req, res, next) => {
+app.patch('/api/admin/users/:username', requireAdmin, requireEmployeesPermission, async (req, res, next) => {
 	const username = String(req.params.username || '').trim();
 	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(400).json({ message: 'الحسابات الأساسية يتم ضبطها من متغيرات السيرفر.' });
 	const user = await database.findAdminUser(username);
 	if (!user) return res.status(404).json({ message: 'الحساب غير موجود.' });
-	if (isEmployeeAdminUser(user)) return res.status(403).json({ message: 'حساب الموظف يتم إدارته من صفحة الموظفين فقط.' });
+	if (!isEmployeeAdminUser(user) && req.adminRole !== 'admin') return res.status(403).json({ message: 'هذا الحساب متاح للأدمن الرئيسي فقط.' });
+	if (req.adminRole !== 'admin' && (req.body?.permissions !== undefined || req.body?.isActive !== undefined)) return res.status(403).json({ message: 'يمكن إدارة كلمة مرور حساب الموظف من صفحة الموظفين فقط.' });
 	const changes = { updatedAt: getNowIso() };
 	if (req.body?.permissions !== undefined) changes.permissions = normalizeUserPermissions(req.body.permissions);
 	if (req.body?.isActive !== undefined) changes.isActive = Boolean(req.body.isActive);
@@ -1363,10 +1369,10 @@ app.patch('/api/admin/users/:username', requireAdmin, requireFullAdmin, async (r
 	} catch (error) { next(error); }
 });
 
-app.delete('/api/admin/users/:username', requireAdmin, requireFullAdmin, async (req, res, next) => {
+app.delete('/api/admin/users/:username', requireAdmin, requireEmployeesPermission, async (req, res, next) => {
 	const username = String(req.params.username || '').trim();
 	if (username === ADMIN_USERNAME || username === LEADS_ADMIN_USERNAME) return res.status(400).json({ message: 'لا يمكن حذف الحساب الأساسي.' });
-	try { const user = await database.findAdminUser(username); if (!user) return res.status(404).json({ message: 'الحساب غير موجود.' }); if (isEmployeeAdminUser(user)) return res.status(403).json({ message: 'حساب الموظف يتم إدارته من صفحة الموظفين فقط.' }); await database.deleteAdminUser(username); res.sendStatus(204); } catch (error) { next(error); }
+	try { const user = await database.findAdminUser(username); if (!user) return res.status(404).json({ message: 'الحساب غير موجود.' }); if (!isEmployeeAdminUser(user) && req.adminRole !== 'admin') return res.status(403).json({ message: 'هذا الحساب متاح للأدمن الرئيسي فقط.' }); await database.deleteAdminUser(username); res.sendStatus(204); } catch (error) { next(error); }
 });
 
 app.get('/api/admin/audit-logs', requireAdmin, requireFullAdmin, async (req, res) => {
@@ -1879,6 +1885,7 @@ app.get('/api/content/:pageKey', (req, res, next) => {
 
 app.put('/api/content/:pageKey', requireAdmin, (req, res, next) => {
 	if (!ADMIN_ONLY_PAGE_KEYS.has(req.params.pageKey)) return next();
+	if (req.params.pageKey === 'employees') return requireEmployeesPermission(req, res, next);
 	return requireFullAdmin(req, res, next);
 }, requirePagePermission, async (req, res) => {
 	const { pageKey } = req.params;
