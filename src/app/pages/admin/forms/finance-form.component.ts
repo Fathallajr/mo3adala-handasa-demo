@@ -458,7 +458,7 @@ import { AdminAuthService } from '../../../core/services/admin-auth.service';
     @media(max-width:600px){.finance-page:not(.payroll-only) .finance-filters{grid-template-columns:1fr;padding:16px}.finance-page:not(.payroll-only) .finance-filters:before{grid-column:1}.finance-page:not(.payroll-only) .finance-filter-actions{grid-template-columns:1fr 1fr;grid-column:1;width:100%}}
   </style>
   <style>
-    .finance-page.payroll-only .payroll-strip{display:none!important}
+    .finance-page.payroll-only .payroll-strip{display:flex!important}
     @media(max-width:600px){
       .finance-page.payroll-only{width:100%;max-width:100%;box-sizing:border-box;padding:0 0 20px;overflow:hidden}
       .finance-page.payroll-only .payroll{width:100%;box-sizing:border-box;padding:14px;border-radius:18px;overflow:hidden}
