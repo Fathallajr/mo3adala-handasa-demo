@@ -553,6 +553,11 @@ export class FinanceFormComponent implements OnInit, AfterViewChecked {
 
   private enhancePayrollActionMenus(): void {
     if (!this.payrollOnly) return;
+    if (!this.canManagePayroll) {
+      this.host.nativeElement.querySelectorAll('.payroll-strip .primary, .payroll-strip select, .mini-table .row:not(.header)>span:nth-child(7) button').forEach((node: Element) => node.remove());
+      this.host.nativeElement.querySelectorAll('.mini-table .row:not(.header)>span:nth-child(7)').forEach((cell: Element) => { cell.innerHTML = '<span class="payroll-no-action">—</span>'; });
+      return;
+    }
     const cells = Array.from(this.host.nativeElement.querySelectorAll('.mini-table .row:not(.header)>span:nth-child(7)')) as HTMLElement[];
     const activeCells = new Set(cells);
     this.payrollActionPanels.forEach((panel, owner) => {

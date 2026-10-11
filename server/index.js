@@ -390,6 +390,7 @@ function requireFullAdmin(req, res, next) {
 }
 
 function requireEmployeesPermission(req, res, next) {
+	if (req.adminRole === 'employee' && getEmployeeIdFromPermissions(req.adminPermissions)) return res.status(403).json({ message: 'حساب الموظف لا يملك صلاحية إدارة الموظفين.' });
 	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes('employees')) return next();
 	return res.status(403).json({ message: 'ليس لديك صلاحية إدارة الموظفين.' });
 }
@@ -444,7 +445,7 @@ function employeeDirectoryItem(item) {
 }
 
 function requireEmployeePageAccess(req, res, next) {
-	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes('employees')) return next();
+	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || (req.adminRole !== 'employee' && req.adminPermissions.includes('employees'))) return next();
 	if (req.params.pageKey === 'employees' && req.adminRole === 'employee' && req.adminPermissions.includes('employees') && getEmployeeIdFromPermissions(req.adminPermissions)) return next();
 	return res.status(403).json({ message: 'هذه الصفحة متاحة للموظف المرتبط بها فقط.' });
 }

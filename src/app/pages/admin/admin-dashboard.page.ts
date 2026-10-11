@@ -1047,7 +1047,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	get fullAdminAccount(): boolean { return this.auth.getRole() === 'admin'; }
 	get employeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
-	get canManageEmployees(): boolean { return this.auth.getRole() === 'admin' || this.auth.getPermissions().includes('*') || this.auth.getPermissions().includes('employees'); }
+	get canManageEmployees(): boolean { return this.auth.getRole() === 'admin' || (this.auth.getRole() !== 'employee' && (this.auth.getPermissions().includes('*') || this.auth.getPermissions().includes('employees'))); }
 	get employeeAccountId(): number | null { const permission = this.auth.getPermissions().find(item => /^employee:\d+$/.test(String(item || ''))); return permission ? Number(permission.slice('employee:'.length)) : null; }
 	get employeeProfileActive(): boolean { return this.employeeAccount && /^employee-\d+$/.test(this.route.snapshot.fragment || ''); }
 

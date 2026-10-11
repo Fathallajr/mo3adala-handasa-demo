@@ -414,7 +414,7 @@ export class EmployeesFormComponent implements OnChanges {
 	get monthlyNetTotal(): number { return this.monthlySalaryTotal + this.monthlyBonusTotal - this.monthlyDiscountTotal; }
 	get selectedEmployee(): Employee | null { return this.employees.find(employee => employee.id === this.selectedEmployeeId) || null; }
 	get isEmployeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
-	get canManageEmployees(): boolean { return this.auth.getRole() === 'admin' || this.auth.getPermissions().includes('*') || this.auth.getPermissions().includes('employees'); }
+	get canManageEmployees(): boolean { return this.auth.getRole() === 'admin' || (this.auth.getRole() !== 'employee' && (this.auth.getPermissions().includes('*') || this.auth.getPermissions().includes('employees'))); }
 	get isRestrictedEmployeeAccount(): boolean { return this.isEmployeeAccount && !this.canManageEmployees; }
 	get employeeAccountId(): number | null { const permission = this.auth.getPermissions().find(item => /^employee:\d+$/.test(String(item || ''))); return permission ? Number(permission.slice('employee:'.length)) : null; }
 	isOwnEmployee(employee: Employee): boolean { return !this.isEmployeeAccount || employee.id === this.employeeAccountId; }
