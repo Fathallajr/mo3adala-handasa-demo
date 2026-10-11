@@ -391,7 +391,10 @@ function requireFullAdmin(req, res, next) {
 
 function requireEmployeesPermission(req, res, next) {
 	if (req.adminRole === 'employee' && getEmployeeIdFromPermissions(req.adminPermissions)) return res.status(403).json({ message: 'حساب الموظف لا يملك صلاحية إدارة الموظفين.' });
-	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes('employees')) return next();
+	// Payroll managers need the employee records to add monthly bonuses and
+	// deductions from the payroll screen. This does not grant linked employee
+	// accounts access because those are rejected above.
+	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes('employees') || req.adminPermissions.includes('finance-payroll')) return next();
 	return res.status(403).json({ message: 'ليس لديك صلاحية إدارة الموظفين.' });
 }
 
@@ -417,6 +420,11 @@ function requirePayrollRead(req, res, next) {
 	if (req.adminRole === 'employee' && getEmployeeIdFromPermissions(req.adminPermissions)) return next();
 	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes('finance') || req.adminPermissions.includes('finance-payroll')) return next();
 	return res.status(403).json({ message: 'ليس لديك صلاحية للوصول إلى كشف الرواتب.' });
+}
+
+function requirePayrollAccountRead(req, res, next) {
+	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || req.adminPermissions.includes('finance') || req.adminPermissions.includes('finance:read') || req.adminPermissions.includes('finance-payroll')) return next();
+	return res.status(403).json({ message: 'ليس لديك صلاحية قراءة خزن اعتماد الرواتب.' });
 }
 
 function requirePayrollWrite(req, res, next) {
@@ -448,7 +456,7 @@ function employeeDirectoryItem(item, includeOwnNotes = false) {
 }
 
 function requireEmployeePageAccess(req, res, next) {
-	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || (req.adminRole !== 'employee' && req.adminPermissions.includes('employees'))) return next();
+	if (req.adminRole === 'admin' || req.adminPermissions.includes('*') || (req.adminRole !== 'employee' && (req.adminPermissions.includes('employees') || req.adminPermissions.includes('finance-payroll')))) return next();
 	if (req.params.pageKey === 'employees' && req.adminRole === 'employee' && req.adminPermissions.includes('employees') && getEmployeeIdFromPermissions(req.adminPermissions)) return next();
 	return res.status(403).json({ message: 'هذه الصفحة متاحة للموظف المرتبط بها فقط.' });
 }
@@ -1079,7 +1087,7 @@ function financePayrollPreview(store, month, paidRows, employeeId = null) {
 	return { month, lines, totals: { base: lines.reduce((sum, line) => sum + line.base, 0), bonus: lines.reduce((sum, line) => sum + line.bonus, 0), discount: lines.reduce((sum, line) => sum + line.discount, 0), net: lines.reduce((sum, line) => sum + line.net, 0), paid: lines.filter(line => line.status === 'paid').reduce((sum, line) => sum + line.net, 0), due: lines.filter(line => line.status !== 'paid').reduce((sum, line) => sum + line.net, 0) } };
 }
 
-app.get('/api/admin/finance/accounts', requireAdmin, requirePermission('finance:read'), async (_req, res, next) => { try { res.json({ data: await database.listFinanceAccounts() }); } catch (error) { next(error); } });
+app.get('/api/admin/finance/accounts', requireAdmin, requirePayrollAccountRead, async (_req, res, next) => { try { res.json({ data: await database.listFinanceAccounts() }); } catch (error) { next(error); } });
 app.get('/api/admin/finance/transactions', requireAdmin, requirePermission('finance:read'), async (req, res, next) => { try { const filters = parseFinanceFilters(req.query); if (filters.error) return res.status(400).json({ message: filters.error }); const data = await database.listFinanceTransactions({ ...filters, kind: String(req.query.kind || '').trim(), accountId: String(req.query.accountId || '').trim(), status: String(req.query.status || '').trim(), search: String(req.query.search || '').trim(), limit: Math.min(Math.max(Number(req.query.limit) || 100, 1), 300), offset: Math.max(Number(req.query.offset) || 0, 0) }); res.json({ data }); } catch (error) { next(error); } });
 app.get('/api/admin/finance/summary', requireAdmin, requirePermission('finance:read'), async (req, res, next) => { try { const parsed = parseFinanceFilters(req.query); if (parsed.error) return res.status(400).json({ message: parsed.error }); const now = new Date(); const from = parsed.from || `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`; const to = parsed.to || new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).toISOString().slice(0, 10); res.json(await database.getFinanceSummary({ from, to })); } catch (error) { next(error); } });
 app.post('/api/admin/finance/transactions', requireAdmin, requirePermission('finance:write'), async (req, res, next) => { try { const accounts = await database.listFinanceAccounts(); const input = { ...req.body, kind: String(req.body?.kind || '').trim(), occurredAt: String(req.body?.occurredAt || '').trim(), category: String(req.body?.category || 'أخرى').trim(), description: String(req.body?.description || '').trim(), createdBy: req.adminUsername }; const error = validateFinanceTransactionInput(input, accounts); if (error) return res.status(400).json({ message: error }); if (input.kind === 'transfer') input.category = 'تحويل داخلي'; res.status(201).json(await database.createFinanceTransaction(input)); } catch (error) { next(error); } });
@@ -2022,6 +2030,9 @@ app.use((error, req, res, next) => {
 	if (res.headersSent) return next(error);
 	if (req.path.startsWith('/api')) {
 		console.error('API request failed', { method: req.method, path: req.path, code: error?.code, message: error?.message });
+		if (req.path.includes('/finance/payroll/') && error?.code === '42703') return res.status(500).json({ message: 'قاعدة بيانات الرواتب تحتاج تحديثًا. تواصل مع المسؤول لتشغيل ترقية قاعدة البيانات.' });
+		if (req.path.includes('/finance/payroll/') && error?.code === '42P01') return res.status(500).json({ message: 'جداول الرواتب غير جاهزة على السيرفر. أعد تشغيل التطبيق ثم حاول مرة أخرى.' });
+		if (req.path.includes('/finance/payroll/') && error?.code === '23502') return res.status(400).json({ message: 'بيانات اعتماد الراتب ناقصة. راجع الخزنة والموظف ثم حاول مرة أخرى.' });
 		return res.status(Number.isInteger(error?.statusCode) ? error.statusCode : 500).json({ message: 'حدث خطأ داخلي أثناء تنفيذ الطلب.' });
 	}
 	return next(error);
