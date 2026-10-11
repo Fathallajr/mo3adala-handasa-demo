@@ -283,10 +283,10 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 				if (this.activeView === 'wheel') this.loadWheelClaims();
 				if (this.activeView === 'admins') this.loadAdminUsers();
 				this.loadSiteMode();
-				} else if (this.auth.getRole() === 'employee') {
-					this.activeView = 'finance-payroll';
 				} else if (canOpenCmsPage) {
 					this.activeView = 'cms';
+				} else if (this.auth.getRole() === 'employee') {
+					this.activeView = 'finance-payroll';
 				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('finance') || this.auth.canAccessFeature('finance-payroll') || this.auth.canAccessFeature('finance-studio') || this.auth.canAccessFeature('finance-application')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
 					const canLoadCustomers = this.auth.canAccessFeature('customers');
@@ -334,7 +334,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.closeActionMenus();
 		this.statusMessage = '';
 		this.errorMessage = '';
-		if (this.employeeAccount && !this.canManageEmployees && view !== 'finance-payroll') return;
+		if (this.employeeAccount && !this.canManageEmployees && view !== 'finance-payroll' && view !== 'cms') return;
 		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
 		if (view === 'customers' && !this.auth.canAccessFeature('customers')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
