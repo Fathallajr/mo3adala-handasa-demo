@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -24,7 +24,8 @@ export class AdminLoginPageComponent {
 	constructor(
 		private auth: AdminAuthService,
 		private router: Router,
-		private seo: SeoService
+		private seo: SeoService,
+		private cdr: ChangeDetectorRef
 	) {
 		this.seo.setTitle('تسجيل دخول الإدارة');
 		this.seo.setRobots('noindex, nofollow, noarchive');
@@ -48,7 +49,10 @@ export class AdminLoginPageComponent {
 		this.auth.login({ username: this.username.trim(), password: this.password }).pipe(
 			// Always unlock the form, including timeouts and errors thrown while
 			// the server is checking a disabled or missing account.
-			finalize(() => { this.isSubmitting = false; })
+			finalize(() => {
+				this.isSubmitting = false;
+				this.cdr.detectChanges();
+			})
 		).subscribe({
 			next: () => {
 				void this.router.navigateByUrl('/admin');
@@ -56,22 +60,27 @@ export class AdminLoginPageComponent {
 			error: (error: unknown) => {
 				if (error instanceof HttpErrorResponse && error.status === 401) {
 					this.errorMessage = 'اسم المستخدم أو كلمة المرور غير صحيح.';
+					this.cdr.detectChanges();
 					return;
 				}
 				if (error instanceof HttpErrorResponse && error.status === 429) {
 					this.errorMessage = 'تم إيقاف المحاولات مؤقتًا لكثرتها. انتظر قليلًا ثم حاول مرة أخرى.';
+					this.cdr.detectChanges();
 					return;
 				}
 				if (error instanceof HttpErrorResponse && error.status === 0) {
 					this.errorMessage = 'تعذر الاتصال بالسيرفر. حاول مرة أخرى بعد لحظات.';
+					this.cdr.detectChanges();
 					return;
 				}
 				if (error && typeof error === 'object' && 'name' in error && error.name === 'TimeoutError') {
 					this.errorMessage = 'السيرفر لم يستجب في الوقت المحدد. حاول مرة أخرى.';
+					this.cdr.detectChanges();
 					return;
 				}
 
 				this.errorMessage = 'تعذر الوصول إلى السيرفر. تأكد أن API شغال ثم أعد المحاولة.';
+				this.cdr.detectChanges();
 			}
 		});
 	}
