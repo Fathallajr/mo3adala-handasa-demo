@@ -594,17 +594,16 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.get('/api/openapi.json', (req, res) => res.json(openApiDocument));
 
 app.post('/api/auth/login', rateLimit({ name: 'login', windowMs: 15 * 60 * 1000, max: 10 }), async (req, res, next) => {
-	const { username, password } = req.body || {};
-
-	const isFullAdmin = username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
-	const isLeadsAdmin = LEADS_ADMIN_USERNAME && LEADS_ADMIN_PASSWORD && username === LEADS_ADMIN_USERNAME && password === LEADS_ADMIN_PASSWORD;
-	let databaseUser = null;
-	if (!isFullAdmin && !isLeadsAdmin && typeof username === 'string') databaseUser = await database.findAdminUser(username.trim());
-	if (!isFullAdmin && !isLeadsAdmin && (!databaseUser || !databaseUser.isActive || !verifyAdminPassword(String(password || ''), databaseUser))) {
-		return res.status(401).json({ message: 'Invalid credentials' });
-	}
-
 	try {
+		const { username, password } = req.body || {};
+		const isFullAdmin = username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+		const isLeadsAdmin = LEADS_ADMIN_USERNAME && LEADS_ADMIN_PASSWORD && username === LEADS_ADMIN_USERNAME && password === LEADS_ADMIN_PASSWORD;
+		let databaseUser = null;
+		if (!isFullAdmin && !isLeadsAdmin && typeof username === 'string') databaseUser = await database.findAdminUser(username.trim());
+		if (!isFullAdmin && !isLeadsAdmin && (!databaseUser || !databaseUser.isActive || !verifyAdminPassword(String(password || ''), databaseUser))) {
+			return res.status(401).json({ message: 'Invalid credentials' });
+		}
+
 		const databasePermissions = normalizeUserPermissions(databaseUser?.permissions).filter(item => item !== '*');
 		// Employee accounts are identified by their role or their scoped employee:id
 		// permission. This keeps older production records limited even if their role

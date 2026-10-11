@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
 import { SeoService } from '../../core/seo.service';
 
@@ -30,6 +31,7 @@ export class AdminLoginPageComponent {
 	}
 
 	submit(): void {
+		if (this.isSubmitting) return;
 		if (!this.username.trim()) {
 			this.errorMessage = 'اكتب اسم المستخدم الأول.';
 			return;
@@ -43,19 +45,29 @@ export class AdminLoginPageComponent {
 		this.isSubmitting = true;
 		this.errorMessage = '';
 
-		this.auth.login({ username: this.username.trim(), password: this.password }).subscribe({
+		this.auth.login({ username: this.username.trim(), password: this.password }).pipe(
+			// Always unlock the form, including timeouts and errors thrown while
+			// the server is checking a disabled or missing account.
+			finalize(() => { this.isSubmitting = false; })
+		).subscribe({
 			next: () => {
-				this.isSubmitting = false;
 				void this.router.navigateByUrl('/admin');
 			},
-			 error: (error: unknown) => {
-				this.isSubmitting = false;
+			error: (error: unknown) => {
 				if (error instanceof HttpErrorResponse && error.status === 401) {
 					this.errorMessage = 'اسم المستخدم أو كلمة المرور غير صحيح.';
 					return;
 				}
 				if (error instanceof HttpErrorResponse && error.status === 429) {
 					this.errorMessage = 'تم إيقاف المحاولات مؤقتًا لكثرتها. انتظر قليلًا ثم حاول مرة أخرى.';
+					return;
+				}
+				if (error instanceof HttpErrorResponse && error.status === 0) {
+					this.errorMessage = 'تعذر الاتصال بالسيرفر. حاول مرة أخرى بعد لحظات.';
+					return;
+				}
+				if (error && typeof error === 'object' && 'name' in error && error.name === 'TimeoutError') {
+					this.errorMessage = 'السيرفر لم يستجب في الوقت المحدد. حاول مرة أخرى.';
 					return;
 				}
 
