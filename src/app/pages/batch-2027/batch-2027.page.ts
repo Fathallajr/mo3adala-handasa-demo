@@ -76,6 +76,18 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	private wheelTimer?: number;
 	wheelAwaitingResult = false;
 	wheelTransitionDuration = WHEEL_SPIN_DURATION_MS;
+	freeCodeStatusLoaded = false;
+	freeCodeOpen = false;
+	freeCodeEndsAt = '';
+	freeCodeLimit = 0;
+	freeCodeClaimedCount = 0;
+	freeCodeRemaining: number | null = null;
+	freeCodeRemainingMs = 0;
+	freeCodeSubmitting = false;
+	freeCodeSubmitted = false;
+	freeCodeError = '';
+	freeCodeRequest = { name: '', whatsapp: '', program: '' };
+	private freeCodeTimer?: ReturnType<typeof setInterval>;
 
 	toggleHeroSubscriptionChoices(event: Event): void {
 		event.preventDefault();
@@ -114,6 +126,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		? 'http://localhost:3001/api/launch-offer'
 		: '/api/launch-offer';
 	private readonly giftWhatsAppNumber = '201080681865';
+	private readonly freeCodeWhatsAppNumber = '201080681865';
 	private readonly leadAttribution: LeadAttribution = captureLeadAttribution();
 
 	constructor(
@@ -382,9 +395,92 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		if (!whatsappWindow) window.location.href = whatsappUrl;
 	}
 
+	private async loadFreeCodeStatus(): Promise<void> {
+		try {
+			const response = await fetch('/api/free-codes/status', { cache: 'no-store' });
+			if (!response.ok) throw new Error();
+			const status = await response.json();
+			this.freeCodeStatusLoaded = true;
+			this.freeCodeOpen = Boolean(status.open);
+			this.freeCodeEndsAt = String(status.endsAt || '');
+			this.freeCodeLimit = Number(status.limit || 0);
+			this.freeCodeClaimedCount = Number(status.claimedCount || 0);
+			this.freeCodeRemaining = status.remaining === null ? null : Number(status.remaining || 0);
+			this.updateFreeCodeCountdown();
+			if (this.freeCodeTimer) clearInterval(this.freeCodeTimer);
+			this.freeCodeTimer = setInterval(() => this.updateFreeCodeCountdown(), 1000);
+			this.changeDetector.detectChanges();
+		} catch {
+			this.freeCodeStatusLoaded = true;
+			this.freeCodeOpen = false;
+			this.freeCodeError = 'طلبات الأكواد المجانية غير متاحة حاليًا.';
+		}
+	}
+
+	private updateFreeCodeCountdown(): void {
+		this.freeCodeRemainingMs = this.freeCodeEndsAt ? Math.max(Date.parse(this.freeCodeEndsAt) - Date.now(), 0) : 0;
+		if (this.freeCodeEndsAt && this.freeCodeRemainingMs <= 0) this.freeCodeOpen = false;
+		this.changeDetector.detectChanges();
+	}
+
+	get freeCodeHasCountdown(): boolean { return Boolean(this.freeCodeEndsAt && this.freeCodeRemainingMs > 0); }
+	get freeCodeCountdown(): string {
+		const totalSeconds = Math.floor(this.freeCodeRemainingMs / 1000);
+		const days = Math.floor(totalSeconds / 86400);
+		const hours = Math.floor((totalSeconds % 86400) / 3600);
+		const minutes = Math.floor((totalSeconds % 3600) / 60);
+		const seconds = totalSeconds % 60;
+		return `${String(days).padStart(2, '0')}:${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+	}
+
+	updateFreeCodePhone(value: string): void {
+		this.freeCodeRequest.whatsapp = normalizePhone(value).slice(0, 11);
+		this.freeCodeError = '';
+	}
+
+	async submitFreeCodeRequest(): Promise<void> {
+		if (this.freeCodeSubmitting || !this.freeCodeOpen) return;
+		this.freeCodeError = '';
+		const name = this.freeCodeRequest.name.trim();
+		const whatsapp = normalizePhone(this.freeCodeRequest.whatsapp);
+		const program = this.freeCodeRequest.program.trim();
+		this.freeCodeRequest.whatsapp = whatsapp;
+		if (name.length < 2) { this.freeCodeError = 'اكتب اسمك بالكامل.'; return; }
+		if (!PHONE_PATTERN.test(whatsapp)) { this.freeCodeError = 'اكتب رقم واتساب مصري صحيح من 11 رقم.'; return; }
+		if (!this.programOptions.includes(program)) { this.freeCodeError = 'اختار نوع المعادلة.'; return; }
+		this.freeCodeSubmitting = true;
+		try {
+			const response = await fetch('/api/free-codes/register', {
+				method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', Accept: 'application/json' },
+				body: new URLSearchParams({ name, whatsapp, program }).toString(), cache: 'no-store'
+			});
+			const payload = await response.json();
+			if (!response.ok) throw new Error(payload.message || 'تعذر تسجيل طلب الكود.');
+			this.freeCodeSubmitted = true;
+			if (payload.status) {
+				this.freeCodeOpen = Boolean(payload.status.open);
+				this.freeCodeClaimedCount = Number(payload.status.claimedCount || this.freeCodeClaimedCount + 1);
+				this.freeCodeRemaining = payload.status.remaining === null ? null : Number(payload.status.remaining || 0);
+			}
+		} catch (error) {
+			this.freeCodeError = error instanceof Error ? error.message : 'تعذر تسجيل طلب الكود. حاول تاني.';
+		} finally {
+			this.freeCodeSubmitting = false;
+			this.changeDetector.detectChanges();
+		}
+	}
+
+	openFreeCodeWhatsApp(): void {
+		const message = ['السلام عليكم، عايز الكود المجاني لدفعة 2027.', `الاسم: ${this.freeCodeRequest.name.trim()}`, `نوع المعادلة: ${this.freeCodeRequest.program}`, `رقم الواتساب: ${this.freeCodeRequest.whatsapp}`].join('\n');
+		const url = `https://wa.me/${this.freeCodeWhatsAppNumber}?text=${encodeURIComponent(message)}`;
+		const popup = window.open(url, '_blank', 'noopener,noreferrer');
+		if (!popup) window.location.href = url;
+	}
+
 	ngOnDestroy(): void {
 		if (this.giftRevealTimer) clearTimeout(this.giftRevealTimer);
 		if (this.wheelTimer) clearTimeout(this.wheelTimer);
+		if (this.freeCodeTimer) clearInterval(this.freeCodeTimer);
 	}
 
 	ngOnInit(): void {
@@ -404,6 +500,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.seo.setTwitterTags({ title, description });
 		this.canonical.setCanonical(url);
 		this.contentService.loadPageState('batch-2027', cmsPageDefaults['batch-2027'], { emitFallback: false }).subscribe(content => this.applyCmsState(content));
+		void this.loadFreeCodeStatus();
 	}
 
 	private applyCmsState(raw: unknown): void {

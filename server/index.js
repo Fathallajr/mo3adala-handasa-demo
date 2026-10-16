@@ -68,6 +68,8 @@ const TOKENS_FILE = path.join(DATA_DIR, 'tokens.json');
 const WHEEL_STATE_FILE = path.join(DATA_DIR, 'wheel-state.json');
 const WHEEL_TTL_MS = 30 * 60 * 1000;
 const MAX_WHEEL_ATTEMPTS = 3;
+const FREE_CODE_SETTINGS_KEY = 'batch-2027-free-codes-v1';
+const FREE_CODE_PROGRAMS = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
 const WHEEL_OPTIONS = [
 	{ id: 'cash-50', label: '50 جنيه', weight: 30, available: true },
 	{ id: 'lucky-chance', label: 'حظ سعيد', weight: 67, available: false },
@@ -295,6 +297,27 @@ function rateLimit({ name, windowMs, max }) {
 
 function getNowIso() {
 	return new Date().toISOString();
+}
+
+const DEFAULT_FREE_CODE_SETTINGS = { enabled: true, endsAt: '', limit: 0 };
+
+async function getFreeCodeSettings() {
+	const raw = await database.getMetadata(FREE_CODE_SETTINGS_KEY);
+	let parsed = {};
+	try { parsed = raw ? JSON.parse(raw) : {}; } catch {}
+	return {
+		enabled: parsed.enabled !== false,
+		endsAt: typeof parsed.endsAt === 'string' ? parsed.endsAt : DEFAULT_FREE_CODE_SETTINGS.endsAt,
+		limit: Math.max(Number.parseInt(parsed.limit, 10) || 0, 0)
+	};
+}
+
+async function getFreeCodeStatus() {
+	const settings = await getFreeCodeSettings();
+	const claimedCount = await database.countFreeCodeRequests();
+	const hasExpired = settings.endsAt && Date.parse(settings.endsAt) <= Date.now();
+	const reachedLimit = settings.limit > 0 && claimedCount >= settings.limit;
+	return { ...settings, claimedCount, remaining: settings.limit > 0 ? Math.max(settings.limit - claimedCount, 0) : null, open: settings.enabled && !hasExpired && !reachedLimit };
 }
 
 async function readStore() {
@@ -702,6 +725,30 @@ app.get('/api/wheel/check', rateLimit({ name: 'wheel-check', windowMs: 15 * 60 *
 	if (!existingLead || !isWheelLead(existingLead)) return res.json({ registered: false, wheelRegistered: false, gift: '' });
 	const legacyGift = String(existingLead.notes || '').match(/هدية:\s*(.+)$/)?.[1] || '';
 	return res.json({ registered: true, wheelRegistered: true, gift: legacyGift, message: legacyGift ? `الرقم ده استخدم العجلة قبل كده وحصل على: ${legacyGift}` : 'الرقم ده استخدم العجلة قبل كده.' });
+});
+
+app.get('/api/free-codes/status', async (_req, res, next) => {
+	try { res.json(await getFreeCodeStatus()); } catch (error) { next(error); }
+});
+
+app.post('/api/free-codes/register', rateLimit({ name: 'free-code-register', windowMs: 15 * 60 * 1000, max: 10 }), async (req, res, next) => {
+	const name = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
+	const whatsapp = normalizePhone(req.body?.whatsapp);
+	const program = typeof req.body?.program === 'string' ? req.body.program.trim() : '';
+	if (name.length < 2 || name.length > 120) return res.status(400).json({ message: 'اكتب اسم صحيح.' });
+	if (!/^01\d{9}$/.test(whatsapp)) return res.status(400).json({ message: 'رقم الواتساب يجب أن يبدأ بـ 01 ويتكون من 11 رقم.' });
+	if (!FREE_CODE_PROGRAMS.includes(program)) return res.status(400).json({ message: 'اختار نوع المعادلة.' });
+	try {
+		const status = await getFreeCodeStatus();
+		if (!status.open) return res.status(409).json({ message: 'طلبات الأكواد المجانية مغلقة حاليًا.' });
+		const existing = await database.findFreeCodeRequestByPhone(whatsapp);
+		if (existing) return res.status(409).json({ alreadyRegistered: true, message: 'الرقم ده طلب كود مجاني قبل كده.' });
+		const request = await database.createFreeCodeRequest({ id: crypto.randomUUID(), name, whatsapp, program, requestedAt: getNowIso() });
+		res.status(201).json({ success: true, request, status: await getFreeCodeStatus() });
+	} catch (error) {
+		if (error?.code === 'DUPLICATE_FREE_CODE_REQUEST') return res.status(409).json({ alreadyRegistered: true, message: 'الرقم ده طلب كود مجاني قبل كده.' });
+		next(error);
+	}
 });
 
 // This endpoint is the single API entry point for the normal site forms.
@@ -1452,6 +1499,25 @@ app.delete('/api/admin/wheel/claims/:token', requireAdmin, requirePermission('wh
 	const deleted = await database.deleteWheelClaim(req.params.token);
 	if (!deleted) return res.status(404).json({ message: 'Wheel claim not found' });
 	res.status(204).send();
+});
+
+app.get('/api/admin/free-codes/settings', requireAdmin, requirePermission('free-codes'), async (_req, res, next) => {
+	try { res.json(await getFreeCodeStatus()); } catch (error) { next(error); }
+});
+
+app.put('/api/admin/free-codes/settings', requireAdmin, requirePermission('free-codes'), async (req, res, next) => {
+	try {
+		const endsAt = String(req.body?.endsAt || '').trim();
+		if (endsAt && !Number.isFinite(Date.parse(endsAt))) return res.status(400).json({ message: 'موعد انتهاء الكاونتر غير صحيح.' });
+		const limit = Math.max(Number.parseInt(req.body?.limit, 10) || 0, 0);
+		if (limit > 1000000) return res.status(400).json({ message: 'عدد الأكواد كبير جدًا.' });
+		await database.setMetadata(FREE_CODE_SETTINGS_KEY, JSON.stringify({ enabled: req.body?.enabled !== false, endsAt, limit }));
+		res.json(await getFreeCodeStatus());
+	} catch (error) { next(error); }
+});
+
+app.get('/api/admin/free-codes/requests', requireAdmin, requirePermission('free-codes'), async (_req, res, next) => {
+	try { const data = await database.listFreeCodeRequests(); res.json({ data, total: data.length, status: await getFreeCodeStatus() }); } catch (error) { next(error); }
 });
 
 function normalizeProgramInput(input, existing = {}) {

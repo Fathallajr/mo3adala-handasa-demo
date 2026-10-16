@@ -45,6 +45,10 @@ function ensureSchema() {
 				token TEXT PRIMARY KEY, name TEXT NOT NULL, whatsapp TEXT NOT NULL UNIQUE,
 				program TEXT NOT NULL, gift TEXT NOT NULL, notes TEXT DEFAULT '', claimed_at TIMESTAMPTZ NOT NULL
 			);
+			CREATE TABLE IF NOT EXISTS free_code_requests (
+				id TEXT PRIMARY KEY, name TEXT NOT NULL, whatsapp TEXT NOT NULL UNIQUE,
+				program TEXT NOT NULL, requested_at TIMESTAMPTZ NOT NULL
+			);
 			CREATE TABLE IF NOT EXISTS assets (
 				filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BYTEA NOT NULL, created_at TIMESTAMPTZ NOT NULL
 			);
@@ -343,6 +347,10 @@ async function listWheelClaims() { await ensureSchema(); const state = (await po
 async function updateWheelClaim(token, changes) { await ensureSchema(); const result = await pool.query('UPDATE wheel_claims SET notes = $1 WHERE token = $2 RETURNING token,name,whatsapp,program,gift,notes,claimed_at AS "claimedAt"', [String(changes.notes || '').trim(), token]); return result.rows[0] || null; }
 async function deleteWheelClaim(token) { await ensureSchema(); const result = await pool.query('DELETE FROM wheel_claims WHERE token = $1 RETURNING token', [token]); return result.rowCount > 0; }
 async function countWheelClaims() { await listWheelClaims(); const result = await pool.query('SELECT COUNT(*)::int AS count FROM wheel_claims'); return result.rows[0].count; }
+async function createFreeCodeRequest(request) { await ensureSchema(); try { await pool.query('INSERT INTO free_code_requests(id,name,whatsapp,program,requested_at) VALUES ($1,$2,$3,$4,$5)', [request.id, request.name, request.whatsapp, request.program, request.requestedAt]); } catch (error) { if (error?.code === '23505') error.code = 'DUPLICATE_FREE_CODE_REQUEST'; throw error; } return request; }
+async function findFreeCodeRequestByPhone(whatsapp) { await ensureSchema(); const result = await pool.query('SELECT id,name,whatsapp,program,requested_at AS "requestedAt" FROM free_code_requests WHERE whatsapp = $1', [whatsapp]); return result.rows[0] || null; }
+async function listFreeCodeRequests() { await ensureSchema(); const result = await pool.query('SELECT id,name,whatsapp,program,requested_at AS "requestedAt" FROM free_code_requests ORDER BY requested_at DESC'); return result.rows; }
+async function countFreeCodeRequests() { await ensureSchema(); const result = await pool.query('SELECT COUNT(*)::int AS count FROM free_code_requests'); return result.rows[0].count; }
 
 function financeAccountRow(row) { return row ? { ...row, openingBalance: Number(row.openingBalance), isActive: Boolean(row.isActive) } : null; }
 function financeTransactionRow(row) { return row ? { ...row, amount: Number(row.amount), accountId: row.accountId || null, fromAccountId: row.fromAccountId || null, toAccountId: row.toAccountId || null } : null; }
@@ -414,4 +422,4 @@ async function deleteAdminSession(token) {
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, countFreeCodeRequests, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile: null, pool, ensureSchema };

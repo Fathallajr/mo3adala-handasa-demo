@@ -8,7 +8,7 @@ import { CmsPageKey, cmsPageDefaults, cmsPageOptions } from '../../core/cms-page
 import { displayProgramLabel } from '../../core/program-labels';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
-import { AdminApiService, AdminUser, Customer, DashboardSummary, Feedback, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
+import { AdminApiService, AdminUser, Customer, DashboardSummary, Feedback, FreeCodeRequest, FreeCodeStatus, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
 import { SeoService } from '../../core/seo.service';
 import { ContactFormComponent } from './forms/contact-form.component';
 import { FaqFormComponent } from './forms/faq-form.component';
@@ -36,7 +36,7 @@ interface PageOption {
 	group: string;
 }
 
-type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application';
+type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application';
 type PaginationItem = number | '…';
 
 @Component({
@@ -70,7 +70,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	sidebarOpen = false;
 	sidebarCollapsed = false;
 	financeMenuOpen = false;
-	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms' = 'leads';
+	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,
 		todayLeads: 0,
@@ -91,6 +91,11 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	customerImportInstructionsOpen = false;
 	programs: Program[] = [];
 	wheelClaims: WheelClaim[] = [];
+	freeCodeRequests: FreeCodeRequest[] = [];
+	freeCodeStatus: FreeCodeStatus = { enabled: true, open: true, endsAt: '', limit: 0, claimedCount: 0, remaining: null };
+	freeCodeSettingsDraft = { enabled: true, endsAt: '', limit: 0 };
+	isLoadingFreeCodeRequests = false;
+	isSavingFreeCodeSettings = false;
 	wheelPage = 1;
 	wheelPages = 1;
 	wheelPageNumbers: PaginationItem[] = [1];
@@ -131,7 +136,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	private wheelClaimsLoaded = false;
 	private adminUsersLoaded = false;
 	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
-	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'feedback', title: 'آراء الطلاب' }, { key: 'finance', title: 'الحسابات والمصروفات' }, { key: 'finance-payroll', title: 'كشف الرواتب' }, { key: 'finance-studio', title: 'حسابات الاستوديو' }, { key: 'finance-application', title: 'حسابات الأبلكيشن' }];
+	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'free-codes', title: 'طلبات الأكواد المجانية' }, { key: 'feedback', title: 'آراء الطلاب' }, { key: 'finance', title: 'الحسابات والمصروفات' }, { key: 'finance-payroll', title: 'كشف الرواتب' }, { key: 'finance-studio', title: 'حسابات الاستوديو' }, { key: 'finance-application', title: 'حسابات الأبلكيشن' }];
 	wheelSearch = '';
 	wheelGift = '';
 	wheelProgram = '';
@@ -281,26 +286,29 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 				if (this.activeView === 'feedback') this.loadFeedback();
 				if (this.activeView === 'programs') this.loadPrograms();
 				if (this.activeView === 'wheel') this.loadWheelClaims();
+				if (this.activeView === 'free-codes') this.loadFreeCodeRequests();
 				if (this.activeView === 'admins') this.loadAdminUsers();
 				this.loadSiteMode();
 				} else if (canOpenCmsPage) {
 					this.activeView = 'cms';
 				} else if (this.auth.getRole() === 'employee') {
 					this.activeView = 'finance-payroll';
-				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('finance') || this.auth.canAccessFeature('finance-payroll') || this.auth.canAccessFeature('finance-studio') || this.auth.canAccessFeature('finance-application')) {
+				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('free-codes') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('finance') || this.auth.canAccessFeature('finance-payroll') || this.auth.canAccessFeature('finance-studio') || this.auth.canAccessFeature('finance-application')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
 					const canLoadCustomers = this.auth.canAccessFeature('customers');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
+					const canLoadFreeCodes = this.auth.canAccessFeature('free-codes');
 					const canLoadFeedback = this.auth.canAccessFeature('feedback');
 					const canLoadFinance = this.auth.canAccessFeature('finance');
 					const canLoadPayroll = this.auth.canAccessFeature('finance-payroll');
 					const canLoadStudio = this.auth.canAccessFeature('finance-studio');
 					const canLoadApplication = this.auth.canAccessFeature('finance-application');
-					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : canLoadFinance ? 'finance' : canLoadPayroll ? 'finance-payroll' : canLoadStudio ? 'finance-studio' : canLoadApplication ? 'finance-application' : 'feedback';
+					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : canLoadFreeCodes ? 'free-codes' : canLoadFinance ? 'finance' : canLoadPayroll ? 'finance-payroll' : canLoadStudio ? 'finance-studio' : canLoadApplication ? 'finance-application' : 'feedback';
 					this.activeView = requestedView || defaultView;
 					if (canLoadLeads) this.loadLeads();
 					if (canLoadCustomers) this.loadCustomers();
 					if (canLoadWheel) this.loadWheelClaims();
+					if (canLoadFreeCodes) this.loadFreeCodeRequests();
 					if (canLoadFeedback) this.loadFeedback();
 				} else {
 					this.activeView = 'cms';
@@ -330,7 +338,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	setView(view: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms'): void {
+	setView(view: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms'): void {
 		this.closeActionMenus();
 		this.statusMessage = '';
 		this.errorMessage = '';
@@ -338,13 +346,14 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'leads' && !this.auth.canAccessFeature('leads')) return;
 		if (view === 'customers' && !this.auth.canAccessFeature('customers')) return;
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
+		if (view === 'free-codes' && !this.auth.canAccessFeature('free-codes')) return;
 		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
 		if (view === 'finance' && !this.auth.canAccessFeature('finance')) return;
 		if (view === 'finance-payroll' && !this.auth.canAccessFeature('finance-payroll')) return;
 		if (view === 'finance-studio' && !this.auth.canAccessFeature('finance-studio')) return;
 		if (view === 'finance-application' && !this.auth.canAccessFeature('finance-application')) return;
 		if (view === 'finance' || view === 'finance-payroll' || view === 'finance-studio' || view === 'finance-application') this.financeMenuOpen = true;
-		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'feedback' && view !== 'finance' && view !== 'finance-payroll' && view !== 'finance-studio' && view !== 'finance-application' && this.auth.getRole() !== 'admin') return;
+		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'free-codes' && view !== 'feedback' && view !== 'finance' && view !== 'finance-payroll' && view !== 'finance-studio' && view !== 'finance-application' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
 			this.sidebarOpen = false;
 			return;
@@ -364,6 +373,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'customers') this.loadCustomers();
 		if (view === 'programs') this.loadPrograms();
 		if (view === 'wheel') this.loadWheelClaims();
+		if (view === 'free-codes') this.loadFreeCodeRequests();
 		if (view === 'feedback') this.loadFeedback();
 		if (view === 'admins') this.loadAdminUsers();
 	}
@@ -827,6 +837,20 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	goToWheelPage(page: number | string): void { if (typeof page !== 'number') return; const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.wheelPages); if (nextPage === this.wheelPage && this.wheelClaimsLoaded) return; this.wheelPage = nextPage; this.loadWheelClaims(true); }
 	clearWheelFilters(): void { this.wheelSearch = ''; this.wheelGift = ''; this.wheelProgram = ''; this.wheelDateFrom = ''; this.wheelDateTo = ''; this.searchWheelClaims(); }
 	toggleWheelFilters(): void { this.wheelFiltersOpen = !this.wheelFiltersOpen; }
+	loadFreeCodeRequests(force = false): void {
+		if (this.isLoadingFreeCodeRequests || (this.freeCodeRequests.length && !force)) return;
+		this.isLoadingFreeCodeRequests = true;
+		this.adminApi.listFreeCodeRequests().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingFreeCodeRequests = false; this.refreshView(); })).subscribe({
+			next: result => { this.freeCodeRequests = result.data; this.freeCodeStatus = result.status; this.freeCodeSettingsDraft = { enabled: result.status.enabled, endsAt: result.status.endsAt ? result.status.endsAt.slice(0, 16) : '', limit: result.status.limit }; this.statusMessage = 'تم تحديث طلبات الأكواد المجانية.'; this.errorMessage = ''; this.refreshView(); },
+			error: err => { this.handleApiError(err); this.refreshView(); }
+		});
+	}
+	saveFreeCodeSettings(): void {
+		if (this.isSavingFreeCodeSettings) return;
+		this.isSavingFreeCodeSettings = true;
+		const endsAt = this.freeCodeSettingsDraft.endsAt ? new Date(this.freeCodeSettingsDraft.endsAt).toISOString() : '';
+		this.adminApi.updateFreeCodeSettings({ enabled: this.freeCodeSettingsDraft.enabled, endsAt, limit: Number(this.freeCodeSettingsDraft.limit) || 0 }).pipe(finalize(() => { this.isSavingFreeCodeSettings = false; this.refreshView(); })).subscribe({ next: status => { this.freeCodeStatus = status; this.freeCodeSettingsDraft = { enabled: status.enabled, endsAt: status.endsAt ? status.endsAt.slice(0, 16) : '', limit: status.limit }; this.statusMessage = 'تم حفظ إعدادات الأكواد المجانية.'; this.errorMessage = ''; }, error: err => this.handleApiError(err) });
+	}
 	toggleLeadsFilters(): void { this.leadsFiltersOpen = !this.leadsFiltersOpen; }
 	exportWheelClaims(): void {
 		if (this.wheelDateFrom && this.wheelDateTo && this.wheelDateFrom > this.wheelDateTo) { this.errorMessage = 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية.'; return; }
@@ -1025,12 +1049,13 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	}
 
 	private resolveDataView(value: string | null): AdminDataView | null {
-		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'admins', 'finance', 'finance-payroll', 'finance-studio', 'finance-application'];
+		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'free-codes', 'admins', 'finance', 'finance-payroll', 'finance-studio', 'finance-application'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
 		if (this.employeeAccount && !this.canManageEmployees && view !== 'finance-payroll') return null;
 		if (view === 'feedback') return this.auth.canAccessFeature('feedback') ? view : null;
 		if (view === 'customers') return this.auth.canAccessFeature('customers') ? view : null;
+		if (view === 'free-codes') return this.auth.canAccessFeature('free-codes') ? view : null;
 		if (view === 'overview' || view === 'programs' || view === 'admins') {
 			return this.auth.getRole() === 'admin' ? view : null;
 		}
@@ -1053,6 +1078,6 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
 
-	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'feedback' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application'): boolean { return this.auth.canAccessFeature(feature); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'free-codes' | 'feedback' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application'): boolean { return this.auth.canAccessFeature(feature); }
 	canAccessCustomerPermission(_permission: string): boolean { return this.auth.canAccessFeature('customers'); }
 }

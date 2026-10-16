@@ -46,6 +46,10 @@ db.exec(`
     token TEXT PRIMARY KEY, name TEXT NOT NULL, whatsapp TEXT NOT NULL UNIQUE,
     program TEXT NOT NULL, gift TEXT NOT NULL, notes TEXT DEFAULT '', claimed_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS free_code_requests (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, whatsapp TEXT NOT NULL UNIQUE,
+    program TEXT NOT NULL, requested_at TEXT NOT NULL
+  );
   CREATE TABLE IF NOT EXISTS assets (
     filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BLOB NOT NULL, created_at TEXT NOT NULL
   );
@@ -352,6 +356,10 @@ function listWheelClaims() { readWheelState(); return db.prepare('SELECT token,n
 function updateWheelClaim(token, changes) { const result = db.prepare('UPDATE wheel_claims SET notes = ? WHERE token = ?').run(String(changes.notes || '').trim(), token); return result.changes ? db.prepare('SELECT token,name,whatsapp,program,gift,notes,claimed_at AS claimedAt FROM wheel_claims WHERE token = ?').get(token) : null; }
 function deleteWheelClaim(token) { return db.prepare('DELETE FROM wheel_claims WHERE token = ?').run(token).changes > 0; }
 function countWheelClaims() { listWheelClaims(); return db.prepare('SELECT COUNT(*) AS count FROM wheel_claims').get().count; }
+function createFreeCodeRequest(request) { try { db.prepare('INSERT INTO free_code_requests(id,name,whatsapp,program,requested_at) VALUES (?,?,?,?,?)').run(request.id, request.name, request.whatsapp, request.program, request.requestedAt); } catch (error) { if (String(error.message).includes('UNIQUE constraint failed')) error.code = 'DUPLICATE_FREE_CODE_REQUEST'; throw error; } return request; }
+function findFreeCodeRequestByPhone(whatsapp) { return db.prepare('SELECT id,name,whatsapp,program,requested_at AS requestedAt FROM free_code_requests WHERE whatsapp = ?').get(whatsapp) || null; }
+function listFreeCodeRequests() { return db.prepare('SELECT id,name,whatsapp,program,requested_at AS requestedAt FROM free_code_requests ORDER BY requested_at DESC').all(); }
+function countFreeCodeRequests() { return db.prepare('SELECT COUNT(*) AS count FROM free_code_requests').get().count; }
 
 function listFinanceAccounts() {
 	return db.prepare('SELECT id,name,opening_balance AS openingBalance,is_active AS isActive,created_at AS createdAt,updated_at AS updatedAt FROM finance_accounts ORDER BY created_at ASC').all().map(item => ({ ...item, openingBalance: Number(item.openingBalance), isActive: Boolean(item.isActive) }));
@@ -539,4 +547,4 @@ function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 	})();
 }
 
-module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };
+module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, countFreeCodeRequests, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };

@@ -17,6 +17,8 @@ export interface Program {
 	features: string[]; isActive: boolean; enrollmentStatus: 'open' | 'closed';
 }
 export interface WheelClaim { token: string; name: string; whatsapp: string; program: string; gift: string; notes?: string; claimedAt: string; }
+export interface FreeCodeRequest { id: string; name: string; whatsapp: string; program: string; requestedAt: string; }
+export interface FreeCodeStatus { enabled: boolean; open: boolean; endsAt: string; limit: number; claimedCount: number; remaining: number | null; }
 export interface Feedback { id: string; name: string; university?: string; batch?: string; rating: number; message: string; status: 'new' | 'reviewed' | 'published' | 'archived'; createdAt: string; updatedAt?: string | null; }
 export interface AdminUser { username: string; role: string; permissions: string[]; isActive: boolean; createdAt?: string; updatedAt?: string; }
 export interface SiteMode { maintenance: boolean; }
@@ -118,4 +120,7 @@ export class AdminApiService {
 		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);
 		return this.http.get(`${this.base}/admin/wheel/claims/export`, { params, responseType: 'blob' });
 	}
+	getFreeCodeSettings(): Observable<FreeCodeStatus> { return this.http.get<FreeCodeStatus>(`${this.base}/admin/free-codes/settings`); }
+	updateFreeCodeSettings(payload: { enabled: boolean; endsAt: string; limit: number }): Observable<FreeCodeStatus> { return this.http.put<FreeCodeStatus>(`${this.base}/admin/free-codes/settings`, payload); }
+	listFreeCodeRequests(): Observable<{ data: FreeCodeRequest[]; total: number; status: FreeCodeStatus }> { return this.http.get<{ data: FreeCodeRequest[]; total: number; status: FreeCodeStatus }>(`${this.base}/admin/free-codes/requests`); }
 }

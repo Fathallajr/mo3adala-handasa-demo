@@ -851,6 +851,7 @@ tbody tr:hover { background:#faf9ff; }
 .admin-actions-popover .lead-actions-menu__delete{color:#c33f5d}
 .admin-actions-popover .lead-actions-menu__delete:hover{background:#fff0f3;color:#b33b57}
 .admin-edit-dialog .admin-permission-grid{margin:18px 0 0;text-align:right}
+.free-codes-admin-view{padding-bottom:2rem}.free-codes-settings-panel{margin-bottom:1rem;padding:1.2rem}.free-codes-settings-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}.free-codes-settings-head h3{margin:0 0 .3rem}.free-codes-settings-head p{margin:0;color:#829ab1;font-size:.78rem}.free-codes-status-badge{padding:.4rem .8rem;border-radius:999px;color:#a15c32;background:#fff1e7;font-size:.75rem;font-weight:800}.free-codes-status-badge.is-open{color:#128c7e;background:#e7faf4}.admin-toggle-field{display:flex;align-items:center;gap:.5rem}.admin-toggle-field input{accent-color:#6d4aff}.free-codes-admin-stats{display:flex;flex-wrap:wrap;gap:.6rem;margin:1rem 0}.free-codes-admin-stats span{padding:.55rem .8rem;border-radius:.7rem;color:#59647b;background:#f5f7fb;font-size:.75rem}.free-codes-admin-stats b{color:#5540c9}
 .admin-modal-field{display:block;margin-top:18px;color:#526078;font-size:12px;font-weight:800;text-align:right}
 .admin-modal-field .admin-password-field{display:flex;width:100%;margin-top:8px}
 .admin-modal-field input{width:100%;box-sizing:border-box;min-height:42px;padding:9px 12px;border:1px solid #dfe4ed;border-radius:10px;font:inherit;font-size:13px}
