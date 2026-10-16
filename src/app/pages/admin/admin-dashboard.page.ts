@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import * as ExcelJS from 'exceljs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs';
 import { CmsPageKey, cmsPageDefaults, cmsPageOptions } from '../../core/cms-page.registry';
@@ -844,6 +845,33 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 			next: result => { this.freeCodeRequests = result.data; this.freeCodeStatus = result.status; this.freeCodeSettingsDraft = { enabled: result.status.enabled, endsAt: result.status.endsAt ? result.status.endsAt.slice(0, 16) : '', limit: result.status.limit }; this.statusMessage = 'تم تحديث طلبات الأكواد المجانية.'; this.errorMessage = ''; this.refreshView(); },
 			error: err => { this.handleApiError(err); this.refreshView(); }
 		});
+	}
+	async exportFreeCodeRequests(): Promise<void> {
+		const rows = this.freeCodeRequests.map(request => ({
+			'الاسم': request.name,
+			'رقم الواتساب': request.whatsapp,
+			'نوع المعادلة': request.program,
+		}));
+		const workbook = new ExcelJS.Workbook();
+		const sheet = workbook.addWorksheet('طلبات الأكواد');
+		sheet.views = [{ rightToLeft: true }];
+		sheet.columns = [
+			{ header: 'الاسم', key: 'الاسم', width: 30 },
+			{ header: 'رقم الواتساب', key: 'رقم الواتساب', width: 20 },
+			{ header: 'نوع المعادلة', key: 'نوع المعادلة', width: 28 },
+		];
+		sheet.addRows(rows);
+		sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+		sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '5B43C9' } };
+		const buffer = await workbook.xlsx.writeBuffer();
+		const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+		const url = URL.createObjectURL(blob);
+		const anchor = document.createElement('a');
+		anchor.href = url;
+		anchor.download = `طلبات-الأكواد-${new Date().toISOString().slice(0, 10)}.xlsx`;
+		anchor.click();
+		URL.revokeObjectURL(url);
+		this.statusMessage = 'تم تصدير بيانات طلبات الأكواد.';
 	}
 	saveFreeCodeSettings(): void {
 		if (this.isSavingFreeCodeSettings) return;
