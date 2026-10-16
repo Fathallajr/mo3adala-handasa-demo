@@ -459,7 +459,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 			if (!response.ok) throw new Error(payload.message || 'تعذر تسجيل طلب الكود.');
 			this.freeCodeSubmitted = true;
 			if (payload.status) {
-				this.freeCodeOpen = Boolean(payload.status.open);
+				this.freeCodeOpen = Boolean(payload.status.open) && (payload.status.remaining === null || Number(payload.status.remaining) > 0);
 				this.freeCodeClaimedCount = Number(payload.status.claimedCount || this.freeCodeClaimedCount + 1);
 				this.freeCodeRemaining = payload.status.remaining === null ? null : Number(payload.status.remaining || 0);
 			}
