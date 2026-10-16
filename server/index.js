@@ -378,6 +378,19 @@ async function requireAdmin(req, res, next) {
 			const employeeAccount = databaseUser.role === 'employee' || permissions.some(item => /^employee:\d+$/.test(item));
 			req.adminRole = employeeAccount ? 'employee' : 'editor';
 			req.adminPermissions = permissions;
+		} else if (req.adminUsername && req.adminUsername !== ADMIN_USERNAME && req.adminUsername !== LEADS_ADMIN_USERNAME) {
+			// Keep scoped/editor sessions synchronized when permissions are changed
+			// after login. Without this, an existing token would keep its old
+			// permissions until the user logged out and signed in again.
+			const databaseUser = await database.findAdminUser(req.adminUsername);
+			if (!databaseUser || !databaseUser.isActive) {
+				await database.deleteAdminSession(token);
+				return res.status(401).json({ message: 'Session is no longer valid' });
+			}
+			const permissions = normalizeUserPermissions(databaseUser.permissions).filter(item => item !== '*');
+			const employeeAccount = databaseUser.role === 'employee' || permissions.some(item => /^employee:\d+$/.test(item));
+			req.adminRole = employeeAccount ? 'employee' : 'editor';
+			req.adminPermissions = permissions;
 		}
 		next();
 	} catch (error) {
@@ -1095,7 +1108,7 @@ app.patch('/api/admin/feedback/:id', requireAdmin, requirePermission('feedback:u
 
 function normalizeUserPermissions(value) {
 	if (!Array.isArray(value)) return [];
-	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'feedback', 'employees', 'finance', 'finance-payroll', 'finance-studio', 'finance-application']);
+	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'free-codes', 'feedback', 'employees', 'finance', 'finance-payroll', 'finance-studio', 'finance-application']);
 	const normalized = [];
 	for (const rawItem of value) {
 		const item = String(rawItem || '').trim();
