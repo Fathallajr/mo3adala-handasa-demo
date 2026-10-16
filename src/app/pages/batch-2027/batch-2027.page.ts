@@ -432,6 +432,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		const seconds = totalSeconds % 60;
 		return `${String(days).padStart(2, '0')}:${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 	}
+	get freeCodeCountdownParts(): string[] { return this.freeCodeCountdown.split(':'); }
 
 	updateFreeCodePhone(value: string): void {
 		this.freeCodeRequest.whatsapp = normalizePhone(value).slice(0, 11);
