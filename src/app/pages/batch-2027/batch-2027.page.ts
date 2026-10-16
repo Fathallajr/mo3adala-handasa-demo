@@ -423,7 +423,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.changeDetector.detectChanges();
 	}
 
-	get freeCodeHasCountdown(): boolean { return Boolean(this.freeCodeEndsAt && this.freeCodeRemainingMs > 0); }
+	get freeCodeHasCountdown(): boolean { return Boolean(this.freeCodeOpen && this.freeCodeEndsAt && this.freeCodeRemainingMs > 0); }
 	get freeCodeCountdown(): string {
 		const totalSeconds = Math.floor(this.freeCodeRemainingMs / 1000);
 		const days = Math.floor(totalSeconds / 86400);
