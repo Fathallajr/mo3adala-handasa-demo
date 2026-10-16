@@ -56,7 +56,7 @@
 			</div>
 		</aside>
 
-		<main class="admin-editor">
+		<div class="admin-editor">
 			<section *ngIf="false && activeView === 'overview'" class="data-view">
 				<h2 class="editor-title">إحصائيات جديدة</h2><p class="editor-subtitle">ملخص سريع لأداء المنصة والعملاء الجدد.</p>
 				<div class="metric-grid" *ngIf="dashboard">
@@ -238,7 +238,7 @@
 
 			</div>
 			</section>
-		</main>
+		</div>
 	</div>
 	<div *ngIf="leadPendingDeletion" class="delete-dialog-backdrop" role="presentation" (click)="closeDeleteLeadDialog()">
 		<section class="delete-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title" (click)="$event.stopPropagation()">
