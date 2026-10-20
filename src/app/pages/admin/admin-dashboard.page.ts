@@ -94,6 +94,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	wheelClaims: WheelClaim[] = [];
 	freeCodeRequests: FreeCodeRequest[] = [];
 	freeCodePage = 1; freeCodePages = 1; freeCodePageNumbers: PaginationItem[] = [1]; freeCodeTotal = 0;
+	freeCodeSearch = ''; freeCodeProgramFilter = ''; freeCodeDateFrom = ''; freeCodeDateTo = '';
+	readonly freeCodePrograms = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
 	freeCodeStatus: FreeCodeStatus = { enabled: true, open: true, endsAt: '', limit: 0, claimedCount: 0, remaining: null };
 	freeCodeSettingsDraft = { enabled: true, endsAt: '', limit: 0 };
 	isLoadingFreeCodeRequests = false;
@@ -866,18 +868,26 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (this.isLoadingFreeCodeRequests || (this.freeCodeRequests.length && !force && page === this.freeCodePage)) return;
 		this.isLoadingFreeCodeRequests = true;
 		this.freeCodePage = Math.max(page, 1);
-		this.adminApi.listFreeCodeRequests(this.freeCodePage).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingFreeCodeRequests = false; this.refreshView(); })).subscribe({
+		this.adminApi.listFreeCodeRequests(this.freeCodePage, 20, this.getFreeCodeRequestFilters()).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingFreeCodeRequests = false; this.refreshView(); })).subscribe({
 			next: result => { this.freeCodeRequests = result.data; this.freeCodeTotal = result.pagination?.total ?? result.total; this.freeCodePages = result.pagination?.pages || 1; this.freeCodePageNumbers = this.buildPaginationItems(this.freeCodePage, this.freeCodePages); this.freeCodeStatus = result.status; this.freeCodeSettingsDraft = { enabled: result.status.enabled, endsAt: result.status.endsAt ? result.status.endsAt.slice(0, 16) : '', limit: result.status.limit }; this.statusMessage = 'تم تحديث طلبات الأكواد المجانية.'; this.errorMessage = ''; this.refreshView(); },
 			error: err => { this.handleApiError(err); this.refreshView(); }
 		});
 	}
+	private getFreeCodeRequestFilters(): { search: string; program: string; from: string; to: string } { return { search: this.freeCodeSearch.trim(), program: this.freeCodeProgramFilter, from: this.freeCodeDateFrom, to: this.freeCodeDateTo }; }
+	searchFreeCodeRequests(): void {
+		if (this.freeCodeDateFrom && this.freeCodeDateTo && this.freeCodeDateFrom > this.freeCodeDateTo) { this.errorMessage = 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية.'; this.statusMessage = ''; return; }
+		this.errorMessage = '';
+		this.freeCodePage = 1;
+		this.loadFreeCodeRequests(true, 1);
+	}
+	clearFreeCodeFilters(): void { this.freeCodeSearch = ''; this.freeCodeProgramFilter = ''; this.freeCodeDateFrom = ''; this.freeCodeDateTo = ''; this.searchFreeCodeRequests(); }
 	goToFreeCodePage(page: number | string): void { if (typeof page !== 'number') return; const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.freeCodePages); if (nextPage === this.freeCodePage && this.freeCodeRequests.length) return; this.loadFreeCodeRequests(true, nextPage); }
 	async exportFreeCodeRequests(): Promise<void> {
 		const pageSize = 100;
 		const totalPages = Math.max(Math.ceil(this.freeCodeTotal / pageSize), 1);
 		const requests: FreeCodeRequest[] = [];
 		for (let page = 1; page <= totalPages; page += 1) {
-			const result = await firstValueFrom(this.adminApi.listFreeCodeRequests(page, pageSize));
+			const result = await firstValueFrom(this.adminApi.listFreeCodeRequests(page, pageSize, this.getFreeCodeRequestFilters()));
 			requests.push(...result.data);
 		}
 		const rows = requests.map(request => ({

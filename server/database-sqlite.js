@@ -356,11 +356,25 @@ function listWheelClaims() { readWheelState(); return db.prepare('SELECT token,n
 function updateWheelClaim(token, changes) { const result = db.prepare('UPDATE wheel_claims SET notes = ? WHERE token = ?').run(String(changes.notes || '').trim(), token); return result.changes ? db.prepare('SELECT token,name,whatsapp,program,gift,notes,claimed_at AS claimedAt FROM wheel_claims WHERE token = ?').get(token) : null; }
 function deleteWheelClaim(token) { return db.prepare('DELETE FROM wheel_claims WHERE token = ?').run(token).changes > 0; }
 function countWheelClaims() { listWheelClaims(); return db.prepare('SELECT COUNT(*) AS count FROM wheel_claims').get().count; }
+function buildFreeCodeRequestFilters(filters = {}) {
+	const clauses = [];
+	const values = [];
+	const add = value => { values.push(value); return '?'; };
+	const search = String(filters.search || '').trim();
+	if (search) { const term = `%${search}%`; clauses.push(`(name LIKE ${add(term)} OR whatsapp LIKE ${add(term)} OR program LIKE ${add(term)})`); }
+	const program = String(filters.program || '').trim();
+	if (program) clauses.push(`program = ${add(program)}`);
+	const from = String(filters.from || '').trim();
+	if (from) clauses.push(`date(requested_at) >= date(${add(from)})`);
+	const to = String(filters.to || '').trim();
+	if (to) clauses.push(`date(requested_at) <= date(${add(to)})`);
+	return { where: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '', values };
+}
 function createFreeCodeRequest(request) { try { db.prepare('INSERT INTO free_code_requests(id,name,whatsapp,program,requested_at) VALUES (?,?,?,?,?)').run(request.id, request.name, request.whatsapp, request.program, request.requestedAt); } catch (error) { if (String(error.message).includes('UNIQUE constraint failed')) error.code = 'DUPLICATE_FREE_CODE_REQUEST'; throw error; } return request; }
 function findFreeCodeRequestByPhone(whatsapp) { return db.prepare('SELECT id,name,whatsapp,program,requested_at AS requestedAt FROM free_code_requests WHERE whatsapp = ?').get(whatsapp) || null; }
 function listFreeCodeRequests() { return db.prepare('SELECT id,name,whatsapp,program,requested_at AS requestedAt FROM free_code_requests ORDER BY requested_at DESC').all(); }
-function listFreeCodeRequestsPage(page = 1, limit = 20) { const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100); const safePage = Math.max(Number(page) || 1, 1); return db.prepare('SELECT id,name,whatsapp,program,requested_at AS requestedAt FROM free_code_requests ORDER BY requested_at DESC LIMIT ? OFFSET ?').all(safeLimit, (safePage - 1) * safeLimit); }
-function countFreeCodeRequests() { return db.prepare('SELECT COUNT(*) AS count FROM free_code_requests').get().count; }
+function listFreeCodeRequestsPage(page = 1, limit = 20, filters = {}) { const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100); const safePage = Math.max(Number(page) || 1, 1); const query = buildFreeCodeRequestFilters(filters); query.values.push(safeLimit, (safePage - 1) * safeLimit); return db.prepare(`SELECT id,name,whatsapp,program,requested_at AS requestedAt FROM free_code_requests ${query.where} ORDER BY requested_at DESC LIMIT ? OFFSET ?`).all(...query.values); }
+function countFreeCodeRequests(filters = {}) { const query = buildFreeCodeRequestFilters(filters); return db.prepare(`SELECT COUNT(*) AS count FROM free_code_requests ${query.where}`).get(...query.values).count; }
 
 function listFinanceAccounts() {
 	return db.prepare('SELECT id,name,opening_balance AS openingBalance,is_active AS isActive,created_at AS createdAt,updated_at AS updatedAt FROM finance_accounts ORDER BY created_at ASC').all().map(item => ({ ...item, openingBalance: Number(item.openingBalance), isActive: Boolean(item.isActive) }));
@@ -548,4 +562,4 @@ function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 	})();
 }
 
-module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, listFreeCodeRequests, listFreeCodeRequestsPage, countFreeCodeRequests, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };
+module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, listFreeCodeRequestsPage, countFreeCodeRequests, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };

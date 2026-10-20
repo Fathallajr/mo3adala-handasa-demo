@@ -122,5 +122,9 @@ export class AdminApiService {
 	}
 	getFreeCodeSettings(): Observable<FreeCodeStatus> { return this.http.get<FreeCodeStatus>(`${this.base}/admin/free-codes/settings`); }
 	updateFreeCodeSettings(payload: { enabled: boolean; endsAt: string; limit: number }): Observable<FreeCodeStatus> { return this.http.put<FreeCodeStatus>(`${this.base}/admin/free-codes/settings`, payload); }
-	listFreeCodeRequests(page = 1, limit = 20): Observable<{ data: FreeCodeRequest[]; total: number; pagination: { page: number; limit: number; total: number; pages: number }; status: FreeCodeStatus }> { const params = new HttpParams().set('page', page).set('limit', limit); return this.http.get<{ data: FreeCodeRequest[]; total: number; pagination: { page: number; limit: number; total: number; pages: number }; status: FreeCodeStatus }>(`${this.base}/admin/free-codes/requests`, { params }); }
+	listFreeCodeRequests(page = 1, limit = 20, filters: { search?: string; program?: string; from?: string; to?: string } = {}): Observable<{ data: FreeCodeRequest[]; total: number; pagination: { page: number; limit: number; total: number; pages: number }; status: FreeCodeStatus }> {
+		let params = new HttpParams().set('page', page).set('limit', limit);
+		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);
+		return this.http.get<{ data: FreeCodeRequest[]; total: number; pagination: { page: number; limit: number; total: number; pages: number }; status: FreeCodeStatus }>(`${this.base}/admin/free-codes/requests`, { params });
+	}
 }

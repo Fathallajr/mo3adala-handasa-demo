@@ -1530,7 +1530,22 @@ app.put('/api/admin/free-codes/settings', requireAdmin, requirePermission('free-
 });
 
 app.get('/api/admin/free-codes/requests', requireAdmin, requirePermission('free-codes'), async (req, res, next) => {
-	try { const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1); const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100); const [data, total] = await Promise.all([database.listFreeCodeRequestsPage(page, limit), database.countFreeCodeRequests()]); res.json({ data, total, pagination: { page, limit, total, pages: Math.max(Math.ceil(total / limit), 1) }, status: await getFreeCodeStatus() }); } catch (error) { next(error); }
+	const search = String(req.query.search || '').trim();
+	const program = String(req.query.program || '').trim();
+	const from = String(req.query.from || '').trim();
+	const to = String(req.query.to || '').trim();
+	if (search.length > 120) return res.status(400).json({ message: 'عبارة البحث طويلة جدًا.' });
+	if (program && !FREE_CODE_PROGRAMS.includes(program)) return res.status(400).json({ message: 'نوع المعادلة غير صحيح.' });
+	if (from && validateFinanceDate(from, 'من تاريخ')) return res.status(400).json({ message: validateFinanceDate(from, 'من تاريخ') });
+	if (to && validateFinanceDate(to, 'إلى تاريخ')) return res.status(400).json({ message: validateFinanceDate(to, 'إلى تاريخ') });
+	if (from && to && from > to) return res.status(400).json({ message: 'من تاريخ يجب أن يسبق إلى تاريخ.' });
+	try {
+		const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+		const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
+		const filters = { search, program, from, to };
+		const [data, total] = await Promise.all([database.listFreeCodeRequestsPage(page, limit, filters), database.countFreeCodeRequests(filters)]);
+		res.json({ data, total, pagination: { page, limit, total, pages: Math.max(Math.ceil(total / limit), 1) }, status: await getFreeCodeStatus() });
+	} catch (error) { next(error); }
 });
 
 function normalizeProgramInput(input, existing = {}) {
