@@ -14,7 +14,7 @@ import { SeoService } from '../../core/seo.service';
 import { ContactFormComponent } from './forms/contact-form.component';
 import { FaqFormComponent } from './forms/faq-form.component';
 import { HomeFormComponent } from './forms/home-form.component';
-import { NewsFormComponent } from './forms/news-form.component';
+import { NewsFormComponent, NewsItem } from './forms/news-form.component';
 import { SubDetailsFormComponent } from './forms/sub-details-form.component';
 import { SubAbReviewsFormComponent } from './forms/sub-ab-reviews-form.component';
 import { JsonContentFormComponent } from './forms/json-content-form.component';
@@ -182,6 +182,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	selectedPageKey: CmsPageKey = 'batch-2027';
 	currentContent: unknown = null;
+	newsPendingDeletion: NewsItem | null = null;
 	statusMessage = '';
 	errorMessage = '';
 	adminUsername = '';
@@ -227,6 +228,28 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	private refreshView(): void {
 		this.changeDetector.detectChanges();
+	}
+
+	openNewsDeleteDialog(item: NewsItem): void {
+		this.newsPendingDeletion = item;
+		this.refreshView();
+	}
+
+	closeNewsDeleteDialog(): void {
+		this.newsPendingDeletion = null;
+		this.refreshView();
+	}
+
+	confirmNewsDelete(): void {
+		const item = this.newsPendingDeletion;
+		const content = this.currentContent as { items?: NewsItem[] } | null;
+		if (!item || !content?.items) return;
+
+		const index = content.items.indexOf(item);
+		if (index < 0) return;
+		content.items.splice(index, 1);
+		this.newsPendingDeletion = null;
+		this.refreshView();
 	}
 
 	ngOnInit(): void {

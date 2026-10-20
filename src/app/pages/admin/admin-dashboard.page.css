@@ -47,7 +47,6 @@
 
 /* Shared admin polish: keep data views and CMS forms in one visual language. */
 .admin-dashboard-shell { --purple-deep:#5540c9; --surface-soft:#fbfcff; background:radial-gradient(circle at 100% 0%,#eeebff 0,#f6f7fb 28rem); }
-.admin-dashboard-shell:has(.news-delete-dialog-backdrop),.admin-dashboard-shell:has(.news-delete-dialog-backdrop) .admin-body,.admin-dashboard-shell:has(.news-delete-dialog-backdrop) .admin-editor { overflow:visible !important; }
 .admin-topbar { position:relative; overflow:hidden; }
 .admin-topbar::before { content:''; position:absolute; inset:0 auto 0 0; width:180px; background:linear-gradient(90deg,#6d4aff12,transparent); pointer-events:none; }
 .admin-editor { min-height:calc(100vh - 120px); }

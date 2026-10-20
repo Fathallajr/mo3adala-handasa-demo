@@ -1,4 +1,4 @@
-<div class="admin-dashboard-shell page-enter-animation" [class.admin-dashboard-shell--dialog-open]="leadPendingDeletion || leadPendingNote || leadPendingReadNote || leadPendingView || wheelPendingDeletion || wheelPendingReadNote || wheelPendingNote || wheelPendingView || customerImportInstructionsOpen || customerImportPreview || customerPendingEdit || customerPendingDeletion || customerPendingView || customerPendingNote || customerPendingReadNote" [class.admin-dashboard-shell--sidebar-collapsed]="sidebarCollapsed">
+<div class="admin-dashboard-shell page-enter-animation" [class.admin-dashboard-shell--dialog-open]="newsPendingDeletion || leadPendingDeletion || leadPendingNote || leadPendingReadNote || leadPendingView || wheelPendingDeletion || wheelPendingReadNote || wheelPendingNote || wheelPendingView || customerImportInstructionsOpen || customerImportPreview || customerPendingEdit || customerPendingDeletion || customerPendingView || customerPendingNote || customerPendingReadNote" [class.admin-dashboard-shell--sidebar-collapsed]="sidebarCollapsed">
 	<header class="admin-topbar">
 		<div class="topbar-actions">
 			<button *ngIf="sidebarCollapsed" type="button" class="desktop-sidebar-reopen" (click)="toggleDesktopSidebar()" aria-label="فتح القائمة الجانبية" title="فتح القائمة الجانبية"><i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i></button>
@@ -199,7 +199,8 @@
 
 					<app-news-form
 						*ngSwitchCase="'news-equation'"
-						[content]="currentContent">
+						[content]="currentContent"
+						(deleteRequested)="openNewsDeleteDialog($event)">
 					</app-news-form>
 
 					<app-success-stories-form
@@ -342,6 +343,17 @@
 			<div class="delete-dialog__actions">
 				<button type="button" class="delete-dialog__cancel" (click)="closeDeleteWheelDialog()">إلغاء</button>
 				<button type="button" class="delete-dialog__confirm" (click)="confirmDeleteWheelClaim()"><i class="bi bi-trash3"></i> حذف نهائي</button>
+			</div>
+		</section>
+	</div>
+	<div *ngIf="newsPendingDeletion" class="delete-dialog-backdrop" role="presentation" (click)="closeNewsDeleteDialog()">
+		<section class="delete-dialog" role="dialog" aria-modal="true" aria-labelledby="news-delete-dialog-title" (click)="$event.stopPropagation()">
+			<div class="delete-dialog__icon"><i class="bi bi-trash3"></i></div>
+			<h2 id="news-delete-dialog-title">تأكيد حذف الخبر</h2>
+			<p>هل تريد حذف خبر <strong>«{{ newsPendingDeletion.title || 'بدون عنوان' }}»</strong> نهائيًا؟</p>
+			<div class="delete-dialog__actions">
+				<button type="button" class="delete-dialog__cancel" (click)="closeNewsDeleteDialog()">إلغاء</button>
+				<button type="button" class="delete-dialog__confirm" (click)="confirmNewsDelete()"><i class="bi bi-trash3"></i> حذف نهائي</button>
 			</div>
 		</section>
 	</div>
