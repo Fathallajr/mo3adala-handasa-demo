@@ -75,8 +75,8 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	private isDeleting = false;
 	private typedText = '';
 	private fullText = '';
-	private typingSpeed = 50;
-	private deletingSpeed = 30;
+	private typingSpeed = 140;
+	private deletingSpeed = 85;
 	private pauseTime = 2000;
 	
 	// Lightbox state
@@ -312,20 +312,22 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 		
 		const currentDesc = this.descriptions[this.currentDescriptionIndex];
 		this.fullText = currentDesc.text;
+		const words = this.fullText.trim().split(/\s+/).filter(Boolean);
+		const visibleWordCount = this.typedText.trim() ? this.typedText.trim().split(/\s+/).length : 0;
 		
-		if (!this.isDeleting && this.typedText.length < this.fullText.length) {
-			// Typing
+		if (!this.isDeleting && visibleWordCount < words.length) {
+			// Reveal one complete Arabic word at a time to keep RTL layout stable.
 			this.isTyping = true;
-			this.typedText = this.fullText.substring(0, this.typedText.length + 1);
+			this.typedText = words.slice(0, visibleWordCount + 1).join(' ');
 			this.scheduleDescriptionStep(this.typingSpeed, run);
-		} else if (!this.isDeleting && this.typedText.length === this.fullText.length) {
+		} else if (!this.isDeleting && visibleWordCount === words.length) {
 			// Pause after typing complete
 			this.isTyping = false;
 			this.isDeleting = true;
 			this.scheduleDescriptionStep(this.pauseTime, run);
-		} else if (this.isDeleting && this.typedText.length > 0) {
-			// Deleting
-			this.typedText = this.fullText.substring(0, this.typedText.length - 1);
+		} else if (this.isDeleting && visibleWordCount > 0) {
+			// Remove one complete word at a time before moving to the next phrase.
+			this.typedText = words.slice(0, visibleWordCount - 1).join(' ');
 			this.scheduleDescriptionStep(this.deletingSpeed, run);
 		} else if (this.isDeleting && this.typedText.length === 0) {
 			// Move to next description
