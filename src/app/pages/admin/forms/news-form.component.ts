@@ -39,8 +39,8 @@ interface NewsContent {
 		.news-item-preview__body img { width:92px; height:68px; flex:0 0 auto; object-fit:cover; border-radius:10px; border:1px solid #e1e6f0; }
 		.news-done-btn { align-self:flex-start; margin-top:12px; }
 		.news-item-preview__actions { display:flex; gap:8px; flex-wrap:wrap; }
-		.news-delete-dialog-backdrop { position:fixed; inset:0; z-index:1400; display:grid; place-items:center; padding:18px; background:rgba(15,23,42,.58); backdrop-filter:blur(5px); }
-		.news-delete-dialog { width:min(420px,100%); box-sizing:border-box; padding:28px 24px 22px; border:1px solid #f0dce2; border-radius:22px; background:#fff; box-shadow:0 24px 70px rgba(15,23,42,.28); text-align:center; direction:rtl; }
+		.news-delete-dialog-backdrop { position:fixed !important; inset:0 !important; z-index:10000; display:grid; place-items:center; width:100vw; height:100dvh; box-sizing:border-box; overflow-y:auto; overscroll-behavior:contain; padding:18px; background:rgba(15,23,42,.58); backdrop-filter:blur(5px); isolation:isolate; }
+		.news-delete-dialog { width:min(420px,calc(100vw - 36px)); max-height:calc(100dvh - 36px); box-sizing:border-box; overflow:auto; margin:auto; padding:28px 24px 22px; border:1px solid #f0dce2; border-radius:22px; background:#fff; box-shadow:0 24px 70px rgba(15,23,42,.28); text-align:center; direction:rtl; }
 		.news-delete-dialog__icon { display:grid; place-items:center; width:54px; height:54px; margin:0 auto 13px; border-radius:17px; color:#c33f5d; background:#fff0f3; font-size:23px; }
 		.news-delete-dialog h3 { margin:0 0 9px; color:#202b42; font-size:20px; }
 		.news-delete-dialog p { margin:0; color:#526078; font-size:13px; line-height:1.8; }
@@ -49,7 +49,7 @@ interface NewsContent {
 		.news-delete-dialog__actions button { min-width:120px; min-height:40px; border:0; border-radius:10px; padding:8px 14px; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
 		.news-delete-dialog__cancel { color:#526078; background:#eef2f7; }
 		.news-delete-dialog__confirm { color:#fff; background:#d95673; box-shadow:0 8px 18px rgba(217,86,115,.24); }
-		@media (max-width:600px) { .news-items-section__head { align-items:stretch; flex-direction:column; } .news-items-section__head .cms-add-btn { width:100%; } .news-item-preview__body { flex-direction:column; gap:10px; } .news-item-preview__body img { width:100%; height:120px; } .news-item-preview .cms-button { width:100%; } .news-item-preview__actions { display:grid; grid-template-columns:1fr 1fr; } .news-item-preview__actions .cms-button { width:100%; } }
+		@media (max-width:600px) { .news-items-section__head { align-items:stretch; flex-direction:column; } .news-items-section__head .cms-add-btn { width:100%; } .news-item-preview__body { flex-direction:column; gap:10px; } .news-item-preview__body img { width:100%; height:120px; } .news-item-preview .cms-button { width:100%; } .news-item-preview__actions { display:grid; grid-template-columns:1fr 1fr; } .news-item-preview__actions .cms-button { width:100%; } .news-delete-dialog-backdrop { padding:12px; } .news-delete-dialog { width:min(100%,420px); max-height:calc(100dvh - 24px); padding:24px 18px 18px; border-radius:18px; } .news-delete-dialog__actions { display:grid; grid-template-columns:1fr 1fr; } .news-delete-dialog__actions button { width:100%; min-width:0; } }
 	`],
 	template: `
 <div class="cms-form news-cms-form" *ngIf="data">
