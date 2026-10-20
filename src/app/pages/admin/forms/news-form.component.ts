@@ -29,7 +29,15 @@ interface NewsContent {
 	selector: 'app-news-form',
 	standalone: true,
 	imports: [CommonModule, FormsModule],
-	styles: [adminFormStyles],
+	styles: [adminFormStyles, `
+		.news-item-preview { display:grid; gap:12px; min-width:0; padding:14px; border:1px solid #e5e9f2; border-radius:14px; background:#fbfcff; }
+		.news-item-preview__body { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; min-width:0; }
+		.news-item-preview__body strong { display:block; color:#172033; font-size:15px; line-height:1.6; }
+		.news-item-preview__body p { margin:5px 0 0; color:#718096; font-size:12px; line-height:1.8; white-space:pre-wrap; }
+		.news-item-preview__body img { width:92px; height:68px; flex:0 0 auto; object-fit:cover; border-radius:10px; border:1px solid #e1e6f0; }
+		.news-done-btn { align-self:flex-start; margin-top:12px; }
+		@media (max-width:600px) { .news-item-preview__body { flex-direction:column; gap:10px; } .news-item-preview__body img { width:100%; height:120px; } .news-item-preview .cms-button { width:100%; } }
+	`],
 	template: `
 <div class="cms-form news-cms-form" *ngIf="data">
 
@@ -57,7 +65,7 @@ interface NewsContent {
 		<div class="cms-section-title">الأخبار ({{ data.items.length }})</div>
 		<div class="cms-array-list">
 			<div class="cms-array-item news-editor-item" *ngFor="let item of data.items; let i = index">
-				<div style="flex:1">
+				<div style="flex:1" *ngIf="editingIndex === i">
 					<div class="cms-array-item__num">خبر {{ i + 1 }}</div>
 					<div class="cms-field">
 						<label class="cms-label">العنوان</label>
@@ -114,6 +122,15 @@ interface NewsContent {
 						<label class="cms-label">رابط الخبر (يُولد تلقائيًا)</label>
 						<input class="cms-input" [ngModel]="item.link" readonly dir="ltr" />
 					</div>
+					<button type="button" class="cms-button cms-button--secondary news-done-btn" (click)="finishEditing()">تم</button>
+				</div>
+				<div class="news-item-preview" *ngIf="editingIndex !== i">
+					<div class="cms-array-item__num">خبر {{ i + 1 }}</div>
+					<div class="news-item-preview__body">
+						<div><strong>{{ item.title || 'خبر بدون عنوان' }}</strong><p>{{ item.description || 'لا يوجد وصف لهذا الخبر.' }}</p></div>
+						<img *ngIf="item.image" [src]="resolveUrl(item.image)" [alt]="item.title || 'صورة الخبر'" />
+					</div>
+					<button type="button" class="cms-button cms-button--secondary" (click)="edit(i)">تعديل</button>
 				</div>
 				<button type="button" class="cms-array-item__del" (click)="remove(i)">×</button>
 			</div>
@@ -129,6 +146,7 @@ export class NewsFormComponent implements OnChanges {
 
 	private readonly cms = inject(MonthlyContentService);
 	data: NewsContent | null = null;
+	editingIndex: number | null = null;
 	uploadingIndex: number | null = null;
 	uploadingBlock: NewsBlock | null = null;
 	private pendingUploadItem: NewsItem | null = null;
@@ -144,6 +162,7 @@ export class NewsFormComponent implements OnChanges {
 			if (!Array.isArray(item.blocks)) item.blocks = [];
 		});
 		this.data = raw as NewsContent;
+		this.editingIndex = null;
 	}
 
 	addBlock(item: NewsItem, type: NewsBlock['type']): void {
@@ -179,12 +198,19 @@ export class NewsFormComponent implements OnChanges {
 	}
 
 	add(): void {
-		this.data?.items.push({ title: '', description: '', image: '', link: '' });
+		this.data?.items.unshift({ title: '', description: '', image: '', link: '', blocks: [] });
+		if (this.data) this.data.items[0].link = this.generateNewsLink('', 0);
+		this.editingIndex = 0;
 	}
 
 	remove(i: number): void {
 		this.data?.items.splice(i, 1);
+		if (this.editingIndex === i) this.editingIndex = null;
+		else if (this.editingIndex !== null && this.editingIndex > i) this.editingIndex -= 1;
 	}
+
+	edit(i: number): void { this.editingIndex = i; }
+	finishEditing(): void { this.editingIndex = null; }
 
 	triggerUpload(i: number): void {
 		this.pendingUploadItem = this.data?.items[i] ?? null;
