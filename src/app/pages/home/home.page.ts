@@ -66,19 +66,10 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	];
 	currentDescriptionIndex = 0;
 	currentDescription = this.descriptions[0];
-	private descriptionTimer?: ReturnType<typeof setTimeout>;
-	private descriptionAnimationRun = 0;
+	private descriptionInterval?: ReturnType<typeof setInterval>;
 	private photoAutoPlayTimer?: ReturnType<typeof setInterval>;
 	private featuresAutoPlayTimer?: ReturnType<typeof setInterval>;
 	featuresAutoPlayPaused = false;
-	private isTyping = false;
-	private isDeleting = false;
-	private typedText = '';
-	private visibleWordCount = 0;
-	private fullText = '';
-	private typingSpeed = 140;
-	private deletingSpeed = 85;
-	private pauseTime = 2000;
 	
 	// Lightbox state
 	selectedPhoto: string | null = null;
@@ -277,9 +268,6 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.descriptions = state.hero.descriptions;
 			this.currentDescriptionIndex = 0;
 			this.currentDescription = this.descriptions[0];
-			this.typedText = '';
-			this.visibleWordCount = 0;
-			this.isDeleting = false;
 		}
 
 		if (Array.isArray(state.photos?.items) && state.photos.items.length) {
@@ -297,106 +285,16 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 	
 	private startDescriptionAnimation() {
-		this.descriptionAnimationRun += 1;
-		const run = this.descriptionAnimationRun;
-		if (this.descriptionTimer) clearTimeout(this.descriptionTimer);
-		this.typedText = '';
-		this.visibleWordCount = 0;
-		this.isDeleting = false;
-		this.scheduleDescriptionStep(0, run);
-	}
-	
-	private scheduleDescriptionStep(delay: number, run: number): void {
-		this.descriptionTimer = setTimeout(() => this.typeText(run), delay);
-	}
-
-	private typeText(run: number): void {
-		if (typeof window === 'undefined' || run !== this.descriptionAnimationRun) return;
-		
-		if (!this.descriptions.length) return;
-		const currentDesc = this.descriptions[this.currentDescriptionIndex] || this.descriptions[0];
-		this.fullText = String(currentDesc?.text || '').trim();
-		const words = this.fullText.split(/\s+/).filter(Boolean);
-		if (!words.length) {
-			this.currentDescriptionIndex = (this.currentDescriptionIndex + 1) % this.descriptions.length;
-			this.scheduleDescriptionStep(150, run);
-			return;
-		}
-		
-		if (!this.isDeleting && this.visibleWordCount < words.length) {
-			// Reveal one complete Arabic word at a time to keep RTL layout stable.
-			this.isTyping = true;
-			this.visibleWordCount += 1;
-			this.typedText = words.slice(0, this.visibleWordCount).join(' ');
-			this.scheduleDescriptionStep(this.typingSpeed, run);
-		} else if (!this.isDeleting && this.visibleWordCount === words.length) {
-			// Pause after typing complete
-			this.isTyping = false;
-			this.isDeleting = true;
-			this.scheduleDescriptionStep(this.pauseTime, run);
-		} else if (this.isDeleting && this.visibleWordCount > 0) {
-			// Remove one complete word at a time before moving to the next phrase.
-			this.visibleWordCount -= 1;
-			this.typedText = words.slice(0, this.visibleWordCount).join(' ');
-			this.scheduleDescriptionStep(this.deletingSpeed, run);
-		} else if (this.isDeleting && this.visibleWordCount === 0) {
-			// Move to next description
-			this.isDeleting = false;
+		if (typeof window === 'undefined' || this.descriptions.length < 2) return;
+		if (this.descriptionInterval) clearInterval(this.descriptionInterval);
+		this.descriptionInterval = setInterval(() => {
 			this.currentDescriptionIndex = (this.currentDescriptionIndex + 1) % this.descriptions.length;
 			this.currentDescription = this.descriptions[this.currentDescriptionIndex];
-			this.scheduleDescriptionStep(500, run);
-		}
-	}
-	
-	getDisplayText(): string {
-		return this.typedText;
+		}, 3600);
 	}
 
-	getTypedSegments(): Array<{ text: string; highlighted: boolean }> {
-		const text = this.typedText;
-		if (!text) return [];
-		const ranges = this.descriptions[this.currentDescriptionIndex].highlight
-			.map(highlight => ({ start: text.indexOf(highlight), end: text.indexOf(highlight) + highlight.length }))
-			.filter(range => range.start >= 0)
-			.sort((left, right) => left.start - right.start);
-		if (!ranges.length) return [{ text, highlighted: false }];
-
-		const segments: Array<{ text: string; highlighted: boolean }> = [];
-		let cursor = 0;
-		for (const range of ranges) {
-			if (range.start > cursor) segments.push({ text: text.slice(cursor, range.start), highlighted: false });
-			if (range.end > cursor) {
-				segments.push({ text: text.slice(Math.max(cursor, range.start), range.end), highlighted: true });
-				cursor = range.end;
-			}
-		}
-		if (cursor < text.length) segments.push({ text: text.slice(cursor), highlighted: false });
-		return segments;
-	}
-	
-	isHighlighted(word: string): boolean {
-		const currentDesc = this.descriptions[this.currentDescriptionIndex];
-		// Check if word matches any highlight phrase
-		for (const highlight of currentDesc.highlight) {
-			// Direct match
-			if (word.trim() === highlight.trim()) {
-				return true;
-			}
-			// Check if word contains highlight or vice versa
-			if (word.includes(highlight) || highlight.includes(word)) {
-				return true;
-			}
-			// Check if word is part of a multi-word highlight
-			const highlightWords = highlight.split(' ');
-			if (highlightWords.some(hw => word.includes(hw) || hw.includes(word))) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	getWords(): string[] {
-		return this.typedText.split(' ').filter(w => w.length > 0);
+	getCurrentDescriptionWords(): string[] {
+		return String(this.descriptions[this.currentDescriptionIndex]?.text || '').trim().split(/\s+/).filter(Boolean);
 	}
 	
 	ngOnDestroy() {
@@ -405,7 +303,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 			clearInterval(this.publishedFeedbackRefreshTimer);
 			this.publishedFeedbackRefreshTimer = null;
 		}
-		if (this.descriptionTimer) clearTimeout(this.descriptionTimer);
+		if (this.descriptionInterval) clearInterval(this.descriptionInterval);
 		if (this.photoAutoPlayTimer) {
 			clearInterval(this.photoAutoPlayTimer);
 		}

@@ -955,33 +955,28 @@ img {
 .hero-content { padding-bottom: clamp(8rem, 18vh, 12rem) !important; }
 .hero-content-inner { animation: hero-copy-enter .8s cubic-bezier(.22, .8, .24, 1) both; }
 .typewriter-text {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .12em .42em;
   width: 100%;
   max-width: 48rem;
   margin-inline: auto;
   direction: rtl;
-  unicode-bidi: isolate;
-  white-space: nowrap;
-  text-align: center;
   min-height: 1.9em;
 }
-.hero-writing-copy {
-  display: inline;
-  color: #fff;
-  direction: rtl;
-  unicode-bidi: plaintext;
-}
-.hero-writing-caret {
+.hero-word {
   display: inline-block;
-  width: 2px;
-  height: 1.1em;
-  margin-inline-start: .18em;
-  vertical-align: -.15em;
-  border-radius: 999px;
-  background: #fb923c;
-  box-shadow: 0 0 10px rgba(251, 146, 60, .8);
-  animation: hero-writing-caret-blink .95s ease-in-out infinite;
-  transition: opacity .16s ease, transform .16s ease;
+  opacity: 0;
+  color: #fff;
+  white-space: nowrap;
+  transform: translateY(.35em);
+  animation: hero-word-enter .38s cubic-bezier(.22, .8, .24, 1) forwards;
+  animation-delay: calc(var(--word-index) * 105ms);
+}
+.hero-writing-copy {
+  color: #fff;
 }
 .hero-description { letter-spacing: 0 !important; word-spacing: .05em; }
 .hero-actions { display: none !important; }
@@ -991,8 +986,8 @@ img {
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes hero-writing-caret-blink {
-  50% { opacity: .15; }
+@keyframes hero-word-enter {
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
