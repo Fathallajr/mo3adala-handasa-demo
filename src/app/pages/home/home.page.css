@@ -957,9 +957,14 @@ img {
 .typewriter-text {
   display: inline-block;
   direction: rtl;
-  unicode-bidi: plaintext;
+  unicode-bidi: isolate;
   white-space: nowrap;
   min-height: 1.9em;
+}
+.hero-writing-copy {
+  color: #fff;
+  direction: rtl;
+  unicode-bidi: plaintext;
 }
 .hero-writing-caret {
   display: inline-block;
