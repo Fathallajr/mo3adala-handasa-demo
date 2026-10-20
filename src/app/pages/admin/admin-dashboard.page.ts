@@ -39,6 +39,7 @@ interface PageOption {
 
 type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application';
 type PaginationItem = number | '…';
+interface FreeCodeCalendarDay { iso: string; label: number; inMonth: boolean; }
 
 @Component({
 	selector: 'app-admin-dashboard-page',
@@ -95,6 +96,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	freeCodeRequests: FreeCodeRequest[] = [];
 	freeCodePage = 1; freeCodePages = 1; freeCodePageNumbers: PaginationItem[] = [1]; freeCodeTotal = 0;
 	freeCodeSearch = ''; freeCodeProgramFilter = ''; freeCodeDateFrom = ''; freeCodeDateTo = '';
+	freeCodeDateRangeOpen = false;
+	freeCodeCalendarMonth = new Date();
 	readonly freeCodePrograms = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
 	freeCodeStatus: FreeCodeStatus = { enabled: true, open: true, endsAt: '', limit: 0, claimedCount: 0, remaining: null };
 	freeCodeSettingsDraft = { enabled: true, endsAt: '', limit: 0 };
@@ -874,13 +877,52 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		});
 	}
 	private getFreeCodeRequestFilters(): { search: string; program: string; from: string; to: string } { return { search: this.freeCodeSearch.trim(), program: this.freeCodeProgramFilter, from: this.freeCodeDateFrom, to: this.freeCodeDateTo }; }
+	get freeCodeDateRangeLabel(): string {
+		if (!this.freeCodeDateFrom && !this.freeCodeDateTo) return 'اختار فترة زمنية';
+		const format = (value: string) => new Date(`${value}T00:00:00`).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' });
+		return `${this.freeCodeDateFrom ? format(this.freeCodeDateFrom) : '—'} إلى ${this.freeCodeDateTo ? format(this.freeCodeDateTo) : '—'}`;
+	}
+	get freeCodeCalendarTitle(): string { return this.freeCodeCalendarMonth.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' }); }
+	getFreeCodeCalendarDays(): FreeCodeCalendarDay[] {
+		const month = new Date(this.freeCodeCalendarMonth.getFullYear(), this.freeCodeCalendarMonth.getMonth(), 1);
+		const firstDay = (month.getDay() + 6) % 7;
+		const start = new Date(month);
+		start.setDate(1 - firstDay);
+		return Array.from({ length: 42 }, (_, index) => {
+			const day = new Date(start);
+			day.setDate(start.getDate() + index);
+			return { iso: this.toDateInputValue(day), label: day.getDate(), inMonth: day.getMonth() === month.getMonth() };
+		});
+	}
+	private toDateInputValue(value: Date): string { return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`; }
+	toggleFreeCodeDateRange(): void {
+		this.freeCodeDateRangeOpen = !this.freeCodeDateRangeOpen;
+		if (this.freeCodeDateRangeOpen) {
+			const base = this.freeCodeDateFrom || this.freeCodeDateTo;
+			this.freeCodeCalendarMonth = base ? new Date(`${base}T00:00:00`) : new Date();
+		}
+	}
+	changeFreeCodeCalendarMonth(offset: number): void { this.freeCodeCalendarMonth = new Date(this.freeCodeCalendarMonth.getFullYear(), this.freeCodeCalendarMonth.getMonth() + offset, 1); }
+	selectFreeCodeDate(value: string): void {
+		if (!this.freeCodeDateFrom || this.freeCodeDateTo) {
+			this.freeCodeDateFrom = value;
+			this.freeCodeDateTo = '';
+			return;
+		}
+		if (value < this.freeCodeDateFrom) [this.freeCodeDateFrom, this.freeCodeDateTo] = [value, this.freeCodeDateFrom];
+		else this.freeCodeDateTo = value;
+		this.freeCodeDateRangeOpen = false;
+	}
+	isFreeCodeDateSelected(value: string): boolean { return value === this.freeCodeDateFrom || value === this.freeCodeDateTo; }
+	isFreeCodeDateInRange(value: string): boolean { return Boolean(this.freeCodeDateFrom && this.freeCodeDateTo && value > this.freeCodeDateFrom && value < this.freeCodeDateTo); }
+	clearFreeCodeDateRange(): void { this.freeCodeDateFrom = ''; this.freeCodeDateTo = ''; this.freeCodeDateRangeOpen = false; }
 	searchFreeCodeRequests(): void {
 		if (this.freeCodeDateFrom && this.freeCodeDateTo && this.freeCodeDateFrom > this.freeCodeDateTo) { this.errorMessage = 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية.'; this.statusMessage = ''; return; }
 		this.errorMessage = '';
 		this.freeCodePage = 1;
 		this.loadFreeCodeRequests(true, 1);
 	}
-	clearFreeCodeFilters(): void { this.freeCodeSearch = ''; this.freeCodeProgramFilter = ''; this.freeCodeDateFrom = ''; this.freeCodeDateTo = ''; this.searchFreeCodeRequests(); }
+	clearFreeCodeFilters(): void { this.freeCodeSearch = ''; this.freeCodeProgramFilter = ''; this.clearFreeCodeDateRange(); this.searchFreeCodeRequests(); }
 	goToFreeCodePage(page: number | string): void { if (typeof page !== 'number') return; const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.freeCodePages); if (nextPage === this.freeCodePage && this.freeCodeRequests.length) return; this.loadFreeCodeRequests(true, nextPage); }
 	async exportFreeCodeRequests(): Promise<void> {
 		const pageSize = 100;
