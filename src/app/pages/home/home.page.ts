@@ -338,6 +338,28 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	getDisplayText(): string {
 		return this.typedText;
 	}
+
+	getTypedSegments(): Array<{ text: string; highlighted: boolean }> {
+		const text = this.typedText;
+		if (!text) return [];
+		const ranges = this.descriptions[this.currentDescriptionIndex].highlight
+			.map(highlight => ({ start: text.indexOf(highlight), end: text.indexOf(highlight) + highlight.length }))
+			.filter(range => range.start >= 0)
+			.sort((left, right) => left.start - right.start);
+		if (!ranges.length) return [{ text, highlighted: false }];
+
+		const segments: Array<{ text: string; highlighted: boolean }> = [];
+		let cursor = 0;
+		for (const range of ranges) {
+			if (range.start > cursor) segments.push({ text: text.slice(cursor, range.start), highlighted: false });
+			if (range.end > cursor) {
+				segments.push({ text: text.slice(Math.max(cursor, range.start), range.end), highlighted: true });
+				cursor = range.end;
+			}
+		}
+		if (cursor < text.length) segments.push({ text: text.slice(cursor), highlighted: false });
+		return segments;
+	}
 	
 	isHighlighted(word: string): boolean {
 		const currentDesc = this.descriptions[this.currentDescriptionIndex];
