@@ -955,13 +955,18 @@ img {
 .hero-content { padding-bottom: clamp(8rem, 18vh, 12rem) !important; }
 .hero-content-inner { animation: hero-copy-enter .8s cubic-bezier(.22, .8, .24, 1) both; }
 .typewriter-text {
-  display: inline-block;
+  display: block;
+  width: 100%;
+  max-width: 48rem;
+  margin-inline: auto;
   direction: rtl;
   unicode-bidi: isolate;
   white-space: nowrap;
+  text-align: center;
   min-height: 1.9em;
 }
 .hero-writing-copy {
+  display: inline;
   color: #fff;
   direction: rtl;
   unicode-bidi: plaintext;
@@ -975,7 +980,8 @@ img {
   border-radius: 999px;
   background: #fb923c;
   box-shadow: 0 0 10px rgba(251, 146, 60, .8);
-  animation: hero-writing-caret-blink .85s steps(2, jump-none) infinite;
+  animation: hero-writing-caret-blink .95s ease-in-out infinite;
+  transition: opacity .16s ease, transform .16s ease;
 }
 .hero-description { letter-spacing: 0 !important; word-spacing: .05em; }
 .hero-actions { display: none !important; }
