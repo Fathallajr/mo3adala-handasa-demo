@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { SeoService } from '../../core/seo.service';
@@ -222,7 +222,8 @@ export class NewsEquationPageComponent implements OnInit {
 		private seo: SeoService,
 		private canonical: CanonicalService,
 		private monthlyContent: MonthlyContentService,
-		private router: Router
+		private router: Router,
+		private cdr: ChangeDetectorRef
 	) {}
 
 	ngOnInit(): void {
@@ -232,6 +233,7 @@ export class NewsEquationPageComponent implements OnInit {
 			this.newsItems = state?.visible === false || !Array.isArray(state?.items)
 				? []
 				: state.items.map((item: any, index: number) => this.normalizeNewsItem(item, index));
+			this.cdr.detectChanges();
 		});
 		if (typeof window !== 'undefined') {
 			const siteUrl = (window as any)['NG_SITE_URL'] || 'https://www.appmo3adla.com';
