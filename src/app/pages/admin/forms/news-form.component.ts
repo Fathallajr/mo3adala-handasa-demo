@@ -39,8 +39,8 @@ interface NewsContent {
 		.news-item-preview__body img { width:92px; height:68px; flex:0 0 auto; object-fit:cover; border-radius:10px; border:1px solid #e1e6f0; }
 		.news-done-btn { align-self:flex-start; margin-top:12px; }
 		.news-item-preview__actions { display:flex; gap:8px; flex-wrap:wrap; }
-		.news-delete-dialog-backdrop { position:fixed !important; inset:0 !important; z-index:10000; display:grid; place-items:center; width:100vw; height:100dvh; box-sizing:border-box; overflow-y:auto; overscroll-behavior:contain; padding:18px; background:rgba(15,23,42,.58); backdrop-filter:blur(5px); isolation:isolate; }
-		.news-delete-dialog { width:min(420px,calc(100vw - 36px)); max-height:calc(100dvh - 36px); box-sizing:border-box; overflow:auto; margin:auto; padding:28px 24px 22px; border:1px solid #f0dce2; border-radius:22px; background:#fff; box-shadow:0 24px 70px rgba(15,23,42,.28); text-align:center; direction:rtl; }
+		.news-delete-dialog-backdrop { position:fixed !important; inset:0 !important; z-index:10000; display:block; width:100vw; height:100dvh; box-sizing:border-box; overflow:hidden; overscroll-behavior:contain; padding:0; background:rgba(15,23,42,.58); backdrop-filter:blur(5px); isolation:isolate; }
+		.news-delete-dialog { position:fixed; width:min(420px,calc(100vw - 24px)); max-height:calc(100dvh - 24px); box-sizing:border-box; overflow:auto; margin:0; padding:28px 24px 22px; border:1px solid #f0dce2; border-radius:22px; background:#fff; box-shadow:0 24px 70px rgba(15,23,42,.28); text-align:center; direction:rtl; }
 		.news-delete-dialog__icon { display:grid; place-items:center; width:54px; height:54px; margin:0 auto 13px; border-radius:17px; color:#c33f5d; background:#fff0f3; font-size:23px; }
 		.news-delete-dialog h3 { margin:0 0 9px; color:#202b42; font-size:20px; }
 		.news-delete-dialog p { margin:0; color:#526078; font-size:13px; line-height:1.8; }
@@ -143,14 +143,14 @@ interface NewsContent {
 						<div><strong>{{ item.title || 'خبر بدون عنوان' }}</strong><p>{{ item.description || 'لا يوجد وصف لهذا الخبر.' }}</p></div>
 						<img *ngIf="item.image" [src]="resolveUrl(item.image)" [alt]="item.title || 'صورة الخبر'" />
 					</div>
-					<div class="news-item-preview__actions"><button type="button" class="cms-button cms-button--secondary" (click)="edit(i)">تعديل</button><button type="button" class="cms-button cms-button--danger" (click)="requestRemove(i)">حذف</button></div>
+					<div class="news-item-preview__actions"><button type="button" class="cms-button cms-button--secondary" (click)="edit(i)">تعديل</button><button type="button" class="cms-button cms-button--danger" (click)="requestRemove(i, $event)">حذف</button></div>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
 <div class="news-delete-dialog-backdrop" *ngIf="pendingDeleteIndex !== null" role="presentation" (click)="cancelRemove()">
-	<div class="news-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="news-delete-title" (click)="$event.stopPropagation()">
+	<div class="news-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="news-delete-title" [style.top.px]="newsDeleteDialogTop" [style.left.px]="newsDeleteDialogLeft" (click)="$event.stopPropagation()">
 		<div class="news-delete-dialog__icon"><i class="bi bi-trash3"></i></div>
 		<h3 id="news-delete-title">تأكيد حذف الخبر</h3>
 		<p>هل تريد حذف خبر <strong>«{{ pendingDeleteNewsItem?.title || 'بدون عنوان' }}»</strong>؟</p>
@@ -167,6 +167,8 @@ export class NewsFormComponent implements OnChanges {
 	data: NewsContent | null = null;
 	editingIndex: number | null = null;
 	pendingDeleteIndex: number | null = null;
+	newsDeleteDialogTop = 12;
+	newsDeleteDialogLeft = 12;
 	uploadingIndex: number | null = null;
 	uploadingBlock: NewsBlock | null = null;
 	private pendingUploadItem: NewsItem | null = null;
@@ -224,7 +226,20 @@ export class NewsFormComponent implements OnChanges {
 		this.editingIndex = 0;
 	}
 
-	requestRemove(i: number): void { this.pendingDeleteIndex = i; }
+	requestRemove(i: number, event: MouseEvent): void {
+		const target = event.currentTarget as HTMLElement | null;
+		const rect = target?.getBoundingClientRect();
+		const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+		const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+		const dialogWidth = Math.min(420, Math.max(viewportWidth - 24, 280));
+		const dialogHeight = viewportWidth <= 600 ? 260 : 230;
+		const left = rect ? rect.left + rect.width / 2 - dialogWidth / 2 : (viewportWidth - dialogWidth) / 2;
+		const preferredTop = rect ? rect.top - dialogHeight - 12 : (viewportHeight - dialogHeight) / 2;
+		const top = preferredTop >= 12 ? preferredTop : (rect ? rect.bottom + 12 : preferredTop);
+		this.newsDeleteDialogLeft = Math.min(Math.max(left, 12), Math.max(viewportWidth - dialogWidth - 12, 12));
+		this.newsDeleteDialogTop = Math.min(Math.max(top, 12), Math.max(viewportHeight - dialogHeight - 12, 12));
+		this.pendingDeleteIndex = i;
+	}
 
 	cancelRemove(): void { this.pendingDeleteIndex = null; }
 
