@@ -17,6 +17,11 @@ export interface NewsBlock {
 	text: string;
 	url: string;
 	alt: string;
+	color?: string;
+	fontSize?: string;
+	align?: 'right' | 'center' | 'left';
+	bold?: boolean;
+	italic?: boolean;
 }
 
 interface NewsContent {
@@ -39,7 +44,14 @@ interface NewsContent {
 		.news-item-preview__body img { width:92px; height:68px; flex:0 0 auto; object-fit:cover; border-radius:10px; border:1px solid #e1e6f0; }
 		.news-done-btn { align-self:flex-start; margin-top:12px; }
 		.news-item-preview__actions { display:flex; gap:8px; flex-wrap:wrap; }
+		.news-text-format { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin-top:10px; padding:10px; border:1px solid #e5e9f2; border-radius:10px; background:#f8f9fd; }
+		.news-text-format label { display:grid; gap:5px; color:#65718b; font-size:10px; font-weight:800; }
+		.news-text-format select,.news-text-format input[type=color] { width:100%; min-height:34px; box-sizing:border-box; border:1px solid #dfe4ed; border-radius:7px; padding:4px 7px; color:#263653; background:#fff; font:inherit; font-size:11px; }
+		.news-text-format input[type=color] { padding:3px; cursor:pointer; }
+		.news-text-format__check { display:flex!important; align-items:center; gap:7px!important; min-height:34px; padding-top:17px; }
+		.news-text-format__check input { accent-color:#6d4aff; }
 		@media (max-width:600px) { .news-items-section__head { align-items:stretch; flex-direction:column; } .news-items-section__head .cms-add-btn { width:100%; } .news-item-preview__body { flex-direction:column; gap:10px; } .news-item-preview__body img { width:100%; height:120px; } .news-item-preview .cms-button { width:100%; } .news-item-preview__actions { display:grid; grid-template-columns:1fr 1fr; } .news-item-preview__actions .cms-button { width:100%; } }
+		@media (max-width:600px) { .news-text-format { grid-template-columns:1fr 1fr; } }
 	`],
 	template: `
 <div class="cms-form news-cms-form" *ngIf="data">
@@ -92,6 +104,13 @@ interface NewsContent {
 										<input *ngIf="block.type !== 'image'" class="cms-input" [(ngModel)]="block.text" [placeholder]="block.type === 'link' ? 'النص الظاهر للرابط' : 'اكتب النص'" />
 									</div>
 									<textarea *ngIf="block.type === 'text'" class="cms-textarea" [(ngModel)]="block.text" rows="4" placeholder="محتوى النص"></textarea>
+									<div *ngIf="block.type === 'text'" class="news-text-format">
+										<label>لون الخط<input type="color" [(ngModel)]="block.color" /></label>
+										<label>حجم الخط<select [(ngModel)]="block.fontSize"><option value="14px">صغير</option><option value="16px">عادي</option><option value="18px">كبير</option><option value="22px">كبير جدًا</option></select></label>
+										<label>المحاذاة<select [(ngModel)]="block.align"><option value="right">يمين</option><option value="center">وسط</option><option value="left">شمال</option></select></label>
+										<label class="news-text-format__check"><input type="checkbox" [(ngModel)]="block.bold" /> عريض</label>
+										<label class="news-text-format__check"><input type="checkbox" [(ngModel)]="block.italic" /> مائل</label>
+									</div>
 									<input *ngIf="block.type === 'link' || block.type === 'image'" class="cms-input" [(ngModel)]="block.url" dir="ltr" [placeholder]="block.type === 'link' ? 'https://...' : '/uploads/...'" />
 									<input *ngIf="block.type === 'image'" class="cms-input" [(ngModel)]="block.alt" placeholder="وصف الصورة" />
 									<div *ngIf="block.type === 'image'" class="cms-image-actions">
@@ -163,6 +182,13 @@ export class NewsFormComponent implements OnChanges {
 		raw.items.forEach((item, index) => {
 			item.link = this.generateNewsLink(item.title, index);
 			if (!Array.isArray(item.blocks)) item.blocks = [];
+				item.blocks.forEach(block => {
+					if (block.type === 'text') {
+						block.color ||= '#374151';
+						block.fontSize ||= '18px';
+						block.align ||= 'right';
+					}
+				});
 		});
 		this.data = raw as NewsContent;
 		this.editingIndex = null;
@@ -170,7 +196,7 @@ export class NewsFormComponent implements OnChanges {
 
 	addBlock(item: NewsItem, type: NewsBlock['type']): void {
 		if (!item.blocks) item.blocks = [];
-		item.blocks.push({ type, text: '', url: '', alt: '' });
+		item.blocks.push({ type, text: '', url: '', alt: '', color: '#374151', fontSize: '18px', align: 'right', bold: false, italic: false });
 	}
 
 	removeBlock(item: NewsItem, index: number): void {
