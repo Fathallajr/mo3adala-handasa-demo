@@ -95,10 +95,12 @@ export class AppComponent implements OnInit, OnDestroy {
 				if (event instanceof NavigationEnd) {
 					this.routeLoading = false;
 					this.currentRoute = event.urlAfterRedirects;
+					if (this.showLoading && !this.isHomeRoute) this.finishInitialLoading();
 					this.scrollForNavigation(event.urlAfterRedirects);
 				}
 				if (event instanceof NavigationCancel || event instanceof NavigationError) {
 					this.routeLoading = false;
+					if (this.showLoading && !this.isHomeRoute) this.finishInitialLoading();
 				}
 				if (event instanceof NavigationStart || event instanceof NavigationEnd || event instanceof NavigationCancel || event instanceof NavigationError) {
 					this.cdr.detectChanges();
@@ -111,7 +113,10 @@ export class AppComponent implements OnInit, OnDestroy {
 		// التمرير إلى الأعلى عند تحميل الصفحة لأول مرة
 		this.scrollToTop();
 		if (!this.isHomeRoute) {
-			setTimeout(() => this.finishInitialLoading(), 260);
+			// Internal pages do not depend on the hero video. Keep only a tiny
+			// fallback for the very first bootstrap, while NavigationEnd closes it
+			// immediately once Angular has rendered the requested route.
+			setTimeout(() => this.finishInitialLoading(), 80);
 		} else {
 			// Keep the initial loader over the hero until the first video frame is ready.
 			setTimeout(() => this.finishInitialLoading(), 15000);
