@@ -66,7 +66,8 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	];
 	currentDescriptionIndex = 0;
 	currentDescription = this.descriptions[0];
-	private descriptionInterval?: ReturnType<typeof setInterval>;
+	private descriptionTimer?: ReturnType<typeof setTimeout>;
+	private descriptionAnimationRun = 0;
 	private photoAutoPlayTimer?: ReturnType<typeof setInterval>;
 	private featuresAutoPlayTimer?: ReturnType<typeof setInterval>;
 	featuresAutoPlayPaused = false;
@@ -294,12 +295,20 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 	
 	private startDescriptionAnimation() {
-		this.typeText();
+		this.descriptionAnimationRun += 1;
+		const run = this.descriptionAnimationRun;
+		if (this.descriptionTimer) clearTimeout(this.descriptionTimer);
+		this.typedText = '';
+		this.isDeleting = false;
+		this.scheduleDescriptionStep(0, run);
 	}
 	
-	private typeText() {
-		// Use requestAnimationFrame for better performance
-		if (typeof window === 'undefined') return;
+	private scheduleDescriptionStep(delay: number, run: number): void {
+		this.descriptionTimer = setTimeout(() => this.typeText(run), delay);
+	}
+
+	private typeText(run: number): void {
+		if (typeof window === 'undefined' || run !== this.descriptionAnimationRun) return;
 		
 		const currentDesc = this.descriptions[this.currentDescriptionIndex];
 		this.fullText = currentDesc.text;
@@ -308,27 +317,21 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 			// Typing
 			this.isTyping = true;
 			this.typedText = this.fullText.substring(0, this.typedText.length + 1);
-			requestAnimationFrame(() => {
-				setTimeout(() => this.typeText(), this.typingSpeed);
-			});
+			this.scheduleDescriptionStep(this.typingSpeed, run);
 		} else if (!this.isDeleting && this.typedText.length === this.fullText.length) {
 			// Pause after typing complete
 			this.isTyping = false;
-			setTimeout(() => {
-				this.isDeleting = true;
-				this.typeText();
-			}, this.pauseTime);
+			this.isDeleting = true;
+			this.scheduleDescriptionStep(this.pauseTime, run);
 		} else if (this.isDeleting && this.typedText.length > 0) {
 			// Deleting
 			this.typedText = this.fullText.substring(0, this.typedText.length - 1);
-			requestAnimationFrame(() => {
-				setTimeout(() => this.typeText(), this.deletingSpeed);
-			});
+			this.scheduleDescriptionStep(this.deletingSpeed, run);
 		} else if (this.isDeleting && this.typedText.length === 0) {
 			// Move to next description
 			this.isDeleting = false;
 			this.currentDescriptionIndex = (this.currentDescriptionIndex + 1) % this.descriptions.length;
-			setTimeout(() => this.typeText(), 500);
+			this.scheduleDescriptionStep(500, run);
 		}
 	}
 	
@@ -367,9 +370,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 			clearInterval(this.publishedFeedbackRefreshTimer);
 			this.publishedFeedbackRefreshTimer = null;
 		}
-		if (this.descriptionInterval) {
-			clearInterval(this.descriptionInterval);
-		}
+		if (this.descriptionTimer) clearTimeout(this.descriptionTimer);
 		if (this.photoAutoPlayTimer) {
 			clearInterval(this.photoAutoPlayTimer);
 		}
