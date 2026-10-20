@@ -74,6 +74,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	private isTyping = false;
 	private isDeleting = false;
 	private typedText = '';
+	private visibleWordCount = 0;
 	private fullText = '';
 	private typingSpeed = 140;
 	private deletingSpeed = 85;
@@ -277,6 +278,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 			this.currentDescriptionIndex = 0;
 			this.currentDescription = this.descriptions[0];
 			this.typedText = '';
+			this.visibleWordCount = 0;
 			this.isDeleting = false;
 		}
 
@@ -299,6 +301,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 		const run = this.descriptionAnimationRun;
 		if (this.descriptionTimer) clearTimeout(this.descriptionTimer);
 		this.typedText = '';
+		this.visibleWordCount = 0;
 		this.isDeleting = false;
 		this.scheduleDescriptionStep(0, run);
 	}
@@ -310,29 +313,37 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	private typeText(run: number): void {
 		if (typeof window === 'undefined' || run !== this.descriptionAnimationRun) return;
 		
-		const currentDesc = this.descriptions[this.currentDescriptionIndex];
-		this.fullText = currentDesc.text;
-		const words = this.fullText.trim().split(/\s+/).filter(Boolean);
-		const visibleWordCount = this.typedText.trim() ? this.typedText.trim().split(/\s+/).length : 0;
+		if (!this.descriptions.length) return;
+		const currentDesc = this.descriptions[this.currentDescriptionIndex] || this.descriptions[0];
+		this.fullText = String(currentDesc?.text || '').trim();
+		const words = this.fullText.split(/\s+/).filter(Boolean);
+		if (!words.length) {
+			this.currentDescriptionIndex = (this.currentDescriptionIndex + 1) % this.descriptions.length;
+			this.scheduleDescriptionStep(150, run);
+			return;
+		}
 		
-		if (!this.isDeleting && visibleWordCount < words.length) {
+		if (!this.isDeleting && this.visibleWordCount < words.length) {
 			// Reveal one complete Arabic word at a time to keep RTL layout stable.
 			this.isTyping = true;
-			this.typedText = words.slice(0, visibleWordCount + 1).join(' ');
+			this.visibleWordCount += 1;
+			this.typedText = words.slice(0, this.visibleWordCount).join(' ');
 			this.scheduleDescriptionStep(this.typingSpeed, run);
-		} else if (!this.isDeleting && visibleWordCount === words.length) {
+		} else if (!this.isDeleting && this.visibleWordCount === words.length) {
 			// Pause after typing complete
 			this.isTyping = false;
 			this.isDeleting = true;
 			this.scheduleDescriptionStep(this.pauseTime, run);
-		} else if (this.isDeleting && visibleWordCount > 0) {
+		} else if (this.isDeleting && this.visibleWordCount > 0) {
 			// Remove one complete word at a time before moving to the next phrase.
-			this.typedText = words.slice(0, visibleWordCount - 1).join(' ');
+			this.visibleWordCount -= 1;
+			this.typedText = words.slice(0, this.visibleWordCount).join(' ');
 			this.scheduleDescriptionStep(this.deletingSpeed, run);
-		} else if (this.isDeleting && this.typedText.length === 0) {
+		} else if (this.isDeleting && this.visibleWordCount === 0) {
 			// Move to next description
 			this.isDeleting = false;
 			this.currentDescriptionIndex = (this.currentDescriptionIndex + 1) % this.descriptions.length;
+			this.currentDescription = this.descriptions[this.currentDescriptionIndex];
 			this.scheduleDescriptionStep(500, run);
 		}
 	}
