@@ -991,8 +991,9 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 			? { visible: true, title: 'المدارس والمعاهد', items: DEFAULT_SCHOOLS.map((item, index) => ({ ...item, id: item.id ?? index + 1 })) }
 			: undefined;
 		const employeesFallback = pageKey === 'employees' ? structuredClone(cmsPageDefaults.employees) : undefined;
-		const fallback = (employeesFallback || schoolsFallback) as any;
-		this.contentService.loadPageState(pageKey, fallback, { emitFallback: pageKey === 'schools' || pageKey === 'employees' }).pipe(timeout({ each: 15000 }), finalize(() => {
+		const batch2027Fallback = pageKey === 'batch-2027' ? structuredClone(cmsPageDefaults['batch-2027']) : undefined;
+		const fallback = (employeesFallback || batch2027Fallback || schoolsFallback) as any;
+		this.contentService.loadPageState(pageKey, fallback, { emitFallback: pageKey === 'schools' || pageKey === 'employees' || pageKey === 'batch-2027' }).pipe(timeout({ each: 15000 }), finalize(() => {
 			if (requestId === this.pageLoadRequestId) this.isLoading = false;
 			this.refreshView();
 		})).subscribe({
