@@ -25,7 +25,7 @@
         <div class="news-card__body">
           <div class="news-card__meta"><span *ngIf="item.category" class="news-card__category">{{ item.category }}</span><time>{{ formatDate(item.date) }}</time></div>
           <h2 [class.news-card__title--important]="item.important">{{ item.title }}</h2>
-          <p>{{ item.excerpt }}</p>
+          <p [style.color]="item.descriptionColor || null" [style.font-size]="item.descriptionFontSize || null" [style.text-align]="item.descriptionAlign || 'right'" [style.font-weight]="item.descriptionBold ? '800' : '400'" [style.font-style]="item.descriptionItalic ? 'italic' : 'normal'">{{ item.excerpt }}</p>
           <a (click)="$event.stopPropagation()" [routerLink]="isInternalLink(item) ? ['/news/detail', item.slug] : null" [href]="isInternalLink(item) ? null : (item.link || '#')" [target]="isInternalLink(item) ? undefined : '_blank'" class="news-card__link">اقرأ التفاصيل <b>←</b></a>
         </div>
       </article>

@@ -9,6 +9,11 @@ export interface NewsItem {
 	description: string;
 	image: string;
 	link: string;
+	descriptionColor?: string;
+	descriptionFontSize?: string;
+	descriptionAlign?: 'right' | 'center' | 'left';
+	descriptionBold?: boolean;
+	descriptionItalic?: boolean;
 	blocks?: NewsBlock[];
 }
 
@@ -91,6 +96,17 @@ interface NewsContent {
 					<div class="cms-field">
 						<label class="cms-label">الوصف</label>
 						<textarea class="cms-textarea" [(ngModel)]="item.description" placeholder="وصف مختصر للخبر" rows="2"></textarea>
+						<div class="news-text-format">
+							<label>لون الخط<input type="color" [(ngModel)]="item.descriptionColor" /></label>
+							<label>حجم الخط<select [(ngModel)]="item.descriptionFontSize"><option value="12px">صغير</option><option value="14px">عادي</option><option value="16px">كبير</option><option value="18px">كبير جدًا</option></select></label>
+							<label>المحاذاة<select [(ngModel)]="item.descriptionAlign"><option value="right">يمين</option><option value="center">وسط</option><option value="left">شمال</option></select></label>
+							<label class="news-text-format__check"><input type="checkbox" [(ngModel)]="item.descriptionBold" /> عريض</label>
+							<label class="news-text-format__check"><input type="checkbox" [(ngModel)]="item.descriptionItalic" /> مائل</label>
+						</div>
+						<div class="news-text-preview">
+							<span class="news-text-preview__label">معاينة مباشرة للوصف</span>
+							<div [style.color]="item.descriptionColor || '#374151'" [style.font-size]="item.descriptionFontSize || '14px'" [style.text-align]="item.descriptionAlign || 'right'" [style.font-weight]="item.descriptionBold ? '800' : '400'" [style.font-style]="item.descriptionItalic ? 'italic' : 'normal'">{{ item.description || 'اكتب الوصف لمشاهدة المعاينة...' }}</div>
+						</div>
 					</div>
 					<div class="cms-field">
 						<label class="cms-label">محتوى صفحة التفاصيل</label>
@@ -187,6 +203,9 @@ export class NewsFormComponent implements OnChanges {
 		if (!Array.isArray(raw.items)) raw.items = [];
 		raw.items.forEach((item, index) => {
 			item.link = this.generateNewsLink(item.title, index);
+				item.descriptionColor ||= '#374151';
+				item.descriptionFontSize ||= '14px';
+				item.descriptionAlign ||= 'right';
 			if (!Array.isArray(item.blocks)) item.blocks = [];
 				item.blocks.forEach(block => {
 					if (block.type === 'text') {
@@ -233,7 +252,7 @@ export class NewsFormComponent implements OnChanges {
 	}
 
 	add(): void {
-		this.data?.items.unshift({ title: '', description: '', image: '', link: '', blocks: [] });
+		this.data?.items.unshift({ title: '', description: '', image: '', link: '', descriptionColor: '#374151', descriptionFontSize: '14px', descriptionAlign: 'right', descriptionBold: false, descriptionItalic: false, blocks: [] });
 		if (this.data) this.data.items[0].link = this.generateNewsLink('', 0);
 		this.editingIndex = 0;
 	}
