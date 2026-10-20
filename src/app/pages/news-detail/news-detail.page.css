@@ -78,6 +78,18 @@ button:hover {
   background: linear-gradient(180deg, #fbfcff, #f8fafc);
 }
 
+.news-detail-images {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.news-detail-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: none;
+  object-fit: cover;
+}
+
 :host ::ng-deep .news-detail-body .prose {
   max-width: 900px !important;
   margin: 0 auto;
