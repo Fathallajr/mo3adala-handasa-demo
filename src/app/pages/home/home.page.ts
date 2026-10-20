@@ -555,6 +555,9 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	onVideoPlaying() {
 		this.videoPlaying = true;
+		if (typeof window !== 'undefined') {
+			window.dispatchEvent(new CustomEvent('hero-video-ready'));
+		}
 	}
 
 	onVideoError() {

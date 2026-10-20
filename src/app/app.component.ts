@@ -110,12 +110,25 @@ export class AppComponent implements OnInit, OnDestroy {
 		this.loadSiteMode();
 		// التمرير إلى الأعلى عند تحميل الصفحة لأول مرة
 		this.scrollToTop();
-		setTimeout(() => {
-			this.showLoading = false;
-			this.cdr.detectChanges();
-		}, 260);
+		if (!this.isHomeRoute) {
+			setTimeout(() => this.finishInitialLoading(), 260);
+		} else {
+			// Keep the initial loader over the hero until the first video frame is ready.
+			setTimeout(() => this.finishInitialLoading(), 15000);
+		}
 		
 		this.loadLaunchOffer();
+	}
+
+	@HostListener('window:hero-video-ready')
+	onHeroVideoReady(): void {
+		if (this.isHomeRoute) this.finishInitialLoading();
+	}
+
+	private finishInitialLoading(): void {
+		if (!this.showLoading) return;
+		this.showLoading = false;
+		this.cdr.detectChanges();
 	}
 
 	ngOnDestroy() {
