@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -27,7 +27,7 @@ export class FeedbackDetailPageComponent implements OnInit {
 	isNotFound = false;
 	private readonly endpoint = '/api/feedback/published';
 
-	constructor(private route: ActivatedRoute, private http: HttpClient, private seo: SeoService, private canonical: CanonicalService) {}
+	constructor(private route: ActivatedRoute, private http: HttpClient, private seo: SeoService, private canonical: CanonicalService, private cdr: ChangeDetectorRef) {}
 
 	ngOnInit(): void {
 		const id = this.route.snapshot.paramMap.get('id') || '';
@@ -40,10 +40,14 @@ export class FeedbackDetailPageComponent implements OnInit {
 			next: response => {
 				this.feedback = response.data;
 				this.isLoading = false;
+				// The detail route can finish its request while hydration is settling.
+				// Trigger the view update immediately instead of waiting for a user click.
+				this.cdr.detectChanges();
 			},
 			error: () => {
 				this.isLoading = false;
 				this.isNotFound = true;
+				this.cdr.detectChanges();
 			}
 		});
 	}
