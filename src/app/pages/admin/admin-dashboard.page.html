@@ -194,13 +194,15 @@
 
 					<app-news-form
 						*ngSwitchCase="'news-app'"
-						[content]="currentContent">
+						[content]="currentContent"
+						(saveRequested)="save()">
 					</app-news-form>
 
 					<app-news-form
 						*ngSwitchCase="'news-equation'"
 						[content]="currentContent"
-						(deleteRequested)="openNewsDeleteDialog($event)">
+						(deleteRequested)="openNewsDeleteDialog($event)"
+						(saveRequested)="save()">
 					</app-news-form>
 
 					<app-success-stories-form

@@ -125,7 +125,7 @@ interface NewsContent {
 						<label class="cms-label">رابط الخبر (يُولد تلقائيًا)</label>
 						<input class="cms-input" [ngModel]="item.link" readonly dir="ltr" />
 					</div>
-					<button type="button" class="cms-button cms-button--secondary news-done-btn" (click)="finishEditing()">تم</button>
+					<button type="button" class="cms-button cms-button--secondary news-done-btn" (click)="finishEditing()">حفظ الخبر</button>
 				</div>
 				<div class="news-item-preview" *ngIf="editingIndex !== i">
 					<div class="cms-array-item__num">خبر {{ i + 1 }}</div>
@@ -144,6 +144,7 @@ interface NewsContent {
 export class NewsFormComponent implements OnChanges {
 	@Input() content: unknown;
 	@Output() deleteRequested = new EventEmitter<NewsItem>();
+	@Output() saveRequested = new EventEmitter<void>();
 	@ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
 	private readonly cms = inject(MonthlyContentService);
@@ -211,7 +212,10 @@ export class NewsFormComponent implements OnChanges {
 	}
 
 	edit(i: number): void { this.editingIndex = i; }
-	finishEditing(): void { this.editingIndex = null; }
+	finishEditing(): void {
+		this.editingIndex = null;
+		this.saveRequested.emit();
+	}
 
 	triggerUpload(i: number): void {
 		this.pendingUploadItem = this.data?.items[i] ?? null;
