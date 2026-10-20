@@ -500,7 +500,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		this.seo.setOgTags({ title, description, url });
 		this.seo.setTwitterTags({ title, description });
 		this.canonical.setCanonical(url);
-		this.contentService.loadPageState('batch-2027', cmsPageDefaults['batch-2027'], { emitFallback: true }).subscribe(content => this.applyCmsState(content));
+		this.contentService.loadPageState('batch-2027', cmsPageDefaults['batch-2027'], { emitFallback: false }).subscribe(content => this.applyCmsState(content));
 		void this.loadFreeCodeStatus();
 	}
 
