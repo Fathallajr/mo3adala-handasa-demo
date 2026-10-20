@@ -24,8 +24,12 @@ const studentImageFiles: Record<string, string> = {
 	'أسماء يحيي': 'اسماء يحيي.webp',
 	'أحمد حسن': 'احمد حسن.webp',
 	'أميرة محمد': 'اميرة محمد.webp',
-	'نورهان محمود': 'نورهان محمود.png'
+	'نورهان محمود': 'نورهان محمود.webp'
 };
+
+function getStudentImagePath(name: string): string {
+	return `assets/successStories/${studentImageFiles[name] ?? `${name}.webp`}`;
+}
 
 const storyInputs: StoryInput[] = [
 	{ name: 'روجيه منير', category: 'intensive', result: 'حلمي كان هيضيع', summary: 'الكورس المكثف كان خطة إنقاذ ليا، لإني كنت بدأت بدري ومكملتش وراكمت.', message: 'ذاكر أول بأول وبلاش تراكم خصوصًا فى فترة المكثف، عشان متتوترش أكتر ومتضغطش أكتر وعشان تقدر تكمل طريقك للأخر.', videoUrls: ['https://www.facebook.com/share/r/1SrCqeXmwY/', 'https://www.facebook.com/share/r/1HSHzFVUB5/'] },
@@ -71,7 +75,7 @@ export const successStories: SuccessStory[] = storyInputs.map((story, index) => 
 		honorific: femaleStudents.has(story.name) ? 'البشمهندسة' : 'البشمهندس',
 		category: story.category,
 		badge: isIntensive ? 'المكثف' : 'مراجعات',
-		image: `assets/successStories/${studentImageFiles[story.name] ?? `${story.name}.jpg`}`,
+		image: getStudentImagePath(story.name),
 		result,
 		summary: story.summary ?? `شارك ${story.name} تجربته ونصيحته للطلاب عن أهمية الالتزام وعدم تراكم المذاكرة.`,
 		before: isIntensive ? 'كان محتاج يستغل الوقت المتاح ويلتزم بخطة المكثف.' : 'كان محتاج ينظم المذاكرة ويستعد لفترة المراجعة من بدري.',
@@ -98,10 +102,16 @@ export function normalizeSuccessStories(value: unknown): SuccessStory[] {
 		const item = raw && typeof raw === 'object' ? raw as Partial<SuccessStory> : {};
 		const parsedId = Number(item.id);
 
+		const configuredImage = typeof item.image === 'string' ? item.image.trim() : '';
+		const image = configuredImage.match(/^\/?assets\/successStories\/.*\.jpe?g$/i)
+			? getStudentImagePath(item.name || fallback.name)
+			: (configuredImage || fallback.image);
+
 		return {
 			...fallback,
 			...item,
 			id: Number.isInteger(parsedId) && parsedId > 0 ? parsedId : index + 1,
+			image,
 			videoUrls: Array.isArray(item.videoUrls) ? item.videoUrls : fallback.videoUrls,
 			details: Array.isArray(item.details) ? item.details : fallback.details
 		};
