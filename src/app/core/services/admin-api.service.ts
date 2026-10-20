@@ -122,5 +122,5 @@ export class AdminApiService {
 	}
 	getFreeCodeSettings(): Observable<FreeCodeStatus> { return this.http.get<FreeCodeStatus>(`${this.base}/admin/free-codes/settings`); }
 	updateFreeCodeSettings(payload: { enabled: boolean; endsAt: string; limit: number }): Observable<FreeCodeStatus> { return this.http.put<FreeCodeStatus>(`${this.base}/admin/free-codes/settings`, payload); }
-	listFreeCodeRequests(): Observable<{ data: FreeCodeRequest[]; total: number; status: FreeCodeStatus }> { return this.http.get<{ data: FreeCodeRequest[]; total: number; status: FreeCodeStatus }>(`${this.base}/admin/free-codes/requests`); }
+	listFreeCodeRequests(page = 1, limit = 20): Observable<{ data: FreeCodeRequest[]; total: number; pagination: { page: number; limit: number; total: number; pages: number }; status: FreeCodeStatus }> { const params = new HttpParams().set('page', page).set('limit', limit); return this.http.get<{ data: FreeCodeRequest[]; total: number; pagination: { page: number; limit: number; total: number; pages: number }; status: FreeCodeStatus }>(`${this.base}/admin/free-codes/requests`, { params }); }
 }

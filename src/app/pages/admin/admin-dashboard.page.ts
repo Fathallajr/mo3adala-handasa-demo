@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import * as ExcelJS from 'exceljs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize, timeout } from 'rxjs';
+import { finalize, firstValueFrom, timeout } from 'rxjs';
 import { CmsPageKey, cmsPageDefaults, cmsPageOptions } from '../../core/cms-page.registry';
 import { displayProgramLabel } from '../../core/program-labels';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
@@ -93,6 +93,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	programs: Program[] = [];
 	wheelClaims: WheelClaim[] = [];
 	freeCodeRequests: FreeCodeRequest[] = [];
+	freeCodePage = 1; freeCodePages = 1; freeCodePageNumbers: PaginationItem[] = [1]; freeCodeTotal = 0;
 	freeCodeStatus: FreeCodeStatus = { enabled: true, open: true, endsAt: '', limit: 0, claimedCount: 0, remaining: null };
 	freeCodeSettingsDraft = { enabled: true, endsAt: '', limit: 0 };
 	isLoadingFreeCodeRequests = false;
@@ -838,16 +839,25 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	goToWheelPage(page: number | string): void { if (typeof page !== 'number') return; const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.wheelPages); if (nextPage === this.wheelPage && this.wheelClaimsLoaded) return; this.wheelPage = nextPage; this.loadWheelClaims(true); }
 	clearWheelFilters(): void { this.wheelSearch = ''; this.wheelGift = ''; this.wheelProgram = ''; this.wheelDateFrom = ''; this.wheelDateTo = ''; this.searchWheelClaims(); }
 	toggleWheelFilters(): void { this.wheelFiltersOpen = !this.wheelFiltersOpen; }
-	loadFreeCodeRequests(force = false): void {
-		if (this.isLoadingFreeCodeRequests || (this.freeCodeRequests.length && !force)) return;
+	loadFreeCodeRequests(force = false, page = this.freeCodePage): void {
+		if (this.isLoadingFreeCodeRequests || (this.freeCodeRequests.length && !force && page === this.freeCodePage)) return;
 		this.isLoadingFreeCodeRequests = true;
-		this.adminApi.listFreeCodeRequests().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingFreeCodeRequests = false; this.refreshView(); })).subscribe({
-			next: result => { this.freeCodeRequests = result.data; this.freeCodeStatus = result.status; this.freeCodeSettingsDraft = { enabled: result.status.enabled, endsAt: result.status.endsAt ? result.status.endsAt.slice(0, 16) : '', limit: result.status.limit }; this.statusMessage = 'تم تحديث طلبات الأكواد المجانية.'; this.errorMessage = ''; this.refreshView(); },
+		this.freeCodePage = Math.max(page, 1);
+		this.adminApi.listFreeCodeRequests(this.freeCodePage).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingFreeCodeRequests = false; this.refreshView(); })).subscribe({
+			next: result => { this.freeCodeRequests = result.data; this.freeCodeTotal = result.pagination?.total ?? result.total; this.freeCodePages = result.pagination?.pages || 1; this.freeCodePageNumbers = this.buildPaginationItems(this.freeCodePage, this.freeCodePages); this.freeCodeStatus = result.status; this.freeCodeSettingsDraft = { enabled: result.status.enabled, endsAt: result.status.endsAt ? result.status.endsAt.slice(0, 16) : '', limit: result.status.limit }; this.statusMessage = 'تم تحديث طلبات الأكواد المجانية.'; this.errorMessage = ''; this.refreshView(); },
 			error: err => { this.handleApiError(err); this.refreshView(); }
 		});
 	}
+	goToFreeCodePage(page: number | string): void { if (typeof page !== 'number') return; const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.freeCodePages); if (nextPage === this.freeCodePage && this.freeCodeRequests.length) return; this.loadFreeCodeRequests(true, nextPage); }
 	async exportFreeCodeRequests(): Promise<void> {
-		const rows = this.freeCodeRequests.map(request => ({
+		const pageSize = 100;
+		const totalPages = Math.max(Math.ceil(this.freeCodeTotal / pageSize), 1);
+		const requests: FreeCodeRequest[] = [];
+		for (let page = 1; page <= totalPages; page += 1) {
+			const result = await firstValueFrom(this.adminApi.listFreeCodeRequests(page, pageSize));
+			requests.push(...result.data);
+		}
+		const rows = requests.map(request => ({
 			'الاسم': request.name,
 			'رقم الواتساب': request.whatsapp,
 			'نوع المعادلة': request.program,

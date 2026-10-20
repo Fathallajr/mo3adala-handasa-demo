@@ -1529,8 +1529,8 @@ app.put('/api/admin/free-codes/settings', requireAdmin, requirePermission('free-
 	} catch (error) { next(error); }
 });
 
-app.get('/api/admin/free-codes/requests', requireAdmin, requirePermission('free-codes'), async (_req, res, next) => {
-	try { const data = await database.listFreeCodeRequests(); res.json({ data, total: data.length, status: await getFreeCodeStatus() }); } catch (error) { next(error); }
+app.get('/api/admin/free-codes/requests', requireAdmin, requirePermission('free-codes'), async (req, res, next) => {
+	try { const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1); const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100); const [data, total] = await Promise.all([database.listFreeCodeRequestsPage(page, limit), database.countFreeCodeRequests()]); res.json({ data, total, pagination: { page, limit, total, pages: Math.max(Math.ceil(total / limit), 1) }, status: await getFreeCodeStatus() }); } catch (error) { next(error); }
 });
 
 function normalizeProgramInput(input, existing = {}) {
