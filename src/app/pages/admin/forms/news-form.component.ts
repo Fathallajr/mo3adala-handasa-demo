@@ -31,6 +31,8 @@ interface NewsContent {
 	imports: [CommonModule, FormsModule],
 	styles: [adminFormStyles, `
 		.news-item-preview { display:grid; gap:12px; min-width:0; padding:14px; border:1px solid #e5e9f2; border-radius:14px; background:#fbfcff; }
+		.news-items-section__head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+		.news-items-section__head .cms-add-btn { margin:0; }
 		.news-item-preview__body { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; min-width:0; }
 		.news-item-preview__body strong { display:block; color:#172033; font-size:15px; line-height:1.6; }
 		.news-item-preview__body p { margin:5px 0 0; color:#718096; font-size:12px; line-height:1.8; white-space:pre-wrap; }
@@ -47,7 +49,7 @@ interface NewsContent {
 		.news-delete-dialog__actions button { min-width:120px; min-height:40px; border:0; border-radius:10px; padding:8px 14px; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
 		.news-delete-dialog__cancel { color:#526078; background:#eef2f7; }
 		.news-delete-dialog__confirm { color:#fff; background:#d95673; box-shadow:0 8px 18px rgba(217,86,115,.24); }
-		@media (max-width:600px) { .news-item-preview__body { flex-direction:column; gap:10px; } .news-item-preview__body img { width:100%; height:120px; } .news-item-preview .cms-button { width:100%; } .news-item-preview__actions { display:grid; grid-template-columns:1fr 1fr; } .news-item-preview__actions .cms-button { width:100%; } }
+		@media (max-width:600px) { .news-items-section__head { align-items:stretch; flex-direction:column; } .news-items-section__head .cms-add-btn { width:100%; } .news-item-preview__body { flex-direction:column; gap:10px; } .news-item-preview__body img { width:100%; height:120px; } .news-item-preview .cms-button { width:100%; } .news-item-preview__actions { display:grid; grid-template-columns:1fr 1fr; } .news-item-preview__actions .cms-button { width:100%; } }
 	`],
 	template: `
 <div class="cms-form news-cms-form" *ngIf="data">
@@ -73,7 +75,7 @@ interface NewsContent {
 	</div>
 
 	<div class="cms-section news-items-section">
-		<div class="cms-section-title">الأخبار ({{ data.items.length }})</div>
+		<div class="cms-section-title news-items-section__head"><span>الأخبار ({{ data.items.length }})</span><button type="button" class="cms-add-btn" (click)="add()">+ إضافة خبر</button></div>
 		<div class="cms-array-list">
 			<div class="cms-array-item news-editor-item" *ngFor="let item of data.items; let i = index">
 				<div style="flex:1" *ngIf="editingIndex === i">
@@ -145,7 +147,6 @@ interface NewsContent {
 				</div>
 			</div>
 		</div>
-		<button type="button" class="cms-add-btn" (click)="add()">+ إضافة خبر</button>
 	</div>
 </div>
 <div class="news-delete-dialog-backdrop" *ngIf="pendingDeleteIndex !== null" role="presentation" (click)="cancelRemove()">
