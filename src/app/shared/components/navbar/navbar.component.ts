@@ -48,8 +48,16 @@ export class NavbarComponent implements OnInit {
 			this.scrollFrame = null;
 			const currentScrollY = window.scrollY;
 			this.scrolled = currentScrollY > 8;
+			const wasHidden = this.navbarHidden;
+			if (currentScrollY <= 24) {
+				this.navbarHidden = false;
+			} else if (!this.isMobileMenuOpen && currentScrollY > this.lastScrollY) {
+				this.navbarHidden = true;
+			} else if (currentScrollY < this.lastScrollY) {
+				this.navbarHidden = false;
+			}
 			this.lastScrollY = currentScrollY;
-			this.cdr.detectChanges();
+			if (wasHidden !== this.navbarHidden) this.cdr.detectChanges();
 		});
 	}
 
