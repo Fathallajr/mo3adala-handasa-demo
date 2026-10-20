@@ -329,6 +329,8 @@ img:hover {
   color: #334155;
   font-size: 1.05rem;
   line-height: 2;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .news-detail-page .prose img {

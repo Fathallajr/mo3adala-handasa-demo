@@ -41,7 +41,7 @@
 .news-card__body h2 { margin: 1rem 0 .55rem; color: var(--news-navy); font-size: 1.1rem; font-weight: 900; line-height: 1.55; }
 .news-card:first-child .news-card__body h2 { font-size: clamp(1.25rem, 2.3vw, 1.8rem); }
 .news-card__title--important { color: #c2410c !important; }
-.news-card__body p { display: -webkit-box; margin: 0; overflow: hidden; color: var(--news-muted); font-size: .84rem; line-height: 1.9; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.news-card__body p { display: -webkit-box; margin: 0; overflow: hidden; color: var(--news-muted); font-size: .84rem; line-height: 1.9; white-space: pre-wrap; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .news-card__link { display: inline-flex; align-items: center; gap: .6rem; margin-top: auto; padding-top: 1rem; color: var(--news-orange); text-decoration: none; font-size: .82rem; font-weight: 900; }
 .news-card__link b { font-size: 1.1rem; transition: transform .2s ease; }
 .news-card__link:hover b { transform: translateX(-4px); }
