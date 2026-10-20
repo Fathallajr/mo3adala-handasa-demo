@@ -50,6 +50,8 @@ interface NewsContent {
 		.news-text-format input[type=color] { padding:3px; cursor:pointer; }
 		.news-text-format__check { display:flex!important; align-items:center; gap:7px!important; min-height:34px; padding-top:17px; }
 		.news-text-format__check input { accent-color:#6d4aff; }
+		.news-text-preview { margin-top:10px; padding:12px 14px; border:1px dashed #cfc5ff; border-radius:10px; background:#fff; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.8; }
+		.news-text-preview__label { display:block; margin-bottom:6px; color:#7567b7; font-size:10px; font-weight:900; }
 		@media (max-width:600px) { .news-items-section__head { align-items:stretch; flex-direction:column; } .news-items-section__head .cms-add-btn { width:100%; } .news-item-preview__body { flex-direction:column; gap:10px; } .news-item-preview__body img { width:100%; height:120px; } .news-item-preview .cms-button { width:100%; } .news-item-preview__actions { display:grid; grid-template-columns:1fr 1fr; } .news-item-preview__actions .cms-button { width:100%; } }
 		@media (max-width:600px) { .news-text-format { grid-template-columns:1fr 1fr; } }
 	`],
@@ -110,6 +112,10 @@ interface NewsContent {
 										<label>المحاذاة<select [(ngModel)]="block.align"><option value="right">يمين</option><option value="center">وسط</option><option value="left">شمال</option></select></label>
 										<label class="news-text-format__check"><input type="checkbox" [(ngModel)]="block.bold" /> عريض</label>
 										<label class="news-text-format__check"><input type="checkbox" [(ngModel)]="block.italic" /> مائل</label>
+									</div>
+									<div *ngIf="block.type === 'text'" class="news-text-preview">
+										<span class="news-text-preview__label">معاينة مباشرة</span>
+										<div [style.color]="block.color || '#374151'" [style.font-size]="block.fontSize || '18px'" [style.text-align]="block.align || 'right'" [style.font-weight]="block.bold ? '800' : '400'" [style.font-style]="block.italic ? 'italic' : 'normal'">{{ block.text || 'اكتب النص لمشاهدة المعاينة...' }}</div>
 									</div>
 									<input *ngIf="block.type === 'link' || block.type === 'image'" class="cms-input" [(ngModel)]="block.url" dir="ltr" [placeholder]="block.type === 'link' ? 'https://...' : '/uploads/...'" />
 									<input *ngIf="block.type === 'image'" class="cms-input" [(ngModel)]="block.alt" placeholder="وصف الصورة" />
