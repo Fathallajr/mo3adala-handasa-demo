@@ -63,9 +63,7 @@ export class AppComponent implements OnInit, OnDestroy {
 	offerSourceOptions = ['فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
 	offerSubmitting = false;
 	offerError = '';
-	private readonly fallbackLaunchOfferEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-		? 'http://localhost:3001/api/launch-offer'
-		: '/api/launch-offer';
+	private readonly fallbackLaunchOfferEndpoint = '/api/launch-offer';
 	private readonly leadAttribution: LeadAttribution = captureLeadAttribution();
 	countdownDays = 15;
 	countdownHours = 0;
@@ -129,7 +127,7 @@ export class AppComponent implements OnInit, OnDestroy {
 	private async loadSiteMode(): Promise<void> {
 		if (typeof window === 'undefined' || window.location.pathname.startsWith('/admin')) return;
 		try {
-			const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api';
+			const apiBase = '/api';
 			const response = await fetch(`${apiBase}/site-mode`, { cache: 'no-store' });
 			if (response.ok) {
 				this.siteMaintenance = Boolean((await response.json())?.maintenance);

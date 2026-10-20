@@ -6,7 +6,7 @@ import { SeoService } from '../../core/seo.service';
 import { CanonicalService } from '../../core/canonical.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
 import { displayProgramLabel } from '../../core/program-labels';
-import { CmsPageKey } from '../../core/cms-page.registry';
+import { CmsPageKey, cmsPageDefaults } from '../../core/cms-page.registry';
 import { Subscription } from 'rxjs';
 
 interface ScheduleImage {
@@ -309,7 +309,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		this.listenForVisibilityChange();
 		const contentKey = this.getSubscriptionContentKey(pathname);
 		this.contentSubscription = this.monthlyContent
-			.loadPageState(contentKey)
+			.loadPageState(contentKey, cmsPageDefaults[contentKey])
 			.subscribe(state => this.applyLoadedState(state));
 	}
 

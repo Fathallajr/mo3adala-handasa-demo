@@ -8,24 +8,7 @@ import { CmsPageKey } from '../cms-page.registry';
 export class MonthlyContentService {
 	private readonly http = inject(HttpClient);
 	private readonly auth = inject(AdminAuthService);
-	private readonly apiBase = this.resolveApiBase();
-	private readonly serverBase = this.resolveServerBase();
-
-	private resolveApiBase(): string {
-		if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-			return 'http://localhost:3001/api';
-		}
-
-		return '/api';
-	}
-
-	private resolveServerBase(): string {
-		if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
-			return 'http://localhost:3001';
-		}
-
-		return '';
-	}
+	private readonly apiBase = '/api';
 
 	normalizeAssetPath(url: string): string {
 		const value = String(url || '').trim();
@@ -43,7 +26,7 @@ export class MonthlyContentService {
 		const normalized = this.normalizeAssetPath(url);
 		if (!normalized) return '';
 		if (normalized.startsWith('http')) return normalized;
-		return normalized.startsWith('/uploads/') ? this.serverBase + normalized : normalized;
+		return normalized;
 	}
 
 	listPages(): Observable<Array<{ key: CmsPageKey; hasContent: boolean; updatedAt?: string }>> {
@@ -52,8 +35,8 @@ export class MonthlyContentService {
 
 	loadPageState<T>(pageKey: CmsPageKey, _legacyFallback?: T, _options: { emitFallback?: boolean } = {}): Observable<T> {
 		const request$ = this.http.get<T>(`${this.apiBase}/content/${pageKey}`);
-		return request$.pipe(catchError(() => {
-			if (_options.emitFallback && _legacyFallback !== undefined) return of(_legacyFallback);
+		return request$.pipe(catchError((error: { status?: number }) => {
+			if (error?.status === 404 && _options.emitFallback !== false && _legacyFallback !== undefined) return of(_legacyFallback);
 			return EMPTY;
 		}));
 	}

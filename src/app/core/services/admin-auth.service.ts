@@ -24,15 +24,7 @@ export class AdminAuthService {
 	private readonly usernameKey = `${this.tokenKey}-username`;
 	private readonly loginAtKey = `${this.tokenKey}-login-at`;
 	private readonly sessionTtlMs = 6 * 60 * 60 * 1000;
-	private readonly apiBase = this.resolveApiBase();
-
-	private resolveApiBase(): string {
-		if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-			return 'http://localhost:3001/api';
-		}
-
-		return '/api';
-	}
+	private readonly apiBase = '/api';
 
 	login(credentials: LoginRequest): Observable<LoginResponse> {
 		return this.http.post<LoginResponse>(`${this.apiBase}/auth/login`, credentials).pipe(

@@ -25,7 +25,7 @@ export class FeedbackDetailPageComponent implements OnInit {
 	feedback: PublishedFeedback | null = null;
 	isLoading = true;
 	isNotFound = false;
-	private readonly endpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api/feedback/published' : '/api/feedback/published';
+	private readonly endpoint = '/api/feedback/published';
 
 	constructor(private route: ActivatedRoute, private http: HttpClient, private seo: SeoService, private canonical: CanonicalService) {}
 

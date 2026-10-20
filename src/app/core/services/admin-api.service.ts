@@ -33,7 +33,7 @@ export interface FinancePayrollLine { employeeId: number; employeeName: string; 
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {
 	private readonly http = inject(HttpClient);
-	private readonly base = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api';
+	private readonly base = '/api';
 
 	getSummary(): Observable<DashboardSummary> { return this.http.get<DashboardSummary>(`${this.base}/admin/dashboard/summary`); }
 	getSiteMode(): Observable<SiteMode> { return this.http.get<SiteMode>(`${this.base}/admin/site-mode`); }

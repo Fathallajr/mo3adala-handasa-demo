@@ -29,7 +29,7 @@ export class FeedbackPageComponent {
 	batchRequired = true;
 	batchValue = '';
 	isPageVisible = true;
-	private readonly feedbackEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3001/api/feedback' : '/api/feedback';
+	private readonly feedbackEndpoint = '/api/feedback';
 
 	constructor(private seo: SeoService, private canonical: CanonicalService, private contentService: MonthlyContentService, private http: HttpClient) {
 		const siteUrl = (typeof window !== 'undefined' ? (window as any)['NG_SITE_URL'] : process.env['NG_SITE_URL']) || 'https://www.appmo3adla.com';

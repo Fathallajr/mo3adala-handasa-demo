@@ -122,9 +122,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	offerSubmitting = false;
 	offerSubmitted = false;
 	offerError = '';
-	private readonly launchOfferEndpoint = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-		? 'http://localhost:3001/api/launch-offer'
-		: '/api/launch-offer';
+	private readonly launchOfferEndpoint = '/api/launch-offer';
 	private readonly giftWhatsAppNumber = '201080681865';
 	private readonly freeCodeWhatsAppNumber = '201080681865';
 	private readonly leadAttribution: LeadAttribution = captureLeadAttribution();
