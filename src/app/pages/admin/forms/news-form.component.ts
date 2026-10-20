@@ -36,7 +36,18 @@ interface NewsContent {
 		.news-item-preview__body p { margin:5px 0 0; color:#718096; font-size:12px; line-height:1.8; white-space:pre-wrap; }
 		.news-item-preview__body img { width:92px; height:68px; flex:0 0 auto; object-fit:cover; border-radius:10px; border:1px solid #e1e6f0; }
 		.news-done-btn { align-self:flex-start; margin-top:12px; }
-		@media (max-width:600px) { .news-item-preview__body { flex-direction:column; gap:10px; } .news-item-preview__body img { width:100%; height:120px; } .news-item-preview .cms-button { width:100%; } }
+		.news-item-preview__actions { display:flex; gap:8px; flex-wrap:wrap; }
+		.news-delete-dialog-backdrop { position:fixed; inset:0; z-index:1400; display:grid; place-items:center; padding:18px; background:rgba(15,23,42,.58); backdrop-filter:blur(5px); }
+		.news-delete-dialog { width:min(420px,100%); box-sizing:border-box; padding:28px 24px 22px; border:1px solid #f0dce2; border-radius:22px; background:#fff; box-shadow:0 24px 70px rgba(15,23,42,.28); text-align:center; direction:rtl; }
+		.news-delete-dialog__icon { display:grid; place-items:center; width:54px; height:54px; margin:0 auto 13px; border-radius:17px; color:#c33f5d; background:#fff0f3; font-size:23px; }
+		.news-delete-dialog h3 { margin:0 0 9px; color:#202b42; font-size:20px; }
+		.news-delete-dialog p { margin:0; color:#526078; font-size:13px; line-height:1.8; }
+		.news-delete-dialog p strong { color:#202b42; }
+		.news-delete-dialog__actions { display:flex; justify-content:center; gap:10px; margin-top:22px; }
+		.news-delete-dialog__actions button { min-width:120px; min-height:40px; border:0; border-radius:10px; padding:8px 14px; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
+		.news-delete-dialog__cancel { color:#526078; background:#eef2f7; }
+		.news-delete-dialog__confirm { color:#fff; background:#d95673; box-shadow:0 8px 18px rgba(217,86,115,.24); }
+		@media (max-width:600px) { .news-item-preview__body { flex-direction:column; gap:10px; } .news-item-preview__body img { width:100%; height:120px; } .news-item-preview .cms-button { width:100%; } .news-item-preview__actions { display:grid; grid-template-columns:1fr 1fr; } .news-item-preview__actions .cms-button { width:100%; } }
 	`],
 	template: `
 <div class="cms-form news-cms-form" *ngIf="data">
@@ -130,12 +141,19 @@ interface NewsContent {
 						<div><strong>{{ item.title || 'خبر بدون عنوان' }}</strong><p>{{ item.description || 'لا يوجد وصف لهذا الخبر.' }}</p></div>
 						<img *ngIf="item.image" [src]="resolveUrl(item.image)" [alt]="item.title || 'صورة الخبر'" />
 					</div>
-					<button type="button" class="cms-button cms-button--secondary" (click)="edit(i)">تعديل</button>
+					<div class="news-item-preview__actions"><button type="button" class="cms-button cms-button--secondary" (click)="edit(i)">تعديل</button><button type="button" class="cms-button cms-button--danger" (click)="requestRemove(i)">حذف</button></div>
 				</div>
-				<button type="button" class="cms-array-item__del" (click)="remove(i)">×</button>
 			</div>
 		</div>
 		<button type="button" class="cms-add-btn" (click)="add()">+ إضافة خبر</button>
+	</div>
+</div>
+<div class="news-delete-dialog-backdrop" *ngIf="pendingDeleteIndex !== null" role="presentation" (click)="cancelRemove()">
+	<div class="news-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="news-delete-title" (click)="$event.stopPropagation()">
+		<div class="news-delete-dialog__icon"><i class="bi bi-trash3"></i></div>
+		<h3 id="news-delete-title">تأكيد حذف الخبر</h3>
+		<p>هل تريد حذف خبر <strong>«{{ pendingDeleteNewsItem?.title || 'بدون عنوان' }}»</strong>؟</p>
+		<div class="news-delete-dialog__actions"><button type="button" class="news-delete-dialog__cancel" (click)="cancelRemove()">إلغاء</button><button type="button" class="news-delete-dialog__confirm" (click)="confirmRemove()">حذف نهائي</button></div>
 	</div>
 </div>
 `
@@ -147,6 +165,7 @@ export class NewsFormComponent implements OnChanges {
 	private readonly cms = inject(MonthlyContentService);
 	data: NewsContent | null = null;
 	editingIndex: number | null = null;
+	pendingDeleteIndex: number | null = null;
 	uploadingIndex: number | null = null;
 	uploadingBlock: NewsBlock | null = null;
 	private pendingUploadItem: NewsItem | null = null;
@@ -163,6 +182,7 @@ export class NewsFormComponent implements OnChanges {
 		});
 		this.data = raw as NewsContent;
 		this.editingIndex = null;
+		this.pendingDeleteIndex = null;
 	}
 
 	addBlock(item: NewsItem, type: NewsBlock['type']): void {
@@ -203,14 +223,22 @@ export class NewsFormComponent implements OnChanges {
 		this.editingIndex = 0;
 	}
 
-	remove(i: number): void {
-		this.data?.items.splice(i, 1);
-		if (this.editingIndex === i) this.editingIndex = null;
-		else if (this.editingIndex !== null && this.editingIndex > i) this.editingIndex -= 1;
+	requestRemove(i: number): void { this.pendingDeleteIndex = i; }
+
+	cancelRemove(): void { this.pendingDeleteIndex = null; }
+
+	confirmRemove(): void {
+		const index = this.pendingDeleteIndex;
+		if (index === null || !this.data) return;
+		this.data.items.splice(index, 1);
+		this.pendingDeleteIndex = null;
+		if (this.editingIndex === index) this.editingIndex = null;
+		else if (this.editingIndex !== null && this.editingIndex > index) this.editingIndex -= 1;
 	}
 
 	edit(i: number): void { this.editingIndex = i; }
 	finishEditing(): void { this.editingIndex = null; }
+	get pendingDeleteNewsItem(): NewsItem | null { return this.pendingDeleteIndex !== null ? this.data?.items[this.pendingDeleteIndex] || null : null; }
 
 	triggerUpload(i: number): void {
 		this.pendingUploadItem = this.data?.items[i] ?? null;
