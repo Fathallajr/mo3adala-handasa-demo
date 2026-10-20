@@ -361,7 +361,14 @@ function buildFreeCodeRequestFilters(filters = {}) {
 	if (to) clauses.push(`requested_at < (${add(to)}::date + INTERVAL '1 day')`);
 	return { where: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '', values };
 }
-async function createFreeCodeRequest(request) { await ensureSchema(); try { await pool.query('INSERT INTO free_code_requests(id,name,whatsapp,program,requested_at) VALUES ($1,$2,$3,$4,$5)', [request.id, request.name, request.whatsapp, request.program, request.requestedAt]); } catch (error) { if (error?.code === '23505') error.code = 'DUPLICATE_FREE_CODE_REQUEST'; throw error; } return request; }
+async function createFreeCodeRequest(request) {
+	await ensureSchema();
+	const result = await pool.query(
+		'INSERT INTO free_code_requests(id,name,whatsapp,program,requested_at) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (whatsapp) DO NOTHING RETURNING id,name,whatsapp,program,requested_at AS "requestedAt"',
+		[request.id, request.name, request.whatsapp, request.program, request.requestedAt]
+	);
+	return result.rows[0] || null;
+}
 async function findFreeCodeRequestByPhone(whatsapp) { await ensureSchema(); const result = await pool.query('SELECT id,name,whatsapp,program,requested_at AS "requestedAt" FROM free_code_requests WHERE whatsapp = $1', [whatsapp]); return result.rows[0] || null; }
 async function listFreeCodeRequests() { await ensureSchema(); const result = await pool.query('SELECT id,name,whatsapp,program,requested_at AS "requestedAt" FROM free_code_requests ORDER BY requested_at DESC'); return result.rows; }
 async function listFreeCodeRequestsPage(page = 1, limit = 20, filters = {}) { await ensureSchema(); const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100); const safePage = Math.max(Number(page) || 1, 1); const query = buildFreeCodeRequestFilters(filters); query.values.push(safeLimit, (safePage - 1) * safeLimit); const result = await pool.query(`SELECT id,name,whatsapp,program,requested_at AS "requestedAt" FROM free_code_requests ${query.where} ORDER BY requested_at DESC LIMIT $${query.values.length - 1} OFFSET $${query.values.length}`, query.values); return result.rows; }

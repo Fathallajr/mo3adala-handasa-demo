@@ -757,6 +757,7 @@ app.post('/api/free-codes/register', rateLimit({ name: 'free-code-register', win
 		const existing = await database.findFreeCodeRequestByPhone(whatsapp);
 		if (existing) return res.status(409).json({ alreadyRegistered: true, message: 'الرقم ده طلب كود مجاني قبل كده.' });
 		const request = await database.createFreeCodeRequest({ id: crypto.randomUUID(), name, whatsapp, program, requestedAt: getNowIso() });
+		if (!request) return res.status(409).json({ alreadyRegistered: true, message: 'الرقم ده طلب كود مجاني قبل كده.' });
 		res.status(201).json({ success: true, request, status: await getFreeCodeStatus() });
 	} catch (error) {
 		if (error?.code === 'DUPLICATE_FREE_CODE_REQUEST') return res.status(409).json({ alreadyRegistered: true, message: 'الرقم ده طلب كود مجاني قبل كده.' });
@@ -2122,7 +2123,7 @@ app.get('*', (req, res, next) => {
 app.use((error, req, res, next) => {
 	if (res.headersSent) return next(error);
 	if (req.path.startsWith('/api')) {
-		console.error('API request failed', { method: req.method, path: req.path, code: error?.code, message: error?.message });
+		console.error('API request failed', { method: req.method, path: req.path, code: error?.code, constraint: error?.constraint, detail: error?.detail, message: error?.message });
 		if (req.path.includes('/finance/payroll/') && error?.code === '42703') return res.status(500).json({ message: 'قاعدة بيانات الرواتب تحتاج تحديثًا. تواصل مع المسؤول لتشغيل ترقية قاعدة البيانات.' });
 		if (req.path.includes('/finance/payroll/') && error?.code === '42P01') return res.status(500).json({ message: 'جداول الرواتب غير جاهزة على السيرفر. أعد تشغيل التطبيق ثم حاول مرة أخرى.' });
 		if (req.path.includes('/finance/payroll/') && error?.code === '23502') return res.status(400).json({ message: 'بيانات اعتماد الراتب ناقصة. راجع الخزنة والموظف ثم حاول مرة أخرى.' });
