@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
@@ -28,7 +28,8 @@ export class NewsDetailPageComponent implements OnInit {
 		private location: Location,
 		private seo: SeoService,
 		private canonical: CanonicalService,
-		private monthlyContent: MonthlyContentService
+		private monthlyContent: MonthlyContentService,
+		private cdr: ChangeDetectorRef
 	) { }
 
 	// Mock data - في التطبيق الحقيقي ستحصل على البيانات من API
@@ -1161,6 +1162,7 @@ export class NewsDetailPageComponent implements OnInit {
 			this.notFound = false;
 			// Details are resolved from the same CMS collection as the listing.
 			this.newsItem = null;
+			this.cdr.detectChanges();
 
 			this.monthlyContent.loadPageState('news-equation', { items: [] }).subscribe({
 				next: (state: any) => {
@@ -1168,6 +1170,7 @@ export class NewsDetailPageComponent implements OnInit {
 				const dynamic = items.find((item: any, index: number) => this.getDynamicSlug(item, index) === this.newsId);
 				if (!dynamic) {
 					this.notFound = true;
+					this.cdr.detectChanges();
 					return;
 				}
 				this.newsItem = {
@@ -1183,9 +1186,13 @@ export class NewsDetailPageComponent implements OnInit {
 					author: dynamic.author || 'فريق المعادلة'
 				};
 				this.updatePageTitle();
+				this.cdr.detectChanges();
 			},
 			error: () => {
-				if (!this.newsItem) this.notFound = true;
+				if (!this.newsItem) {
+					this.notFound = true;
+					this.cdr.detectChanges();
+				}
 			}
 			});
 		});
