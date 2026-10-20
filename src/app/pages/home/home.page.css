@@ -538,6 +538,13 @@ img {
   scrollbar-width: none;
 }
 .reviews-track::-webkit-scrollbar { display: none; }
+.reviews-loading-card {
+  display: grid;
+  min-height: 15.5rem;
+  place-items: center;
+  color: #64748b;
+  font-weight: 700;
+}
 
 .student-reviews-section .carousel-figure {
   position: relative;

@@ -208,6 +208,9 @@
 
 			<!-- Reviews Track -->
 			<div #reviewsTrack class="swiper-track reviews-track overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-4 pb-2" dir="rtl">
+				<div *ngIf="!publishedFeedbacksLoaded" class="reviews-loading-card carousel-figure shrink-0 rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
+					جاري تحميل أحدث الآراء...
+				</div>
 				<!-- Feedbacks approved from the admin dashboard appear first, newest first. -->
 				<div *ngFor="let feedback of publishedFeedbacks" class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
 					<div class="p-6">
@@ -217,6 +220,7 @@
 					</div>
 				</div>
 
+				<ng-container *ngIf="publishedFeedbacksLoaded && !publishedFeedbacks.length">
 				<!-- Review Card 1 -->
 				<div class="carousel-figure snap-start shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white min-w-[85%] sm:min-w-[70%] md:min-w-[45%] lg:min-w-[35%]">
 					<div class="p-6">
@@ -358,6 +362,7 @@
 						</p>
 					</div>
 				</div>
+				</ng-container>
 			</div>
 		</div>
 

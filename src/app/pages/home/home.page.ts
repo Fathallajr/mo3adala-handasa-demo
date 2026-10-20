@@ -32,6 +32,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	showFinalSubscriptionChoices = false;
 	showFinalTeacherChoices = false;
 	publishedFeedbacks: Array<{ id: string; name: string; university?: string; batch?: string; rating: number; message: string }> = [];
+	publishedFeedbacksLoaded = false;
 	private readonly feedbackEndpoint = '/api/feedback/published';
 	private readonly refreshPublishedFeedbacksOnFocus = () => this.loadPublishedFeedbacks();
 	private publishedFeedbackRefreshTimer: ReturnType<typeof setInterval> | null = null;
@@ -207,7 +208,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.http.get<{ data: Array<{ id: string; name: string; university?: string; batch?: string; rating: number; message: string; createdAt?: string }> }>(this.feedbackEndpoint).subscribe({
 			next: response => {
 				// Always show the latest published feedback first in the carousel.
-				this.publishedFeedbacks = [...(response.data || [])].sort((left, right) => {
+				const nextFeedbacks = [...(response.data || [])].sort((left, right) => {
 					const leftTime = Date.parse(left.createdAt || '');
 					const rightTime = Date.parse(right.createdAt || '');
 					if (!Number.isFinite(leftTime) && !Number.isFinite(rightTime)) return 0;
@@ -215,9 +216,15 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 					if (!Number.isFinite(rightTime)) return -1;
 					return rightTime - leftTime;
 				});
-				this.resetReviewsScrollPosition();
+				const orderChanged = nextFeedbacks.length !== this.publishedFeedbacks.length
+					|| nextFeedbacks.some((feedback, index) => feedback.id !== this.publishedFeedbacks[index]?.id);
+				this.publishedFeedbacks = nextFeedbacks;
+				this.publishedFeedbacksLoaded = true;
+				if (orderChanged) this.resetReviewsScrollPosition();
 			},
-			error: () => undefined
+			error: () => {
+				this.publishedFeedbacksLoaded = true;
+			}
 		});
 	}
 
