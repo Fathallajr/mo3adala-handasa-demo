@@ -65,12 +65,12 @@
 			</div>
 		</section>
 
-		<section class="td-video-section" *ngIf="teacher.demoVideo?.youtubeId">
+		<section class="td-video-section" *ngIf="teacher.demoVideos?.length">
 			<div class="td-video-heading"><span class="td-section-eyebrow">تجربة قبل الاشتراك</span><h2>شوف أسلوب {{ teacher.name }} في الشرح</h2><p>فيديو مجاني يساعدك تتعرف على طريقة الشرح قبل ما تبدأ.</p></div>
-			<div class="td-video-wrap">
-				<a class="td-video-thumb" [href]="getVideoWatchUrl()" target="_blank" rel="noopener noreferrer" *ngIf="teacher.demoVideo?.youtubeId" aria-label="تشغيل الفيديو المجاني على يوتيوب">
-					<img [src]="getVideoThumbnail()" alt="فيديو مجاني" class="td-thumb-img" loading="lazy">
-					<div class="td-play-btn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></div><span class="td-free-badge">مجاني بالكامل</span>
+			<div class="td-video-wrap" *ngFor="let video of teacher.demoVideos">
+				<a class="td-video-thumb" [href]="getVideoWatchUrl(video)" target="_blank" rel="noopener noreferrer" aria-label="تشغيل فيديو الشرح على يوتيوب">
+					<img [src]="getVideoThumbnail(video)" [alt]="video.label || 'فيديو مجاني'" class="td-thumb-img" loading="lazy">
+					<div class="td-play-btn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></div><span class="td-free-badge">{{ video.label || 'مجاني بالكامل' }}</span>
 				</a>
 			</div>
 		</section>

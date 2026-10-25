@@ -31,6 +31,10 @@ interface Teacher {
     topic?: string;
     description?: string;
   };
+  demoVideos?: Array<{
+    youtubeId: string;
+    label?: string;
+  }>;
   isComingSoon?: boolean;
 }
 
@@ -67,12 +71,16 @@ export class TeacherDetailsPageComponent implements OnInit {
         youtube: 'https://youtube.com/@mr-ahmed-fathallah?si=QVMnPGojPl1KKAkm'
       },
       demoVideo: {
-        youtubeId: 'KSlSrJtky3Y',
+        youtubeId: 'MWnaGMPUvXQ',
         duration: '',
         level:'',
         topic: '',
         description: ''
-      }
+      },
+      demoVideos: [
+        { youtubeId: 'MWnaGMPUvXQ', label: 'رياضة عامة' },
+        { youtubeId: 'mZFh4OvHtq0', label: 'رياضة خاصة' }
+      ]
     },
     {
       id: 2,
@@ -94,12 +102,13 @@ export class TeacherDetailsPageComponent implements OnInit {
         youtube: 'https://youtube.com/@ahmed_abozeed?si=mfu1-CgVSm1LsMUQ'
       },
       demoVideo: {
-        youtubeId: '74MvjbCVob4',
+        youtubeId: 'uN_mmn-f1Qo',
         duration: '',
         level:'',
         topic: '',
         description: ''
-      }
+      },
+      demoVideos: [{ youtubeId: 'uN_mmn-f1Qo', label: 'ميكانيكا' }]
     },
     {
       id: 3,
@@ -121,12 +130,13 @@ export class TeacherDetailsPageComponent implements OnInit {
         youtube: 'https://youtube.com/@saadalaamairy6005?si=euH312iqEJN4ehb4'
       },
       demoVideo: {
-        youtubeId: 'NCezzQ1Nupo',
+        youtubeId: '5mBodurEvzQ',
         duration: '',
         level:'',
         topic: '',
         description: ''
-      }
+      },
+      demoVideos: [{ youtubeId: '5mBodurEvzQ', label: 'كيمياء' }]
     },
     {
       id: 4,
@@ -148,12 +158,13 @@ export class TeacherDetailsPageComponent implements OnInit {
         youtube: 'https://www.youtube.com/@Shamy-physics'
       },
       demoVideo: {
-        youtubeId: 'jPdkXXWy_D4?',
+        youtubeId: '-pz7_fRGaOw',
         duration: '',
         level:'',
         topic: '',
         description: ''
-      }
+      },
+      demoVideos: [{ youtubeId: '-pz7_fRGaOw', label: 'فيزياء' }]
     },
     {
       id: 5,
@@ -175,11 +186,12 @@ export class TeacherDetailsPageComponent implements OnInit {
         youtube: 'https://www.youtube.com/@dr_omar'
       },
       demoVideo: {
-        youtubeId: 'J9n2T9-MgxM',
+        youtubeId: 'kHz06zQFGWw',
         duration: '',
         topic: '',
         description: ''
-      }
+      },
+      demoVideos: [{ youtubeId: 'kHz06zQFGWw', label: 'إنجليزي' }]
     }
   ];
 
@@ -224,8 +236,8 @@ export class TeacherDetailsPageComponent implements OnInit {
     this.isVideoLoaded = true;
   }
 
-  getVideoThumbnail(): string {
-    const id = this.teacher?.demoVideo?.youtubeId?.replace('?', '') || '';
+  getVideoThumbnail(video: { youtubeId: string }): string {
+    const id = video.youtubeId.replace('?', '');
     return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
   }
 
@@ -238,8 +250,8 @@ export class TeacherDetailsPageComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
-  getVideoWatchUrl(): string {
-    const id = this.teacher?.demoVideo?.youtubeId?.replace('?', '') || '';
+  getVideoWatchUrl(video: { youtubeId: string }): string {
+    const id = video.youtubeId.replace('?', '');
     return id ? `https://www.youtube.com/watch?v=${id}` : 'https://www.youtube.com/';
   }
 
