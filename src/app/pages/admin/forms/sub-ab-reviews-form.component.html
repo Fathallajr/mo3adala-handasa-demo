@@ -1,7 +1,6 @@
 <div class="cms-form" *ngIf="data">
-
-	<div class="cms-section">
-		<div class="cms-section-title">حالة الاشتراك</div>
+	<details class="cms-section cms-section--collapsible">
+		<summary class="cms-section-title">حالة الاشتراك</summary>
 		<div class="cms-toggle-wrap" style="margin-bottom:0.75rem">
 			<label class="cms-switch">
 				<input type="checkbox" [(ngModel)]="data.isEnrollmentClosed" />
@@ -26,10 +25,10 @@
 				<span class="cms-help" *ngIf="data.enrollmentWindow.expiresAt">ينتهي: {{ data.enrollmentWindow.expiresAt | date:'short' }}</span>
 			</div>
 		</div>
-	</div>
+	</details>
 
-	<div class="cms-section">
-		<div class="cms-section-title">تفاصيل الاشتراك</div>
+	<details class="cms-section cms-section--collapsible">
+		<summary class="cms-section-title">تفاصيل الاشتراك</summary>
 		<div class="cms-row">
 			<div class="cms-field">
 				<label class="cms-label">عنوان الشهر في الهيرو</label>
@@ -55,10 +54,10 @@
 			<label class="cms-label">رقم واتساب للدعم</label>
 			<input class="cms-input" [(ngModel)]="data.subscriptionDetails.whatsappNumber" placeholder="201080681865" dir="ltr" />
 		</div>
-	</div>
+	</details>
 
-	<div class="cms-section">
-	<div class="cms-section-title">فورم الاشتراك الموحد</div>
+	<details class="cms-section cms-section--collapsible">
+	<summary class="cms-section-title">فورم الاشتراك الموحد</summary>
 		<div class="cms-subsection">
 			<div class="cms-row">
 				<div class="cms-field">
@@ -77,19 +76,19 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</details>
 
-	<div class="cms-section">
-		<div class="cms-section-title">فيديو تفاصيل الاشتراك</div>
+	<details class="cms-section cms-section--collapsible">
+		<summary class="cms-section-title">فيديو تفاصيل الاشتراك</summary>
 		<div class="cms-field" style="margin-bottom:0">
 			<label class="cms-label">رابط فيديو YouTube</label>
 			<input class="cms-input" [(ngModel)]="data.subscriptionDetails.videoUrl" placeholder="https://youtu.be/... أو https://www.youtube.com/watch?v=..." dir="ltr" />
 			<div class="cms-help">يظهر الفيديو في صفحة الاشتراك الحالية فقط. اترك الحقل فارغًا لإخفائه.</div>
 		</div>
-	</div>
+	</details>
 
-	<div class="cms-section">
-		<div class="cms-section-title">أرقام فودافون كاش ({{ data.subscriptionDetails.vodafoneNumbers.length }})</div>
+	<details class="cms-section cms-section--collapsible cms-section--vodafone">
+		<summary class="cms-section-title">أرقام فودافون كاش ({{ data.subscriptionDetails.vodafoneNumbers.length }})</summary>
 		<div class="cms-array-list">
 			<div class="cms-array-item" *ngFor="let w of data.subscriptionDetails.vodafoneNumbers; let i = index">
 				<div style="flex:1">
@@ -109,10 +108,10 @@
 			</div>
 		</div>
 		<button type="button" class="cms-add-btn" (click)="addVodafone()">+ إضافة رقم</button>
-	</div>
+	</details>
 
-	<div class="cms-section">
-		<div class="cms-section-title">جدول الاشتراك</div>
+	<details class="cms-section cms-section--collapsible cms-section--schedule">
+		<summary class="cms-section-title">جدول الاشتراك</summary>
 		<div class="cms-help" *ngIf="uploadError" style="color:#b42318; margin-bottom:0.75rem">{{ uploadError }}</div>
 		<div class="cms-array-list">
 			<div class="cms-array-item" *ngFor="let img of data.subscriptionDetails.scheduleImages; let i = index">
@@ -146,10 +145,10 @@
 			</div>
 		</div>
 		<button type="button" class="cms-add-btn" (click)="addSchedule()">+ إضافة جدول</button>
-	</div>
+	</details>
 
-	<div class="cms-section">
-		<div class="cms-section-title">مميزات الاشتراك</div>
+	<details class="cms-section cms-section--collapsible">
+		<summary class="cms-section-title">مميزات الاشتراك</summary>
 		<div class="cms-array-list">
 			<div class="cms-array-item" *ngFor="let f of data.subscriptionDetails.features; let i = index">
 				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.features[i]" placeholder="ميزة..." style="flex:1" />
@@ -157,10 +156,10 @@
 			</div>
 		</div>
 		<button type="button" class="cms-add-btn" (click)="addFeature()">+ إضافة ميزة</button>
-	</div>
+	</details>
 
-	<div class="cms-section">
-		<div class="cms-section-title">البيانات المطلوبة بعد الدفع</div>
+	<details class="cms-section cms-section--collapsible">
+		<summary class="cms-section-title">البيانات المطلوبة بعد الدفع</summary>
 		<div class="cms-array-list">
 			<div class="cms-array-item" *ngFor="let r of data.subscriptionDetails.requiredInfo; let i = index">
 				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.requiredInfo[i]" placeholder="بيان مطلوب..." style="flex:1" />
@@ -168,6 +167,6 @@
 			</div>
 		</div>
 		<button type="button" class="cms-add-btn" (click)="addRequired()">+ إضافة بيان</button>
-	</div>
+	</details>
 
 </div>

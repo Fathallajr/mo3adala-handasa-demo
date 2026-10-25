@@ -4,6 +4,17 @@ export const subscriptionFormStyles = `
 .cms-section::before { content:''; position:absolute; inset:0 0 auto; height:3px; background:linear-gradient(90deg,#6d4aff,#a96cff); opacity:.9; }
 .cms-section-title { margin-bottom:1.2rem; padding:0 0 .85rem; border-bottom:1px solid #edf0f6; color:#172033; font-size:1rem; letter-spacing:-.15px; }
 .cms-section-title::before { content:''; width:9px; height:9px; flex:0 0 9px; border-radius:50%; background:#6d4aff; box-shadow:0 0 0 5px #6d4aff16; }
+.cms-section--collapsible { padding:0; }
+.cms-section--collapsible { order:10; }
+.cms-section--schedule { order:5; }
+.cms-section--vodafone { order:6; }
+.cms-section--collapsible > .cms-section-title { display:flex; align-items:center; gap:.65rem; margin:0; padding:1.15rem 1.35rem; border:0; cursor:pointer; list-style:none; user-select:none; transition:background .2s,color .2s; }
+.cms-section--collapsible > .cms-section-title::-webkit-details-marker { display:none; }
+.cms-section--collapsible > .cms-section-title::after { content:'⌄'; margin-inline-start:auto; color:#6d4aff; font-size:1.2rem; font-weight:900; line-height:1; transition:transform .2s; }
+.cms-section--collapsible[open] > .cms-section-title { border-bottom:1px solid #edf0f6; background:#fbfcff; color:#5540c9; }
+.cms-section--collapsible[open] > .cms-section-title::after { transform:rotate(180deg); }
+.cms-section--collapsible > :not(summary) { margin-inline:1.35rem; }
+.cms-section--collapsible > :last-child { margin-bottom:1.35rem; }
 .cms-subsection { padding:1rem; border:1px solid #e8ebf3; border-radius:15px; background:#f8f9fd; }
 .cms-subsection-title { margin:0 0 .8rem; color:#5540c9; font-size:.86rem; font-weight:900; }
 .cms-help { color:#748097; line-height:1.8; }
@@ -23,5 +34,5 @@ export const subscriptionFormStyles = `
 .cms-array-item__num { color:#6d4aff; }
 .cms-add-btn { margin-top:.75rem; background:#f4f1ff; }
 .cms-image-field { padding:.7rem; border:1px dashed #d4cef9; border-radius:12px; background:#faf9ff; }
-@media(max-width:700px){.cms-section{padding:1rem;border-radius:16px}.cms-row,.cms-row-3{grid-template-columns:1fr}.cms-subsection{padding:.8rem}}
+@media(max-width:700px){.cms-section{padding:1rem;border-radius:16px}.cms-section--collapsible{padding:0}.cms-section--collapsible > .cms-section-title{padding:1rem}.cms-section--collapsible > :not(summary){margin-inline:1rem}.cms-section--collapsible > :last-child{margin-bottom:1rem}.cms-row,.cms-row-3{grid-template-columns:1fr}.cms-subsection{padding:.8rem}}
 `;
