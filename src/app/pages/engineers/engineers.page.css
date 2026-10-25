@@ -876,6 +876,24 @@
 	.teacher-card h3 {
 		font-size: .84rem;
 	}
+	.teacher-card__heading {
+		display: block;
+	}
+	.teacher-card__heading h3 {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+	.teacher-card__videos {
+		width: 100%;
+		margin-top: .55rem;
+		justify-content: flex-start;
+	}
+	.teacher-card__youtube {
+		max-width: 100%;
+		box-sizing: border-box;
+		padding: .4rem .55rem;
+		font-size: .62rem;
+	}
 	.teacher-card p,
 	.teacher-card__link {
 		font-size: .68rem;
