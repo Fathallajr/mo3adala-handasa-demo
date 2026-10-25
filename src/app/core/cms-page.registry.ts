@@ -59,11 +59,12 @@ export const cmsPageOptions: CmsPageOption[] = [
 	{ key: 'subscription-computers-en', route: '/subscription-computers-en', title: 'اشتراك حاسبات لغات — دفعة 2027', description: 'محتوى الشهر والفورم والدفع والجدول', group: 'الاشتراكات' },
 ];
 
-function createSubscriptionPageDefault(schedule: { group: string; src: string; alt: string; note: string }, formLink?: string): unknown {
+function createSubscriptionPageDefault(schedule: { group: string; src: string; alt: string; note: string }, formLink?: string, month?: string): unknown {
 	const page = JSON.parse(JSON.stringify(monthlyContentDefaults['subscription-ab-reviews'])) as any;
 	page.subscriptionDetails.scheduleImages = [schedule];
 	if (schedule.src.includes('computers')) page.subscriptionDetails.review.price = '600';
 	if (formLink) page.subscriptionDetails.googleForm.link = formLink;
+	if (month) page.subscriptionDetails.month = month;
 	return page;
 }
 
@@ -191,10 +192,10 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 	'subscription-ab-reviews': monthlyContentDefaults['subscription-ab-reviews'],
 	'subscription-computers': createSubscriptionPageDefault(computersArabicSchedule)
 	,
-	'subscription-engineering-ar': createSubscriptionPageDefault(engineeringArabicSchedule),
-	'subscription-engineering-en': createSubscriptionPageDefault(engineeringEnglishSchedule, 'https://forms.gle/WFv9urJ1QDu3eE5y9'),
-	'subscription-computers-ar': createSubscriptionPageDefault(computersArabicSchedule),
-	'subscription-computers-en': createSubscriptionPageDefault(computersEnglishSchedule, 'https://forms.gle/WFv9urJ1QDu3eE5y9'),
+	'subscription-engineering-ar': createSubscriptionPageDefault(engineeringArabicSchedule, undefined, 'شهر أكتوبر'),
+	'subscription-engineering-en': createSubscriptionPageDefault(engineeringEnglishSchedule, 'https://forms.gle/WFv9urJ1QDu3eE5y9', 'October'),
+	'subscription-computers-ar': createSubscriptionPageDefault(computersArabicSchedule, undefined, 'شهر أكتوبر'),
+	'subscription-computers-en': createSubscriptionPageDefault(computersEnglishSchedule, 'https://forms.gle/WFv9urJ1QDu3eE5y9', 'October'),
 	'batch-2027': {
 		visible: true,
 		wheelVisible: true,

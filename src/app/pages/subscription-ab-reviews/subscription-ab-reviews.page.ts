@@ -62,7 +62,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	get heroMonthLabel(): string {
-		return this.isEnglishSubscription ? 'October' : 'شهر أكتوبر';
+		return String(this.subscriptionDetails?.month ?? '');
 	}
 
 	get heroClosingDateLabel(): string {
@@ -332,7 +332,6 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		}
 		this.subscriptionDetails = {
 			...this.subscriptionDetails,
-			month: this.subscriptionProgramLabel,
 			review: {
 				...this.subscriptionDetails.review,
 				name: this.subscriptionProgramLabel,
