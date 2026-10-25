@@ -31,6 +31,7 @@ export class SubAbReviewsFormComponent implements OnChanges {
 		sd.scheduleImages ??= [];
 		sd.features ??= [];
 		sd.requiredInfo ??= [];
+		sd.videoUrl ??= '';
 		sd.review ??= { name: 'مراجعات A-B', price: '800' };
 		sd.googleForm ??= {};
 		if (!sd.googleForm.link && sd.googleForms) {

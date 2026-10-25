@@ -79,6 +79,15 @@
 	</div>
 
 	<div class="cms-section">
+		<div class="cms-section-title">فيديو تفاصيل الاشتراك</div>
+		<div class="cms-field" style="margin-bottom:0">
+			<label class="cms-label">رابط فيديو YouTube</label>
+			<input class="cms-input" [(ngModel)]="data.subscriptionDetails.videoUrl" placeholder="https://youtu.be/... أو https://www.youtube.com/watch?v=..." dir="ltr" />
+			<div class="cms-help">يظهر الفيديو في صفحة الاشتراك الحالية فقط. اترك الحقل فارغًا لإخفائه.</div>
+		</div>
+	</div>
+
+	<div class="cms-section">
 		<div class="cms-section-title">أرقام فودافون كاش ({{ data.subscriptionDetails.vodafoneNumbers.length }})</div>
 		<div class="cms-array-list">
 			<div class="cms-array-item" *ngFor="let w of data.subscriptionDetails.vodafoneNumbers; let i = index">

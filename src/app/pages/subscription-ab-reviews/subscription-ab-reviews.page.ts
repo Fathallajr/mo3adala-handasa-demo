@@ -227,6 +227,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 
 	subscriptionDetails = {
 		month: 'الشهر الأول — أكتوبر',
+		videoUrl: '',
 		review: {
 			name: 'اشتراك الشهر الأول',
 			price: '800'
@@ -441,8 +442,28 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		this.isVideoLoaded = true;
 	}
 
+	private getConfiguredVideoId(): string {
+		const value = String((this.subscriptionDetails as any).videoUrl || '').trim();
+		if (!value) return '';
+		if (/^[\w-]{11}$/.test(value)) return value;
+		try {
+			const url = new URL(value);
+			if (!/(^|\.)youtube(?:-nocookie)?\.com$/.test(url.hostname) && url.hostname !== 'youtu.be') return '';
+			if (url.hostname === 'youtu.be') return url.pathname.slice(1).split('/')[0].slice(0, 11);
+			if (url.pathname === '/watch') return (url.searchParams.get('v') || '').slice(0, 11);
+			const match = url.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]{11})/);
+			return match?.[1] || '';
+		} catch {
+			return '';
+		}
+	}
+
+	hasConfiguredVideo(): boolean {
+		return Boolean(this.getConfiguredVideoId());
+	}
+
 	getVideoEmbedUrl(): SafeResourceUrl {
-		const videoId = 'T-5MVk5jq9Q';
+		const videoId = this.getConfiguredVideoId();
 		const origin = typeof window !== 'undefined' ? window.location.origin : 'https://appmo3adla.com';
 		const params = new URLSearchParams({
 			autoplay: '1',
@@ -455,12 +476,12 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	}
 
 	getVideoThumbnail(): string {
-		const videoId = 'T-5MVk5jq9Q';
+		const videoId = this.getConfiguredVideoId();
 		return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 	}
 
 	getVideoWatchUrl(): string {
-		return 'https://youtu.be/T-5MVk5jq9Q';
+		return String((this.subscriptionDetails as any).videoUrl || '').trim();
 	}
 
 	private shuffleVodafoneNumbers(): void {

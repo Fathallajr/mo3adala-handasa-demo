@@ -27,6 +27,7 @@ export class SubDetailsFormComponent implements OnChanges {
 		sd.scheduleImages ??= [];
 		sd.features ??= [];
 		sd.requiredInfo ??= [];
+		sd.videoUrl ??= '';
 		sd.offers ??= [];
 		sd.groupC ??= { name: 'جروب C', price: '800' };
 		sd.googleForms ??= { groupC: {} };

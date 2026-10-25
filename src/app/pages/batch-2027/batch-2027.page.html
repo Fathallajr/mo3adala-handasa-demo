@@ -44,7 +44,7 @@
 				<button type="submit" class="batch-button batch-button--submit" [disabled]="freeCodeSubmitting">{{ freeCodeSubmitting ? 'جاري التسجيل...' : 'سجل وخد الكود المجاني' }} <span>←</span></button>
 				<p *ngIf="freeCodeError" class="batch-form-error" role="alert">⚠ {{ freeCodeError }}</p>
 			</form>
-			<div *ngIf="freeCodeSubmitted" class="free-code-success" role="status"><strong>✓ تم تسجيل طلبك بنجاح</strong><span>اضغط على زر واتساب وابعت الرسالة الجاهزة عشان تستلم الكود.</span><button type="button" class="batch-button batch-button--primary" (click)="openFreeCodeWhatsApp()">اطلب الكود على واتساب <span>↗</span></button></div>
+			<div *ngIf="freeCodeSubmitted" class="free-code-success" role="status"><strong>✓ تم تسجيل طلبك بنجاح</strong><span>جاري تحويلك تلقائيًا إلى واتساب لإرسال طلب الكود.</span></div>
 			</ng-container>
 			<ng-template #freeCodeClosedPanel><div class="free-code-closed free-code-closed--full">طلبات الأكواد المجانية مغلقة حاليًا. تابعنا لمعرفة موعد فتحها من جديد.</div></ng-template>
 		</div>

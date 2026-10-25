@@ -461,6 +461,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				this.freeCodeClaimedCount = Number(payload.status.claimedCount || this.freeCodeClaimedCount + 1);
 				this.freeCodeRemaining = payload.status.remaining === null ? null : Number(payload.status.remaining || 0);
 			}
+			this.openFreeCodeWhatsApp();
 		} catch (error) {
 			this.freeCodeError = error instanceof Error ? error.message : 'تعذر تسجيل طلب الكود. حاول تاني.';
 		} finally {
@@ -472,8 +473,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	openFreeCodeWhatsApp(): void {
 		const message = ['السلام عليكم، عايز الكود المجاني لدفعة 2027.', `الاسم: ${this.freeCodeRequest.name.trim()}`, `نوع المعادلة: ${this.freeCodeRequest.program}`, `رقم الواتساب: ${this.freeCodeRequest.whatsapp}`].join('\n');
 		const url = `https://wa.me/${this.freeCodeWhatsAppNumber}?text=${encodeURIComponent(message)}`;
-		const popup = window.open(url, '_blank', 'noopener,noreferrer');
-		if (!popup) window.location.href = url;
+		window.location.href = url;
 	}
 
 	ngOnDestroy(): void {

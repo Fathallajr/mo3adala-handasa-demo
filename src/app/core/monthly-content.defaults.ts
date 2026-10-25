@@ -6,6 +6,7 @@ export const monthlyContentDefaults = {
 		enrollmentReopenMessage: 'سيتم فتح الاشتراك للمشتركين الجدد مع بداية الشهر القادم بإذن الله.',
 		subscriptionDetails: {
 			month: ' شهر مايو 2026',
+			videoUrl: '',
 			groupC: {
 				name: 'جروب C',
 				price: '800',
@@ -83,6 +84,7 @@ export const monthlyContentDefaults = {
 		enrollmentWindow: { days: 0, hours: 0, minutes: 0, seconds: 0, startedAt: '', expiresAt: '' },
 		subscriptionDetails: {
 			month: 'الشهر الأول — أكتوبر',
+				videoUrl: '',
 			review: {
 				name: 'اشتراك الشهر الأول',
 				price: '800'
