@@ -87,29 +87,6 @@
 		</div>
 	</details>
 
-	<details class="cms-section cms-section--collapsible cms-section--vodafone">
-		<summary class="cms-section-title">أرقام فودافون كاش ({{ data.subscriptionDetails.vodafoneNumbers.length }})</summary>
-		<div class="cms-array-list">
-			<div class="cms-array-item" *ngFor="let w of data.subscriptionDetails.vodafoneNumbers; let i = index">
-				<div style="flex:1">
-					<div class="cms-array-item__num">رقم {{ i + 1 }}</div>
-					<div class="cms-row">
-						<div class="cms-field" style="margin-bottom:0">
-							<label class="cms-label">الرقم</label>
-							<input class="cms-input" [(ngModel)]="w.number" placeholder="01xxxxxxxxx" dir="ltr" />
-						</div>
-						<div class="cms-field" style="margin-bottom:0">
-							<label class="cms-label">اسم الصاحب (مع التمويه)</label>
-							<input class="cms-input" [(ngModel)]="w.owner" placeholder="Ahmed A*****" />
-						</div>
-					</div>
-				</div>
-				<button type="button" class="cms-array-item__del" (click)="removeVodafone(i)">×</button>
-			</div>
-		</div>
-		<button type="button" class="cms-add-btn" (click)="addVodafone()">+ إضافة رقم</button>
-	</details>
-
 	<details class="cms-section cms-section--collapsible cms-section--schedule">
 		<summary class="cms-section-title">جدول الاشتراك</summary>
 		<div class="cms-help" *ngIf="uploadError" style="color:#b42318; margin-bottom:0.75rem">{{ uploadError }}</div>
@@ -145,6 +122,29 @@
 			</div>
 		</div>
 		<button type="button" class="cms-add-btn" (click)="addSchedule()">+ إضافة جدول</button>
+	</details>
+
+	<details class="cms-section cms-section--collapsible cms-section--vodafone">
+		<summary class="cms-section-title">أرقام فودافون كاش ({{ data.subscriptionDetails.vodafoneNumbers.length }})</summary>
+		<div class="cms-array-list">
+			<div class="cms-array-item" *ngFor="let w of data.subscriptionDetails.vodafoneNumbers; let i = index">
+				<div style="flex:1">
+					<div class="cms-array-item__num">رقم {{ i + 1 }}</div>
+					<div class="cms-row">
+						<div class="cms-field" style="margin-bottom:0">
+							<label class="cms-label">الرقم</label>
+							<input class="cms-input" [(ngModel)]="w.number" placeholder="01xxxxxxxxx" dir="ltr" />
+						</div>
+						<div class="cms-field" style="margin-bottom:0">
+							<label class="cms-label">اسم الصاحب (مع التمويه)</label>
+							<input class="cms-input" [(ngModel)]="w.owner" placeholder="Ahmed A*****" />
+						</div>
+					</div>
+				</div>
+				<button type="button" class="cms-array-item__del" (click)="removeVodafone(i)">×</button>
+			</div>
+		</div>
+		<button type="button" class="cms-add-btn" (click)="addVodafone()">+ إضافة رقم</button>
 	</details>
 
 	<details class="cms-section cms-section--collapsible">
