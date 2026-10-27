@@ -551,6 +551,20 @@
 .teacher-card__heading { display:flex; align-items:flex-start; justify-content:space-between; gap:.75rem; }
 .teacher-card__heading h3 { flex:1; min-width:0; }
 
+/* Keep subject links below the teacher name so narrow cards never cover the heading. */
+.teacher-card--english .teacher-card__heading {
+	flex-direction: column;
+	align-items: stretch;
+	gap: .55rem;
+}
+.teacher-card--english .teacher-card__heading h3 {
+	width: 100%;
+}
+.teacher-card--english .teacher-card__videos {
+	width: 100%;
+	justify-content: flex-start;
+}
+
 .teacher-card p {
 	margin: .3rem 0 1rem;
 	color: #64748b;
@@ -868,6 +882,7 @@
 		padding-inline: 1rem;
 	}
 	.teachers-grid {
+		grid-template-columns: 1fr;
 		gap: .7rem;
 	}
 	.teacher-card__body {
