@@ -665,10 +665,6 @@ function analyticsGeo(req, body) {
 	let country = String(headers['cf-ipcountry'] || headers['x-vercel-ip-country'] || headers['x-country-code'] || geo.country || '').trim();
 	let region = String(headers['x-vercel-ip-country-region'] || headers['x-forwarded-region'] || headers['x-geo-region'] || headers['x-region'] || headers['x-province'] || geo.region || '').trim();
 	let city = String(headers['x-vercel-ip-city'] || headers['x-geo-city'] || headers['x-forwarded-city'] || headers['x-city'] || geo.city || '').trim();
-	const language = String(geo.language || '').toLowerCase();
-	const timeZone = String(geo.timeZone || '');
-	if (!country && (language.endsWith('-eg') || timeZone === 'Africa/Cairo')) country = 'Egypt';
-	if (!region && timeZone === 'Africa/Cairo') region = 'القاهرة';
 	if (String(country).toUpperCase() === 'EG') country = 'Egypt';
 	region = normalizeEgyptRegion(region);
 	return { country: country.slice(0, 120), region: region.slice(0, 120), city: city.slice(0, 120) };
