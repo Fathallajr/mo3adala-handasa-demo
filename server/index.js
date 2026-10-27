@@ -1201,12 +1201,14 @@ app.patch('/api/admin/feedback/:id', requireAdmin, requirePermission('feedback:u
 
 function normalizeUserPermissions(value) {
 	if (!Array.isArray(value)) return [];
-	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'free-codes', 'feedback', 'employees', 'finance', 'finance-payroll', 'finance-studio', 'finance-application']);
+	const allowed = new Set([...PAGE_KEYS, 'leads', 'customers', 'wheel', 'free-codes', 'feedback', 'analytics', 'employees', 'finance', 'finance-payroll', 'finance-studio', 'finance-application']);
 	const normalized = [];
 	for (const rawItem of value) {
 		const item = String(rawItem || '').trim();
 		if (item === 'customers' || item.startsWith('customers:')) {
 			if (!normalized.includes('customers')) normalized.push('customers');
+		} else if (item === 'analytics' || item === 'analytics:read') {
+			if (!normalized.includes('analytics')) normalized.push('analytics');
 		} else if (/^employee:\d+$/.test(item) || (allowed.has(item) && !normalized.includes(item))) {
 			normalized.push(item);
 		}
