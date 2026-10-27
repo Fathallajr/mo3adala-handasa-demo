@@ -716,6 +716,14 @@ function analyticsDateRange(query) {
 	return { from, to };
 }
 
+function analyticsLeadDate(value) {
+	if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString().slice(0, 10);
+	const raw = String(value || '').trim();
+	if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+	const parsed = Date.parse(raw);
+	return Number.isNaN(parsed) ? '' : new Date(parsed).toISOString().slice(0, 10);
+}
+
 app.post('/api/analytics/collect', async (req, res, next) => {
 	try {
 		const body = req.body || {};
@@ -748,10 +756,10 @@ app.get('/api/admin/analytics/summary', requireAdmin, requirePermission('analyti
 		const device = String(req.query.device || '').trim().slice(0, 40);
 		const summary = await database.getAnalyticsSummary({ ...range, device });
 		const store = await readStore();
-		const leads = (store.leads || []).filter(lead => !isWheelLead(lead) && String(lead.createdAt || '').slice(0, 10) >= range.from && String(lead.createdAt || '').slice(0, 10) <= range.to);
+		const leads = (store.leads || []).filter(lead => { const date = analyticsLeadDate(lead.createdAt); return !isWheelLead(lead) && date >= range.from && date <= range.to; });
 		const leadsBySource = {};
 		const leadsByMonth = {};
-		for (const lead of leads) { const source = lead.attribution?.platform || lead.source || 'غير محدد'; leadsBySource[source] = (leadsBySource[source] || 0) + 1; const month = String(lead.createdAt || '').slice(0, 7); if (/^\d{4}-\d{2}$/.test(month)) leadsByMonth[month] = (leadsByMonth[month] || 0) + 1; }
+		for (const lead of leads) { const source = lead.attribution?.platform || lead.source || 'غير محدد'; leadsBySource[source] = (leadsBySource[source] || 0) + 1; const month = analyticsLeadDate(lead.createdAt).slice(0, 7); if (/^\d{4}-\d{2}$/.test(month)) leadsByMonth[month] = (leadsByMonth[month] || 0) + 1; }
 		res.json({ ...summary, leads: leads.length, conversionRate: summary.visitors ? Number((leads.length / summary.visitors * 100).toFixed(2)) : 0, leadsBySource: Object.entries(leadsBySource).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value })), leadsByMonth: Object.entries(leadsByMonth).sort(([a], [b]) => a.localeCompare(b)).map(([month, value]) => ({ month, value })) });
 	} catch (error) { next(error); }
 });
