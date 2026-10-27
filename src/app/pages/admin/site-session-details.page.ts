@@ -11,6 +11,8 @@ export class SiteSessionDetailsPageComponent implements OnInit {
 	back(): void { void this.router.navigateByUrl('/admin/site-analysis'); }
 	formatDuration(seconds: number): string { const value = Number(seconds || 0); return `${Math.floor(value / 60)} د ${String(value % 60).padStart(2, '0')} ث`; }
 	pageDuration(page: any): string { return this.formatDuration(page.activeSeconds); }
+	isSessionActive(): boolean { const lastSeen = Date.parse(this.session?.lastSeen || ''); return !this.session?.endedAt && Number.isFinite(lastSeen) && Date.now() - lastSeen < 5 * 60 * 1000; }
+	pageExitTime(page: any): string | null { return page.exitedAt || (!this.isSessionActive() ? (this.session?.lastSeen || null) : null); }
 	pageCount(): number { return Array.isArray(this.session?.pageViewsDetails) ? this.session.pageViewsDetails.length : Number(this.session?.pageViews || 0); }
 	formatIp(ip: string): string { return ip === '::1' ? '127.0.0.1' : String(ip || '').replace(/^::ffff:/i, ''); }
 	pageLabel(path: string): string { const labels: Record<string, string> = { '/': 'الرئيسية', '/contact': 'التواصل معنا', '/faq': 'الأسئلة الشائعة', '/requirements': 'شروط المعادلة', '/batch-2027': 'دفعة 2027 والعجلة', '/success-stories': 'قصص النجاح', '/subscription-engineering-ar': 'اشتراك هندسة عربي — دفعة 2027', '/schools': 'المدارس والمعاهد' }; return labels[path] || path || 'الرئيسية'; }
