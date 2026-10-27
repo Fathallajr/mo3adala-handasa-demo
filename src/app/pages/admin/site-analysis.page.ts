@@ -80,27 +80,42 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 		const data = this.summary;
 		if (!data || this.loading) return;
 		const workbook = new ExcelJS.Workbook();
-		workbook.creator = 'Momentix Admin'; workbook.created = new Date();
-		const addSheet = (name: string, headers: string[], rows: unknown[][]): ExcelJS.Worksheet => {
-			const sheet = workbook.addWorksheet(name); sheet.views = [{ rightToLeft: true }];
-			sheet.addRow(headers); rows.forEach(row => sheet.addRow(row));
-			sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }; sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '2456B8' } };
-			sheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' }; sheet.autoFilter = { from: 'A1', to: `${String.fromCharCode(64 + Math.min(headers.length, 26))}1` }; sheet.views = [{ rightToLeft: true, state: 'frozen', ySplit: 1 }];
-			sheet.columns.forEach(column => { const number = column.number || 1; const lengths = sheet.getColumn(number).values.slice(1).map(value => String(value ?? '').length + 2); column.width = Math.min(42, Math.max(14, ...lengths)); });
+		workbook.creator = 'Momentix Admin'; workbook.created = new Date(); workbook.modified = new Date();
+		workbook.properties.date1904 = false;
+		const palette = { navy: '173A88', blue: '2456B8', pale: 'EAF1FF', border: 'D9E2F2', text: '18243B', muted: '687A9B', green: '13825F' };
+		const dateOnly = (value: string): Date | string => { const date = new Date(`${value}T00:00:00`); return Number.isNaN(date.getTime()) ? value : date; };
+		const dateTime = (value: string): Date | string => { const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date; };
+		const duration = (seconds: number): number => Math.max(Number(seconds || 0), 0) / 86400;
+		const columnLetter = (column: number): string => { let value = ''; for (let current = column; current > 0; current = Math.floor((current - 1) / 26)) value = String.fromCharCode(65 + ((current - 1) % 26)) + value; return value; };
+		let tableNumber = 0;
+		const addSheet = (name: string, headers: string[], rows: unknown[][], formats: Record<number, string> = {}): ExcelJS.Worksheet => {
+			const sheet = workbook.addWorksheet(name, { views: [{ rightToLeft: true, state: 'frozen', ySplit: 4 }] });
+			sheet.addRow([name]); sheet.mergeCells(1, 1, 1, headers.length);
+			sheet.addRow([`الفترة: ${data.from} إلى ${data.to}  |  الجهاز: ${this.device || 'كل الأجهزة'}`]); sheet.mergeCells(2, 1, 2, headers.length);
+			sheet.addRow([]); const headerRow = sheet.addRow(headers); rows.forEach(row => sheet.addRow(row));
+			const title = sheet.getCell(1, 1); title.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FFFFFFFF' } }; title.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: palette.navy } }; title.alignment = { horizontal: 'right', vertical: 'middle' };
+			const subtitle = sheet.getCell(2, 1); subtitle.font = { name: 'Arial', size: 10, color: { argb: palette.muted } }; subtitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: palette.pale } }; subtitle.alignment = { horizontal: 'right', vertical: 'middle' };
+			sheet.getRow(1).height = 32; sheet.getRow(2).height = 22; sheet.getRow(3).height = 8; headerRow.height = 25;
+			headerRow.eachCell(cell => { cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: palette.blue } }; cell.alignment = { horizontal: 'right', vertical: 'middle', wrapText: true }; cell.border = { bottom: { style: 'thin', color: { argb: palette.border } } }; });
+			for (let rowIndex = 5; rowIndex <= rows.length + 4; rowIndex++) { const row = sheet.getRow(rowIndex); row.eachCell(cell => { cell.font = { name: 'Arial', size: 10, color: { argb: palette.text } }; cell.alignment = { horizontal: 'right', vertical: 'middle', wrapText: true }; }); if (rowIndex % 2 === 1) row.eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F7F9FD' } }; }); }
+			Object.entries(formats).forEach(([column, format]) => { for (let rowIndex = 5; rowIndex <= rows.length + 4; rowIndex++) sheet.getCell(rowIndex, Number(column)).numFmt = format; });
+			sheet.columns = headers.map((header, index) => { const values = rows.map(row => String(row[index] ?? '')); const width = Math.max(header.length + 3, ...values.map(value => Math.min(value.length + 3, 38))); return { width: Math.min(38, Math.max(13, width)) }; });
+			if (rows.length) { tableNumber += 1; sheet.addTable({ name: `AnalyticsTable${tableNumber}`, ref: `A4:${columnLetter(headers.length)}${rows.length + 4}`, headerRow: true, style: { theme: 'TableStyleMedium2', showRowStripes: true }, columns: headers.map(name => ({ name })), rows: rows as (string | number | boolean | Date | null)[][] }); }
+			sheet.autoFilter = { from: `A4`, to: `${columnLetter(headers.length)}${rows.length + 4}` };
 			return sheet;
 		};
 		addSheet('ملخص', ['البند', 'القيمة'], [
-			['من تاريخ', data.from], ['إلى تاريخ', data.to], ['فلتر الجهاز', this.device || 'كل الأجهزة'], ['الزوار المميزون', data.visitors], ['الجلسات', data.sessions], ['مشاهدات الصفحات', data.pageViews], ['متوسط الجلسة', this.formatDuration(data.averageSessionDuration)], ['صفحات لكل جلسة', data.pagesPerSession], ['التسجيلات', data.leads], ['معدل التحويل', `${data.conversionRate}%`]
-		]);
-		addSheet('الزيارات اليومية', ['التاريخ', 'الجلسات'], data.trafficOverTime.map(item => [item.date, item.value]));
+			['من تاريخ', dateOnly(data.from)], ['إلى تاريخ', dateOnly(data.to)], ['فلتر الجهاز', this.device || 'كل الأجهزة'], ['الزوار المميزون', data.visitors], ['الجلسات', data.sessions], ['مشاهدات الصفحات', data.pageViews], ['متوسط الجلسة', duration(data.averageSessionDuration)], ['صفحات لكل جلسة', data.pagesPerSession], ['التسجيلات', data.leads], ['معدل التحويل', Number(data.conversionRate || 0) / 100]
+		], { 1: 'dd-mm-yyyy', 2: 'dd-mm-yyyy', 7: '[m]" د "ss" ث"', 10: '0.0%' });
+		addSheet('الزيارات اليومية', ['التاريخ', 'الجلسات'], data.trafficOverTime.map(item => [dateOnly(item.date), item.value]), { 1: 'dd-mm-yyyy', 2: '#,##0' });
 		const breakdownRows: unknown[][] = [];
 		[['الدول', data.countries], ['المناطق', data.regions], ['الأجهزة', data.devices], ['مصادر الزيارة', data.referrers]].forEach(([category, items]) => (items as Array<{ label: string; value: number }>).forEach(item => breakdownRows.push([category, item.label, item.value])));
-		addSheet('التقسيمات', ['التصنيف', 'القيمة', 'العدد'], breakdownRows);
-		addSheet('الصفحات الأكثر مشاهدة', ['الصفحة', 'المسار', 'المشاهدات'], data.topPages.map(item => [this.pageLabel(item.path), item.path, item.value]));
-		addSheet('أداء المواقع', ['الصفحة', 'المسار', 'الزوار', 'الجلسات', 'مشاهدات الصفحات', 'متوسط الجلسة', 'صفحات لكل جلسة'], data.performance.map(item => [this.pageLabel(item.path), item.path, item.visitors, item.sessions, item.pageViews, this.formatDuration(item.averageSessionDuration), item.pagesPerSession]));
-		addSheet('التسجيلات', ['الشهر', 'عدد التسجيلات'], data.leadsByMonth.map(item => [this.formatMonth(item.month), item.value]));
-		addSheet('جلسات الزوار', ['المعرف', 'الجهاز', 'المتصفح', 'نظام التشغيل', 'صفحة الدخول', 'المصدر', 'عدد الصفحات', 'المدة', 'آخر نشاط'], data.recentSessions.map(session => [session.id, session.device, session.browser, session.os, session.landingPath, session.referrer || 'مباشر', session.pageViews, this.formatDuration(session.durationSeconds), session.lastSeen]));
-		addSheet('جلسات الأدمن', ['المستخدم', 'الصلاحية', 'وقت الدخول', 'آخر نشاط', 'المدة', 'الحالة'], this.adminSessions.map(session => [session.username || 'غير محدد', session.role, session.loginAt, session.lastSeen, this.formatAdminSessionDuration(session), session.logoutAt ? 'انتهت' : 'نشطة']));
+		addSheet('التقسيمات', ['التصنيف', 'القيمة', 'العدد'], breakdownRows, { 3: '#,##0' });
+		addSheet('الصفحات الأكثر مشاهدة', ['الصفحة', 'المسار', 'المشاهدات'], data.topPages.map(item => [this.pageLabel(item.path), item.path, item.value]), { 3: '#,##0' });
+		addSheet('أداء المواقع', ['الصفحة', 'المسار', 'الزوار', 'الجلسات', 'مشاهدات الصفحات', 'متوسط الجلسة', 'صفحات لكل جلسة'], data.performance.map(item => [this.pageLabel(item.path), item.path, item.visitors, item.sessions, item.pageViews, duration(item.averageSessionDuration), item.pagesPerSession]), { 3: '#,##0', 4: '#,##0', 5: '#,##0', 6: '[m]" د "ss" ث"', 7: '0.00' });
+		addSheet('التسجيلات', ['الشهر', 'عدد التسجيلات'], data.leadsByMonth.map(item => [this.formatMonth(item.month), item.value]), { 2: '#,##0' });
+		addSheet('جلسات الزوار', ['المعرف', 'الجهاز', 'المتصفح', 'نظام التشغيل', 'صفحة الدخول', 'المصدر', 'عدد الصفحات', 'المدة', 'آخر نشاط'], data.recentSessions.map(session => [session.id, session.device, session.browser, session.os, session.landingPath, session.referrer || 'مباشر', session.pageViews, duration(session.durationSeconds), dateTime(session.lastSeen)]), { 7: '#,##0', 8: '[m]" د "ss" ث"', 9: 'dd-mm-yyyy hh:mm' });
+		addSheet('جلسات الأدمن', ['المستخدم', 'الصلاحية', 'وقت الدخول', 'آخر نشاط', 'المدة', 'الحالة'], this.adminSessions.map(session => [session.username || 'غير محدد', session.role, dateTime(session.loginAt), dateTime(session.lastSeen), duration(Math.max(0, Math.round((Date.parse(session.logoutAt || session.lastSeen) - Date.parse(session.loginAt)) / 1000))), session.logoutAt ? 'منتهية' : 'نشطة']), { 3: 'dd-mm-yyyy hh:mm', 4: 'dd-mm-yyyy hh:mm', 5: '[m]" د "ss" ث"' });
 		const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `تحليل-الموقع-${data.from}-${data.to}.xlsx`; link.click(); URL.revokeObjectURL(url);
 	}
 }
