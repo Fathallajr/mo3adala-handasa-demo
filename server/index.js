@@ -640,16 +640,37 @@ function analyticsOs(userAgent) {
 	return 'غير محدد';
 }
 
+function normalizeEgyptRegion(value) {
+	const raw = String(value || '').trim();
+	if (!raw) return '';
+	const key = raw.toUpperCase().replace(/[\s_-]+/g, '');
+	const regions = {
+		C: 'القاهرة', CAIRO: 'القاهرة', GIZA: 'الجيزة', GZ: 'الجيزة', ALEXANDRIA: 'الإسكندرية', ALX: 'الإسكندرية',
+		QALYUBIA: 'القليوبية', QLY: 'القليوبية', DAKAHLIA: 'الدقهلية', DK: 'الدقهلية', SHARQIA: 'الشرقية', SHQ: 'الشرقية',
+		GHARBIA: 'الغربية', GHR: 'الغربية', MENOUFIA: 'المنوفية', MNF: 'المنوفية', BEHEIRA: 'البحيرة', BH: 'البحيرة',
+		KAFRELSHEIKH: 'كفر الشيخ', KFS: 'كفر الشيخ', DAMIETTA: 'دمياط', DAM: 'دمياط', PORTSAID: 'بورسعيد', PTS: 'بورسعيد',
+		ISMAILIA: 'الإسماعيلية', IS: 'الإسماعيلية', SUEZ: 'السويس', SUZ: 'السويس', MATROUH: 'مطروح', MAT: 'مطروح',
+		FAYOUM: 'الفيوم', FYM: 'الفيوم', BENISUEF: 'بني سويف', BNS: 'بني سويف', MINYA: 'المنيا', MN: 'المنيا',
+		ASSIUT: 'أسيوط', AST: 'أسيوط', SOHAG: 'سوهاج', SOH: 'سوهاج', QENA: 'قنا', QN: 'قنا',
+		LUXOR: 'الأقصر', LX: 'الأقصر', ASWAN: 'أسوان', ASN: 'أسوان', REDSEA: 'البحر الأحمر', RED: 'البحر الأحمر',
+		NORTHSINAI: 'شمال سيناء', SIN: 'شمال سيناء', SOUTHSINAI: 'جنوب سيناء', SYN: 'جنوب سيناء',
+		NEWVALLEY: 'الوادي الجديد', WAD: 'الوادي الجديد'
+	};
+	return regions[key] || raw;
+}
+
 function analyticsGeo(req, body) {
 	const geo = body.geo && typeof body.geo === 'object' ? body.geo : {};
 	const headers = req.headers || {};
 	let country = String(headers['cf-ipcountry'] || headers['x-vercel-ip-country'] || headers['x-country-code'] || geo.country || '').trim();
-	let region = String(headers['x-vercel-ip-country-region'] || headers['x-region'] || geo.region || '').trim();
-	let city = String(headers['x-vercel-ip-city'] || headers['x-city'] || geo.city || '').trim();
+	let region = String(headers['x-vercel-ip-country-region'] || headers['x-forwarded-region'] || headers['x-geo-region'] || headers['x-region'] || headers['x-province'] || geo.region || '').trim();
+	let city = String(headers['x-vercel-ip-city'] || headers['x-geo-city'] || headers['x-forwarded-city'] || headers['x-city'] || geo.city || '').trim();
 	const language = String(geo.language || '').toLowerCase();
 	const timeZone = String(geo.timeZone || '');
 	if (!country && (language.endsWith('-eg') || timeZone === 'Africa/Cairo')) country = 'Egypt';
 	if (!region && timeZone === 'Africa/Cairo') region = 'القاهرة';
+	if (String(country).toUpperCase() === 'EG') country = 'Egypt';
+	region = normalizeEgyptRegion(region);
 	return { country: country.slice(0, 120), region: region.slice(0, 120), city: city.slice(0, 120) };
 }
 
