@@ -58,16 +58,16 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	formatDuration(seconds: number): string { const value = Number(seconds || 0); return `${Math.floor(value / 60)} د ${String(value % 60).padStart(2, '0')} ث`; }
 	formatAdminSessionDuration(session: AdminActivitySession): string { const start = Date.parse(session.loginAt); const end = Date.parse(session.logoutAt || session.lastSeen); return this.formatDuration(Math.max(0, Math.round((end - start) / 1000))); }
 	locationLabel(value: string, type: 'country' | 'region'): string {
-		const raw = String(value || '').trim(); if (!raw || raw === 'غير محدد') return 'غير محدد';
+		const raw = String(value || '').trim(); if (!raw || raw === 'غير محدد') return 'Unknown';
 		const key = raw.toUpperCase().replace(/[\s_-]+/g, '').replace(/GOVERNORATE$/, '');
 		if (type === 'country') {
 			const countries: Record<string, string> = { EG: 'مصر', EGYPT: 'مصر', GB: 'المملكة المتحدة', UK: 'المملكة المتحدة', UNITEDKINGDOM: 'المملكة المتحدة', US: 'الولايات المتحدة', UNITEDSTATES: 'الولايات المتحدة', AE: 'الإمارات العربية المتحدة', SA: 'السعودية', DE: 'ألمانيا', FR: 'فرنسا', IT: 'إيطاليا', CA: 'كندا', AU: 'أستراليا' };
 			if (countries[key]) return countries[key];
 			return raw;
 		}
-		const regions: Record<string, string> = { C: 'القاهرة', CAIRO: 'القاهرة', GIZA: 'الجيزة', GZ: 'الجيزة', ALEXANDRIA: 'الإسكندرية', ALX: 'الإسكندرية', QALYUBIA: 'القليوبية', ALQALYUBIYAH: 'القليوبية', QLY: 'القليوبية', DAKAHLIA: 'الدقهلية', DAQAHLIYAH: 'الدقهلية', DK: 'الدقهلية', SHARQIA: 'الشرقية', SHQ: 'الشرقية', GHARBIA: 'الغربية', GHR: 'الغربية', MENOUFIA: 'المنوفية', MNF: 'المنوفية', BEHEIRA: 'البحيرة', BH: 'البحيرة', KAFRELSHEIKH: 'كفر الشيخ', KFS: 'كفر الشيخ', DAMIETTA: 'دمياط', DAM: 'دمياط', PORTSAID: 'بورسعيد', PTS: 'بورسعيد', ISMAILIA: 'الإسماعيلية', IS: 'الإسماعيلية', SUEZ: 'السويس', SUZ: 'السويس', MATROUH: 'مطروح', MAT: 'مطروح', FAYOUM: 'الفيوم', FYM: 'الفيوم', BENISUEF: 'بني سويف', BNS: 'بني سويف', MINYA: 'المنيا', MN: 'المنيا', ASSIUT: 'أسيوط', AST: 'أسيوط', SOHAG: 'سوهاج', SOH: 'سوهاج', QENA: 'قنا', QN: 'قنا', LUXOR: 'الأقصر', LX: 'الأقصر', ASWAN: 'أسوان', ASN: 'أسوان', REDSEA: 'البحر الأحمر', RED: 'البحر الأحمر', NORTHSINAI: 'شمال سيناء', SIN: 'شمال سيناء', SOUTHSINAI: 'جنوب سيناء', SYN: 'جنوب سيناء', NEWVALLEY: 'الوادي الجديد', WAD: 'الوادي الجديد' };
+		const regions: Record<string, string> = { C: 'القاهرة', CAIRO: 'القاهرة', GIZA: 'الجيزة', GZ: 'الجيزة', ALEXANDRIA: 'الإسكندرية', ALX: 'الإسكندرية', QALYUBIA: 'القليوبية', ALQALYUBIYAH: 'القليوبية', QLY: 'القليوبية', KB: 'القليوبية', DAKAHLIA: 'الدقهلية', DAQAHLIYAH: 'الدقهلية', DK: 'الدقهلية', SHARQIA: 'الشرقية', SHQ: 'الشرقية', GHARBIA: 'الغربية', GHR: 'الغربية', GH: 'الغربية', MENOUFIA: 'المنوفية', MNF: 'المنوفية', BEHEIRA: 'البحيرة', BH: 'البحيرة', KAFRELSHEIKH: 'كفر الشيخ', KFS: 'كفر الشيخ', DAMIETTA: 'دمياط', DAM: 'دمياط', PORTSAID: 'بورسعيد', PTS: 'بورسعيد', ISMAILIA: 'الإسماعيلية', IS: 'الإسماعيلية', SUEZ: 'السويس', SUZ: 'السويس', MATROUH: 'مطروح', MAT: 'مطروح', FAYOUM: 'الفيوم', FYM: 'الفيوم', BENISUEF: 'بني سويف', BNS: 'بني سويف', MINYA: 'المنيا', MN: 'المنيا', ASSIUT: 'أسيوط', AST: 'أسيوط', SOHAG: 'سوهاج', SOH: 'سوهاج', QENA: 'قنا', QN: 'قنا', LUXOR: 'الأقصر', LX: 'الأقصر', ASWAN: 'أسوان', ASN: 'أسوان', REDSEA: 'البحر الأحمر', RED: 'البحر الأحمر', NORTHSINAI: 'شمال سيناء', SIN: 'شمال سيناء', SOUTHSINAI: 'جنوب سيناء', SYN: 'جنوب سيناء', NEWVALLEY: 'الوادي الجديد', WAD: 'الوادي الجديد', ENG: 'إنجلترا' };
 		if (regions[key]) return regions[key];
-		return /^[A-Z]{2,5}$/.test(key) ? 'غير محدد' : raw;
+		return raw;
 	}
 	maxValue(items: Array<{ value: number }> = []): number { return Math.max(...items.map(item => Number(item.value || 0)), 1); }
 	activeDays(items: Array<{ date: string; value: number }> = []): number { return items.filter(item => Number(item.value || 0) > 0).length; }
