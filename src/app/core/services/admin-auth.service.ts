@@ -45,6 +45,16 @@ export class AdminAuthService {
 			return;
 		}
 
+		const token = localStorage.getItem(this.tokenKey);
+		this.clearLocalSession();
+		if (token) {
+			this.http.post(`${this.apiBase}/auth/logout`, {}, { headers: new HttpHeaders({ Authorization: `Bearer ${token}` }) })
+				.pipe(timeout({ first: 5000 }))
+				.subscribe({ error: () => { /* local logout already completed */ } });
+		}
+	}
+
+	private clearLocalSession(): void {
 		localStorage.removeItem(this.tokenKey);
 		localStorage.removeItem(`${this.tokenKey}-expires`);
 		localStorage.removeItem(this.roleKey);
