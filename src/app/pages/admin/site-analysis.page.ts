@@ -31,13 +31,19 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	today(): string { return new Date().toISOString().slice(0, 10); }
 	daysAgo(days: number): string { return new Date(Date.now() - days * 86400000).toISOString().slice(0, 10); }
 	load(): void {
-		this.restoreFilters(); this.saveFilters();
+		this.restoreFilters(); this.normalizeDateRange(); this.saveFilters();
 		this.performancePage = 1; this.recentSessionsPage = 1; this.adminSessionsPage = 1;
 		this.loading = true; this.error = '';
 		this.api.getAnalyticsSummary(this.from, this.to, this.device).subscribe({ next: result => { this.summary = result; this.loading = false; this.loadAdminSessions(); this.changeDetector.detectChanges(); }, error: error => { this.error = error?.error?.message || 'تعذر تحميل تحليل الموقع.'; this.loading = false; this.changeDetector.detectChanges(); } });
 	}
 	saveFilters(): void { try { localStorage.setItem('momentix.site-analysis.filters', JSON.stringify({ from: this.from, to: this.to, device: this.device })); } catch { /* storage may be unavailable */ } }
 	restoreFilters(): void { try { const raw = localStorage.getItem('momentix.site-analysis.filters'); if (!raw) return; const saved = JSON.parse(raw); if (/^\d{4}-\d{2}-\d{2}$/.test(saved?.from || '')) this.from = saved.from; if (/^\d{4}-\d{2}-\d{2}$/.test(saved?.to || '')) this.to = saved.to; if (['', 'mobile', 'desktop', 'tablet', 'غير محدد'].includes(saved?.device)) this.device = saved.device; } catch { /* keep defaults */ } }
+	normalizeDateRange(): void {
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(this.from) || !/^\d{4}-\d{2}-\d{2}$/.test(this.to)) {
+			this.from = this.daysAgo(29); this.to = this.today(); return;
+		}
+		if (this.from > this.to) [this.from, this.to] = [this.to, this.from];
+	}
 	private loadAdminSessions(): void { this.api.getAdminActivitySessions().subscribe({ next: result => { this.adminSessions = result.data || []; this.adminSessionsPage = 1; this.changeDetector.detectChanges(); } }); }
 	pageNumbers(total: number): number[] { return Array.from({ length: Math.max(1, Math.ceil(total / this.pageSize)) }, (_, index) => index + 1); }
 	performanceRows(): AnalyticsSummary['performance'] { const rows = this.summary?.performance || []; return rows.slice((this.performancePage - 1) * this.pageSize, this.performancePage * this.pageSize); }
