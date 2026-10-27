@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 3001;
 const ADMIN_USERNAME = String(process.env.ADMIN_USERNAME || '').trim();
 const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '');
 const ADMIN_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+const analyticsGeoCache = new Map();
 const LEADS_ADMIN_USERNAME = process.env.LEADS_ADMIN_USERNAME || '';
 const LEADS_ADMIN_PASSWORD = process.env.LEADS_ADMIN_PASSWORD || '';
 const PAGE_KEYS = [
@@ -653,10 +654,10 @@ function analyticsOs(userAgent) {
 function normalizeEgyptRegion(value) {
 	const raw = String(value || '').trim();
 	if (!raw) return '';
-	const key = raw.toUpperCase().replace(/[\s_-]+/g, '');
+	const key = raw.toUpperCase().replace(/[\s_-]+/g, '').replace(/GOVERNORATE$/, '');
 	const regions = {
 		C: 'القاهرة', CAIRO: 'القاهرة', GIZA: 'الجيزة', GZ: 'الجيزة', ALEXANDRIA: 'الإسكندرية', ALX: 'الإسكندرية',
-		QALYUBIA: 'القليوبية', QLY: 'القليوبية', DAKAHLIA: 'الدقهلية', DK: 'الدقهلية', SHARQIA: 'الشرقية', SHQ: 'الشرقية',
+		QALYUBIA: 'القليوبية', ALQALYUBIYAH: 'القليوبية', QLY: 'القليوبية', DAKAHLIA: 'الدقهلية', DAQAHLIYAH: 'الدقهلية', DK: 'الدقهلية', SHARQIA: 'الشرقية', SHQ: 'الشرقية',
 		GHARBIA: 'الغربية', GHR: 'الغربية', MENOUFIA: 'المنوفية', MNF: 'المنوفية', BEHEIRA: 'البحيرة', BH: 'البحيرة',
 		KAFRELSHEIKH: 'كفر الشيخ', KFS: 'كفر الشيخ', DAMIETTA: 'دمياط', DAM: 'دمياط', PORTSAID: 'بورسعيد', PTS: 'بورسعيد',
 		ISMAILIA: 'الإسماعيلية', IS: 'الإسماعيلية', SUEZ: 'السويس', SUZ: 'السويس', MATROUH: 'مطروح', MAT: 'مطروح',
@@ -669,6 +670,21 @@ function normalizeEgyptRegion(value) {
 	return regions[key] || raw;
 }
 
+async function remoteAnalyticsGeo(ipAddress) {
+	const cached = analyticsGeoCache.get(ipAddress);
+	if (cached && cached.expiresAt > Date.now()) return cached.value;
+	try {
+		const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 2500);
+		const response = await fetch(`https://ipwho.is/${encodeURIComponent(ipAddress)}`, { signal: controller.signal, headers: { Accept: 'application/json' } });
+		clearTimeout(timer);
+		if (!response.ok) return null;
+		const payload = await response.json();
+		const value = payload?.success ? { country: String(payload.country || '').trim(), region: String(payload.region || '').trim(), city: String(payload.city || '').trim() } : null;
+		if (value) { analyticsGeoCache.set(ipAddress, { value, expiresAt: Date.now() + 86400000 }); if (analyticsGeoCache.size > 1000) analyticsGeoCache.delete(analyticsGeoCache.keys().next().value); }
+		return value;
+	} catch { return null; }
+}
+
 function analyticsCountryName(value) {
 	const code = String(value || '').trim().toUpperCase();
 	if (!code) return '';
@@ -676,7 +692,7 @@ function analyticsCountryName(value) {
 	try { return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) || code; } catch { return code; }
 }
 
-function analyticsGeo(req, _body, ipAddress = '') {
+async function analyticsGeo(req, _body, ipAddress = '') {
 	const headers = req.headers || {};
 	let country = String(headers['cf-ipcountry'] || headers['x-vercel-ip-country'] || headers['x-country-code'] || '').trim();
 	let region = String(headers['x-vercel-ip-country-region'] || headers['x-forwarded-region'] || headers['x-geo-region'] || headers['x-region'] || headers['x-province'] || '').trim();
@@ -686,6 +702,7 @@ function analyticsGeo(req, _body, ipAddress = '') {
 	if (!country && lookup?.country) country = analyticsCountryName(lookup.country);
 	if (!region && lookup?.region) region = lookup.region;
 	if (!city && lookup?.city) city = lookup.city;
+	if (lookupIp && (!country || !region || !city)) { const remote = await remoteAnalyticsGeo(lookupIp); if (!country) country = remote?.country || ''; if (!region) region = remote?.region || ''; if (!city) city = remote?.city || ''; }
 	if (/^[A-Za-z]{2}$/.test(country)) country = analyticsCountryName(country);
 	region = normalizeEgyptRegion(region);
 	return { country: country.slice(0, 120), region: region.slice(0, 120), city: city.slice(0, 120) };
@@ -712,7 +729,7 @@ app.post('/api/analytics/collect', async (req, res, next) => {
 		const ipAddress = forwardedIp === '::1' ? '127.0.0.1' : forwardedIp.replace(/^::ffff:/i, '');
 		const ipHash = crypto.createHash('sha256').update(`${process.env.ANALYTICS_IP_SALT || 'mo3adala-analytics'}:${forwardedIp}`).digest('hex');
 		const attribution = body.attribution && typeof body.attribution === 'object' ? body.attribution : {};
-		const geo = analyticsGeo(req, body, ipAddress);
+		const geo = await analyticsGeo(req, body, ipAddress);
 		const pageView = body.pageView && typeof body.pageView === 'object' ? body.pageView : null;
 		await database.recordAnalyticsHit({ session: {
 			id: sessionId, visitorId: visitorId.slice(0, 160), firstSeen: body.firstSeen || now, lastSeen: now, startedAt: body.startedAt || now, endedAt: body.endedAt || null,
