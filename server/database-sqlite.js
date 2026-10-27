@@ -618,7 +618,12 @@ function recordAnalyticsHit({ session, pageView }) {
 	save();
 }
 
+function closeStaleAnalyticsSessions() {
+	db.prepare(`UPDATE analytics_sessions SET ended_at = datetime(last_seen, '+5 minutes') WHERE ended_at IS NULL AND datetime(last_seen) < datetime('now', '-5 minutes')`).run();
+}
+
 function getAnalyticsSummary({ from, to, device = '' }) {
+	closeStaleAnalyticsSessions();
 	const fromIso = `${from}T00:00:00.000Z`;
 	const toIso = `${to}T23:59:59.999Z`;
 	const sessionFilter = device ? ' AND device = ?' : '';
@@ -648,6 +653,7 @@ function getAnalyticsSummary({ from, to, device = '' }) {
 }
 
 getAnalyticsSummary.touchAdminActivity = touchAdminActivity;
+getAnalyticsSummary.closeStaleAnalyticsSessions = closeStaleAnalyticsSessions;
 getAnalyticsSummary.endAdminActivity = endAdminActivity;
 getAnalyticsSummary.endAdminActivitiesForUsername = endAdminActivitiesForUsername;
 getAnalyticsSummary.getAdminActivitySession = getAdminActivitySession;

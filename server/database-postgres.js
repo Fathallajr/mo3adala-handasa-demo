@@ -475,8 +475,14 @@ async function recordAnalyticsHit({ session, pageView }) {
 		[pageView.id,session.id,pageView.path||'/',pageView.title||'',pageView.component||'',pageView.enteredAt||now,pageView.exitedAt||null,Number(pageView.activeSeconds||0),pageView.createdAt||now]);
 }
 
+async function closeStaleAnalyticsSessions() {
+	await ensureSchema();
+	await pool.query(`UPDATE analytics_sessions SET ended_at = last_seen + INTERVAL '5 minutes' WHERE ended_at IS NULL AND last_seen < NOW() - INTERVAL '5 minutes'`);
+}
+
 async function getAnalyticsSummary({ from, to, device = '' }) {
 	await ensureSchema();
+	await closeStaleAnalyticsSessions();
 	const sessionParams = device ? [from, to, device] : [from, to];
 	const deviceFilter = device ? ' AND device = $3' : '';
 	const viewDeviceFilter = device ? ' AND s.device = $3' : '';
@@ -500,6 +506,7 @@ async function getAnalyticsSummary({ from, to, device = '' }) {
 		topPages:Object.entries(topPages).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([path,value])=>({path,value})), performance:Object.values(performance).sort((a,b)=>b.pageViews-a.pageViews).slice(0,20).map(item=>({path:item.path,visitors:item.visitors.size,sessions:item.sessions.size,pageViews:item.pageViews,averageSessionDuration:item.sessions.size?Math.round(item.duration/item.sessions.size):0,pagesPerSession:item.sessions.size?Number((item.pageViews/item.sessions.size).toFixed(2)):0})), recentSessions:sessions.slice(0,25).map(row => ({ ...row, pageViews: pageViewCountBySession.get(row.id) || 0 })), from, to };
 }
 getAnalyticsSummary.touchAdminActivity = touchAdminActivity;
+getAnalyticsSummary.closeStaleAnalyticsSessions = closeStaleAnalyticsSessions;
 getAnalyticsSummary.endAdminActivity = endAdminActivity;
 getAnalyticsSummary.endAdminActivitiesForUsername = endAdminActivitiesForUsername;
 getAnalyticsSummary.getAdminActivitySession = getAdminActivitySession;

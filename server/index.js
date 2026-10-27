@@ -769,7 +769,7 @@ app.get('/api/admin/analytics/admin-sessions', requireAdmin, requirePermission('
 });
 
 app.get('/api/admin/analytics/sessions/:id', requireAdmin, requirePermission('analytics:read'), async (req, res, next) => {
-	try { const session = await database.getAnalyticsSummary.getAnalyticsSessionDetails(String(req.params.id || '')); if (!session) return res.status(404).json({ message: 'الجلسة غير موجودة.' }); res.json(session); } catch (error) { next(error); }
+	try { await database.getAnalyticsSummary.closeStaleAnalyticsSessions?.(); const session = await database.getAnalyticsSummary.getAnalyticsSessionDetails(String(req.params.id || '')); if (!session) return res.status(404).json({ message: 'الجلسة غير موجودة.' }); res.json(session); } catch (error) { next(error); }
 });
 
 app.get('/api/site-mode', async (_req, res, next) => {
