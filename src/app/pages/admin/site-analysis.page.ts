@@ -57,6 +57,18 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	backToAdmin(): void { this.router.navigateByUrl('/admin'); }
 	formatDuration(seconds: number): string { const value = Number(seconds || 0); return `${Math.floor(value / 60)} د ${String(value % 60).padStart(2, '0')} ث`; }
 	formatAdminSessionDuration(session: AdminActivitySession): string { const start = Date.parse(session.loginAt); const end = Date.parse(session.logoutAt || session.lastSeen); return this.formatDuration(Math.max(0, Math.round((end - start) / 1000))); }
+	locationLabel(value: string, type: 'country' | 'region'): string {
+		const raw = String(value || '').trim(); if (!raw || raw === 'غير محدد') return 'غير محدد';
+		const key = raw.toUpperCase().replace(/[\s_-]+/g, '').replace(/GOVERNORATE$/, '');
+		if (type === 'country') {
+			const countries: Record<string, string> = { EG: 'مصر', EGYPT: 'مصر', GB: 'المملكة المتحدة', UK: 'المملكة المتحدة', UNITEDKINGDOM: 'المملكة المتحدة', US: 'الولايات المتحدة', UNITEDSTATES: 'الولايات المتحدة', AE: 'الإمارات العربية المتحدة', SA: 'السعودية', DE: 'ألمانيا', FR: 'فرنسا', IT: 'إيطاليا', CA: 'كندا', AU: 'أستراليا' };
+			if (countries[key]) return countries[key];
+			return raw;
+		}
+		const regions: Record<string, string> = { C: 'القاهرة', CAIRO: 'القاهرة', GIZA: 'الجيزة', GZ: 'الجيزة', ALEXANDRIA: 'الإسكندرية', ALX: 'الإسكندرية', QALYUBIA: 'القليوبية', ALQALYUBIYAH: 'القليوبية', QLY: 'القليوبية', DAKAHLIA: 'الدقهلية', DAQAHLIYAH: 'الدقهلية', DK: 'الدقهلية', SHARQIA: 'الشرقية', SHQ: 'الشرقية', GHARBIA: 'الغربية', GHR: 'الغربية', MENOUFIA: 'المنوفية', MNF: 'المنوفية', BEHEIRA: 'البحيرة', BH: 'البحيرة', KAFRELSHEIKH: 'كفر الشيخ', KFS: 'كفر الشيخ', DAMIETTA: 'دمياط', DAM: 'دمياط', PORTSAID: 'بورسعيد', PTS: 'بورسعيد', ISMAILIA: 'الإسماعيلية', IS: 'الإسماعيلية', SUEZ: 'السويس', SUZ: 'السويس', MATROUH: 'مطروح', MAT: 'مطروح', FAYOUM: 'الفيوم', FYM: 'الفيوم', BENISUEF: 'بني سويف', BNS: 'بني سويف', MINYA: 'المنيا', MN: 'المنيا', ASSIUT: 'أسيوط', AST: 'أسيوط', SOHAG: 'سوهاج', SOH: 'سوهاج', QENA: 'قنا', QN: 'قنا', LUXOR: 'الأقصر', LX: 'الأقصر', ASWAN: 'أسوان', ASN: 'أسوان', REDSEA: 'البحر الأحمر', RED: 'البحر الأحمر', NORTHSINAI: 'شمال سيناء', SIN: 'شمال سيناء', SOUTHSINAI: 'جنوب سيناء', SYN: 'جنوب سيناء', NEWVALLEY: 'الوادي الجديد', WAD: 'الوادي الجديد' };
+		if (regions[key]) return regions[key];
+		return /^[A-Z]{2,5}$/.test(key) ? 'غير محدد' : raw;
+	}
 	maxValue(items: Array<{ value: number }> = []): number { return Math.max(...items.map(item => Number(item.value || 0)), 1); }
 	activeDays(items: Array<{ date: string; value: number }> = []): number { return items.filter(item => Number(item.value || 0) > 0).length; }
 	peakDay(items: Array<{ date: string; value: number }> = []): { date: string; value: number } { return items.reduce((peak, item) => Number(item.value || 0) > Number(peak.value || 0) ? item : peak, { date: '', value: 0 }); }
@@ -109,7 +121,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 		], { 1: 'dd-mm-yyyy', 2: 'dd-mm-yyyy', 7: '[m]" د "ss" ث"', 10: '0.0%' });
 		addSheet('الزيارات اليومية', ['التاريخ', 'الجلسات'], data.trafficOverTime.map(item => [dateOnly(item.date), item.value]), { 1: 'dd-mm-yyyy', 2: '#,##0' });
 		const breakdownRows: unknown[][] = [];
-		[['الدول', data.countries], ['المناطق', data.regions], ['الأجهزة', data.devices], ['مصادر الزيارة', data.referrers]].forEach(([category, items]) => (items as Array<{ label: string; value: number }>).forEach(item => breakdownRows.push([category, item.label, item.value])));
+		[['الدول', data.countries], ['المناطق', data.regions], ['الأجهزة', data.devices], ['مصادر الزيارة', data.referrers]].forEach(([category, items]) => (items as Array<{ label: string; value: number }>).forEach(item => breakdownRows.push([category, category === 'الدول' ? this.locationLabel(item.label, 'country') : category === 'المناطق' ? this.locationLabel(item.label, 'region') : item.label, item.value])));
 		addSheet('التقسيمات', ['التصنيف', 'القيمة', 'العدد'], breakdownRows, { 3: '#,##0' });
 		addSheet('الصفحات الأكثر مشاهدة', ['الصفحة', 'المسار', 'المشاهدات'], data.topPages.map(item => [this.pageLabel(item.path), item.path, item.value]), { 3: '#,##0' });
 		addSheet('أداء المواقع', ['الصفحة', 'المسار', 'الزوار', 'الجلسات', 'مشاهدات الصفحات', 'متوسط الجلسة', 'صفحات لكل جلسة'], data.performance.map(item => [this.pageLabel(item.path), item.path, item.visitors, item.sessions, item.pageViews, duration(item.averageSessionDuration), item.pagesPerSession]), { 3: '#,##0', 4: '#,##0', 5: '#,##0', 6: '[m]" د "ss" ث"', 7: '0.00' });
