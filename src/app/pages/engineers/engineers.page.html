@@ -28,7 +28,7 @@
 		<div class="teachers-grid teachers-grid--english" *ngIf="isEnglish">
 			<article class="teacher-card teacher-card--english" *ngFor="let teacher of englishTeachers">
 				<div class="teacher-card__image"><img [src]="teacher.image" [alt]="teacher.name" loading="lazy" decoding="async" onerror="this.src='/assets/logo.webp'"><span>{{ teacher.subject }}</span></div>
-				<div class="teacher-card__body"><div class="teacher-card__heading"><h3>{{ teacher.name }}</h3><div class="teacher-card__videos" *ngIf="teacher.youtubeLinks.length"><a *ngFor="let video of teacher.youtubeLinks" class="teacher-card__youtube" [href]="video.url" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'شاهد ' + video.label + ' على YouTube'"><i class="bi bi-youtube" aria-hidden="true"></i><span>{{ video.label }}</span></a></div></div><p>{{ teacher.subject }}</p></div>
+				<div class="teacher-card__body"><h3>{{ teacher.name }}</h3><p>{{ teacher.subject }}</p><div class="teacher-card__videos" *ngIf="teacher.youtubeLinks.length"><a *ngFor="let video of teacher.youtubeLinks" class="teacher-card__youtube" [href]="video.url" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'شاهد ' + video.label + ' على YouTube'"><i class="bi bi-youtube" aria-hidden="true"></i><span>{{ video.label }}</span></a></div></div>
 			</article>
 		</div>
 	</section>

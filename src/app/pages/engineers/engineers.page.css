@@ -563,6 +563,9 @@
 .teacher-card--english .teacher-card__videos {
 	width: 100%;
 	justify-content: flex-start;
+	margin-top: auto;
+	padding-top: .8rem;
+	border-top: 1px solid #edf1f5;
 }
 
 .teacher-card p {
