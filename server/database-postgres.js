@@ -477,7 +477,7 @@ async function recordAnalyticsHit({ session, pageView }) {
 
 async function closeStaleAnalyticsSessions() {
 	await ensureSchema();
-	await pool.query(`UPDATE analytics_sessions SET ended_at = last_seen + INTERVAL '5 minutes' WHERE ended_at IS NULL AND last_seen < NOW() - INTERVAL '5 minutes'`);
+	await pool.query(`UPDATE analytics_sessions SET ended_at = last_seen WHERE ended_at IS NULL AND last_seen < NOW() - INTERVAL '5 minutes'`);
 }
 
 async function getAnalyticsSummary({ from, to, device = '' }) {

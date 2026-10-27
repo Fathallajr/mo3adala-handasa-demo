@@ -619,7 +619,7 @@ function recordAnalyticsHit({ session, pageView }) {
 }
 
 function closeStaleAnalyticsSessions() {
-	db.prepare(`UPDATE analytics_sessions SET ended_at = datetime(last_seen, '+5 minutes') WHERE ended_at IS NULL AND datetime(last_seen) < datetime('now', '-5 minutes')`).run();
+	db.prepare(`UPDATE analytics_sessions SET ended_at = last_seen WHERE ended_at IS NULL AND datetime(last_seen) < datetime('now', '-5 minutes')`).run();
 }
 
 function getAnalyticsSummary({ from, to, device = '' }) {
