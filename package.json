@@ -36,6 +36,7 @@
     "webpack-dev-middleware": "^7.4.6",
     "proxy-addr": "^2.0.8",
     "shell-quote": "^1.11.0",
+    "qs": "^6.17.0",
     "source-map-js": "^1.2.2",
     "postcss-selector-parser": "^7.1.6"
   },
