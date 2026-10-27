@@ -657,14 +657,14 @@ function normalizeEgyptRegion(value) {
 	const key = raw.toUpperCase().replace(/[\s_-]+/g, '').replace(/GOVERNORATE$/, '').replace(/^(EG|GB)/, '');
 	const regions = {
 		C: 'القاهرة', CAIRO: 'القاهرة', GIZA: 'الجيزة', GZ: 'الجيزة', ALEXANDRIA: 'الإسكندرية', ALX: 'الإسكندرية',
-		QALYUBIA: 'القليوبية', ALQALYUBIYAH: 'القليوبية', QLY: 'القليوبية', KB: 'القليوبية', DAKAHLIA: 'الدقهلية', DAQAHLIYAH: 'الدقهلية', DK: 'الدقهلية', SHARQIA: 'الشرقية', SHQ: 'الشرقية',
+		QALYUBIA: 'القليوبية', ALQALYUBIYAH: 'القليوبية', QLY: 'القليوبية', KB: 'القليوبية', DAKAHLIA: 'الدقهلية', DAQAHLIYAH: 'الدقهلية', DK: 'الدقهلية', SHARQIA: 'الشرقية', SHQ: 'الشرقية', SHR: 'الشرقية',
 		GHARBIA: 'الغربية', GHR: 'الغربية', GH: 'الغربية', MENOUFIA: 'المنوفية', MNF: 'المنوفية', BEHEIRA: 'البحيرة', BH: 'البحيرة',
-		KAFRELSHEIKH: 'كفر الشيخ', KFS: 'كفر الشيخ', DAMIETTA: 'دمياط', DAM: 'دمياط', PORTSAID: 'بورسعيد', PTS: 'بورسعيد',
-		ISMAILIA: 'الإسماعيلية', IS: 'الإسماعيلية', SUEZ: 'السويس', SUZ: 'السويس', MATROUH: 'مطروح', MAT: 'مطروح',
+		KAFRELSHEIKH: 'كفر الشيخ', KFS: 'كفر الشيخ', DAMIETTA: 'دمياط', DAM: 'دمياط', DT: 'دمياط', DMT: 'دمياط', PORTSAID: 'بورسعيد', PTS: 'بورسعيد',
+		ISMAILIA: 'الإسماعيلية', IS: 'الإسماعيلية', SUEZ: 'السويس', SUZ: 'السويس', MATROUH: 'مطروح', MAT: 'مطروح', MT: 'مطروح',
 		FAYOUM: 'الفيوم', FYM: 'الفيوم', BENISUEF: 'بني سويف', BNS: 'بني سويف', MINYA: 'المنيا', MN: 'المنيا',
-		ASSIUT: 'أسيوط', AST: 'أسيوط', SOHAG: 'سوهاج', SOH: 'سوهاج', QENA: 'قنا', QN: 'قنا',
-		LUXOR: 'الأقصر', LX: 'الأقصر', ASWAN: 'أسوان', ASN: 'أسوان', REDSEA: 'البحر الأحمر', RED: 'البحر الأحمر',
-		NORTHSINAI: 'شمال سيناء', SIN: 'شمال سيناء', SOUTHSINAI: 'جنوب سيناء', SYN: 'جنوب سيناء',
+		ASSIUT: 'أسيوط', AST: 'أسيوط', SOHAG: 'سوهاج', SOH: 'سوهاج', SHG: 'سوهاج', QENA: 'قنا', QN: 'قنا', KN: 'قنا',
+		LUXOR: 'الأقصر', LX: 'الأقصر', ASWAN: 'أسوان', ASN: 'أسوان', REDSEA: 'البحر الأحمر', RED: 'البحر الأحمر', BA: 'البحر الأحمر',
+		NORTHSINAI: 'شمال سيناء', SIN: 'شمال سيناء', SOUTHSINAI: 'جنوب سيناء', SYN: 'جنوب سيناء', JS: 'جنوب سيناء',
 		NEWVALLEY: 'الوادي الجديد', WAD: 'الوادي الجديد'
 	};
 	return regions[key] || raw;
