@@ -7,6 +7,7 @@ const multer = require('multer');
 const compression = require('compression');
 const swaggerUi = require('swagger-ui-express');
 const ExcelJS = require('exceljs');
+const geoip = require('geoip-lite');
 const database = require('./database');
 
 const app = express();
@@ -659,13 +660,24 @@ function normalizeEgyptRegion(value) {
 	return regions[key] || raw;
 }
 
-function analyticsGeo(req, body) {
-	const geo = body.geo && typeof body.geo === 'object' ? body.geo : {};
+function analyticsCountryName(value) {
+	const code = String(value || '').trim().toUpperCase();
+	if (!code) return '';
+	if (code === 'EG') return 'Egypt';
+	try { return new Intl.DisplayNames(['en'], { type: 'region' }).of(code) || code; } catch { return code; }
+}
+
+function analyticsGeo(req, _body, ipAddress = '') {
 	const headers = req.headers || {};
-	let country = String(headers['cf-ipcountry'] || headers['x-vercel-ip-country'] || headers['x-country-code'] || geo.country || '').trim();
-	let region = String(headers['x-vercel-ip-country-region'] || headers['x-forwarded-region'] || headers['x-geo-region'] || headers['x-region'] || headers['x-province'] || geo.region || '').trim();
-	let city = String(headers['x-vercel-ip-city'] || headers['x-geo-city'] || headers['x-forwarded-city'] || headers['x-city'] || geo.city || '').trim();
-	if (String(country).toUpperCase() === 'EG') country = 'Egypt';
+	let country = String(headers['cf-ipcountry'] || headers['x-vercel-ip-country'] || headers['x-country-code'] || '').trim();
+	let region = String(headers['x-vercel-ip-country-region'] || headers['x-forwarded-region'] || headers['x-geo-region'] || headers['x-region'] || headers['x-province'] || '').trim();
+	let city = String(headers['x-vercel-ip-city'] || headers['x-geo-city'] || headers['x-forwarded-city'] || headers['x-city'] || '').trim();
+	const lookupIp = String(ipAddress || '').replace(/^::ffff:/i, '');
+	const lookup = lookupIp && !['127.0.0.1', '::1', 'localhost'].includes(lookupIp) ? geoip.lookup(lookupIp) : null;
+	if (!country && lookup?.country) country = analyticsCountryName(lookup.country);
+	if (!region && lookup?.region) region = lookup.region;
+	if (!city && lookup?.city) city = lookup.city;
+	if (/^[A-Za-z]{2}$/.test(country)) country = analyticsCountryName(country);
 	region = normalizeEgyptRegion(region);
 	return { country: country.slice(0, 120), region: region.slice(0, 120), city: city.slice(0, 120) };
 }
@@ -691,7 +703,7 @@ app.post('/api/analytics/collect', async (req, res, next) => {
 		const ipAddress = forwardedIp === '::1' ? '127.0.0.1' : forwardedIp.replace(/^::ffff:/i, '');
 		const ipHash = crypto.createHash('sha256').update(`${process.env.ANALYTICS_IP_SALT || 'mo3adala-analytics'}:${forwardedIp}`).digest('hex');
 		const attribution = body.attribution && typeof body.attribution === 'object' ? body.attribution : {};
-		const geo = analyticsGeo(req, body);
+		const geo = analyticsGeo(req, body, ipAddress);
 		const pageView = body.pageView && typeof body.pageView === 'object' ? body.pageView : null;
 		await database.recordAnalyticsHit({ session: {
 			id: sessionId, visitorId: visitorId.slice(0, 160), firstSeen: body.firstSeen || now, lastSeen: now, startedAt: body.startedAt || now, endedAt: body.endedAt || null,
