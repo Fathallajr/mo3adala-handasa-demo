@@ -16,6 +16,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	private readonly router = inject(Router);
 	private readonly changeDetector = inject(ChangeDetectorRef);
 	from = this.daysAgo(29); to = this.today(); device = ''; loading = false; error = ''; summary: AnalyticsSummary | null = null;
+	readonly pageSize = 5; performancePage = 1; recentSessionsPage = 1; adminSessionsPage = 1;
 	sidebarOpen = false; sidebarCollapsed = false; adminUsername = this.auth.getUsername(); adminSessions: AdminActivitySession[] = []; private refreshTimer?: ReturnType<typeof setInterval>;
 	readonly sitePages = [
 		{ label: 'دفعة 2027 والعجلة', route: '/admin/batch-2027' }, { label: 'بوب‑أب الخصم', route: '/admin/launch-offer' },
@@ -31,12 +32,20 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	daysAgo(days: number): string { return new Date(Date.now() - days * 86400000).toISOString().slice(0, 10); }
 	load(): void {
 		this.restoreFilters(); this.saveFilters();
+		this.performancePage = 1; this.recentSessionsPage = 1; this.adminSessionsPage = 1;
 		this.loading = true; this.error = '';
 		this.api.getAnalyticsSummary(this.from, this.to, this.device).subscribe({ next: result => { this.summary = result; this.loading = false; this.loadAdminSessions(); this.changeDetector.detectChanges(); }, error: error => { this.error = error?.error?.message || 'تعذر تحميل تحليل الموقع.'; this.loading = false; this.changeDetector.detectChanges(); } });
 	}
 	saveFilters(): void { try { localStorage.setItem('momentix.site-analysis.filters', JSON.stringify({ from: this.from, to: this.to, device: this.device })); } catch { /* storage may be unavailable */ } }
 	restoreFilters(): void { try { const raw = localStorage.getItem('momentix.site-analysis.filters'); if (!raw) return; const saved = JSON.parse(raw); if (/^\d{4}-\d{2}-\d{2}$/.test(saved?.from || '')) this.from = saved.from; if (/^\d{4}-\d{2}-\d{2}$/.test(saved?.to || '')) this.to = saved.to; if (['', 'mobile', 'desktop', 'tablet', 'غير محدد'].includes(saved?.device)) this.device = saved.device; } catch { /* keep defaults */ } }
-	private loadAdminSessions(): void { this.api.getAdminActivitySessions().subscribe({ next: result => { this.adminSessions = result.data || []; this.changeDetector.detectChanges(); } }); }
+	private loadAdminSessions(): void { this.api.getAdminActivitySessions().subscribe({ next: result => { this.adminSessions = result.data || []; this.adminSessionsPage = 1; this.changeDetector.detectChanges(); } }); }
+	pageNumbers(total: number): number[] { return Array.from({ length: Math.max(1, Math.ceil(total / this.pageSize)) }, (_, index) => index + 1); }
+	performanceRows(): AnalyticsSummary['performance'] { const rows = this.summary?.performance || []; return rows.slice((this.performancePage - 1) * this.pageSize, this.performancePage * this.pageSize); }
+	recentSessionRows(): AnalyticsSummary['recentSessions'] { const rows = this.summary?.recentSessions || []; return rows.slice((this.recentSessionsPage - 1) * this.pageSize, this.recentSessionsPage * this.pageSize); }
+	adminSessionRows(): AdminActivitySession[] { return this.adminSessions.slice((this.adminSessionsPage - 1) * this.pageSize, this.adminSessionsPage * this.pageSize); }
+	setPerformancePage(page: number): void { this.performancePage = Math.min(Math.max(page, 1), this.pageNumbers(this.summary?.performance.length || 0).length); }
+	setRecentSessionsPage(page: number): void { this.recentSessionsPage = Math.min(Math.max(page, 1), this.pageNumbers(this.summary?.recentSessions.length || 0).length); }
+	setAdminSessionsPage(page: number): void { this.adminSessionsPage = Math.min(Math.max(page, 1), this.pageNumbers(this.adminSessions.length).length); }
 	canAccessFeature(feature: 'leads' | 'customers' | 'feedback' | 'analytics' | 'wheel' | 'free-codes' | 'finance'): boolean { return this.auth.canAccessFeature(feature); }
 	navigateAdmin(view: string): void { this.sidebarOpen = false; void this.router.navigateByUrl(`/admin?view=${encodeURIComponent(view)}`); }
 	navigatePage(route: string): void { this.sidebarOpen = false; void this.router.navigateByUrl(route); }
