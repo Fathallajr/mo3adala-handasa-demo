@@ -348,6 +348,7 @@ async function getAdminSession(token) {
 }
 async function touchAdminActivity(token, username = '', role = 'admin') { await ensureSchema(); await pool.query('INSERT INTO admin_activity_sessions(token, username, role, login_at, last_seen) VALUES ($1, $2, $3, NOW(), NOW()) ON CONFLICT(token) DO UPDATE SET username = COALESCE(NULLIF(EXCLUDED.username, \'\'), admin_activity_sessions.username), role = EXCLUDED.role, last_seen = CASE WHEN admin_activity_sessions.logout_at IS NULL THEN EXCLUDED.last_seen ELSE admin_activity_sessions.last_seen END', [token, username, role]); }
 async function endAdminActivity(token) { await ensureSchema(); await pool.query('UPDATE admin_activity_sessions SET logout_at = COALESCE(logout_at, NOW()) WHERE token = $1', [token]); }
+async function endAdminActivitiesForUsername(username) { if (!username) return; await ensureSchema(); await pool.query('UPDATE admin_activity_sessions SET logout_at = COALESCE(logout_at, NOW()) WHERE username = $1 AND logout_at IS NULL', [username]); }
 async function getAdminActivitySession(token) { await ensureSchema(); const result = await pool.query('SELECT token,username,role,login_at AS "loginAt",last_seen AS "lastSeen",logout_at AS "logoutAt" FROM admin_activity_sessions WHERE token = $1', [token]); return result.rows[0] || null; }
 async function closeStaleAdminActivitySessions(idleMs = 5 * 60 * 1000) { await ensureSchema(); const cutoff = new Date(Date.now() - Math.max(Number(idleMs) || 0, 0)).toISOString(); await pool.query('UPDATE admin_activity_sessions SET logout_at = COALESCE(logout_at, NOW()) WHERE logout_at IS NULL AND last_seen < $1::timestamptz', [cutoff]); }
 async function listAdminActivitySessions(limit = 100) { await closeStaleAdminActivitySessions(); const result = await pool.query('SELECT token,username,role,login_at AS "loginAt",last_seen AS "lastSeen",logout_at AS "logoutAt" FROM admin_activity_sessions ORDER BY login_at DESC LIMIT $1', [Math.min(Math.max(Number(limit) || 100, 1), 200)]); return result.rows; }
@@ -500,6 +501,7 @@ async function getAnalyticsSummary({ from, to, device = '' }) {
 }
 getAnalyticsSummary.touchAdminActivity = touchAdminActivity;
 getAnalyticsSummary.endAdminActivity = endAdminActivity;
+getAnalyticsSummary.endAdminActivitiesForUsername = endAdminActivitiesForUsername;
 getAnalyticsSummary.getAdminActivitySession = getAdminActivitySession;
 getAnalyticsSummary.closeStaleAdminActivitySessions = closeStaleAdminActivitySessions;
 getAnalyticsSummary.listAdminActivitySessions = listAdminActivitySessions;

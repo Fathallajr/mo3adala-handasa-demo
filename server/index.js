@@ -345,6 +345,8 @@ function verifyAdminPassword(password, user) {
 async function issueToken(role = 'admin', username = '', permissions = ['*']) {
 	const token = crypto.randomBytes(24).toString('hex');
 	const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
+	await database.getAnalyticsSummary.endAdminActivitiesForUsername(username);
+	await database.deleteAdminSessionsForUsername(username);
 	await database.createAdminSession(token, expiresAt, role, username, permissions);
 	return { token, expiresAt, role, username, permissions };
 }
