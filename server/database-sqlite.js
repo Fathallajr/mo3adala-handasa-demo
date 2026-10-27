@@ -335,7 +335,9 @@ function deleteAdminSession(token) {
 }
 function touchAdminActivity(token, username = '', role = 'admin') { const now = new Date().toISOString(); db.prepare(`INSERT INTO admin_activity_sessions(token, username, role, login_at, last_seen) VALUES (?, ?, ?, ?, ?) ON CONFLICT(token) DO UPDATE SET username = COALESCE(NULLIF(excluded.username, ''), admin_activity_sessions.username), role = excluded.role, last_seen = CASE WHEN admin_activity_sessions.logout_at IS NULL THEN excluded.last_seen ELSE admin_activity_sessions.last_seen END`).run(token, username, role, now, now); }
 function endAdminActivity(token) { db.prepare('UPDATE admin_activity_sessions SET logout_at = COALESCE(logout_at, ?) WHERE token = ?').run(new Date().toISOString(), token); }
-function listAdminActivitySessions(limit = 100) { return db.prepare('SELECT token,username,role,login_at AS loginAt,last_seen AS lastSeen,logout_at AS logoutAt FROM admin_activity_sessions ORDER BY login_at DESC LIMIT ?').all(Math.min(Math.max(Number(limit) || 100, 1), 200)); }
+function getAdminActivitySession(token) { return db.prepare('SELECT token,username,role,login_at AS loginAt,last_seen AS lastSeen,logout_at AS logoutAt FROM admin_activity_sessions WHERE token = ?').get(token) || null; }
+function closeStaleAdminActivitySessions(idleMs = 5 * 60 * 1000) { const now = Date.now(); const cutoff = new Date(now - Math.max(Number(idleMs) || 0, 0)).toISOString(); db.prepare('UPDATE admin_activity_sessions SET logout_at = COALESCE(logout_at, ?) WHERE logout_at IS NULL AND last_seen < ?').run(new Date(now).toISOString(), cutoff); }
+function listAdminActivitySessions(limit = 100) { closeStaleAdminActivitySessions(); return db.prepare('SELECT token,username,role,login_at AS loginAt,last_seen AS lastSeen,logout_at AS logoutAt FROM admin_activity_sessions ORDER BY login_at DESC LIMIT ?').all(Math.min(Math.max(Number(limit) || 100, 1), 200)); }
 function getAnalyticsSessionDetails(id) {
 	const session = db.prepare('SELECT id,visitor_id AS visitorId,first_seen AS firstSeen,last_seen AS lastSeen,started_at AS startedAt,ended_at AS endedAt,ip_address AS ipAddress,ip_hash AS ipHash,country,region,city,device,browser,os,referrer,landing_path AS landingPath,acquisition_source AS acquisitionSource,acquisition_medium AS acquisitionMedium,acquisition_campaign AS acquisitionCampaign,user_agent AS userAgent,page_views AS pageViews,duration_seconds AS durationSeconds FROM analytics_sessions WHERE id = ?').get(id);
 	if (!session) return null;
@@ -646,6 +648,8 @@ function getAnalyticsSummary({ from, to, device = '' }) {
 
 getAnalyticsSummary.touchAdminActivity = touchAdminActivity;
 getAnalyticsSummary.endAdminActivity = endAdminActivity;
+getAnalyticsSummary.getAdminActivitySession = getAdminActivitySession;
+getAnalyticsSummary.closeStaleAdminActivitySessions = closeStaleAdminActivitySessions;
 getAnalyticsSummary.listAdminActivitySessions = listAdminActivitySessions;
 getAnalyticsSummary.getAnalyticsSessionDetails = getAnalyticsSessionDetails;
 

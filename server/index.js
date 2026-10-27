@@ -18,6 +18,7 @@ app.use(compression());
 const PORT = process.env.PORT || 3001;
 const ADMIN_USERNAME = String(process.env.ADMIN_USERNAME || '').trim();
 const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '');
+const ADMIN_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
 const LEADS_ADMIN_USERNAME = process.env.LEADS_ADMIN_USERNAME || '';
 const LEADS_ADMIN_PASSWORD = process.env.LEADS_ADMIN_PASSWORD || '';
 const PAGE_KEYS = [
@@ -358,6 +359,12 @@ async function requireAdmin(req, res, next) {
 		if (!session || Date.now() > Date.parse(session.expiresAt)) {
 			if (session) await database.deleteAdminSession(token);
 			return res.status(401).json({ message: 'Session expired' });
+		}
+		const activitySession = await database.getAnalyticsSummary.getAdminActivitySession(token);
+		if (activitySession && !activitySession.logoutAt && Date.now() - Date.parse(activitySession.lastSeen) >= ADMIN_IDLE_TIMEOUT_MS) {
+			await database.getAnalyticsSummary.endAdminActivity(token);
+			await database.deleteAdminSession(token);
+			return res.status(401).json({ message: 'Session ended after inactivity' });
 		}
 		req.adminRole = session.role || 'admin';
 		req.adminUsername = session.username || '';
