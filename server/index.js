@@ -654,7 +654,7 @@ function analyticsOs(userAgent) {
 function normalizeEgyptRegion(value) {
 	const raw = String(value || '').trim();
 	if (!raw) return '';
-	const key = raw.toUpperCase().replace(/[\s_-]+/g, '').replace(/GOVERNORATE$/, '');
+	const key = raw.toUpperCase().replace(/[\s_-]+/g, '').replace(/GOVERNORATE$/, '').replace(/^(EG|GB)/, '');
 	const regions = {
 		C: 'القاهرة', CAIRO: 'القاهرة', GIZA: 'الجيزة', GZ: 'الجيزة', ALEXANDRIA: 'الإسكندرية', ALX: 'الإسكندرية',
 		QALYUBIA: 'القليوبية', ALQALYUBIYAH: 'القليوبية', QLY: 'القليوبية', KB: 'القليوبية', DAKAHLIA: 'الدقهلية', DAQAHLIYAH: 'الدقهلية', DK: 'الدقهلية', SHARQIA: 'الشرقية', SHQ: 'الشرقية',

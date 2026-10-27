@@ -59,7 +59,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	formatAdminSessionDuration(session: AdminActivitySession): string { const start = Date.parse(session.loginAt); const end = Date.parse(session.logoutAt || session.lastSeen); return this.formatDuration(Math.max(0, Math.round((end - start) / 1000))); }
 	locationLabel(value: string, type: 'country' | 'region'): string {
 		const raw = String(value || '').trim(); if (!raw || raw === 'غير محدد') return 'Unknown';
-		const key = raw.toUpperCase().replace(/[\s_-]+/g, '').replace(/GOVERNORATE$/, '');
+		const key = raw.toUpperCase().replace(/[\s_-]+/g, '').replace(/GOVERNORATE$/, '').replace(/^(EG|GB)/, '');
 		if (type === 'country') {
 			const countries: Record<string, string> = { EG: 'مصر', EGYPT: 'مصر', GB: 'المملكة المتحدة', UK: 'المملكة المتحدة', UNITEDKINGDOM: 'المملكة المتحدة', US: 'الولايات المتحدة', UNITEDSTATES: 'الولايات المتحدة', AE: 'الإمارات العربية المتحدة', SA: 'السعودية', DE: 'ألمانيا', FR: 'فرنسا', IT: 'إيطاليا', CA: 'كندا', AU: 'أستراليا' };
 			if (countries[key]) return countries[key];
