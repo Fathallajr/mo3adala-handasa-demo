@@ -72,6 +72,13 @@ export class AppComponent implements OnInit, OnDestroy {
 	private offerCountdownTimer?: ReturnType<typeof setInterval>;
 	private offerOpenTimer?: ReturnType<typeof setTimeout>;
 	private launchOfferSubscription?: Subscription;
+	private analyticsSessionId = '';
+	private analyticsVisitorId = '';
+	private analyticsPageViewId = '';
+	private analyticsPagePath = '';
+	private analyticsPageEnteredAt = 0;
+	private analyticsPageActiveSeconds = 0;
+	private analyticsHeartbeat?: ReturnType<typeof setInterval>;
 
 	get isHomeRoute(): boolean {
 		const path = this.currentRoute.split(/[?#]/, 1)[0] || '/';
@@ -97,6 +104,7 @@ export class AppComponent implements OnInit, OnDestroy {
 					this.currentRoute = event.urlAfterRedirects;
 					if (this.showLoading && !this.isHomeRoute) this.finishInitialLoading();
 					this.scrollForNavigation(event.urlAfterRedirects);
+					this.trackAnalyticsPage(event.urlAfterRedirects);
 				}
 				if (event instanceof NavigationCancel || event instanceof NavigationError) {
 					this.routeLoading = false;
@@ -123,6 +131,7 @@ export class AppComponent implements OnInit, OnDestroy {
 		}
 		
 		this.loadLaunchOffer();
+		this.setupAnalytics();
 	}
 
 	@HostListener('window:hero-video-ready')
@@ -140,6 +149,42 @@ export class AppComponent implements OnInit, OnDestroy {
 		if (this.offerCountdownTimer) clearInterval(this.offerCountdownTimer);
 		if (this.offerOpenTimer) clearTimeout(this.offerOpenTimer);
 		this.launchOfferSubscription?.unsubscribe();
+		if (this.analyticsHeartbeat) clearInterval(this.analyticsHeartbeat);
+		this.sendAnalyticsUpdate(true);
+	}
+
+	private setupAnalytics(): void {
+		if (typeof window === 'undefined' || window.location.pathname.startsWith('/admin')) return;
+		try {
+			this.analyticsVisitorId = localStorage.getItem('site-analytics-visitor-v1') || crypto.randomUUID();
+			localStorage.setItem('site-analytics-visitor-v1', this.analyticsVisitorId);
+			this.analyticsSessionId = sessionStorage.getItem('site-analytics-session-v1') || crypto.randomUUID();
+			sessionStorage.setItem('site-analytics-session-v1', this.analyticsSessionId);
+			this.analyticsHeartbeat = setInterval(() => this.sendAnalyticsUpdate(false), 15000);
+			this.trackAnalyticsPage(this.router.url);
+		} catch { /* analytics must never interrupt the public site */ }
+	}
+
+	private trackAnalyticsPage(url: string): void {
+		if (typeof window === 'undefined' || url.startsWith('/admin') || !this.analyticsSessionId) return;
+		this.sendAnalyticsUpdate(true);
+		this.analyticsPageViewId = crypto.randomUUID();
+		this.analyticsPagePath = url.split(/[?#]/, 1)[0] || '/';
+		this.analyticsPageEnteredAt = Date.now();
+		this.analyticsPageActiveSeconds = 0;
+		this.sendAnalyticsUpdate(false);
+	}
+
+	private sendAnalyticsUpdate(endingPage: boolean): void {
+		if (typeof window === 'undefined' || !this.analyticsSessionId || window.location.pathname.startsWith('/admin')) return;
+		const now = Date.now();
+		if (document.visibilityState === 'visible') this.analyticsPageActiveSeconds += Math.max(0, Math.round((now - (this.analyticsPageEnteredAt || now)) / 1000));
+		this.analyticsPageEnteredAt = now;
+		const path = this.analyticsPagePath || this.router.url.split(/[?#]/, 1)[0] || '/';
+		const params = new URLSearchParams(window.location.search);
+		const pageView = this.analyticsPageViewId ? { id: this.analyticsPageViewId, path, title: document.title, component: path.split('/').filter(Boolean).join('.'), enteredAt: new Date(now - this.analyticsPageActiveSeconds * 1000).toISOString(), exitedAt: endingPage ? new Date().toISOString() : null, activeSeconds: this.analyticsPageActiveSeconds, createdAt: new Date().toISOString() } : null;
+		const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+		void fetch('/api/analytics/collect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: endingPage, body: JSON.stringify({ sessionId: this.analyticsSessionId, visitorId: this.analyticsVisitorId, path, firstSeen: new Date().toISOString(), startedAt: new Date().toISOString(), referrer: document.referrer, pageViews: 1, durationSeconds: this.analyticsPageActiveSeconds, geo: { language: navigator.language || '', timeZone }, attribution: { source: params.get('utm_source') || params.get('source') || '', medium: params.get('utm_medium') || '', campaign: params.get('utm_campaign') || '' }, pageView }) }).catch(() => undefined);
 	}
 
 	private async loadSiteMode(): Promise<void> {

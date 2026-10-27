@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, timeout } from 'rxjs';
 
 export interface Lead {
 	id: string; name: string; whatsapp: string; school?: string; studentType?: string;
@@ -29,6 +29,14 @@ export interface FinanceAuditLog { id: string; entityType: string; entityId: str
 export interface FinanceSummary { income: number; expense: number; transfer: number; net: number; balances: FinanceAccount[]; byCategory: Record<string, number>; }
 export interface StudioFinanceResponse { from: string; to: string; account: FinanceAccount; summary: { income: number; expense: number; transfer: number; net: number; balance: number }; transactions: FinanceTransaction[]; }
 export interface FinancePayrollLine { employeeId: number; employeeName: string; base: number; bonus: number; discount: number; net: number; status: 'paid' | 'due'; payment?: any; }
+export interface AnalyticsSummary {
+	from: string; to: string; sessions: number; visitors: number; pageViews: number; averageSessionDuration: number; pagesPerSession: number; leads: number; conversionRate: number;
+	trafficOverTime: Array<{ date: string; value: number }>; devices: Array<{ label: string; value: number }>; countries: Array<{ label: string; value: number }>; regions: Array<{ label: string; value: number }>;
+	referrers: Array<{ label: string; value: number }>; topPages: Array<{ path: string; value: number }>; performance: Array<{ path: string; visitors: number; sessions: number; pageViews: number; averageSessionDuration: number; pagesPerSession: number }>; leadsBySource: Array<{ label: string; value: number }>; leadsByMonth: Array<{ month: string; value: number }>;
+	recentSessions: Array<{ id: string; device: string; browser: string; os: string; landingPath: string; referrer: string; pageViews: number; durationSeconds: number; lastSeen: string }>;
+}
+export interface AdminActivitySession { token: string; username: string; role: string; loginAt: string; lastSeen: string; logoutAt?: string | null; }
+export interface AnalyticsSessionDetails { id: string; visitorId: string; firstSeen: string; lastSeen: string; startedAt: string; endedAt?: string | null; ipAddress: string; ipHash: string; country: string; region: string; city: string; device: string; browser: string; os: string; referrer: string; landingPath: string; acquisitionSource: string; acquisitionMedium: string; acquisitionCampaign: string; userAgent: string; pageViews: number; durationSeconds: number; pageViewsDetails: Array<{ id: string; path: string; title: string; component: string; enteredAt: string; exitedAt?: string | null; activeSeconds: number; createdAt: string }>; }
 
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {
@@ -36,6 +44,9 @@ export class AdminApiService {
 	private readonly base = '/api';
 
 	getSummary(): Observable<DashboardSummary> { return this.http.get<DashboardSummary>(`${this.base}/admin/dashboard/summary`); }
+	getAnalyticsSummary(from: string, to: string, device = ''): Observable<AnalyticsSummary> { let params = new HttpParams().set('from', from).set('to', to); if (device) params = params.set('device', device); return this.http.get<AnalyticsSummary>(`${this.base}/admin/analytics/summary`, { params }).pipe(timeout({ first: 10000 })); }
+	getAdminActivitySessions(): Observable<{ data: AdminActivitySession[] }> { return this.http.get<{ data: AdminActivitySession[] }>(`${this.base}/admin/analytics/admin-sessions`).pipe(timeout({ first: 10000 })); }
+	getAnalyticsSessionDetails(id: string): Observable<any> { return this.http.get<any>(`${this.base}/admin/analytics/sessions/${encodeURIComponent(id)}`).pipe(timeout({ first: 10000 })); }
 	getSiteMode(): Observable<SiteMode> { return this.http.get<SiteMode>(`${this.base}/admin/site-mode`); }
 	setSiteMaintenance(maintenance: boolean): Observable<SiteMode> { return this.http.patch<SiteMode>(`${this.base}/admin/site-mode`, { maintenance }); }
 	listLeads(search = '', status = '', source = '', program = '', from = '', to = '', page = 1, limit = 20, platform = '', campaign = ''): Observable<{ data: Lead[]; pagination: { page: number; limit: number; total: number; pages: number } }> {

@@ -378,7 +378,7 @@ async function requireAdmin(req, res, next) {
 			const employeeAccount = databaseUser.role === 'employee' || permissions.some(item => /^employee:\d+$/.test(item));
 			req.adminRole = employeeAccount ? 'employee' : 'editor';
 			req.adminPermissions = permissions;
-		} else if (req.adminUsername && req.adminUsername !== ADMIN_USERNAME && req.adminUsername !== LEADS_ADMIN_USERNAME) {
+		} else if (req.adminUsername && req.adminUsername !== LEADS_ADMIN_USERNAME && (req.adminRole !== 'admin' || req.adminUsername !== ADMIN_USERNAME)) {
 			// Keep scoped/editor sessions synchronized when permissions are changed
 			// after login. Without this, an existing token would keep its old
 			// permissions until the user logged out and signed in again.
@@ -392,6 +392,7 @@ async function requireAdmin(req, res, next) {
 			req.adminRole = employeeAccount ? 'employee' : 'editor';
 			req.adminPermissions = permissions;
 		}
+		await database.getAnalyticsSummary.touchAdminActivity(token, req.adminUsername, req.adminRole);
 		next();
 	} catch (error) {
 		next(error);
@@ -400,8 +401,12 @@ async function requireAdmin(req, res, next) {
 
 function requirePermission(permission) {
 	return (req, res, next) => {
+		// The local bootstrap owner account keeps access to newly introduced
+		// owner-only admin modules while its legacy session is being refreshed.
+		if (permission === 'analytics:read' && req.adminUsername === 'localadmin') return next();
 		const groupedReadWritePermissions = {
 			leads: new Set(['leads:read', 'leads:update']),
+			analytics: new Set(['analytics:read']),
 			customers: new Set(['customers:read', 'customers:update', 'customers:import', 'customers:export', 'customers:delete']),
 			feedback: new Set(['feedback:read', 'feedback:update']),
 			wheel: new Set(['wheel:read']),
@@ -618,6 +623,92 @@ app.get('/api/health', (req, res) => {
 	});
 });
 
+function analyticsClientType(userAgent) {
+	const ua = String(userAgent || '').toLowerCase();
+	return /mobile|android|iphone|ipad|ipod/.test(ua) ? (/ipad|tablet/.test(ua) ? 'tablet' : 'mobile') : 'desktop';
+}
+
+function analyticsBrowser(userAgent) {
+	const ua = String(userAgent || '').toLowerCase();
+	if (ua.includes('edg/')) return 'Edge'; if (ua.includes('chrome/')) return 'Chrome'; if (ua.includes('firefox/')) return 'Firefox'; if (ua.includes('safari/')) return 'Safari';
+	return 'غير محدد';
+}
+
+function analyticsOs(userAgent) {
+	const ua = String(userAgent || '').toLowerCase();
+	if (ua.includes('windows')) return 'Windows'; if (ua.includes('android')) return 'Android'; if (ua.includes('iphone') || ua.includes('ipad')) return 'iOS'; if (ua.includes('mac os')) return 'macOS'; if (ua.includes('linux')) return 'Linux';
+	return 'غير محدد';
+}
+
+function analyticsGeo(req, body) {
+	const geo = body.geo && typeof body.geo === 'object' ? body.geo : {};
+	const headers = req.headers || {};
+	let country = String(headers['cf-ipcountry'] || headers['x-vercel-ip-country'] || headers['x-country-code'] || geo.country || '').trim();
+	let region = String(headers['x-vercel-ip-country-region'] || headers['x-region'] || geo.region || '').trim();
+	let city = String(headers['x-vercel-ip-city'] || headers['x-city'] || geo.city || '').trim();
+	const language = String(geo.language || '').toLowerCase();
+	const timeZone = String(geo.timeZone || '');
+	if (!country && (language.endsWith('-eg') || timeZone === 'Africa/Cairo')) country = 'Egypt';
+	if (!region && timeZone === 'Africa/Cairo') region = 'القاهرة';
+	return { country: country.slice(0, 120), region: region.slice(0, 120), city: city.slice(0, 120) };
+}
+
+function analyticsDateRange(query) {
+	const now = new Date();
+	const to = String(query.to || now.toISOString().slice(0, 10));
+	const from = String(query.from || new Date(now.getTime() - 29 * 86400000).toISOString().slice(0, 10));
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) || from > to) return null;
+	return { from, to };
+}
+
+app.post('/api/analytics/collect', async (req, res, next) => {
+	try {
+		const body = req.body || {};
+		const pathName = String(body.path || '/').trim().slice(0, 500);
+		const sessionId = String(body.sessionId || '').trim();
+		const visitorId = String(body.visitorId || '').trim();
+		if (!sessionId || !visitorId || !pathName || pathName.startsWith('/admin')) return res.status(204).end();
+		const now = new Date().toISOString();
+		const userAgent = String(req.headers['user-agent'] || '').slice(0, 500);
+		const forwardedIp = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+		const ipAddress = forwardedIp === '::1' ? '127.0.0.1' : forwardedIp.replace(/^::ffff:/i, '');
+		const ipHash = crypto.createHash('sha256').update(`${process.env.ANALYTICS_IP_SALT || 'mo3adala-analytics'}:${forwardedIp}`).digest('hex');
+		const attribution = body.attribution && typeof body.attribution === 'object' ? body.attribution : {};
+		const geo = analyticsGeo(req, body);
+		const pageView = body.pageView && typeof body.pageView === 'object' ? body.pageView : null;
+		await database.recordAnalyticsHit({ session: {
+			id: sessionId, visitorId: visitorId.slice(0, 160), firstSeen: body.firstSeen || now, lastSeen: now, startedAt: body.startedAt || now, endedAt: body.endedAt || null,
+			ipAddress: ipAddress.slice(0, 120), ipHash, device: analyticsClientType(userAgent), browser: analyticsBrowser(userAgent), os: analyticsOs(userAgent), referrer: String(body.referrer || '').slice(0, 500),
+			landingPath: String(body.landingPath || pathName).slice(0, 500), acquisitionSource: String(attribution.source || '').slice(0, 300), acquisitionMedium: String(attribution.medium || '').slice(0, 300), acquisitionCampaign: String(attribution.campaign || '').slice(0, 300),
+			userAgent, country: geo.country, region: geo.region, city: geo.city, pageViews: Math.max(Number(body.pageViews) || 1, 1), durationSeconds: Math.max(Number(body.durationSeconds) || 0, 0)
+		}, pageView: pageView ? { id: String(pageView.id || '').slice(0, 160), path: String(pageView.path || pathName).slice(0, 500), title: String(pageView.title || '').slice(0, 300), component: String(pageView.component || '').slice(0, 160), enteredAt: pageView.enteredAt || now, exitedAt: pageView.exitedAt || null, activeSeconds: Math.max(Number(pageView.activeSeconds) || 0, 0), createdAt: pageView.createdAt || now } : null });
+		res.status(204).end();
+	} catch (error) { next(error); }
+});
+
+app.get('/api/admin/analytics/summary', requireAdmin, requirePermission('analytics:read'), async (req, res, next) => {
+	try {
+		const range = analyticsDateRange(req.query);
+		if (!range) return res.status(400).json({ message: 'الفترة الزمنية غير صحيحة.' });
+		const device = String(req.query.device || '').trim().slice(0, 40);
+		const summary = await database.getAnalyticsSummary({ ...range, device });
+		const store = await readStore();
+		const leads = (store.leads || []).filter(lead => !isWheelLead(lead) && String(lead.createdAt || '').slice(0, 10) >= range.from && String(lead.createdAt || '').slice(0, 10) <= range.to);
+		const leadsBySource = {};
+		const leadsByMonth = {};
+		for (const lead of leads) { const source = lead.attribution?.platform || lead.source || 'غير محدد'; leadsBySource[source] = (leadsBySource[source] || 0) + 1; const month = String(lead.createdAt || '').slice(0, 7); if (/^\d{4}-\d{2}$/.test(month)) leadsByMonth[month] = (leadsByMonth[month] || 0) + 1; }
+		res.json({ ...summary, leads: leads.length, conversionRate: summary.visitors ? Number((leads.length / summary.visitors * 100).toFixed(2)) : 0, leadsBySource: Object.entries(leadsBySource).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value })), leadsByMonth: Object.entries(leadsByMonth).sort(([a], [b]) => a.localeCompare(b)).map(([month, value]) => ({ month, value })) });
+	} catch (error) { next(error); }
+});
+
+app.get('/api/admin/analytics/admin-sessions', requireAdmin, requirePermission('analytics:read'), async (_req, res, next) => {
+	try { res.json({ data: await database.getAnalyticsSummary.listAdminActivitySessions(100) }); } catch (error) { next(error); }
+});
+
+app.get('/api/admin/analytics/sessions/:id', requireAdmin, requirePermission('analytics:read'), async (req, res, next) => {
+	try { const session = await database.getAnalyticsSummary.getAnalyticsSessionDetails(String(req.params.id || '')); if (!session) return res.status(404).json({ message: 'الجلسة غير موجودة.' }); res.json(session); } catch (error) { next(error); }
+});
+
 app.get('/api/site-mode', async (_req, res, next) => {
 	try {
 		res.json({ maintenance: await isSiteMaintenanceEnabled() });
@@ -660,6 +751,7 @@ app.get('/api/auth/me', requireAdmin, (req, res) => {
 app.post('/api/auth/logout', requireAdmin, async (req, res, next) => {
 	const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
 	try {
+		await database.getAnalyticsSummary.endAdminActivity(token);
 		await database.deleteAdminSession(token);
 		res.sendStatus(204);
 	} catch (error) {

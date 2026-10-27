@@ -515,6 +515,11 @@ main.app-page-shell:not(.route-home) > div > app-admin-dashboard-page > :first-c
   padding-top: 0 !important;
 }
 
+/* The standalone analytics screen owns the same admin shell and top bar. */
+main.app-page-shell:not(.route-home) > div > app-site-analysis-page > :first-child {
+  padding-top: 0 !important;
+}
+
 /* Shared site canvas: the light grid is the default background for every
    route. Individual heroes, cards, and footer sections can still provide
    their own solid or gradient surfaces above it. */

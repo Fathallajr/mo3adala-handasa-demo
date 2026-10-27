@@ -34,6 +34,22 @@ db.exec(`
     id TEXT PRIMARY KEY, action TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL,
     actor TEXT DEFAULT '', ip TEXT DEFAULT '', created_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS analytics_sessions (
+    id TEXT PRIMARY KEY, visitor_id TEXT NOT NULL, first_seen TEXT NOT NULL, last_seen TEXT NOT NULL,
+	started_at TEXT NOT NULL, ended_at TEXT, ip_address TEXT DEFAULT '', ip_hash TEXT DEFAULT '', country TEXT DEFAULT '', region TEXT DEFAULT '', city TEXT DEFAULT '',
+    device TEXT DEFAULT '', browser TEXT DEFAULT '', os TEXT DEFAULT '', referrer TEXT DEFAULT '', landing_path TEXT DEFAULT '',
+    acquisition_source TEXT DEFAULT '', acquisition_medium TEXT DEFAULT '', acquisition_campaign TEXT DEFAULT '', user_agent TEXT DEFAULT '',
+    page_views INTEGER NOT NULL DEFAULT 0, duration_seconds INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE INDEX IF NOT EXISTS analytics_sessions_last_seen_idx ON analytics_sessions(last_seen);
+  CREATE INDEX IF NOT EXISTS analytics_sessions_visitor_idx ON analytics_sessions(visitor_id);
+  CREATE TABLE IF NOT EXISTS analytics_page_views (
+    id TEXT PRIMARY KEY, session_id TEXT NOT NULL, path TEXT NOT NULL, title TEXT DEFAULT '', component TEXT DEFAULT '',
+    entered_at TEXT NOT NULL, exited_at TEXT, active_seconds INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL,
+    FOREIGN KEY(session_id) REFERENCES analytics_sessions(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS analytics_page_views_session_idx ON analytics_page_views(session_id);
+  CREATE INDEX IF NOT EXISTS analytics_page_views_created_idx ON analytics_page_views(created_at);
   CREATE TABLE IF NOT EXISTS feedbacks (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, university TEXT DEFAULT '', batch TEXT DEFAULT '',
     rating INTEGER NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new',
@@ -56,6 +72,10 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS admin_sessions (
     token TEXT PRIMARY KEY, expires_at TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'admin',
     username TEXT NOT NULL DEFAULT '', permissions TEXT NOT NULL DEFAULT '[]'
+  );
+  CREATE TABLE IF NOT EXISTS admin_activity_sessions (
+    token TEXT PRIMARY KEY, username TEXT NOT NULL DEFAULT '', role TEXT NOT NULL DEFAULT 'admin',
+    login_at TEXT NOT NULL, last_seen TEXT NOT NULL, logout_at TEXT
   );
   CREATE TABLE IF NOT EXISTS admin_users (
     username TEXT PRIMARY KEY, password_hash TEXT NOT NULL, password_salt TEXT NOT NULL,
@@ -104,6 +124,7 @@ db.exec(`
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN username TEXT NOT NULL DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE admin_sessions ADD COLUMN permissions TEXT NOT NULL DEFAULT '[]'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
+try { db.prepare("ALTER TABLE analytics_sessions ADD COLUMN ip_address TEXT DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE leads ADD COLUMN attribution TEXT DEFAULT '{}'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE feedbacks ADD COLUMN batch TEXT DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE wheel_claims ADD COLUMN notes TEXT DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
@@ -298,6 +319,8 @@ function readAsset(filename) {
 
 function createAdminSession(token, expiresAt, role = 'admin', username = '', permissions = []) {
 	db.prepare('INSERT INTO admin_sessions(token, expires_at, role, username, permissions) VALUES (?, ?, ?, ?, ?)').run(token, expiresAt, role, username, JSON.stringify(permissions));
+	const now = new Date().toISOString();
+	db.prepare('INSERT INTO admin_activity_sessions(token, username, role, login_at, last_seen) VALUES (?, ?, ?, ?, ?)').run(token, username, role, now, now);
 }
 
 function getAdminSession(token) {
@@ -309,6 +332,15 @@ function getAdminSession(token) {
 
 function deleteAdminSession(token) {
 	db.prepare('DELETE FROM admin_sessions WHERE token = ?').run(token);
+}
+function touchAdminActivity(token, username = '', role = 'admin') { const now = new Date().toISOString(); db.prepare(`INSERT INTO admin_activity_sessions(token, username, role, login_at, last_seen) VALUES (?, ?, ?, ?, ?) ON CONFLICT(token) DO UPDATE SET username = COALESCE(NULLIF(excluded.username, ''), admin_activity_sessions.username), role = excluded.role, last_seen = CASE WHEN admin_activity_sessions.logout_at IS NULL THEN excluded.last_seen ELSE admin_activity_sessions.last_seen END`).run(token, username, role, now, now); }
+function endAdminActivity(token) { db.prepare('UPDATE admin_activity_sessions SET logout_at = COALESCE(logout_at, ?) WHERE token = ?').run(new Date().toISOString(), token); }
+function listAdminActivitySessions(limit = 100) { return db.prepare('SELECT token,username,role,login_at AS loginAt,last_seen AS lastSeen,logout_at AS logoutAt FROM admin_activity_sessions ORDER BY login_at DESC LIMIT ?').all(Math.min(Math.max(Number(limit) || 100, 1), 200)); }
+function getAnalyticsSessionDetails(id) {
+	const session = db.prepare('SELECT id,visitor_id AS visitorId,first_seen AS firstSeen,last_seen AS lastSeen,started_at AS startedAt,ended_at AS endedAt,ip_address AS ipAddress,ip_hash AS ipHash,country,region,city,device,browser,os,referrer,landing_path AS landingPath,acquisition_source AS acquisitionSource,acquisition_medium AS acquisitionMedium,acquisition_campaign AS acquisitionCampaign,user_agent AS userAgent,page_views AS pageViews,duration_seconds AS durationSeconds FROM analytics_sessions WHERE id = ?').get(id);
+	if (!session) return null;
+	const pageViews = db.prepare('SELECT id,path,title,component,entered_at AS enteredAt,exited_at AS exitedAt,active_seconds AS activeSeconds,created_at AS createdAt FROM analytics_page_views WHERE session_id = ? ORDER BY entered_at ASC').all(id);
+	return { ...session, pageViewsDetails: pageViews };
 }
 function deleteAdminSessionsForUsername(username) { db.prepare('DELETE FROM admin_sessions WHERE username = ?').run(username); }
 
@@ -562,4 +594,59 @@ function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 	})();
 }
 
-module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, listFreeCodeRequestsPage, countFreeCodeRequests, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile };
+function recordAnalyticsHit({ session, pageView }) {
+	const now = new Date().toISOString();
+	const save = db.transaction(() => {
+		const existing = db.prepare('SELECT id FROM analytics_sessions WHERE id = ?').get(session.id);
+		if (existing) {
+			db.prepare(`UPDATE analytics_sessions SET last_seen = ?, ended_at = COALESCE(?, ended_at), ip_address = COALESCE(NULLIF(?, ''), ip_address), ip_hash = COALESCE(NULLIF(?, ''), ip_hash),
+				page_views = ?, duration_seconds = ?, country = COALESCE(NULLIF(?, ''), country), region = COALESCE(NULLIF(?, ''), region), city = COALESCE(NULLIF(?, ''), city), referrer = COALESCE(NULLIF(?, ''), referrer), acquisition_source = COALESCE(NULLIF(?, ''), acquisition_source),
+				acquisition_medium = COALESCE(NULLIF(?, ''), acquisition_medium), acquisition_campaign = COALESCE(NULLIF(?, ''), acquisition_campaign) WHERE id = ?`)
+				.run(session.lastSeen || now, session.endedAt || null, session.ipAddress || '', session.ipHash || '', Number(session.pageViews || 0), Number(session.durationSeconds || 0), session.country || '', session.region || '', session.city || '', session.referrer || '', session.acquisitionSource || '', session.acquisitionMedium || '', session.acquisitionCampaign || '', session.id);
+		} else {
+			db.prepare(`INSERT INTO analytics_sessions(id,visitor_id,first_seen,last_seen,started_at,ended_at,ip_address,ip_hash,country,region,city,device,browser,os,referrer,landing_path,acquisition_source,acquisition_medium,acquisition_campaign,user_agent,page_views,duration_seconds)
+				VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(session.id, session.visitorId, session.firstSeen || now, session.lastSeen || now, session.startedAt || now, session.endedAt || null, session.ipAddress || '', session.ipHash || '', session.country || '', session.region || '', session.city || '', session.device || '', session.browser || '', session.os || '', session.referrer || '', session.landingPath || '', session.acquisitionSource || '', session.acquisitionMedium || '', session.acquisitionCampaign || '', session.userAgent || '', Number(session.pageViews || 0), Number(session.durationSeconds || 0));
+		}
+		if (pageView?.id) {
+			db.prepare(`INSERT INTO analytics_page_views(id,session_id,path,title,component,entered_at,exited_at,active_seconds,created_at) VALUES (?,?,?,?,?,?,?,?,?)
+				ON CONFLICT(id) DO UPDATE SET exited_at = COALESCE(excluded.exited_at, analytics_page_views.exited_at), active_seconds = MAX(analytics_page_views.active_seconds, excluded.active_seconds)`).run(pageView.id, session.id, pageView.path || '/', pageView.title || '', pageView.component || '', pageView.enteredAt || now, pageView.exitedAt || null, Number(pageView.activeSeconds || 0), pageView.createdAt || now);
+		}
+	});
+	save();
+}
+
+function getAnalyticsSummary({ from, to, device = '' }) {
+	const fromIso = `${from}T00:00:00.000Z`;
+	const toIso = `${to}T23:59:59.999Z`;
+	const sessionFilter = device ? ' AND device = ?' : '';
+	const sessionParams = device ? [fromIso, toIso, device] : [fromIso, toIso];
+	const sessions = db.prepare(`SELECT id,visitor_id AS visitorId,first_seen AS firstSeen,last_seen AS lastSeen,started_at AS startedAt,ended_at AS endedAt,ip_hash AS ipHash,country,region,city,device,browser,os,referrer,landing_path AS landingPath,acquisition_source AS acquisitionSource,acquisition_medium AS acquisitionMedium,acquisition_campaign AS acquisitionCampaign,user_agent AS userAgent,page_views AS pageViews,duration_seconds AS durationSeconds FROM analytics_sessions WHERE last_seen >= ? AND last_seen <= ?${sessionFilter} ORDER BY last_seen DESC`).all(...sessionParams);
+	const pageViews = db.prepare(`SELECT pv.id,pv.session_id AS sessionId,pv.path,pv.title,pv.component,pv.entered_at AS enteredAt,pv.exited_at AS exitedAt,pv.active_seconds AS activeSeconds,pv.created_at AS createdAt FROM analytics_page_views pv INNER JOIN analytics_sessions s ON s.id = pv.session_id WHERE pv.created_at >= ? AND pv.created_at <= ?${device ? ' AND s.device = ?' : ''} ORDER BY pv.created_at DESC`).all(...sessionParams);
+	const pageViewCountBySession = pageViews.reduce((map, row) => map.set(row.sessionId, (map.get(row.sessionId) || 0) + 1), new Map());
+	const count = (key) => Object.entries(sessions.reduce((acc, row) => { const value = row[key] || 'غير محدد'; acc[value] = (acc[value] || 0) + 1; return acc; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([label, value]) => ({ label, value }));
+	const daily = {};
+	for (const row of sessions) { const day = String(row.lastSeen).slice(0, 10); daily[day] = (daily[day] || 0) + 1; }
+	const topPages = {};
+	for (const row of pageViews) topPages[row.path] = (topPages[row.path] || 0) + 1;
+	const sessionById = new Map(sessions.map(row => [row.id, row]));
+	const performance = {};
+	for (const row of pageViews) {
+		const session = sessionById.get(row.sessionId); if (!performance[row.path]) performance[row.path] = { path: row.path, visitors: new Set(), sessions: new Set(), pageViews: 0, duration: 0 };
+		const item = performance[row.path]; item.pageViews += 1; item.duration += Number(row.activeSeconds || 0); item.sessions.add(row.sessionId); if (session?.visitorId || session?.ipHash) item.visitors.add(session.visitorId || session.ipHash);
+	}
+	for (const item of Object.values(performance)) { item.duration = Number(item.duration || 0); }
+	return { sessions: sessions.length, visitors: new Set(sessions.map(row => row.visitorId || row.ipHash).filter(Boolean)).size, pageViews: pageViews.length,
+		averageSessionDuration: sessions.length ? Math.round(sessions.reduce((sum, row) => sum + Number(row.durationSeconds || 0), 0) / sessions.length) : 0,
+		pagesPerSession: sessions.length ? Number((pageViews.length / sessions.length).toFixed(2)) : 0,
+		trafficOverTime: Object.entries(daily).sort(([a], [b]) => a.localeCompare(b)).map(([date, value]) => ({ date, value })),
+		devices: count('device'), countries: count('country'), regions: count('region'), referrers: count('referrer'),
+		topPages: Object.entries(topPages).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([path, value]) => ({ path, value })), performance: Object.values(performance).sort((a, b) => b.pageViews - a.pageViews).slice(0, 20).map(item => ({ path: item.path, visitors: item.visitors.size, sessions: item.sessions.size, pageViews: item.pageViews, averageSessionDuration: item.sessions.size ? Math.round(item.duration / item.sessions.size) : 0, pagesPerSession: item.sessions.size ? Number((item.pageViews / item.sessions.size).toFixed(2)) : 0 })),
+		recentSessions: sessions.slice(0, 25).map(row => ({ ...row, pageViews: pageViewCountBySession.get(row.id) || 0 })), from, to };
+}
+
+getAnalyticsSummary.touchAdminActivity = touchAdminActivity;
+getAnalyticsSummary.endAdminActivity = endAdminActivity;
+getAnalyticsSummary.listAdminActivitySessions = listAdminActivitySessions;
+getAnalyticsSummary.getAnalyticsSessionDetails = getAnalyticsSessionDetails;
+
+module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, listFreeCodeRequestsPage, countFreeCodeRequests, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, recordAnalyticsHit, getAnalyticsSummary, databaseFile };

@@ -143,7 +143,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	private wheelClaimsLoaded = false;
 	private adminUsersLoaded = false;
 	get adminPageOptions(): PageOption[] { return cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key)); }
-	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'free-codes', title: 'طلبات الأكواد المجانية' }, { key: 'feedback', title: 'آراء الطلاب' }, { key: 'finance', title: 'الحسابات والمصروفات' }, { key: 'finance-payroll', title: 'كشف الرواتب' }, { key: 'finance-studio', title: 'حسابات الاستوديو' }, { key: 'finance-application', title: 'حسابات الأبلكيشن' }];
+	readonly adminFeatureOptions = [{ key: 'leads', title: 'الليدز' }, { key: 'customers', title: 'العملاء' }, { key: 'wheel', title: 'نتائج العجلة' }, { key: 'free-codes', title: 'طلبات الأكواد المجانية' }, { key: 'feedback', title: 'آراء الطلاب' }, { key: 'analytics', title: 'تحليل الموقع' }, { key: 'finance', title: 'الحسابات والمصروفات' }, { key: 'finance-payroll', title: 'كشف الرواتب' }, { key: 'finance-studio', title: 'حسابات الاستوديو' }, { key: 'finance-application', title: 'حسابات الأبلكيشن' }];
 	wheelSearch = '';
 	wheelGift = '';
 	wheelProgram = '';
@@ -323,7 +323,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 					this.activeView = 'cms';
 				} else if (this.auth.getRole() === 'employee') {
 					this.activeView = 'finance-payroll';
-				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('free-codes') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('finance') || this.auth.canAccessFeature('finance-payroll') || this.auth.canAccessFeature('finance-studio') || this.auth.canAccessFeature('finance-application')) {
+				} else if (this.auth.isLeadsOnly() || this.auth.canAccessFeature('leads') || this.auth.canAccessFeature('customers') || this.auth.canAccessFeature('wheel') || this.auth.canAccessFeature('free-codes') || this.auth.canAccessFeature('feedback') || this.auth.canAccessFeature('analytics') || this.auth.canAccessFeature('finance') || this.auth.canAccessFeature('finance-payroll') || this.auth.canAccessFeature('finance-studio') || this.auth.canAccessFeature('finance-application')) {
 					const canLoadLeads = this.auth.canAccessFeature('leads');
 					const canLoadCustomers = this.auth.canAccessFeature('customers');
 					const canLoadWheel = this.auth.canAccessFeature('wheel');
@@ -406,6 +406,11 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'free-codes') this.loadFreeCodeRequests();
 		if (view === 'feedback') this.loadFeedback();
 		if (view === 'admins') this.loadAdminUsers();
+	}
+	openSiteAnalysis(): void {
+		if (!this.auth.canAccessFeature('analytics') && this.adminUsername !== 'localadmin') return;
+		this.sidebarOpen = false;
+		void this.router.navigateByUrl('/admin/site-analysis');
 	}
 	toggleFinanceMenu(): void {
 		if (this.activeView !== 'finance') {
@@ -1192,6 +1197,6 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
 
-	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'free-codes' | 'feedback' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application'): boolean { return this.auth.canAccessFeature(feature); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'wheel' | 'free-codes' | 'feedback' | 'analytics' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application'): boolean { return this.auth.canAccessFeature(feature); }
 	canAccessCustomerPermission(_permission: string): boolean { return this.auth.canAccessFeature('customers'); }
 }

@@ -1,0 +1,64 @@
+<div class="admin-dashboard-shell page-enter-animation" [class.admin-dashboard-shell--sidebar-collapsed]="sidebarCollapsed">
+	<header class="admin-topbar">
+		<div class="topbar-actions">
+			<button *ngIf="sidebarCollapsed" type="button" class="desktop-sidebar-reopen" (click)="toggleDesktopSidebar()" aria-label="فتح القائمة الجانبية"><i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i></button>
+			<button type="button" class="mobile-sidebar-toggle" [attr.aria-expanded]="sidebarOpen" aria-label="فتح القائمة الجانبية" (click)="toggleSidebar()"><i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i></button>
+			<button type="button" class="site-link" (click)="openPreview()">فتح الموقع ↗</button>
+			<button type="button" class="admin-logout-btn" (click)="logout()">تسجيل الخروج</button>
+		</div>
+	</header>
+	<div class="admin-body">
+		<div class="admin-sidebar-backdrop" *ngIf="sidebarOpen" (click)="toggleSidebar()"></div>
+		<aside class="admin-sidebar" [class.admin-sidebar--open]="sidebarOpen">
+			<div class="sidebar-brand-row"><div class="sidebar-brand"><div class="brand-mark"><img src="assets/logo.webp" alt="لوجو معادلة هندسة" decoding="async"></div><div><h1 class="admin-title">صفحة الأدمن</h1><span class="admin-account-name">{{ adminUsername }}</span></div></div><button type="button" class="desktop-sidebar-toggle" (click)="toggleSidebarControl()" aria-label="قفل القائمة الجانبية"><i class="bi bi-layout-sidebar" aria-hidden="true"></i></button></div>
+			<div class="sidebar-tools">
+				<button *ngIf="canAccessFeature('leads')" type="button" (click)="navigateAdmin('leads')">الليدز</button>
+				<button *ngIf="canAccessFeature('customers')" type="button" (click)="navigateAdmin('customers')">العملاء</button>
+				<button *ngIf="canAccessFeature('feedback')" type="button" (click)="navigateAdmin('feedback')">آراء الطلاب</button>
+				<button *ngIf="canAccessFeature('analytics') || adminUsername === 'localadmin'" type="button" class="page-item--active">تحليل الموقع</button>
+				<button *ngIf="canAccessFeature('wheel')" type="button" (click)="navigateAdmin('wheel')">نتائج العجلة</button>
+				<button *ngIf="canAccessFeature('free-codes')" type="button" (click)="navigateAdmin('free-codes')">طلبات الأكواد المجانية</button>
+				<button *ngIf="canAccessFeature('finance')" type="button" (click)="navigateAdmin('finance')">الحسابات والرواتب</button>
+			</div>
+			<div class="sidebar-heading-row"><h2 class="sidebar-title">صفحات الموقع</h2></div>
+			<div class="page-list"><div class="page-group"><button type="button" class="page-item" *ngFor="let page of sitePages" (click)="navigatePage(page.route)"><div class="page-item__title">{{ page.label }}</div></button></div></div>
+		</aside>
+		<div class="admin-editor">
+			<main class="analysis-page" dir="rtl">
+	<header class="analysis-header">
+		<div><h1>تحليل الموقع</h1><p>فهم حركة الزوار، الصفحات الأكثر مشاهدة، ومصادر التسجيل في مكان واحد.</p></div>
+	</header>
+
+	<section class="filters card">
+		<div><label>من تاريخ<input type="date" [(ngModel)]="from" (ngModelChange)="saveFilters()"></label><label>إلى تاريخ<input type="date" [(ngModel)]="to" (ngModelChange)="saveFilters()"></label><label>نوع الجهاز<select [(ngModel)]="device" (ngModelChange)="saveFilters()"><option value="">كل الأجهزة</option><option value="mobile">موبايل</option><option value="desktop">كمبيوتر</option><option value="tablet">تابلت</option><option value="غير محدد">غير محدد</option></select></label></div>
+		<div class="filter-actions"><button type="button" class="secondary export-button" (click)="exportExcel()" [disabled]="loading || !summary">تصدير Excel</button><button type="button" class="primary" (click)="load()" [disabled]="loading">{{ loading ? 'جاري التحميل...' : 'تحديث التحليل' }}</button></div>
+	</section>
+	<div class="notice error" *ngIf="error">{{ error }}</div>
+	<div class="loading" *ngIf="loading">جاري تجهيز بيانات التحليل...</div>
+
+	<ng-container *ngIf="summary as data">
+		<section class="kpis">
+			<article class="kpi"><span>الزوار المميزون</span><strong>{{ data.visitors | number }}</strong><small>حسب معرف الزائر</small></article>
+			<article class="kpi"><span>الجلسات</span><strong>{{ data.sessions | number }}</strong><small>{{ data.pagesPerSession }} صفحة / جلسة</small></article>
+			<article class="kpi"><span>مشاهدات الصفحات</span><strong>{{ data.pageViews | number }}</strong><small>كل الصفحات العامة</small></article>
+			<article class="kpi"><span>متوسط الجلسة</span><strong>{{ formatDuration(data.averageSessionDuration) }}</strong><small>الوقت النشط المسجل</small></article>
+			<article class="kpi accent"><span>التسجيلات</span><strong>{{ data.leads | number }}</strong><small>معدل التحويل {{ data.conversionRate }}%</small></article>
+		</section>
+		<section class="card leads-period-card"><div class="card-heading"><div><span>Leads Over Time</span><h2>التسجيلات حسب الشهر</h2><p>الأرقام مأخوذة من صفحة الليدز ومفلترة بنفس الفترة المحددة.</p></div><strong>{{ data.leads | number }} إجمالي</strong></div><div class="leads-period-list" *ngIf="data.leadsByMonth.length; else noLeadsByMonth"><div class="leads-period-row" *ngFor="let item of data.leadsByMonth"><span>{{ formatMonth(item.month) }}</span><b>{{ item.value | number }}</b><i><em [style.width.%]="(item.value / maxValue(data.leadsByMonth)) * 100"></em></i></div></div><ng-template #noLeadsByMonth><div class="empty">لا توجد ليدز في الفترة المحددة.</div></ng-template></section>
+
+		<section class="grid three analytics-breakdown"><article class="card list-card"><div class="card-heading"><div><span>Countries</span><h2>الدول</h2></div></div><div class="rank-row" *ngFor="let item of data.countries"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div><div class="empty" *ngIf="!data.countries.length">لا توجد بيانات دول.</div></article><article class="card list-card"><div class="card-heading"><div><span>Regions</span><h2>المناطق</h2></div></div><div class="rank-row" *ngFor="let item of data.regions"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div><div class="empty" *ngIf="!data.regions.length">لا توجد بيانات مناطق.</div></article><article class="card list-card"><div class="card-heading"><div><span>Devices</span><h2>الأجهزة</h2></div></div><div class="rank-row" *ngFor="let item of data.devices"><span>{{ item.label }}</span><strong>{{ item.value }}</strong><em [style.width.%]="(item.value / maxValue(data.devices)) * 100"></em></div></article></section>
+
+		<section class="grid two">
+			<article class="card chart-card traffic-card"><div class="card-heading"><div><span>Traffic Over Time</span><h2>الزيارات عبر الزمن</h2><p>الجلسات المسجلة يوميًا خلال الفترة المحددة.</p></div><b>{{ data.from }} → {{ data.to }}</b></div><div class="traffic-summary"><div><span>Total Sessions</span><strong>{{ data.sessions | number }}</strong></div><div><span>Active Days</span><strong>{{ activeDays(data.trafficOverTime) | number }}</strong></div><div><span>Peak Day</span><strong>{{ peakDay(data.trafficOverTime).value | number }} <small>{{ formatTrafficDate(peakDay(data.trafficOverTime).date) }}</small></strong></div></div><div class="bars" *ngIf="data.trafficOverTime.length; else noTraffic"><div class="bar-item" *ngFor="let item of data.trafficOverTime"><div class="bar-value">{{ item.value }}</div><i [style.height.%]="(item.value / maxValue(data.trafficOverTime)) * 100"></i><small>{{ formatTrafficDate(item.date) }}</small></div></div><ng-template #noTraffic><div class="empty">لا توجد زيارات مسجلة في هذه الفترة.</div></ng-template></article>
+			<article class="card list-card"><div class="card-heading"><div><span>Top Pages</span><h2>أكثر الصفحات مشاهدة</h2></div></div><div class="rank-row" *ngFor="let item of data.topPages; let i = index"><b>{{ i + 1 }}</b><span class="page-name"><strong>{{ pageLabel(item.path) }}</strong><small dir="ltr">{{ item.path }}</small></span><strong>{{ item.value }}</strong></div><div class="empty" *ngIf="!data.topPages.length">لا توجد بيانات.</div></article>
+		</section>
+
+		<section class="card performance-card"><div class="card-heading"><div><span>Site Performance</span><h2>أداء المواقع</h2><p>مقاييس قابلة للمقارنة لكل موقع خلال الفترة المحددة.</p></div></div><div class="table-wrap"><table><thead><tr><th>الموقع</th><th>الزوار</th><th>الجلسات</th><th>مشاهدات الصفحات</th><th>متوسط الجلسة</th><th>صفحات لكل جلسة</th></tr></thead><tbody><tr *ngFor="let item of data.performance"><td><strong>{{ pageLabel(item.path) }}</strong><small class="path-label" dir="ltr">{{ item.path }}</small></td><td>{{ item.visitors | number }}</td><td>{{ item.sessions | number }}</td><td>{{ item.pageViews | number }}</td><td>{{ formatDuration(item.averageSessionDuration) }}</td><td>{{ item.pagesPerSession }}</td></tr><tr *ngIf="!data.performance.length"><td colspan="6" class="empty">لا توجد بيانات أداء في هذه الفترة.</td></tr></tbody></table></div></section>
+
+		<section class="card sessions-card"><div class="card-heading"><div><span>Recent Sessions</span><h2>آخر الجلسات</h2></div><small>اضغط على أي جلسة لعرض التفاصيل الكاملة</small></div><div class="table-wrap"><table><thead><tr><th>الجهاز</th><th>الصفحة الأولى</th><th>المصدر</th><th>الصفحات</th><th>المدة</th><th>آخر نشاط</th></tr></thead><tbody><tr class="session-row-clickable" *ngFor="let session of data.recentSessions" (click)="openSession(session.id)" tabindex="0" (keydown.enter)="openSession(session.id)"><td>{{ session.device }} · {{ session.browser }}</td><td><strong>{{ pageLabel(session.landingPath) }}</strong><small class="path-label" dir="ltr">{{ session.landingPath }}</small></td><td>{{ session.referrer || 'مباشر' }}</td><td>{{ session.pageViews }}</td><td>{{ formatDuration(session.durationSeconds) }}</td><td>{{ session.lastSeen | date:'medium' }}</td></tr><tr *ngIf="!data.recentSessions.length"><td colspan="6" class="empty">لا توجد جلسات مسجلة بعد.</td></tr></tbody></table></div></section>
+		<section class="card sessions-card admin-sessions-card"><div class="card-heading"><div><span>Admin Sessions</span><h2>جلسات الأدمن</h2><p>متابعة دخول كل مستخدم ومدة بقائه داخل لوحة التحكم.</p></div></div><div class="table-wrap"><table><thead><tr><th>المستخدم</th><th>الصلاحية</th><th>وقت الدخول</th><th>آخر نشاط</th><th>مدة الجلسة</th><th>الحالة</th></tr></thead><tbody><tr *ngFor="let session of adminSessions"><td>{{ session.username || 'غير محدد' }}</td><td>{{ session.role }}</td><td>{{ session.loginAt | date:'medium' }}</td><td>{{ session.lastSeen | date:'medium' }}</td><td>{{ formatAdminSessionDuration(session) }}</td><td><span class="admin-session-status" [class.is-active]="!session.logoutAt">{{ session.logoutAt ? 'انتهت' : 'نشطة' }}</span></td></tr><tr *ngIf="!adminSessions.length"><td colspan="6" class="empty">لا توجد جلسات أدمن مسجلة بعد.</td></tr></tbody></table></div></section>
+	</ng-container>
+			</main>
+		</div>
+	</div>
+</div>

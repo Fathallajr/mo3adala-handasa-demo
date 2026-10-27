@@ -33,6 +33,21 @@ function ensureSchema() {
 				id TEXT PRIMARY KEY, action TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL,
 				actor TEXT DEFAULT '', ip TEXT DEFAULT '', created_at TIMESTAMPTZ NOT NULL
 			);
+			CREATE TABLE IF NOT EXISTS analytics_sessions (
+				id TEXT PRIMARY KEY, visitor_id TEXT NOT NULL, first_seen TIMESTAMPTZ NOT NULL, last_seen TIMESTAMPTZ NOT NULL,
+				started_at TIMESTAMPTZ NOT NULL, ended_at TIMESTAMPTZ, ip_address TEXT DEFAULT '', ip_hash TEXT DEFAULT '', country TEXT DEFAULT '', region TEXT DEFAULT '', city TEXT DEFAULT '',
+				device TEXT DEFAULT '', browser TEXT DEFAULT '', os TEXT DEFAULT '', referrer TEXT DEFAULT '', landing_path TEXT DEFAULT '',
+				acquisition_source TEXT DEFAULT '', acquisition_medium TEXT DEFAULT '', acquisition_campaign TEXT DEFAULT '', user_agent TEXT DEFAULT '',
+				page_views INTEGER NOT NULL DEFAULT 0, duration_seconds INTEGER NOT NULL DEFAULT 0
+			);
+			CREATE INDEX IF NOT EXISTS analytics_sessions_last_seen_idx ON analytics_sessions(last_seen);
+			CREATE INDEX IF NOT EXISTS analytics_sessions_visitor_idx ON analytics_sessions(visitor_id);
+			CREATE TABLE IF NOT EXISTS analytics_page_views (
+				id TEXT PRIMARY KEY, session_id TEXT NOT NULL REFERENCES analytics_sessions(id) ON DELETE CASCADE, path TEXT NOT NULL, title TEXT DEFAULT '', component TEXT DEFAULT '',
+				entered_at TIMESTAMPTZ NOT NULL, exited_at TIMESTAMPTZ, active_seconds INTEGER NOT NULL DEFAULT 0, created_at TIMESTAMPTZ NOT NULL
+			);
+			CREATE INDEX IF NOT EXISTS analytics_page_views_session_idx ON analytics_page_views(session_id);
+			CREATE INDEX IF NOT EXISTS analytics_page_views_created_idx ON analytics_page_views(created_at);
 			CREATE TABLE IF NOT EXISTS feedbacks (
 				id TEXT PRIMARY KEY, name TEXT NOT NULL, university TEXT DEFAULT '', batch TEXT DEFAULT '',
 				rating INTEGER NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new',
@@ -55,6 +70,10 @@ function ensureSchema() {
 			CREATE TABLE IF NOT EXISTS admin_sessions (
 				token TEXT PRIMARY KEY, expires_at TIMESTAMPTZ NOT NULL, role TEXT NOT NULL DEFAULT 'admin',
 				username TEXT NOT NULL DEFAULT '', permissions JSONB NOT NULL DEFAULT '[]'::jsonb
+			);
+			CREATE TABLE IF NOT EXISTS admin_activity_sessions (
+				token TEXT PRIMARY KEY, username TEXT NOT NULL DEFAULT '', role TEXT NOT NULL DEFAULT 'admin',
+				login_at TIMESTAMPTZ NOT NULL, last_seen TIMESTAMPTZ NOT NULL, logout_at TIMESTAMPTZ
 			);
 			CREATE TABLE IF NOT EXISTS admin_users (
 				username TEXT PRIMARY KEY, password_hash TEXT NOT NULL, password_salt TEXT NOT NULL,
@@ -319,6 +338,7 @@ async function readAsset(filename) {
 async function createAdminSession(token, expiresAt, role = 'admin', username = '', permissions = []) {
 	await ensureSchema();
 	await pool.query('INSERT INTO admin_sessions(token, expires_at, role, username, permissions) VALUES ($1, $2, $3, $4, $5::jsonb)', [token, expiresAt, role, username, JSON.stringify(permissions)]);
+	await pool.query('INSERT INTO admin_activity_sessions(token, username, role, login_at, last_seen) VALUES ($1, $2, $3, NOW(), NOW())', [token, username, role]);
 }
 
 async function getAdminSession(token) {
@@ -326,6 +346,10 @@ async function getAdminSession(token) {
 	const result = await pool.query('SELECT expires_at AS "expiresAt", role, username, permissions FROM admin_sessions WHERE token = $1', [token]);
 	return result.rows[0] || null;
 }
+async function touchAdminActivity(token, username = '', role = 'admin') { await ensureSchema(); await pool.query('INSERT INTO admin_activity_sessions(token, username, role, login_at, last_seen) VALUES ($1, $2, $3, NOW(), NOW()) ON CONFLICT(token) DO UPDATE SET username = COALESCE(NULLIF(EXCLUDED.username, \'\'), admin_activity_sessions.username), role = EXCLUDED.role, last_seen = CASE WHEN admin_activity_sessions.logout_at IS NULL THEN EXCLUDED.last_seen ELSE admin_activity_sessions.last_seen END', [token, username, role]); }
+async function endAdminActivity(token) { await ensureSchema(); await pool.query('UPDATE admin_activity_sessions SET logout_at = COALESCE(logout_at, NOW()) WHERE token = $1', [token]); }
+async function listAdminActivitySessions(limit = 100) { await ensureSchema(); const result = await pool.query('SELECT token,username,role,login_at AS "loginAt",last_seen AS "lastSeen",logout_at AS "logoutAt" FROM admin_activity_sessions ORDER BY login_at DESC LIMIT $1', [Math.min(Math.max(Number(limit) || 100, 1), 200)]); return result.rows; }
+async function getAnalyticsSessionDetails(id) { await ensureSchema(); const sessionResult = await pool.query('SELECT id,visitor_id AS "visitorId",first_seen AS "firstSeen",last_seen AS "lastSeen",started_at AS "startedAt",ended_at AS "endedAt",ip_address AS "ipAddress",ip_hash AS "ipHash",country,region,city,device,browser,os,referrer,landing_path AS "landingPath",acquisition_source AS "acquisitionSource",acquisition_medium AS "acquisitionMedium",acquisition_campaign AS "acquisitionCampaign",user_agent AS "userAgent",page_views AS "pageViews",duration_seconds AS "durationSeconds" FROM analytics_sessions WHERE id = $1', [id]); const session = sessionResult.rows[0]; if (!session) return null; const views = await pool.query('SELECT id,path,title,component,entered_at AS "enteredAt",exited_at AS "exitedAt",active_seconds AS "activeSeconds",created_at AS "createdAt" FROM analytics_page_views WHERE session_id = $1 ORDER BY entered_at ASC', [id]); return { ...session, pageViewsDetails: views.rows }; }
 
 async function findAdminUser(username) { await ensureSchema(); const result = await pool.query('SELECT username,password_hash AS "passwordHash",password_salt AS "passwordSalt",role,permissions,is_active AS "isActive" FROM admin_users WHERE username = $1', [username]); return result.rows[0] || null; }
 async function listAdminUsers() { await ensureSchema(); const result = await pool.query('SELECT username,role,permissions,is_active AS "isActive",created_at AS "createdAt",updated_at AS "updatedAt" FROM admin_users ORDER BY created_at DESC'); return result.rows; }
@@ -433,6 +457,49 @@ async function getFinanceSummary({ from, to }) {
 	const balances = accountsResult.rows.map(account => { let balance = Number(account.openingBalance || 0); let income = 0; let expense = 0; for (const row of allResult.rows) { if (row.kind === 'income' && row.account_id === account.id) balance += Number(row.amount); if (row.kind === 'expense' && row.account_id === account.id) balance -= Number(row.amount); if (row.kind === 'transfer' && row.from_account_id === account.id) balance -= Number(row.amount); if (row.kind === 'transfer' && row.to_account_id === account.id) balance += Number(row.amount); } for (const row of periodResult.rows) { if (row.kind === 'income' && row.account_id === account.id) income += Number(row.amount); if (row.kind === 'expense' && row.account_id === account.id) expense += Number(row.amount); } return { ...financeAccountRow(account), balance, income, expense, net: income - expense }; });
 	return { ...totals, net: totals.income - totals.expense, balances, byCategory };
 }
+
+async function recordAnalyticsHit({ session, pageView }) {
+	await ensureSchema();
+	const now = new Date().toISOString();
+	await pool.query(`INSERT INTO analytics_sessions(id,visitor_id,first_seen,last_seen,started_at,ended_at,ip_address,ip_hash,country,region,city,device,browser,os,referrer,landing_path,acquisition_source,acquisition_medium,acquisition_campaign,user_agent,page_views,duration_seconds)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+		ON CONFLICT(id) DO UPDATE SET last_seen=EXCLUDED.last_seen, ended_at=COALESCE(EXCLUDED.ended_at,analytics_sessions.ended_at), ip_address=COALESCE(NULLIF(EXCLUDED.ip_address,''),analytics_sessions.ip_address), ip_hash=COALESCE(NULLIF(EXCLUDED.ip_hash,''),analytics_sessions.ip_hash),
+		page_views=EXCLUDED.page_views, duration_seconds=EXCLUDED.duration_seconds, country=COALESCE(NULLIF(EXCLUDED.country,''),analytics_sessions.country), region=COALESCE(NULLIF(EXCLUDED.region,''),analytics_sessions.region), city=COALESCE(NULLIF(EXCLUDED.city,''),analytics_sessions.city), referrer=COALESCE(NULLIF(EXCLUDED.referrer,''),analytics_sessions.referrer),
+		acquisition_source=COALESCE(NULLIF(EXCLUDED.acquisition_source,''),analytics_sessions.acquisition_source), acquisition_medium=COALESCE(NULLIF(EXCLUDED.acquisition_medium,''),analytics_sessions.acquisition_medium), acquisition_campaign=COALESCE(NULLIF(EXCLUDED.acquisition_campaign,''),analytics_sessions.acquisition_campaign)`,
+		[session.id,session.visitorId,session.firstSeen||now,session.lastSeen||now,session.startedAt||now,session.endedAt||null,session.ipAddress||'',session.ipHash||'',session.country||'',session.region||'',session.city||'',session.device||'',session.browser||'',session.os||'',session.referrer||'',session.landingPath||'',session.acquisitionSource||'',session.acquisitionMedium||'',session.acquisitionCampaign||'',session.userAgent||'',Number(session.pageViews||0),Number(session.durationSeconds||0)]);
+	if (pageView?.id) await pool.query(`INSERT INTO analytics_page_views(id,session_id,path,title,component,entered_at,exited_at,active_seconds,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		ON CONFLICT(id) DO UPDATE SET exited_at=COALESCE(EXCLUDED.exited_at,analytics_page_views.exited_at),active_seconds=GREATEST(analytics_page_views.active_seconds,EXCLUDED.active_seconds)`,
+		[pageView.id,session.id,pageView.path||'/',pageView.title||'',pageView.component||'',pageView.enteredAt||now,pageView.exitedAt||null,Number(pageView.activeSeconds||0),pageView.createdAt||now]);
+}
+
+async function getAnalyticsSummary({ from, to, device = '' }) {
+	await ensureSchema();
+	const sessionParams = device ? [from, to, device] : [from, to];
+	const deviceFilter = device ? ' AND device = $3' : '';
+	const viewDeviceFilter = device ? ' AND s.device = $3' : '';
+	const [sessionsResult, viewsResult] = await Promise.all([
+		pool.query(`SELECT id,visitor_id AS "visitorId",first_seen AS "firstSeen",last_seen AS "lastSeen",started_at AS "startedAt",ended_at AS "endedAt",ip_hash AS "ipHash",country,region,city,device,browser,os,referrer,landing_path AS "landingPath",acquisition_source AS "acquisitionSource",acquisition_medium AS "acquisitionMedium",acquisition_campaign AS "acquisitionCampaign",user_agent AS "userAgent",page_views AS "pageViews",duration_seconds AS "durationSeconds" FROM analytics_sessions WHERE last_seen >= $1::date AND last_seen < ($2::date + INTERVAL '1 day')${deviceFilter} ORDER BY last_seen DESC`, sessionParams),
+		pool.query(`SELECT pv.id,pv.session_id AS "sessionId",pv.path,pv.title,pv.component,pv.entered_at AS "enteredAt",pv.exited_at AS "exitedAt",pv.active_seconds AS "activeSeconds",pv.created_at AS "createdAt" FROM analytics_page_views pv INNER JOIN analytics_sessions s ON s.id = pv.session_id WHERE pv.created_at >= $1::date AND pv.created_at < ($2::date + INTERVAL '1 day')${viewDeviceFilter} ORDER BY pv.created_at DESC`, sessionParams)
+	]);
+	const sessions = sessionsResult.rows.map(row => ({ ...row, pageViews:Number(row.pageViews||0), durationSeconds:Number(row.durationSeconds||0) }));
+	const pageViews = viewsResult.rows.map(row => ({ ...row, activeSeconds:Number(row.activeSeconds||0) }));
+	const pageViewCountBySession = pageViews.reduce((map, row) => map.set(row.sessionId, (map.get(row.sessionId) || 0) + 1), new Map());
+	const count = key => Object.entries(sessions.reduce((acc,row) => { const value=row[key]||'غير محدد'; acc[value]=(acc[value]||0)+1; return acc; }, {})).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
+	const daily = {}; const topPages = {};
+	for (const row of sessions) { const day=String(row.lastSeen).slice(0,10); daily[day]=(daily[day]||0)+1; }
+	for (const row of pageViews) topPages[row.path]=(topPages[row.path]||0)+1;
+	const sessionById = new Map(sessions.map(row => [row.id, row])); const performance = {};
+	for (const row of pageViews) { const session = sessionById.get(row.sessionId); if (!performance[row.path]) performance[row.path] = { path:row.path, visitors:new Set(), sessions:new Set(), pageViews:0, duration:0 }; const item=performance[row.path]; item.pageViews += 1; item.duration += Number(row.activeSeconds || 0); item.sessions.add(row.sessionId); if (session?.visitorId || session?.ipHash) item.visitors.add(session.visitorId || session.ipHash); }
+	for (const item of Object.values(performance)) item.duration = Number(item.duration || 0);
+	return { sessions:sessions.length, visitors:new Set(sessions.map(row=>row.visitorId||row.ipHash).filter(Boolean)).size, pageViews:pageViews.length,
+		averageSessionDuration:sessions.length?Math.round(sessions.reduce((sum,row)=>sum+row.durationSeconds,0)/sessions.length):0, pagesPerSession:sessions.length?Number((pageViews.length/sessions.length).toFixed(2)):0,
+		trafficOverTime:Object.entries(daily).sort(([a],[b])=>a.localeCompare(b)).map(([date,value])=>({date,value})), devices:count('device'), countries:count('country'), regions:count('region'), referrers:count('referrer'),
+		topPages:Object.entries(topPages).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([path,value])=>({path,value})), performance:Object.values(performance).sort((a,b)=>b.pageViews-a.pageViews).slice(0,20).map(item=>({path:item.path,visitors:item.visitors.size,sessions:item.sessions.size,pageViews:item.pageViews,averageSessionDuration:item.sessions.size?Math.round(item.duration/item.sessions.size):0,pagesPerSession:item.sessions.size?Number((item.pageViews/item.sessions.size).toFixed(2)):0})), recentSessions:sessions.slice(0,25).map(row => ({ ...row, pageViews: pageViewCountBySession.get(row.id) || 0 })), from, to };
+}
+getAnalyticsSummary.touchAdminActivity = touchAdminActivity;
+getAnalyticsSummary.endAdminActivity = endAdminActivity;
+getAnalyticsSummary.listAdminActivitySessions = listAdminActivitySessions;
+getAnalyticsSummary.getAnalyticsSessionDetails = getAnalyticsSessionDetails;
 async function approveFinancePayroll({ month, payments, approvedBy, accountId }) {
 	await ensureSchema(); const client = await pool.connect(); try { await client.query('BEGIN'); const account = (await client.query('SELECT id FROM finance_accounts WHERE id=$1 AND is_active=TRUE', [accountId])).rows[0]; if (!account) throw Object.assign(new Error('الخزنة غير موجودة.'), { code:'FINANCE_ACCOUNT_NOT_FOUND' }); const result = []; const now = new Date().toISOString(); for (const payment of payments) { const existing = (await client.query('SELECT id,employee_id AS "employeeId",month,amount,transaction_id AS "transactionId",status,approved_by AS "approvedBy",created_at AS "createdAt",updated_at AS "updatedAt" FROM finance_payroll_payments WHERE employee_id=$1 AND month=$2 FOR UPDATE', [payment.employeeId,month])).rows[0]; if (existing?.status === 'paid') { if (Math.abs(Number(existing.amount) - Number(payment.amount)) >= 0.005) throw Object.assign(new Error('المبلغ المعتمد لا يطابق صافي الراتب.'), { code:'FINANCE_PAYROLL_AMOUNT_MISMATCH' }); result.push(financePayrollRow(existing)); continue; } let transactionId = null; if (Number(payment.amount) > 0) { transactionId = crypto.randomUUID(); const transaction = { id:transactionId, kind:'expense', accountId, amount:Number(payment.amount), occurredAt:`${month}-01`, category:'رواتب', description:`راتب شهر ${month}`, status:'posted', sourceType:'payroll', sourceId:`${payment.employeeId}:${month}`, createdBy:approvedBy || '', createdAt:now }; await client.query('INSERT INTO finance_transactions(id,kind,account_id,amount,occurred_at,category,description,status,source_type,source_id,created_by,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)', [transaction.id,transaction.kind,transaction.accountId,transaction.amount,transaction.occurredAt,transaction.category,transaction.description,transaction.status,transaction.sourceType,transaction.sourceId,transaction.createdBy,transaction.createdAt]); await createFinanceAuditLog({ entityType:'finance_transaction',entityId:transactionId,action:'created',afterData:transaction,actor:approvedBy,createdAt:now }, client); }
 		const id = crypto.randomUUID(); await client.query('INSERT INTO finance_payroll_payments(id,employee_id,month,amount,transaction_id,status,approved_by,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [id,payment.employeeId,month,Number(payment.amount),transactionId,'paid',approvedBy||'',now]); const line = { id,employeeId:Number(payment.employeeId),month,amount:Number(payment.amount),transactionId,status:'paid',approvedBy:approvedBy||'',createdAt:now }; await createFinanceAuditLog({ entityType:'payroll_payment',entityId:id,action:'approved',afterData:line,actor:approvedBy,createdAt:now }, client); result.push(line); } await client.query('COMMIT'); return result; } catch (error) { await client.query('ROLLBACK'); if (error?.code === '23505') error.code = 'FINANCE_PAYROLL_DUPLICATE'; throw error; } finally { client.release(); }
@@ -444,4 +511,4 @@ async function deleteAdminSession(token) {
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, listFreeCodeRequestsPage, countFreeCodeRequests, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, listFreeCodeRequestsPage, countFreeCodeRequests, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, recordAnalyticsHit, getAnalyticsSummary, databaseFile: null, pool, ensureSchema };
