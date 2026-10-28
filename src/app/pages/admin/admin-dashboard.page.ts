@@ -1049,8 +1049,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 					this.currentContent = content;
 					this.refreshView();
 			},
-			error: () => {
-				this.errorMessage = 'لا يوجد محتوى محفوظ لهذه الصفحة أو تعذر تحميله من السيرفر.';
+			error: (error: { status?: number }) => {
+				this.errorMessage = error.status === 401 ? 'انتهت جلسة الدخول. سجّل الدخول مرة أخرى لعرض البيانات.' : 'تعذر تحميل بيانات الصفحة. أعد المحاولة بعد التأكد من اتصال السيرفر.';
 				this.refreshView();
 			}
 		});

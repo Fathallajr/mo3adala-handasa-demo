@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { EMPTY, Observable, catchError, map, of, switchMap, timer, timeout } from 'rxjs';
+import { EMPTY, Observable, catchError, map, of, switchMap, throwError, timer, timeout } from 'rxjs';
 import { AdminAuthService } from './admin-auth.service';
 import { CmsPageKey } from '../cms-page.registry';
 
@@ -36,6 +36,7 @@ export class MonthlyContentService {
 	loadPageState<T>(pageKey: CmsPageKey, _legacyFallback?: T, _options: { emitFallback?: boolean } = {}): Observable<T> {
 		const request$ = this.http.get<T>(`${this.apiBase}/content/${pageKey}`);
 		return request$.pipe(catchError((error: { status?: number }) => {
+			if (pageKey === 'employees') return throwError(() => error);
 			if (error?.status === 404 && _options.emitFallback !== false && _legacyFallback !== undefined) return of(_legacyFallback);
 			return EMPTY;
 		}));

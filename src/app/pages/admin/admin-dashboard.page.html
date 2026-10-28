@@ -35,9 +35,9 @@
 						<button
 							type="button"
 							class="page-item"
-							*ngIf="page.key !== 'employees' || !canAccessFeature('finance') || canManageEmployees"
+							*ngIf="page.key !== 'employees'"
 							[hidden]="!fullAdminAccount && !canAccessPage(page.key)"
-							[class.page-item--active]="activeView === 'cms' && isSelected(page.key) && !(employeeAccount && page.key === 'employees' && employeeProfileActive)"
+							[class.page-item--active]="activeView === 'cms' && isSelected(page.key)"
 							(click)="selectPage(page.key)">
 							<div class="page-item__title">{{ page.title }}</div>
 						</button>
@@ -131,11 +131,6 @@
 						{{ isSaving ? 'جاري الحفظ...' : 'حفظ على السيرفر' }}
 					</button>
 				</div>
-			</div>
-
-			<div class="notice-row">
-				<div class="notice" *ngIf="statusMessage">{{ statusMessage }}</div>
-				<div class="notice notice--error" *ngIf="errorMessage">{{ errorMessage }}</div>
 			</div>
 
 			<!-- Loading indicator -->
@@ -240,6 +235,11 @@
 
 				</ng-container>
 
+			</div>
+			<div class="notice-row" *ngIf="statusMessage || errorMessage" aria-live="polite">
+				<div class="notice" *ngIf="statusMessage && !errorMessage" role="status">{{ statusMessage }}</div>
+				<div class="notice notice--error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</div>
+				<button *ngIf="errorMessage && selectedPageKey === 'employees'" type="button" class="secondary-btn" (click)="loadPage('employees')">إعادة تحميل الموظفين</button>
 			</div>
 			</section>
 			<section *ngIf="activeView === 'free-codes'" class="data-view free-codes-admin-view">

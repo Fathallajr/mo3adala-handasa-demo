@@ -40,8 +40,6 @@ import { AdminApiService, FinanceAuditLog, FinanceTransaction, StudioFinanceResp
     <div><span class="studio-eyebrow">حساب مستقل</span><h2>{{ pageTitle }}</h2><p>{{ pageDescription }}</p></div>
     <button type="button" class="studio-primary" (click)="openEditor()">+ إضافة حركة</button>
   </section>
-  <div class="studio-notice studio-notice--error" *ngIf="error">{{ error }}</div>
-  <div class="studio-notice studio-notice--success" *ngIf="success" style="position:fixed;top:18px;left:50%;z-index:2000;width:min(520px,calc(100vw - 32px));box-sizing:border-box;transform:translateX(-50%);text-align:center;box-shadow:0 14px 35px #1d3b532b">{{ success }}</div>
   <section class="studio-filters">
     <div class="studio-filter-heading"><div><span>الفترة</span><h3>ملخص {{ accountLabel }}</h3></div><small>الإيرادات والمصروفات محفوظة في نفس دفتر الحسابات.</small></div>
     <label><span>الشهر</span><input type="month" [(ngModel)]="month" (change)="applyMonth()"></label>
@@ -92,6 +90,8 @@ import { AdminApiService, FinanceAuditLog, FinanceTransaction, StudioFinanceResp
     </div>
     <nav class="studio-pagination" *ngIf="studioPages > 1" aria-label="صفحات حركات الاستوديو"><button type="button" (click)="goToStudioPage(studioPage - 1)" [disabled]="studioPage <= 1">السابق</button><button type="button" *ngFor="let page of studioPageNumbers" [class.is-active]="page === studioPage" [attr.aria-current]="page === studioPage ? 'page' : null" (click)="goToStudioPage(page)">{{ page }}</button><span class="studio-pagination__summary">صفحة {{ studioPage }} من {{ studioPages }}</span><button type="button" (click)="goToStudioPage(studioPage + 1)" [disabled]="studioPage >= studioPages">التالي</button></nav>
     <ng-template #emptyStudio><div class="studio-empty">لا توجد حركات في {{ accountLabel }} خلال الشهر المختار.</div></ng-template>
+    <div class="studio-notice studio-notice--error" *ngIf="error && !editorOpen && !voidingTransaction" role="alert">{{ error }}</div>
+    <div class="studio-notice studio-notice--success" *ngIf="success && !error" role="status" aria-live="polite">{{ success }}</div>
   </section>
   <div *ngIf="actionMenuTransaction as activeAction" class="lead-actions-menu__panel lead-actions-menu__panel--studio"><button type="button" (click)="openDetails(activeAction)"><i class="bi bi-eye"></i> عرض</button><button type="button" *ngIf="activeAction.status !== 'voided'" (click)="openEdit(activeAction)"><i class="bi bi-pencil-square"></i> تعديل</button><button type="button" *ngIf="activeAction.status !== 'voided'" class="studio-delete-button" (click)="openVoidDialog(activeAction)"><i class="bi bi-trash3"></i> حذف</button><button type="button" (click)="openAudit(activeAction)"><i class="bi bi-clock-history"></i> سجل الأنشطة</button></div>
   <div class="studio-modal-backdrop" *ngIf="editorOpen" role="presentation">
