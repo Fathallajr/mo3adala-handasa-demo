@@ -2,7 +2,6 @@ import { monthlyContentDefaults } from './monthly-content.defaults';
 
 export type CmsPageKey =
 	| 'home'
-	| 'photos-2025'
 	| 'faq'
 	| 'contact'
 	| 'news-equation'
@@ -48,7 +47,6 @@ export const cmsPageOptions: CmsPageOption[] = [
 	{ key: 'launch-offer', route: '/', title: 'بوب‑أب الخصم', description: 'فتح وإغلاق العرض وتاريخ انتهاء الكاونتر ونصوص البوب‑أب', group: 'الإصدار الحالي' },
 	{ key: 'success-stories', route: '/success-stories', title: 'قصص النجاح', description: 'عنوان الصفحة ووصفها وقائمة قصص الطلاب', group: 'الإصدار الحالي' },
 	{ key: 'feedback', route: '/feedback', title: 'آراء الطلاب', description: 'نصوص صفحة جمع آراء الطلاب', group: 'الإصدار الحالي' },
-	{ key: 'photos-2025', route: '/photos-2025', title: 'صور الطلاب', description: 'ألبومات وصور الطلاب الناجحين', group: 'المحتوى' },
 	{ key: 'news-equation', route: '/news-equation', title: 'أخبار المعادلة', description: 'أخبار المعادلة والمواعيد والتنبيهات', group: 'المحتوى' },
 	{ key: 'engineers', route: '/engineers-ar', title: 'المهندسين والمدرسين', description: 'بيانات المدرسين والمواد والصور', group: 'المحتوى' },
 	{ key: 'schools', route: '/schools', title: 'المدارس والمعاهد', description: 'دليل المدارس والمعاهد والتصنيفات', group: 'المحتوى' },
@@ -118,12 +116,6 @@ export const cmsPageDefaults: Record<CmsPageKey, unknown> = {
 			visible: true,
 			items: []
 		}
-	},
-	'photos-2025': {
-		visible: true,
-		title: 'صور طلاب 2025',
-		description: 'معرض نجاح طلاب المعادلة',
-		albums: []
 	},
 	faq: {
 		visible: true,

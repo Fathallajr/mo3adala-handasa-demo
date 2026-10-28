@@ -24,7 +24,6 @@ const LEADS_ADMIN_USERNAME = process.env.LEADS_ADMIN_USERNAME || '';
 const LEADS_ADMIN_PASSWORD = process.env.LEADS_ADMIN_PASSWORD || '';
 const PAGE_KEYS = [
 	'home',
-	'photos-2025',
 	'faq',
 	'contact',
 	'news-equation',

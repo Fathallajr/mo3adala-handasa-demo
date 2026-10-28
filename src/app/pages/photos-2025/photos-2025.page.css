@@ -1,2 +1,26 @@
-/* Page-specific tweaks if needed */
+/* The page-entry animation applies transform/will-change to this section.
+   Those properties create a containing block for fixed descendants, making
+   the lightbox follow the document scroll instead of the viewport. */
+.photo-page-open {
+	animation: none !important;
+	transform: none !important;
+	will-change: auto !important;
+}
+
+.photos-lightbox {
+	width: 100vw;
+	height: 100dvh;
+	max-height: 100dvh;
+	overflow: hidden;
+}
+
+.photos-lightbox > div {
+	max-width: min(100%, 96rem);
+	max-height: calc(100dvh - 2rem);
+}
+
+.photos-lightbox > div > img {
+	max-width: 100%;
+	max-height: calc(100dvh - 2rem);
+}
 

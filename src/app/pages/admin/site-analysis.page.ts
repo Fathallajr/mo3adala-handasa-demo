@@ -17,7 +17,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	private readonly changeDetector = inject(ChangeDetectorRef);
 	from = this.daysAgo(29); to = this.today(); device = ''; loading = false; error = ''; summary: AnalyticsSummary | null = null;
 	readonly pageSize = 5; performancePage = 1; recentSessionsPage = 1; adminSessionsPage = 1;
-	sidebarOpen = false; sidebarCollapsed = false; adminUsername = this.auth.getUsername(); adminSessions: AdminActivitySession[] = []; private refreshTimer?: ReturnType<typeof setInterval>;
+	sidebarOpen = false; sidebarCollapsed = false; financeMenuOpen = false; adminUsername = this.auth.getUsername(); adminSessions: AdminActivitySession[] = []; private refreshTimer?: ReturnType<typeof setInterval>;
 	readonly sitePages = [
 		{ label: 'دفعة 2027 والعجلة', route: '/admin/batch-2027' }, { label: 'بوب‑أب الخصم', route: '/admin/launch-offer' },
 		{ label: 'أخبار المعادلة', route: '/admin/news-equation' }, { label: 'المدارس والمعاهد', route: '/admin/schools' },
@@ -52,9 +52,14 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	setPerformancePage(page: number): void { this.performancePage = Math.min(Math.max(page, 1), this.pageNumbers(this.summary?.performance.length || 0).length); }
 	setRecentSessionsPage(page: number): void { this.recentSessionsPage = Math.min(Math.max(page, 1), this.pageNumbers(this.summary?.recentSessions.length || 0).length); }
 	setAdminSessionsPage(page: number): void { this.adminSessionsPage = Math.min(Math.max(page, 1), this.pageNumbers(this.adminSessions.length).length); }
-	canAccessFeature(feature: 'leads' | 'customers' | 'feedback' | 'analytics' | 'wheel' | 'free-codes' | 'finance'): boolean { return this.auth.canAccessFeature(feature); }
+	get employeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
+	get fullAdminAccount(): boolean { return this.auth.getRole() === 'admin'; }
+	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
+	canAccessFeature(feature: 'leads' | 'customers' | 'feedback' | 'analytics' | 'wheel' | 'free-codes' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application'): boolean { return this.auth.canAccessFeature(feature); }
 	navigateAdmin(view: string): void { this.sidebarOpen = false; void this.router.navigateByUrl(`/admin?view=${encodeURIComponent(view)}`); }
 	navigatePage(route: string): void { this.sidebarOpen = false; void this.router.navigateByUrl(route); }
+	stayOnAnalysis(): void { this.sidebarOpen = false; }
+	toggleFinanceMenu(): void { this.financeMenuOpen = !this.financeMenuOpen; }
 	toggleSidebar(): void { this.sidebarOpen = !this.sidebarOpen; }
 	toggleSidebarControl(): void { if (window.innerWidth <= 1100) this.toggleSidebar(); else this.toggleDesktopSidebar(); }
 	toggleDesktopSidebar(): void { this.sidebarCollapsed = !this.sidebarCollapsed; }
@@ -85,7 +90,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 		const labels: Record<string, string> = {
 			'/': 'الرئيسية', '/faq': 'الأسئلة الشائعة', '/contact': 'التواصل معنا', '/requirements': 'شروط المعادلة',
 			'/batch-2027': 'دفعة 2027 والعجلة', '/success-stories': 'قصص النجاح', '/feedback': 'آراء الطلاب',
-			'/photos-2025': 'صور الطلاب', '/news-equation': 'أخبار المعادلة', '/engineers-ar': 'المهندسين والمدرسين',
+			'/graduation-photos': 'صور الخريجين', '/news-equation': 'أخبار المعادلة', '/engineers-ar': 'المهندسين والمدرسين',
 			'/schools': 'المدارس والمعاهد', '/subscription-engineering-ar': 'اشتراك هندسة عربي — دفعة 2027',
 			'/subscription-engineering-en': 'اشتراك هندسة لغات — دفعة 2027', '/subscription-computers-ar': 'اشتراك حاسبات عربي — دفعة 2027',
 			'/subscription-computers-en': 'اشتراك حاسبات لغات — دفعة 2027'

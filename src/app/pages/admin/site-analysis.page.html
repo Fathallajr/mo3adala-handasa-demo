@@ -15,10 +15,13 @@
 				<button *ngIf="canAccessFeature('leads')" type="button" (click)="navigateAdmin('leads')">الليدز</button>
 				<button *ngIf="canAccessFeature('customers')" type="button" (click)="navigateAdmin('customers')">العملاء</button>
 				<button *ngIf="canAccessFeature('feedback')" type="button" (click)="navigateAdmin('feedback')">آراء الطلاب</button>
-				<button *ngIf="canAccessFeature('analytics') || adminUsername === 'localadmin'" type="button" class="page-item--active">تحليل الموقع</button>
+				<button *ngIf="canAccessFeature('analytics') || adminUsername === 'localadmin'" type="button" class="page-item--active" (click)="stayOnAnalysis()">تحليل الموقع</button>
 				<button *ngIf="canAccessFeature('wheel')" type="button" (click)="navigateAdmin('wheel')">نتائج العجلة</button>
 				<button *ngIf="canAccessFeature('free-codes')" type="button" (click)="navigateAdmin('free-codes')">طلبات الأكواد المجانية</button>
-				<button *ngIf="canAccessFeature('finance')" type="button" (click)="navigateAdmin('finance')">الحسابات والرواتب</button>
+				<button *ngIf="employeeAccount" type="button" class="page-item page-item--employee-finance" (click)="navigateAdmin('finance-payroll')">كشف راتبي</button>
+				<button *ngIf="employeeAccount && canAccessPage('employees')" type="button" class="page-item" (click)="navigatePage('/admin/employees')">الموظفون</button>
+				<div *ngIf="(canAccessFeature('finance') || canAccessFeature('finance-payroll') || canAccessFeature('finance-studio') || canAccessFeature('finance-application')) && !employeeAccount" class="sidebar-finance-group"><button type="button" (click)="toggleFinanceMenu()">الحسابات والرواتب <span class="sidebar-finance-chevron" [class.is-open]="financeMenuOpen">⌄</span></button><div *ngIf="financeMenuOpen" class="sidebar-finance-submenu"><button *ngIf="canAccessFeature('finance')" type="button" (click)="navigateAdmin('finance')">الحسابات والمصروفات</button><button *ngIf="canAccessFeature('finance-application')" type="button" (click)="navigateAdmin('finance-application')">حسابات الأبلكيشن</button><button *ngIf="canAccessFeature('finance-studio')" type="button" (click)="navigateAdmin('finance-studio')">حسابات الاستوديو</button><button *ngIf="canAccessFeature('finance-payroll')" type="button" (click)="navigateAdmin('finance-payroll')">كشف الرواتب</button><button *ngIf="canAccessPage('employees') && canAccessFeature('finance')" type="button" (click)="navigatePage('/admin/employees')">الموظفون</button></div></div>
+				<button *ngIf="fullAdminAccount" type="button" (click)="navigateAdmin('admins')">حسابات الأدمن</button>
 			</div>
 			<div class="sidebar-heading-row"><h2 class="sidebar-title">صفحات الموقع</h2></div>
 			<div class="page-list"><div class="page-group"><button type="button" class="page-item" *ngFor="let page of sitePages" (click)="navigatePage(page.route)"><div class="page-item__title">{{ page.label }}</div></button></div></div>

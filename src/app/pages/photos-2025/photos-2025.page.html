@@ -1,4 +1,4 @@
-<section class="bg-gradient-to-br from-orange-50 to-yellow-50 py-8 md:py-16 page-enter-animation">
+<section class="bg-gradient-to-br from-orange-50 to-yellow-50 py-8 md:py-16 page-enter-animation" [class.photo-page-open]="selectedPhoto !== null">
 	<div class="mx-auto max-w-7xl px-4">
 		<div class="mb-6 md:mb-10" @fadeInUp>
 			<!-- Title centered -->
@@ -15,22 +15,25 @@
 			</div>
 		</div>
 
-		<!-- Grid of Photos -->
-		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4" @staggerList>
-			<div *ngFor="let photo of studentPhotos" class="overflow-hidden rounded-lg md:rounded-xl shadow border border-slate-200 bg-white cursor-pointer active:scale-95 transition-transform" (click)="openPhoto(photo)">
-				<img [src]="'assets/' + photo" alt="طالب ناجح" class="w-full h-40 sm:h-48 md:h-56 object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.webp'">
+		<!-- Separate graduation albums, with the 2026 batch first. -->
+		<section *ngFor="let album of photoAlbums" class="mb-10" @staggerList>
+			<h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 text-right mb-4">طلاب دفعة {{ album.year }}</h2>
+			<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+				<div *ngFor="let photo of album.photos" class="overflow-hidden rounded-lg md:rounded-xl shadow border border-slate-200 bg-white cursor-pointer active:scale-95 transition-transform" (click)="openPhoto(photo)">
+					<img [src]="photoSrc(photo)" [alt]="'طالب ناجح من دفعة ' + album.year" class="w-full h-40 sm:h-48 md:h-56 object-cover" loading="lazy" decoding="async" onerror="this.src='/assets/logo.webp'">
+				</div>
 			</div>
-		</div>
+		</section>
 
 		<!-- Lightbox Modal -->
-		<div *ngIf="selectedPhoto" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" (click)="closePhoto()">
+		<div *ngIf="selectedPhoto" class="photos-lightbox fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" aria-label="عرض صورة الطالب" (click)="closePhoto()">
 			<button (click)="closePhoto()" class="absolute top-4 right-4 text-white hover:text-red-400 transition-colors z-10" aria-label="إغلاق">
 				<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
 				</svg>
 			</button>
 			<div class="max-w-full max-h-full" (click)="$event.stopPropagation()">
-				<img [src]="'assets/' + selectedPhoto" alt="صورة طالب" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl">
+				<img [src]="photoSrc(selectedPhoto)" alt="صورة طالب" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl">
 			</div>
 		</div>
 	</div>

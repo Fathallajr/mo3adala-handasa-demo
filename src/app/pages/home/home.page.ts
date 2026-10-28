@@ -265,7 +265,9 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 		}
 
 		if (Array.isArray(state.photos?.items) && state.photos.items.length) {
-			this.studentPhotos2025 = this.shufflePhotos(state.photos.items);
+			// Keep the new 2026 YAS batch exclusive to the dedicated gallery page.
+			const previousBatchPhotos = state.photos.items.filter(photo => !String(photo).includes('/YAS_'));
+			if (previousBatchPhotos.length) this.studentPhotos2025 = this.shufflePhotos(previousBatchPhotos);
 		}
 	}
 

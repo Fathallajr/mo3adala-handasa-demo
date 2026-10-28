@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import { fadeInUp, staggerList } from '../../shared/animations';
 import { SeoService } from '../../core/seo.service';
 import { CanonicalService } from '../../core/canonical.service';
-import { MonthlyContentService } from '../../core/services/monthly-content.service';
 
 @Component({
 	selector: 'app-photos-2025-page',
@@ -16,12 +15,13 @@ import { MonthlyContentService } from '../../core/services/monthly-content.servi
 })
 export class Photos2025PageComponent implements OnInit {
 	selectedPhoto: string | null = null;
+	photoAlbums: Array<{ year: number; photos: string[] }> = [];
 
-	constructor(private seo: SeoService, private canonical: CanonicalService, private monthlyContent: MonthlyContentService) {
+	constructor(private seo: SeoService, private canonical: CanonicalService) {
 		const siteUrl = (typeof window !== 'undefined' ? (window as any)['NG_SITE_URL'] : process.env['NG_SITE_URL']) || 'https://www.appmo3adla.com';
 		const title = 'صور الطلاب الناجحين 2025 - معادلة كلية هندسة';
 		const description = 'شاهد صور طلاب أبلكيشن معادلة كلية الهندسة الناجحين وتجاربهم بعد اجتياز المعادلة.';
-		const url = `${siteUrl}/photos-2025`;
+    const url = `${siteUrl}/graduation-photos`;
 		this.seo.setTitle(title);
 		this.seo.setDescription(description);
 		this.seo.setOgTags({ title, description, url });
@@ -30,16 +30,16 @@ export class Photos2025PageComponent implements OnInit {
 	}
 
 	ngOnInit(): void {
-		this.studentPhotos = this.shufflePhotos([...this.studentPhotos2025, ...this.studentPhotos2024]);
-		this.monthlyContent.loadPageState('photos-2025', { visible: true, albums: [{ year: 2025, items: this.studentPhotos2025 }, { year: 2024, items: this.studentPhotos2024 }] }).subscribe((state: any) => {
-			if (state?.visible === false) return;
-			const albums = Array.isArray(state?.albums) ? state.albums : [];
-			const album2025 = albums.find((album: any) => Number(album.year) === 2025);
-			const album2024 = albums.find((album: any) => Number(album.year) === 2024);
-			const photos2025 = Array.isArray(album2025?.items) && album2025.items.length ? album2025.items : this.studentPhotos2025;
-			const photos2024 = Array.isArray(album2024?.items) && album2024.items.length ? album2024.items : this.studentPhotos2024;
-			this.studentPhotos = this.shufflePhotos([...photos2025, ...photos2024]);
-		});
+		// The YAS WEBP batch is the 2026 graduation set. Keep it separate and
+		// first, while the older hard-coded albums remain below it.
+		const photos2026 = this.studentPhotos2025.filter(photo => photo.includes('/YAS_'));
+		const photos2025 = this.studentPhotos2025.filter(photo => !photo.includes('/YAS_'));
+		this.photoAlbums = [
+			{ year: 2026, photos: this.shufflePhotos(photos2026) },
+			{ year: 2025, photos: this.shufflePhotos(photos2025) },
+			{ year: 2024, photos: this.shufflePhotos(this.studentPhotos2024) }
+		];
+		this.studentPhotos = this.photoAlbums.flatMap(album => album.photos);
 	}
 
 	private shufflePhotos(photos: string[]): string[] {
@@ -49,6 +49,10 @@ export class Photos2025PageComponent implements OnInit {
 			[shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
 		}
 		return shuffled;
+	}
+
+	photoSrc(photo: string): string {
+		return '/' + ['assets', ...photo.split('/')].map(segment => encodeURIComponent(segment)).join('/');
 	}
 
 	openPhoto(photo: string) {
@@ -140,7 +144,67 @@ export class Photos2025PageComponent implements OnInit {
 		'طلاب 2025/IMG-20251027-WA0082.webp',
 		'طلاب 2025/IMG-20251027-WA0083.webp',
 		'طلاب 2025/IMG-20251027-WA0084.webp',
-		'طلاب 2025/IMG-20251027-WA0085.webp'
+		'طلاب 2025/IMG-20251027-WA0085.webp',
+		'طلاب 2025/YAS_1459.webp',
+		'طلاب 2025/YAS_1460.webp',
+		'طلاب 2025/YAS_1461.webp',
+		'طلاب 2025/YAS_1462.webp',
+		'طلاب 2025/YAS_1463.webp',
+		'طلاب 2025/YAS_1464.webp',
+		'طلاب 2025/YAS_1465.webp',
+		'طلاب 2025/YAS_1466.webp',
+		'طلاب 2025/YAS_1467.webp',
+		'طلاب 2025/YAS_1468.webp',
+		'طلاب 2025/YAS_1469.webp',
+		'طلاب 2025/YAS_1470.webp',
+		'طلاب 2025/YAS_1471.webp',
+		'طلاب 2025/YAS_1472.webp',
+		'طلاب 2025/YAS_1473.webp',
+		'طلاب 2025/YAS_1474.webp',
+		'طلاب 2025/YAS_1475.webp',
+		'طلاب 2025/YAS_1476.webp',
+		'طلاب 2025/YAS_1477.webp',
+		'طلاب 2025/YAS_1478.webp',
+		'طلاب 2025/YAS_1479.webp',
+		'طلاب 2025/YAS_1481.webp',
+		'طلاب 2025/YAS_1482.webp',
+		'طلاب 2025/YAS_1483.webp',
+		'طلاب 2025/YAS_1484.webp',
+		'طلاب 2025/YAS_1485.webp',
+		'طلاب 2025/YAS_1486.webp',
+		'طلاب 2025/YAS_1487.webp',
+		'طلاب 2025/YAS_1489.webp',
+		'طلاب 2025/YAS_1490.webp',
+		'طلاب 2025/YAS_1491.webp',
+		'طلاب 2025/YAS_1492.webp',
+		'طلاب 2025/YAS_1493.webp',
+		'طلاب 2025/YAS_1495.webp',
+		'طلاب 2025/YAS_1497.webp',
+		'طلاب 2025/YAS_1498.webp',
+		'طلاب 2025/YAS_1499.webp',
+		'طلاب 2025/YAS_1500.webp',
+		'طلاب 2025/YAS_1501.webp',
+		'طلاب 2025/YAS_1502.webp',
+		'طلاب 2025/YAS_1503.webp',
+		'طلاب 2025/YAS_1504.webp',
+		'طلاب 2025/YAS_1505.webp',
+		'طلاب 2025/YAS_1507.webp',
+		'طلاب 2025/YAS_1508.webp',
+		'طلاب 2025/YAS_1509.webp',
+		'طلاب 2025/YAS_1511.webp',
+		'طلاب 2025/YAS_1513.webp',
+		'طلاب 2025/YAS_1515.webp',
+		'طلاب 2025/YAS_1517.webp',
+		'طلاب 2025/YAS_1518.webp',
+		'طلاب 2025/YAS_1523.webp',
+		'طلاب 2025/YAS_1524.webp',
+		'طلاب 2025/YAS_1525.webp',
+		'طلاب 2025/YAS_1527.webp',
+		'طلاب 2025/YAS_1528.webp',
+		'طلاب 2025/YAS_1529.webp',
+		'طلاب 2025/YAS_1531.webp',
+		'طلاب 2025/YAS_1532.webp',
+		'طلاب 2025/YAS_1534.webp'
 	];
 
 	studentPhotos2024 = [

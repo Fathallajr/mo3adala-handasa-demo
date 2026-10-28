@@ -1,6 +1,6 @@
 /
 /faq
-/photos-2025
+/graduation-photos
 /contact
 /feedback
 /news/equation

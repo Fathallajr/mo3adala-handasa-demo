@@ -180,7 +180,6 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		'requirements',
 		'success-stories',
 		'feedback',
-		'photos-2025',
 		'engineers'
 	]);
 	pageOptions: PageOption[] = cmsPageOptions.filter(page => !this.hiddenAdminPageKeys.has(page.key));
