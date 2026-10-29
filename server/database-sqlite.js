@@ -211,10 +211,16 @@ function updateEmployeeProfile({ employeeId, employee, email, updatedAt }) {
 		const currentEmail = String(current.email || '').trim().toLowerCase();
 		const nextEmail = String(email || '').trim().toLowerCase();
 		if (nextEmail !== currentEmail) {
-			if (db.prepare('SELECT 1 FROM admin_users WHERE lower(username) = lower(?)').get(nextEmail)) throw Object.assign(new Error('هذا البريد مستخدم بالفعل.'), { code: 'DUPLICATE_EMAIL' });
-			const result = db.prepare('UPDATE admin_users SET username = ?, updated_at = ? WHERE lower(username) = lower(?)').run(nextEmail, updatedAt, currentEmail);
-			if (!result.changes) throw Object.assign(new Error('لا يوجد حساب دخول مرتبط بهذا الموظف.'), { code: 'EMPLOYEE_ACCOUNT_NOT_FOUND' });
-			db.prepare('DELETE FROM admin_sessions WHERE lower(username) = lower(?)').run(currentEmail);
+			const accountRows = db.prepare('SELECT username, permissions FROM admin_users').all();
+			const permissionKey = `employee:${employeeId}`;
+			const employeeAccount = accountRows.find(row => {
+				try { return Array.isArray(JSON.parse(row.permissions || '[]')) && JSON.parse(row.permissions || '[]').includes(permissionKey); } catch { return false; }
+			}) || accountRows.find(row => String(row.username || '').trim().toLowerCase() === currentEmail);
+			const accountUsername = String(employeeAccount?.username || '').trim();
+			if (!accountUsername) throw Object.assign(new Error('لا يوجد حساب دخول مرتبط بهذا الموظف.'), { code: 'EMPLOYEE_ACCOUNT_NOT_FOUND' });
+			if (db.prepare('SELECT 1 FROM admin_users WHERE lower(username) = lower(?) AND lower(username) <> lower(?)').get(nextEmail, accountUsername)) throw Object.assign(new Error('هذا البريد مستخدم بالفعل.'), { code: 'DUPLICATE_EMAIL' });
+			db.prepare('UPDATE admin_users SET username = ?, updated_at = ? WHERE username = ?').run(nextEmail, updatedAt, accountUsername);
+			db.prepare('DELETE FROM admin_sessions WHERE username = ?').run(accountUsername);
 		}
 		const savedEmployee = { ...current, ...employee, id: current.id, email: nextEmail };
 		const nextPage = { ...page, items: items.map((item, itemIndex) => itemIndex === index ? savedEmployee : item) };

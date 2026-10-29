@@ -191,10 +191,14 @@ async function updateEmployeeProfile({ employeeId, employee, email, updatedAt })
 		const currentEmail = String(current.email || '').trim().toLowerCase();
 		const nextEmail = String(email || '').trim().toLowerCase();
 		if (nextEmail !== currentEmail) {
-			if ((await client.query('SELECT 1 FROM admin_users WHERE lower(username) = lower($1)', [nextEmail])).rowCount) throw Object.assign(new Error('هذا البريد مستخدم بالفعل.'), { code: 'DUPLICATE_EMAIL' });
-			const result = await client.query('UPDATE admin_users SET username = $1, updated_at = $2 WHERE lower(username) = lower($3)', [nextEmail, updatedAt, currentEmail]);
-			if (!result.rowCount) throw Object.assign(new Error('لا يوجد حساب دخول مرتبط بهذا الموظف.'), { code: 'EMPLOYEE_ACCOUNT_NOT_FOUND' });
-			await client.query('DELETE FROM admin_sessions WHERE lower(username) = lower($1)', [currentEmail]);
+			const permissionKey = `employee:${employeeId}`;
+			let accountResult = await client.query('SELECT username FROM admin_users WHERE permissions @> $1::jsonb LIMIT 1', [JSON.stringify([permissionKey])]);
+			if (!accountResult.rowCount) accountResult = await client.query('SELECT username FROM admin_users WHERE lower(username) = lower($1) LIMIT 1', [currentEmail]);
+			const accountUsername = String(accountResult.rows[0]?.username || '').trim();
+			if (!accountUsername) throw Object.assign(new Error('لا يوجد حساب دخول مرتبط بهذا الموظف.'), { code: 'EMPLOYEE_ACCOUNT_NOT_FOUND' });
+			if ((await client.query('SELECT 1 FROM admin_users WHERE lower(username) = lower($1) AND lower(username) <> lower($2)', [nextEmail, accountUsername])).rowCount) throw Object.assign(new Error('هذا البريد مستخدم بالفعل.'), { code: 'DUPLICATE_EMAIL' });
+			await client.query('UPDATE admin_users SET username = $1, updated_at = $2 WHERE username = $3', [nextEmail, updatedAt, accountUsername]);
+			await client.query('DELETE FROM admin_sessions WHERE username = $1', [accountUsername]);
 		}
 		const savedEmployee = { ...current, ...employee, id: current.id, email: nextEmail };
 		const nextPage = { ...page, items: items.map((item, itemIndex) => itemIndex === index ? savedEmployee : item) };
