@@ -645,3 +645,6 @@ main.app-page-shell.route-home {
 .employee-leads-table tbody tr>td.employee-card__footer .actions{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:34px!important}
 .employee-leads-table tbody tr>td.employee-card__footer .action-menu-trigger{flex:0 0 34px!important;margin:0 auto!important}
 @media(max-width:700px){.employee-leads-table{min-width:820px!important}.employee-leads-table th:nth-child(1),.employee-leads-table td:nth-child(1){width:24%!important}.employee-leads-table th:nth-child(2),.employee-leads-table td:nth-child(2){width:34%!important}.employee-leads-table th:nth-child(3),.employee-leads-table td:nth-child(3){width:18%!important}.employee-leads-table th:nth-child(4),.employee-leads-table td:nth-child(4){width:16%!important}.employee-leads-table th:nth-child(5),.employee-leads-table td:nth-child(5){width:66px!important}}
+.finance-page.payroll-employee .payroll-strip .payroll-period-fields{display:flex!important;align-items:flex-end!important;gap:8px!important}
+.finance-page.payroll-employee .payroll-strip .payroll-period-fields select{display:block!important;visibility:visible!important;opacity:1!important;min-width:118px!important}
+.finance-page.payroll-employee .payroll-strip>span:nth-of-type(2){display:none!important}

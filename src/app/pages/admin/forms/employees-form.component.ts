@@ -543,7 +543,13 @@ export class EmployeesFormComponent implements OnChanges {
 			const requestedId = match ? Number(match[1]) : null;
 			this.employeePageId = requestedId;
 			const employee = this.employeePageEmployee;
-			if (employee) this.selectEmployeeForPage(employee);
+			if (employee) {
+				this.selectEmployeeForPage(employee);
+			} else {
+				// Browser Back removes the fragment; clear the old selection as well
+				// so the profile modal cannot remain visible from stale component state.
+				this.closeDetails();
+			}
 		});
 	}
 
@@ -603,7 +609,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.isEditingEmployee = false;
 		this.employeePageId = employee.id;
 		this.selectEmployeeForPage(employee);
-		void this.router.navigate([], { relativeTo: this.route, fragment: `employee-${employee.id}` });
+		void this.router.navigate([], { relativeTo: this.route, fragment: `employee-${employee.id}`, replaceUrl: true });
 	}
 	editEmployee(employee: Employee): void { if (!this.canManageEmployees) return; this.openEmployeePage(employee); this.isEditingEmployee = true; }
 	openOwnEmployeePage(): void { const employee = this.employees.find(item => item.id === this.employeeAccountId); if (employee) this.openEmployeePage(employee); }
@@ -612,7 +618,7 @@ export class EmployeesFormComponent implements OnChanges {
 	closeEmployeePage(): void {
 		this.employeePageId = null;
 		this.closeDetails();
-		void this.router.navigate([], { relativeTo: this.route, fragment: undefined });
+		void this.router.navigate([], { relativeTo: this.route, fragment: undefined, replaceUrl: true });
 	}
 	private selectEmployeeForPage(employee: Employee): void {
 		this.selectedEmployeeId = employee.id;

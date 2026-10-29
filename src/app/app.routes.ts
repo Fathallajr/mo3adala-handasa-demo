@@ -4,7 +4,7 @@ import { adminGuard } from './core/guards/admin.guard';
 export const routes: Routes = [
 	{ path: '', loadComponent: () => import('./pages/home/home.page').then(m => m.HomePageComponent) },
 	{ path: 'admin/login', loadComponent: () => import('./pages/admin/admin-login.page').then(m => m.AdminLoginPageComponent) },
-	{ path: 'admin/site-analysis', canActivate: [adminGuard], loadComponent: () => import('./pages/admin/site-analysis.page').then(m => m.SiteAnalysisPageComponent) },
+	{ path: 'admin/site-analysis', redirectTo: 'admin?view=analytics', pathMatch: 'full' },
 	{ path: 'admin/site-analysis/session/:id', canActivate: [adminGuard], loadComponent: () => import('./pages/admin/site-session-details.page').then(m => m.SiteSessionDetailsPageComponent) },
 	{ path: 'admin/:pageKey', canActivate: [adminGuard], loadComponent: () => import('./pages/admin/admin-dashboard.page').then(m => m.AdminDashboardPageComponent) },
 	{ path: 'admin', canActivate: [adminGuard], loadComponent: () => import('./pages/admin/admin-dashboard.page').then(m => m.AdminDashboardPageComponent) },

@@ -1,4 +1,5 @@
 <div class="admin-dashboard-shell page-enter-animation" [class.admin-dashboard-shell--sidebar-collapsed]="sidebarCollapsed">
+	<div class="site-analysis-shell" [class.site-analysis-shell--embedded]="embedded">
 	<header class="admin-topbar">
 		<div class="topbar-actions">
 			<button *ngIf="sidebarCollapsed" type="button" class="desktop-sidebar-reopen" (click)="toggleDesktopSidebar()" aria-label="فتح القائمة الجانبية"><i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i></button>
@@ -20,7 +21,7 @@
 				<button *ngIf="canAccessFeature('free-codes')" type="button" (click)="navigateAdmin('free-codes')">طلبات الأكواد المجانية</button>
 				<button *ngIf="employeeAccount" type="button" class="page-item page-item--employee-finance" (click)="navigateAdmin('finance-payroll')">كشف راتبي</button>
 				<button *ngIf="employeeAccount && canAccessPage('employees')" type="button" class="page-item" (click)="navigatePage('/admin/employees')">الموظفون</button>
-				<div *ngIf="(canAccessFeature('finance') || canAccessFeature('finance-payroll') || canAccessFeature('finance-studio') || canAccessFeature('finance-application')) && !employeeAccount" class="sidebar-finance-group"><button type="button" (click)="toggleFinanceMenu()">الحسابات والرواتب <span class="sidebar-finance-chevron" [class.is-open]="financeMenuOpen">⌄</span></button><div *ngIf="financeMenuOpen" class="sidebar-finance-submenu"><button *ngIf="canAccessFeature('finance')" type="button" (click)="navigateAdmin('finance')">الحسابات والمصروفات</button><button *ngIf="canAccessFeature('finance-application')" type="button" (click)="navigateAdmin('finance-application')">حسابات الأبلكيشن</button><button *ngIf="canAccessFeature('finance-studio')" type="button" (click)="navigateAdmin('finance-studio')">حسابات الاستوديو</button><button *ngIf="canAccessFeature('finance-payroll')" type="button" (click)="navigateAdmin('finance-payroll')">كشف الرواتب</button><button *ngIf="canAccessPage('employees') && canAccessFeature('finance')" type="button" (click)="navigatePage('/admin/employees')">الموظفون</button></div></div>
+				<div *ngIf="(canAccessFeature('finance') || canAccessFeature('finance-payroll') || canAccessFeature('finance-studio') || canAccessFeature('finance-application')) && !employeeAccount" class="sidebar-finance-group"><button type="button" class="sidebar-finance-toggle" [attr.aria-expanded]="financeMenuOpen" aria-controls="sidebar-finance-submenu" (click)="toggleFinanceMenu()"><span>الحسابات والرواتب</span><span class="sidebar-finance-chevron" [class.is-open]="financeMenuOpen" aria-hidden="true">⌄</span></button><div *ngIf="financeMenuOpen" id="sidebar-finance-submenu" class="sidebar-finance-submenu"><button *ngIf="canAccessFeature('finance')" type="button" (click)="navigateAdmin('finance')">الحسابات والمصروفات</button><button *ngIf="canAccessFeature('finance-application')" type="button" (click)="navigateAdmin('finance-application')">حسابات الأبلكيشن</button><button *ngIf="canAccessFeature('finance-studio')" type="button" (click)="navigateAdmin('finance-studio')">حسابات الاستوديو</button><button *ngIf="canAccessFeature('finance-payroll')" type="button" (click)="navigateAdmin('finance-payroll')">كشف الرواتب</button><button *ngIf="canAccessPage('employees') && canAccessFeature('finance')" type="button" (click)="navigatePage('/admin/employees')">الموظفون</button></div></div>
 				<button *ngIf="fullAdminAccount" type="button" (click)="navigateAdmin('admins')">حسابات الأدمن</button>
 			</div>
 			<div class="sidebar-heading-row"><h2 class="sidebar-title">صفحات الموقع</h2></div>
@@ -63,5 +64,6 @@
 	</ng-container>
 			</main>
 		</div>
+	</div>
 	</div>
 </div>

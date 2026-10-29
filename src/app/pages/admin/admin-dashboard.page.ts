@@ -28,6 +28,7 @@ import { DEFAULT_SCHOOLS } from '../../core/schools.defaults';
 import { EmployeesFormComponent } from './forms/employees-form.component';
 import { FinanceFormComponent } from './forms/finance-form.component';
 import { StudioFinanceFormComponent } from './forms/studio-finance-form.component';
+import { SiteAnalysisPageComponent } from './site-analysis.page';
 
 interface PageOption {
 	key: CmsPageKey;
@@ -37,7 +38,7 @@ interface PageOption {
 	group: string;
 }
 
-type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application';
+type AdminDataView = 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'analytics' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application';
 type PaginationItem = number | '…';
 interface FreeCodeCalendarDay { iso: string; label: number; inMonth: boolean; }
 
@@ -62,7 +63,8 @@ interface FreeCodeCalendarDay { iso: string; label: number; inMonth: boolean; }
 		ProgramLabelPipe,
 		EmployeesFormComponent,
 		FinanceFormComponent,
-		StudioFinanceFormComponent
+		StudioFinanceFormComponent,
+		SiteAnalysisPageComponent
 	],
 	templateUrl: './admin-dashboard.page.html',
 	styleUrls: ['./admin-dashboard.page.css']
@@ -72,7 +74,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	sidebarOpen = false;
 	sidebarCollapsed = false;
 	financeMenuOpen = false;
-	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms' = 'leads';
+	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'analytics' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,
 		todayLeads: 0,
@@ -228,7 +230,15 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		private route: ActivatedRoute,
 		private seo: SeoService,
 		private changeDetector: ChangeDetectorRef
-	) {}
+	) {
+		// Set the first rendered view from the URL so navigating to a CMS page
+		// never paints the default "leads" view for a single frame.
+		const pageKey = this.route.snapshot.paramMap.get('pageKey');
+		if (pageKey && this.pageOptions.some(page => page.key === pageKey)) {
+			this.activeView = 'cms';
+			this.selectedPageKey = pageKey as CmsPageKey;
+		}
+	}
 
 	private refreshView(): void {
 		this.changeDetector.detectChanges();
@@ -367,7 +377,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	setView(view: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms'): void {
+	setView(view: AdminDataView | 'cms'): void {
 		this.closeActionMenus();
 		this.statusMessage = '';
 		this.errorMessage = '';
@@ -377,12 +387,13 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'wheel' && !this.auth.canAccessFeature('wheel')) return;
 		if (view === 'free-codes' && !this.auth.canAccessFeature('free-codes')) return;
 		if (view === 'feedback' && !this.auth.canAccessFeature('feedback')) return;
+		if (view === 'analytics' && !this.auth.canAccessFeature('analytics') && this.adminUsername !== 'localadmin') return;
 		if (view === 'finance' && !this.auth.canAccessFeature('finance')) return;
 		if (view === 'finance-payroll' && !this.auth.canAccessFeature('finance-payroll')) return;
 		if (view === 'finance-studio' && !this.auth.canAccessFeature('finance-studio')) return;
 		if (view === 'finance-application' && !this.auth.canAccessFeature('finance-application')) return;
 		if (view === 'finance' || view === 'finance-payroll' || view === 'finance-studio' || view === 'finance-application') this.financeMenuOpen = true;
-		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'free-codes' && view !== 'feedback' && view !== 'finance' && view !== 'finance-payroll' && view !== 'finance-studio' && view !== 'finance-application' && this.auth.getRole() !== 'admin') return;
+		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'free-codes' && view !== 'feedback' && view !== 'analytics' && view !== 'finance' && view !== 'finance-payroll' && view !== 'finance-studio' && view !== 'finance-application' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
 			this.sidebarOpen = false;
 			return;
@@ -406,11 +417,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'feedback') this.loadFeedback();
 		if (view === 'admins') this.loadAdminUsers();
 	}
-	openSiteAnalysis(): void {
-		if (!this.auth.canAccessFeature('analytics') && this.adminUsername !== 'localadmin') return;
-		this.sidebarOpen = false;
-		void this.router.navigateByUrl('/admin/site-analysis');
-	}
+	openSiteAnalysis(): void { this.setView('analytics'); }
 	toggleFinanceMenu(): void {
 		if (this.activeView !== 'finance') {
 			this.financeMenuOpen = true;
@@ -1167,7 +1174,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	}
 
 	private resolveDataView(value: string | null): AdminDataView | null {
-		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'free-codes', 'admins', 'finance', 'finance-payroll', 'finance-studio', 'finance-application'];
+		const allowed: AdminDataView[] = ['overview', 'leads', 'customers', 'feedback', 'programs', 'wheel', 'free-codes', 'admins', 'analytics', 'finance', 'finance-payroll', 'finance-studio', 'finance-application'];
 		if (!value || !allowed.includes(value as AdminDataView)) return null;
 		const view = value as AdminDataView;
 		if (this.employeeAccount && !this.canManageEmployees && view !== 'finance-payroll') return null;
@@ -1177,6 +1184,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'overview' || view === 'programs' || view === 'admins') {
 			return this.auth.getRole() === 'admin' ? view : null;
 		}
+		if (view === 'analytics') return this.auth.canAccessFeature('analytics') || this.adminUsername === 'localadmin' ? view : null;
 		if (view === 'finance') return this.auth.canAccessFeature('finance') ? view : null;
 		if (view === 'finance-payroll') return this.auth.canAccessFeature('finance-payroll') ? view : null;
 		if (view === 'finance-studio') return this.auth.canAccessFeature('finance-studio') ? view : null;

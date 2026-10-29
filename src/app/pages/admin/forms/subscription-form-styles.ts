@@ -6,7 +6,7 @@ export const subscriptionFormStyles = `
 .cms-section-title::before { content:''; width:9px; height:9px; flex:0 0 9px; border-radius:50%; background:#6d4aff; box-shadow:0 0 0 5px #6d4aff16; }
 .cms-section--collapsible { padding:0; }
 .cms-section--collapsible { order:10; }
-.cms-section--schedule { order:5; }
+.cms-section--schedule { order:7; }
 .cms-section--vodafone { order:6; }
 .cms-section--collapsible > .cms-section-title { display:flex; align-items:center; gap:.65rem; margin:0; padding:1.15rem 1.35rem; border:0; cursor:pointer; list-style:none; user-select:none; transition:background .2s,color .2s; }
 .cms-section--collapsible > .cms-section-title::-webkit-details-marker { display:none; }

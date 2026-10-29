@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminActivitySession, AnalyticsSummary, AdminApiService } from '../../core/services/admin-api.service';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
@@ -11,6 +11,7 @@ import * as ExcelJS from 'exceljs';
 	templateUrl: './site-analysis.page.html', styleUrls: ['./site-analysis.page.css', './admin-dashboard.page.css']
 })
 export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
+	@Input() embedded = false;
 	private readonly api = inject(AdminApiService);
 	private readonly auth = inject(AdminAuthService);
 	private readonly router = inject(Router);
@@ -21,7 +22,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	readonly sitePages = [
 		{ label: 'دفعة 2027 والعجلة', route: '/admin/batch-2027' }, { label: 'بوب‑أب الخصم', route: '/admin/launch-offer' },
 		{ label: 'أخبار المعادلة', route: '/admin/news-equation' }, { label: 'المدارس والمعاهد', route: '/admin/schools' },
-		{ label: 'الموظفون', route: '/admin/employees' }, { label: 'اشتراك هندسة عربي — دفعة 2027', route: '/admin/subscription-engineering-ar' },
+		{ label: 'اشتراك هندسة عربي — دفعة 2027', route: '/admin/subscription-engineering-ar' },
 		{ label: 'اشتراك هندسة لغات — دفعة 2027', route: '/admin/subscription-engineering-en' }, { label: 'اشتراك حاسبات عربي — دفعة 2027', route: '/admin/subscription-computers-ar' },
 		{ label: 'اشتراك حاسبات لغات — دفعة 2027', route: '/admin/subscription-computers-en' }
 	];
