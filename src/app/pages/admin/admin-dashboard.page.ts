@@ -74,6 +74,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	sidebarOpen = false;
 	sidebarCollapsed = false;
 	financeMenuOpen = false;
+	subscriptionMenuOpen = false;
+	engagementMenuOpen = true;
 	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'analytics' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,
@@ -237,6 +239,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (pageKey && this.pageOptions.some(page => page.key === pageKey)) {
 			this.activeView = 'cms';
 			this.selectedPageKey = pageKey as CmsPageKey;
+			this.subscriptionMenuOpen = pageKey.startsWith('subscription-');
+			this.engagementMenuOpen = ['batch-2027', 'launch-offer'].includes(pageKey);
 		}
 	}
 
@@ -342,7 +346,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 					const canLoadPayroll = this.auth.canAccessFeature('finance-payroll');
 					const canLoadStudio = this.auth.canAccessFeature('finance-studio');
 					const canLoadApplication = this.auth.canAccessFeature('finance-application');
-					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : canLoadFreeCodes ? 'free-codes' : canLoadFinance ? 'finance' : canLoadPayroll ? 'finance-payroll' : canLoadStudio ? 'finance-studio' : canLoadApplication ? 'finance-application' : 'feedback';
+					const canLoadAnalytics = this.auth.canAccessFeature('analytics');
+					const defaultView = canLoadLeads ? 'leads' : canLoadCustomers ? 'customers' : canLoadWheel ? 'wheel' : canLoadFreeCodes ? 'free-codes' : canLoadFeedback ? 'feedback' : canLoadAnalytics ? 'analytics' : canLoadFinance ? 'finance' : canLoadPayroll ? 'finance-payroll' : canLoadStudio ? 'finance-studio' : canLoadApplication ? 'finance-application' : 'feedback';
 					this.activeView = requestedView || defaultView;
 					if (canLoadLeads) this.loadLeads();
 					if (canLoadCustomers) this.loadCustomers();
@@ -354,7 +359,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 				}
 			}
 		if (this.activeView === 'finance' || this.activeView === 'finance-payroll' || this.activeView === 'finance-studio' || this.activeView === 'finance-application' || (this.activeView === 'cms' && pageKey === 'employees')) this.financeMenuOpen = true;
-		if (!isCmsNavigation) this.loadPage(pageKey);
+		if (!isCmsNavigation && this.activeView === 'cms') this.loadPage(pageKey);
 		this.routeStateReady = true;
 	}
 
@@ -393,6 +398,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'finance-studio' && !this.auth.canAccessFeature('finance-studio')) return;
 		if (view === 'finance-application' && !this.auth.canAccessFeature('finance-application')) return;
 		if (view === 'finance' || view === 'finance-payroll' || view === 'finance-studio' || view === 'finance-application') this.financeMenuOpen = true;
+		if (view === 'wheel' || view === 'free-codes') this.engagementMenuOpen = true;
 		if (view !== 'cms' && view !== 'leads' && view !== 'customers' && view !== 'wheel' && view !== 'free-codes' && view !== 'feedback' && view !== 'analytics' && view !== 'finance' && view !== 'finance-payroll' && view !== 'finance-studio' && view !== 'finance-application' && this.auth.getRole() !== 'admin') return;
 		if (this.activeView === view) {
 			this.sidebarOpen = false;
@@ -418,6 +424,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (view === 'admins') this.loadAdminUsers();
 	}
 	openSiteAnalysis(): void { this.setView('analytics'); }
+	toggleEngagementMenu(): void { this.engagementMenuOpen = !this.engagementMenuOpen; }
+	toggleSubscriptionMenu(): void { this.subscriptionMenuOpen = !this.subscriptionMenuOpen; }
 	toggleFinanceMenu(): void {
 		if (this.activeView !== 'finance') {
 			this.financeMenuOpen = true;
@@ -992,6 +1000,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 
 	selectPage(pageKey: CmsPageKey): void {
 		this.sidebarOpen = false;
+		if (pageKey.startsWith('subscription-')) this.subscriptionMenuOpen = true;
+		if (pageKey === 'batch-2027' || pageKey === 'launch-offer') this.engagementMenuOpen = true;
 		const currentRoutePageKey = this.route.snapshot.paramMap.get('pageKey');
 		const currentQueryView = this.route.snapshot.queryParamMap.get('view');
 		// Keep the URL in sync even when the selected page is already the
@@ -1152,7 +1162,11 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	}
 
 	get groupedPageOptions(): Array<{ group: string; pages: PageOption[] }> {
-		const visiblePages = this.auth.isLeadsOnly() ? this.pageOptions.filter(page => page.key === 'batch-2027') : this.pageOptions;
+		const visiblePages = this.auth.isLeadsOnly()
+			? this.pageOptions.filter(page => page.key === 'batch-2027')
+			: this.fullAdminAccount
+				? this.pageOptions
+				: this.pageOptions.filter(page => this.auth.canAccessPage(page.key));
 		return visiblePages.reduce<Array<{ group: string; pages: PageOption[] }>>((groups, page) => {
 			const existingGroup = groups.find(item => item.group === page.group);
 			if (existingGroup) { existingGroup.pages.push(page); return groups; }
@@ -1160,6 +1174,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 			return groups;
 		}, []);
 	}
+	sidebarPageTitle(page: PageOption): string { return page.title.replace(/\s*[—-]\s*دفعة 2027\s*$/u, ''); }
 
 	private resolvePageKey(value: string | null): CmsPageKey {
 		if (this.auth.isLeadsOnly()) return 'batch-2027';

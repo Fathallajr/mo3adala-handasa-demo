@@ -163,6 +163,7 @@ tbody tr:hover { background:#faf9ff; }
 .page-list { gap:7px; margin:0; }
 .page-group { display:contents; }
 .page-group__title { display:none; }
+.page-group--subscriptions { display:grid; gap:0; margin-top:0; padding-top:0; border-top:0; }
 .page-item { padding:12px 13px; }
 .page-item__title { margin:0; font-size:13px; }
 

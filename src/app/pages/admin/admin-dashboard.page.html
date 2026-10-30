@@ -20,8 +20,9 @@
 				<button *ngIf="canAccessFeature('customers')" type="button" [class.page-item--active]="activeView === 'customers'" (click)="setView('customers')">العملاء</button>
 				<button *ngIf="canAccessFeature('feedback')" type="button" [class.page-item--active]="activeView === 'feedback'" (click)="setView('feedback')">آراء الطلاب</button>
 				<button *ngIf="canAccessFeature('analytics') || adminUsername === 'localadmin'" type="button" [class.page-item--active]="activeView === 'analytics'" (click)="setView('analytics')">تحليل الموقع</button>
-				<button *ngIf="canAccessFeature('wheel')" type="button" [class.page-item--active]="activeView === 'wheel'" (click)="setView('wheel')">نتائج العجلة</button>
-				<button *ngIf="canAccessFeature('free-codes')" type="button" [class.page-item--active]="activeView === 'free-codes'" (click)="setView('free-codes')">طلبات الأكواد المجانية</button>
+				<button *ngIf="fullAdminAccount || canAccessPage('schools')" type="button" [class.page-item--active]="activeView === 'cms' && isSelected('schools')" (click)="selectPage('schools')">المدارس والمعاهد</button>
+				<button *ngIf="fullAdminAccount || canAccessPage('news-equation')" type="button" [class.page-item--active]="activeView === 'cms' && isSelected('news-equation')" (click)="selectPage('news-equation')">أخبار المعادلة</button>
+				<div *ngIf="canAccessFeature('wheel') || canAccessFeature('free-codes') || canAccessPage('batch-2027') || canAccessPage('launch-offer')" class="sidebar-finance-group sidebar-engagement-group"><button type="button" class="sidebar-finance-toggle" [attr.aria-expanded]="engagementMenuOpen" aria-controls="sidebar-engagement-submenu" (click)="toggleEngagementMenu()"><span>التفاعل والخصومات</span><span class="sidebar-finance-chevron" [class.is-open]="engagementMenuOpen" aria-hidden="true">⌄</span></button><div *ngIf="engagementMenuOpen" id="sidebar-engagement-submenu" class="sidebar-finance-submenu"><button *ngIf="canAccessFeature('wheel')" type="button" [class.page-item--active]="activeView === 'wheel'" (click)="setView('wheel')">نتائج العجلة</button><button *ngIf="canAccessFeature('free-codes')" type="button" [class.page-item--active]="activeView === 'free-codes'" (click)="setView('free-codes')">طلبات الأكواد المجانية</button><button *ngIf="fullAdminAccount || canAccessPage('batch-2027')" type="button" [class.page-item--active]="activeView === 'cms' && isSelected('batch-2027')" (click)="selectPage('batch-2027')">دفعة 2027 والعجلة</button><button *ngIf="fullAdminAccount || canAccessPage('launch-offer')" type="button" [class.page-item--active]="activeView === 'cms' && isSelected('launch-offer')" (click)="selectPage('launch-offer')">بوب‑أب الخصم</button></div></div>
 				<button *ngIf="employeeAccount" type="button" class="page-item page-item--employee-finance" [class.page-item--active]="activeView === 'finance-payroll'" (click)="setView('finance-payroll')">كشف راتبي</button>
 				<button *ngIf="employeeAccount && canAccessPage('employees')" type="button" class="page-item" [class.page-item--active]="activeView === 'cms' && isSelected('employees')" (click)="openEmployeesFromFinance()">الموظفون</button>
 				<div *ngIf="(canAccessFeature('finance') || canAccessFeature('finance-payroll') || canAccessFeature('finance-studio') || canAccessFeature('finance-application')) && !employeeAccount" class="sidebar-finance-group"><button type="button" class="sidebar-finance-toggle" [attr.aria-expanded]="financeMenuOpen" aria-controls="sidebar-finance-submenu" (click)="toggleFinanceMenu()"><span>الحسابات والرواتب</span><span class="sidebar-finance-chevron" [class.is-open]="financeMenuOpen" aria-hidden="true">⌄</span></button><div *ngIf="financeMenuOpen" id="sidebar-finance-submenu" class="sidebar-finance-submenu"><button *ngIf="canAccessFeature('finance')" type="button" [class.page-item--active]="activeView === 'finance'" (click)="setView('finance')">الحسابات والمصروفات</button><button *ngIf="canAccessFeature('finance-application')" type="button" [class.page-item--active]="activeView === 'finance-application'" (click)="setView('finance-application')">حسابات الأبلكيشن</button><button *ngIf="canAccessFeature('finance-studio')" type="button" [class.page-item--active]="activeView === 'finance-studio'" (click)="setView('finance-studio')">حسابات الاستوديو</button><button *ngIf="canAccessFeature('finance-payroll')" type="button" [class.page-item--active]="activeView === 'finance-payroll'" (click)="setView('finance-payroll')">كشف الرواتب</button><button *ngIf="canAccessPage('employees') && canAccessFeature('finance')" type="button" [class.page-item--active]="activeView === 'cms' && isSelected('employees') && !(employeeAccount && employeeProfileActive)" (click)="openEmployeesFromFinance()">الموظفون</button></div></div>
@@ -29,19 +30,23 @@
 			</div>
 			<div class="sidebar-heading-row" *ngIf="!leadsOnlyAccount"><h2 class="sidebar-title">صفحات الموقع</h2></div>
 			<div class="page-list">
-				<div class="page-group" *ngFor="let group of groupedPageOptions">
-					<div class="page-group__title">{{ group.group }}</div>
-					<ng-container *ngFor="let page of group.pages">
+				<div class="page-group" *ngFor="let group of groupedPageOptions" [class.page-group--subscriptions]="group.group === 'الاشتراكات'" [class.sidebar-finance-group]="group.group === 'الاشتراكات'">
+					<button *ngIf="group.group === 'الاشتراكات'" type="button" class="sidebar-finance-toggle" [attr.aria-expanded]="subscriptionMenuOpen" (click)="toggleSubscriptionMenu()"><span>صفحات الاشتراك</span><span class="sidebar-finance-chevron" [class.is-open]="subscriptionMenuOpen" aria-hidden="true">⌄</span></button>
+					<div *ngIf="group.group !== 'الاشتراكات'" class="page-group__title">{{ group.group }}</div>
+					<div *ngIf="group.group === 'الاشتراكات' && subscriptionMenuOpen" class="sidebar-finance-submenu"><ng-container *ngFor="let page of group.pages">
 						<button
 							type="button"
 							class="page-item"
-							*ngIf="page.key !== 'employees'"
+							*ngIf="page.key !== 'employees' && page.key !== 'batch-2027' && page.key !== 'launch-offer' && page.key !== 'schools' && page.key !== 'news-equation'"
 							[hidden]="!fullAdminAccount && !canAccessPage(page.key)"
 							[class.page-item--active]="activeView === 'cms' && isSelected(page.key)"
 							(click)="selectPage(page.key)">
-							<div class="page-item__title">{{ page.title }}</div>
+							<div class="page-item__title">{{ group.group === 'الاشتراكات' ? sidebarPageTitle(page) : page.title }}</div>
 						</button>
-					</ng-container>
+					</ng-container></div>
+					<ng-container *ngIf="group.group !== 'الاشتراكات'"><ng-container *ngFor="let page of group.pages">
+						<button type="button" class="page-item" *ngIf="page.key !== 'employees' && page.key !== 'batch-2027' && page.key !== 'launch-offer' && page.key !== 'schools' && page.key !== 'news-equation'" [hidden]="!fullAdminAccount && !canAccessPage(page.key)" [class.page-item--active]="activeView === 'cms' && isSelected(page.key)" (click)="selectPage(page.key)"><div class="page-item__title">{{ page.title }}</div></button>
+					</ng-container></ng-container>
 				</div>
 				<button *ngIf="false" type="button" class="page-item page-item--profile"><div class="page-item__title">ملفي الشخصي</div></button>
 			</div>

@@ -1,4 +1,5 @@
 :host { display:block; min-height:100%; background:#f6f8fc; color:#18243b; font-family:inherit; }
+.admin-dashboard-shell--embedded { height:auto!important; min-height:0!important; display:block!important; overflow:visible!important; padding:0!important; background:transparent!important; }
 .analysis-page { width:100%; max-width:1440px; box-sizing:border-box; margin:0 auto; padding:24px clamp(14px,3vw,38px) 56px; }
 .analysis-header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:26px; }
 .eyebrow,.card-heading span { color:#687a9b; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
