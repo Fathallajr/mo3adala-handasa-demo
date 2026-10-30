@@ -20,6 +20,7 @@ button { border:0; border-radius:12px; padding:12px 17px; font:inherit; font-wei
 .analysis-pagination button { min-width:34px; padding:7px 10px; border:1px solid #dce3ef; border-radius:9px; background:#fff; color:#3d4c67; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
 .analysis-pagination button.is-active { border-color:#1c5bdb; background:#1c5bdb; color:#fff; }
 .analysis-pagination button:disabled { opacity:.45; cursor:not-allowed; }
+.analysis-pagination__ellipsis { display:inline-flex; align-items:center; justify-content:center; min-width:18px; color:#71809a; font-size:13px; font-weight:900; }
 .site-analysis-shell--embedded > .admin-topbar,.site-analysis-shell--embedded > .admin-body > .admin-sidebar,.site-analysis-shell--embedded > .admin-body > .admin-sidebar-backdrop { display:none!important; }
 .site-analysis-shell--embedded > .admin-body { display:block!important; min-height:0!important; background:transparent!important; }
 .site-analysis-shell--embedded .admin-editor { width:100%!important; min-height:0!important; padding:0!important; overflow:visible!important; }

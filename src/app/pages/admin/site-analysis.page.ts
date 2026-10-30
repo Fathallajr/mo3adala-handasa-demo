@@ -46,13 +46,25 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 		if (this.from > this.to) [this.from, this.to] = [this.to, this.from];
 	}
 	private loadAdminSessions(): void { this.api.getAdminActivitySessions().subscribe({ next: result => { this.adminSessions = result.data || []; this.adminSessionsPage = 1; this.changeDetector.detectChanges(); } }); }
-	pageNumbers(total: number): number[] { return Array.from({ length: Math.max(1, Math.ceil(total / this.pageSize)) }, (_, index) => index + 1); }
+	pageCount(total: number): number { return Math.max(1, Math.ceil(total / this.pageSize)); }
+	paginationItems(total: number, currentPage: number): Array<number | '…'> {
+		const totalPages = this.pageCount(total);
+		if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
+		const pages: Array<number | '…'> = [1];
+		const start = Math.max(2, currentPage - 1);
+		const end = Math.min(totalPages - 1, currentPage + 1);
+		if (start > 2) pages.push('…');
+		for (let page = start; page <= end; page += 1) pages.push(page);
+		if (end < totalPages - 1) pages.push('…');
+		pages.push(totalPages);
+		return pages;
+	}
 	performanceRows(): AnalyticsSummary['performance'] { const rows = this.summary?.performance || []; return rows.slice((this.performancePage - 1) * this.pageSize, this.performancePage * this.pageSize); }
 	recentSessionRows(): AnalyticsSummary['recentSessions'] { const rows = this.summary?.recentSessions || []; return rows.slice((this.recentSessionsPage - 1) * this.pageSize, this.recentSessionsPage * this.pageSize); }
 	adminSessionRows(): AdminActivitySession[] { return this.adminSessions.slice((this.adminSessionsPage - 1) * this.pageSize, this.adminSessionsPage * this.pageSize); }
-	setPerformancePage(page: number): void { this.performancePage = Math.min(Math.max(page, 1), this.pageNumbers(this.summary?.performance.length || 0).length); }
-	setRecentSessionsPage(page: number): void { this.recentSessionsPage = Math.min(Math.max(page, 1), this.pageNumbers(this.summary?.recentSessions.length || 0).length); }
-	setAdminSessionsPage(page: number): void { this.adminSessionsPage = Math.min(Math.max(page, 1), this.pageNumbers(this.adminSessions.length).length); }
+	setPerformancePage(page: number | '…'): void { if (page === '…') return; this.performancePage = Math.min(Math.max(page, 1), this.pageCount(this.summary?.performance.length || 0)); }
+	setRecentSessionsPage(page: number | '…'): void { if (page === '…') return; this.recentSessionsPage = Math.min(Math.max(page, 1), this.pageCount(this.summary?.recentSessions.length || 0)); }
+	setAdminSessionsPage(page: number | '…'): void { if (page === '…') return; this.adminSessionsPage = Math.min(Math.max(page, 1), this.pageCount(this.adminSessions.length)); }
 	get employeeAccount(): boolean { return this.auth.getRole() === 'employee'; }
 	get fullAdminAccount(): boolean { return this.auth.getRole() === 'admin'; }
 	canAccessPage(pageKey: string): boolean { return this.auth.canAccessPage(pageKey); }
