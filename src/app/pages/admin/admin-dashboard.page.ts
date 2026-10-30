@@ -222,7 +222,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	private leadsRequestId = 0;
 	private pageLoadRequestId = 0;
 	private authStateReady = false;
-	private routeStateReady = false;
+	routeStateReady = false;
 
 	constructor(
 		private contentService: MonthlyContentService,
@@ -274,8 +274,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.adminUsername = this.auth.getUsername();
 		if (this.auth.isAuthenticated()) {
 			this.auth.loadCurrentUser().subscribe({
-				next: user => { this.adminUsername = user.username || this.adminUsername; this.authStateReady = true; this.syncRouteState(); },
-				error: () => { this.authStateReady = true; this.syncRouteState(); }
+				next: user => { this.adminUsername = user.username || this.adminUsername; this.authStateReady = true; this.syncRouteState(); this.refreshView(); },
+				error: () => { this.authStateReady = true; this.syncRouteState(); this.refreshView(); }
 			});
 		} else {
 			this.authStateReady = true;

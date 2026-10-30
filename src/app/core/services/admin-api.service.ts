@@ -28,7 +28,7 @@ export interface FinanceLoan { id: string; lenderAccountId: string; borrowerAcco
 export interface FinanceAuditLog { id: string; entityType: string; entityId: string; action: string; reason?: string; actor?: string; createdAt: string; beforeData?: any; afterData?: any; }
 export interface FinanceSummary { income: number; expense: number; transfer: number; net: number; balances: FinanceAccount[]; byCategory: Record<string, number>; }
 export interface StudioFinanceResponse { from: string; to: string; account: FinanceAccount; summary: { income: number; expense: number; transfer: number; net: number; balance: number }; transactions: FinanceTransaction[]; }
-export interface FinancePayrollLine { employeeId: number; employeeName: string; base: number; bonus: number; discount: number; net: number; status: 'paid' | 'due'; payment?: any; }
+export interface FinancePayrollLine { employeeId: number; employeeName: string; base: number; bonus: number; discount: number; net: number; status: 'paid' | 'due'; payment?: any; notes?: Array<{ id?: number; text?: string; createdAt?: string } | string>; }
 export interface AnalyticsSummary {
 	from: string; to: string; sessions: number; visitors: number; pageViews: number; averageSessionDuration: number; pagesPerSession: number; leads: number; conversionRate: number;
 	trafficOverTime: Array<{ date: string; value: number }>; devices: Array<{ label: string; value: number }>; countries: Array<{ label: string; value: number }>; regions: Array<{ label: string; value: number }>;
