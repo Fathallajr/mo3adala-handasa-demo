@@ -191,10 +191,14 @@ async function updateEmployeeProfile({ employeeId, employee, email, updatedAt })
 		const currentEmail = String(current.email || '').trim().toLowerCase();
 		const nextEmail = String(email || '').trim().toLowerCase();
 		if (nextEmail !== currentEmail) {
-			const permissionKey = `employee:${employeeId}`;
-			let accountResult = await client.query('SELECT username FROM admin_users WHERE permissions @> $1::jsonb LIMIT 1', [JSON.stringify([permissionKey])]);
-			if (!accountResult.rowCount) accountResult = await client.query('SELECT username FROM admin_users WHERE lower(username) = lower($1) LIMIT 1', [currentEmail]);
-			const accountUsername = String(accountResult.rows[0]?.username || '').trim();
+			const permissionKeys = new Set([`employee:${employeeId}`, `employee-${employeeId}`, `employee_${employeeId}`, `employees:${employeeId}`]);
+			const accountResult = await client.query('SELECT username, permissions FROM admin_users');
+			const employeeAccount = accountResult.rows.find(row => {
+				let permissions = Array.isArray(row.permissions) ? row.permissions : [];
+				if (!permissions.length && typeof row.permissions === 'string') { try { permissions = JSON.parse(row.permissions); } catch {} }
+				return permissions.some(value => permissionKeys.has(String(value || '').trim().toLowerCase()));
+			}) || accountResult.rows.find(row => String(row.username || '').trim().toLowerCase() === currentEmail);
+			const accountUsername = String(employeeAccount?.username || '').trim();
 			if (!accountUsername) throw Object.assign(new Error('لا يوجد حساب دخول مرتبط بهذا الموظف.'), { code: 'EMPLOYEE_ACCOUNT_NOT_FOUND' });
 			if ((await client.query('SELECT 1 FROM admin_users WHERE lower(username) = lower($1) AND lower(username) <> lower($2)', [nextEmail, accountUsername])).rowCount) throw Object.assign(new Error('هذا البريد مستخدم بالفعل.'), { code: 'DUPLICATE_EMAIL' });
 			await client.query('UPDATE admin_users SET username = $1, updated_at = $2 WHERE username = $3', [nextEmail, updatedAt, accountUsername]);

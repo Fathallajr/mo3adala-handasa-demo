@@ -211,10 +211,13 @@ function updateEmployeeProfile({ employeeId, employee, email, updatedAt }) {
 		const currentEmail = String(current.email || '').trim().toLowerCase();
 		const nextEmail = String(email || '').trim().toLowerCase();
 		if (nextEmail !== currentEmail) {
-			const accountRows = db.prepare('SELECT username, permissions FROM admin_users').all();
-			const permissionKey = `employee:${employeeId}`;
+			const accountRows = db.prepare('SELECT username, permissions, role FROM admin_users').all();
+			const permissionKeys = new Set([`employee:${employeeId}`, `employee-${employeeId}`, `employee_${employeeId}`, `employees:${employeeId}`]);
 			const employeeAccount = accountRows.find(row => {
-				try { return Array.isArray(JSON.parse(row.permissions || '[]')) && JSON.parse(row.permissions || '[]').includes(permissionKey); } catch { return false; }
+				try {
+					const permissions = Array.isArray(JSON.parse(row.permissions || '[]')) ? JSON.parse(row.permissions || '[]') : [];
+					return permissions.some(value => permissionKeys.has(String(value || '').trim().toLowerCase()));
+				} catch { return false; }
 			}) || accountRows.find(row => String(row.username || '').trim().toLowerCase() === currentEmail);
 			const accountUsername = String(employeeAccount?.username || '').trim();
 			if (!accountUsername) throw Object.assign(new Error('لا يوجد حساب دخول مرتبط بهذا الموظف.'), { code: 'EMPLOYEE_ACCOUNT_NOT_FOUND' });

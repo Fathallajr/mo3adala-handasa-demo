@@ -17,6 +17,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	private readonly router = inject(Router);
 	private readonly changeDetector = inject(ChangeDetectorRef);
 	from = this.daysAgo(29); to = this.today(); device = ''; loading = false; error = ''; summary: AnalyticsSummary | null = null;
+	readonly localDemoMode = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
 	readonly pageSize = 5; performancePage = 1; recentSessionsPage = 1; adminSessionsPage = 1;
 	sidebarOpen = false; sidebarCollapsed = false; financeMenuOpen = false; adminUsername = this.auth.getUsername(); adminSessions: AdminActivitySession[] = []; private refreshTimer?: ReturnType<typeof setInterval>;
 	readonly sitePages = [
@@ -32,10 +33,16 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	today(): string { return new Date().toISOString().slice(0, 10); }
 	daysAgo(days: number): string { return new Date(Date.now() - days * 86400000).toISOString().slice(0, 10); }
 	load(): void {
+		if (this.localDemoMode) { this.summary = this.demoSummary(); this.loading = false; this.error = ''; this.changeDetector.detectChanges(); return; }
 		this.restoreFilters(); this.normalizeDateRange(); this.saveFilters();
 		this.performancePage = 1; this.recentSessionsPage = 1; this.adminSessionsPage = 1;
 		this.loading = true; this.error = '';
 		this.api.getAnalyticsSummary(this.from, this.to, this.device).subscribe({ next: result => { this.summary = result; this.loading = false; this.loadAdminSessions(); this.changeDetector.detectChanges(); }, error: error => { this.error = error?.error?.message || 'تعذر تحميل تحليل الموقع.'; this.loading = false; this.changeDetector.detectChanges(); } });
+	}
+	demoSummary(): AnalyticsSummary {
+		const values = [2, 4, 7, 5, 9, 13, 18, 15, 11, 16, 21, 24, 20, 17, 23, 28, 25, 19, 15, 18, 22, 27, 31, 26, 21, 17, 20, 24, 29, 33, 30];
+		const trafficOverTime = values.map((value, index) => ({ date: `2026-10-${String(index + 1).padStart(2, '0')}`, value }));
+		return { from: '2026-10-01', to: '2026-10-31', sessions: 587, visitors: 421, pageViews: 1346, averageSessionDuration: 142, pagesPerSession: 2.29, leads: 47, conversionRate: 8.01, trafficOverTime, devices: [{ label: 'موبايل', value: 382 }, { label: 'كمبيوتر', value: 164 }, { label: 'تابلت', value: 41 }], countries: [{ label: 'EG', value: 522 }, { label: 'SA', value: 31 }, { label: 'AE', value: 18 }], regions: [{ label: 'Cairo', value: 287 }, { label: 'Giza', value: 146 }, { label: 'Alexandria', value: 79 }], referrers: [{ label: 'مباشر', value: 211 }, { label: 'Google', value: 164 }, { label: 'Facebook', value: 121 }], topPages: [{ path: '/', value: 312 }, { path: '/batch-2027', value: 184 }, { path: '/contact', value: 93 }, { path: '/faq', value: 71 }], performance: [{ path: '/', visitors: 241, sessions: 312, pageViews: 598, averageSessionDuration: 156, pagesPerSession: 1.92 }, { path: '/batch-2027', visitors: 142, sessions: 184, pageViews: 412, averageSessionDuration: 188, pagesPerSession: 2.24 }], leadsBySource: [{ label: 'مباشر', value: 18 }, { label: 'Facebook', value: 16 }, { label: 'Google', value: 9 }], leadsByMonth: [{ month: '2026-10', value: 47 }], recentSessions: [] };
 	}
 	saveFilters(): void { try { localStorage.setItem('momentix.site-analysis.filters', JSON.stringify({ from: this.from, to: this.to, device: this.device })); } catch { /* storage may be unavailable */ } }
 	restoreFilters(): void { try { const raw = localStorage.getItem('momentix.site-analysis.filters'); if (!raw) return; const saved = JSON.parse(raw); if (/^\d{4}-\d{2}-\d{2}$/.test(saved?.from || '')) this.from = saved.from; if (/^\d{4}-\d{2}-\d{2}$/.test(saved?.to || '')) this.to = saved.to; if (['', 'mobile', 'desktop', 'tablet', 'غير محدد'].includes(saved?.device)) this.device = saved.device; } catch { /* keep defaults */ } }
@@ -95,6 +102,11 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 		return raw;
 	}
 	maxValue(items: Array<{ value: number }> = []): number { return Math.max(...items.map(item => Number(item.value || 0)), 1); }
+	trafficChartX(index: number, count: number): number { const left = 18; const right = 742; return count <= 1 ? (left + right) / 2 : left + (index / (count - 1)) * (right - left); }
+	trafficChartY(value: number, items: Array<{ value: number }>): number { const top = 24; const bottom = 254; return bottom - (Number(value || 0) / this.maxValue(items)) * (bottom - top); }
+	trafficChartPoints(items: Array<{ value: number }> = []): string { return items.map((item, index) => `${this.trafficChartX(index, items.length)},${this.trafficChartY(item.value, items)}`).join(' '); }
+	trafficAreaPoints(items: Array<{ value: number }> = []): string { if (!items.length) return ''; const line = this.trafficChartPoints(items); const first = this.trafficChartX(0, items.length); const last = this.trafficChartX(items.length - 1, items.length); return `${first},254 ${line} ${last},254`; }
+	trafficChartLabelIndex(index: number, count: number): boolean { return count <= 3 || index === 0 || index === Math.floor((count - 1) / 2) || index === count - 1; }
 	activeDays(items: Array<{ date: string; value: number }> = []): number { return items.filter(item => Number(item.value || 0) > 0).length; }
 	peakDay(items: Array<{ date: string; value: number }> = []): { date: string; value: number } { return items.reduce((peak, item) => Number(item.value || 0) > Number(peak.value || 0) ? item : peak, { date: '', value: 0 }); }
 	formatTrafficDate(date: string): string { if (!date) return '—'; const months: Record<string, string> = { '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل', '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس', '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر' }; return `${Number(date.slice(8, 10))} ${months[date.slice(5, 7)] || date.slice(5, 7)}`; }
