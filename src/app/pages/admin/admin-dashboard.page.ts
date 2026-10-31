@@ -75,7 +75,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	sidebarCollapsed = false;
 	financeMenuOpen = false;
 	subscriptionMenuOpen = false;
-	engagementMenuOpen = true;
+	engagementMenuOpen = false;
 	activeView: 'overview' | 'leads' | 'customers' | 'feedback' | 'programs' | 'wheel' | 'free-codes' | 'admins' | 'analytics' | 'finance' | 'finance-payroll' | 'finance-studio' | 'finance-application' | 'cms' = 'leads';
 	dashboard: DashboardSummary | null = {
 		totalLeads: 0,

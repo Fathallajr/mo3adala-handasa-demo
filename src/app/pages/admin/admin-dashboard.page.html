@@ -234,7 +234,8 @@
 
 					<app-employees-form
 						*ngSwitchCase="'employees'"
-						[content]="currentContent">
+						[content]="currentContent"
+						(contentChanged)="currentContent = $event">
 					</app-employees-form>
 
 					<app-json-content-form *ngSwitchDefault [content]="currentContent"></app-json-content-form>

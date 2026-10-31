@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, map, of, switchMap } from 'rxjs';
 import * as ExcelJS from 'exceljs';
 import { AdminApiService } from '../../../core/services/admin-api.service';
 import { AdminAuthService } from '../../../core/services/admin-auth.service';
@@ -480,9 +480,11 @@ interface EmployeeDraft { name: string; titleInput: string; titles: string[]; wh
 })
 export class EmployeesFormComponent implements OnChanges {
 	@Input() content: any;
+	@Output() contentChanged = new EventEmitter<any>();
 	private readonly contentService = inject(MonthlyContentService);
 	private readonly adminApi = inject(AdminApiService);
 	private readonly auth = inject(AdminAuthService);
+	private readonly cdr = inject(ChangeDetectorRef);
 	private readonly route = inject(ActivatedRoute);
 	private readonly router = inject(Router);
 	employees: Employee[] = [];
@@ -650,7 +652,7 @@ export class EmployeesFormComponent implements OnChanges {
 		if (this.draft.password.length < 10) { this.errorMessage = 'كلمة السر يجب ألا تقل عن 10 أحرف.'; return; }
 		this.isSavingEmployee = true;
 		this.adminApi.createEmployeeWithAccount({ name, titles: [...this.draft.titles], whatsapp, email, description: this.draft.description.trim(), baseSalary: this.normalizeSalary(this.draft.baseSalary), department: [...this.draft.departments], employeeType: this.draft.employeeType, managerId: this.draft.managerId }, this.draft.password).pipe(finalize(() => { this.isSavingEmployee = false; })).subscribe({
-			next: result => { this.content = result.data; this.employees = result.data.items || this.employees; this.draft = this.emptyDraft(); this.errorMessage = ''; this.showAddEmployee = false; },
+			next: result => { this.content = result.data; this.employees = result.data.items || this.employees; this.contentChanged.emit(this.content); this.draft = this.emptyDraft(); this.errorMessage = ''; this.showAddEmployee = false; },
 			error: err => { this.errorMessage = err?.error?.message || 'تعذر إنشاء الموظف والحساب. لم يتم تغيير بيانات الموظفين.'; }
 		});
 	}
@@ -674,8 +676,8 @@ export class EmployeesFormComponent implements OnChanges {
 		this.editError = '';
 		this.editSuccess = '';
 		this.adminApi.updateAdminUser(email, { password }).pipe(finalize(() => { this.isUpdatingPassword = false; })).subscribe({
-			next: () => { this.editDraft.password = ''; this.editSuccess = 'تم تحديث كلمة مرور حساب الدخول.'; },
-			error: err => { this.editError = err?.error?.message || 'تعذر تحديث كلمة المرور.'; }
+			next: () => { this.editDraft.password = ''; this.editSuccess = 'تم تحديث كلمة مرور حساب الدخول.'; this.cdr.detectChanges(); },
+			error: err => { this.editError = err?.error?.message || 'تعذر تحديث كلمة المرور.'; this.cdr.detectChanges(); }
 		});
 	}
 
@@ -689,6 +691,8 @@ export class EmployeesFormComponent implements OnChanges {
 		if (this.editDraft.employeeType === 'manager' && this.editDraft.managerId == null) { this.editError = 'اختر المدير العام للمدير المباشر.'; return; }
 		const email = this.editDraft.email.trim().toLowerCase();
 		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { this.editError = 'اكتب بريدًا إلكترونيًا صحيحًا.'; return; }
+		const password = this.editDraft.password;
+		if (password && password.length < 10) { this.editError = 'كلمة المرور الجديدة يجب ألا تقل عن 10 أحرف.'; return; }
 		const nextEmployees = structuredClone(this.employees);
 		const nextEmployee = nextEmployees.find(item => item.id === employee.id);
 		if (!nextEmployee) { this.editError = 'تعذر العثور على الموظف.'; return; }
@@ -705,10 +709,14 @@ export class EmployeesFormComponent implements OnChanges {
 		this.isSavingEdit = true;
 		this.editError = '';
 		this.editSuccess = '';
-		this.adminApi.updateEmployeeProfile(employee.id, nextEmployee).pipe(finalize(() => { this.isSavingEdit = false; })).subscribe({
+		this.adminApi.updateEmployeeProfile(employee.id, nextEmployee).pipe(
+			switchMap(saved => password ? this.adminApi.updateAdminUser(email, { password }).pipe(map(() => saved)) : of(saved)),
+			finalize(() => { this.isSavingEdit = false; })
+		).subscribe({
 			next: saved => {
 				this.content = saved;
 				this.employees = saved.items || nextEmployees;
+				this.contentChanged.emit(this.content);
 				const savedEmployee = this.employees.find(item => item.id === employee.id) || nextEmployee;
 				this.editDraft = { name: savedEmployee.name, titleInput: '', titles: [...savedEmployee.titles], whatsapp: savedEmployee.whatsapp || '', email: savedEmployee.email || '', password: '', description: savedEmployee.description || '', baseSalary: savedEmployee.baseSalary ?? null, departments: this.departmentValues(savedEmployee.department), employeeType: savedEmployee.employeeType || 'employee', managerId: savedEmployee.managerId ?? null };
 				this.isEditingEmployee = false;
@@ -750,7 +758,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.errorMessage = '';
 		this.employeeDeleteError = '';
 		this.contentService.savePageState('employees', nextContent).pipe(finalize(() => { this.isDeletingEmployee = false; })).subscribe({
-			next: saved => { this.content = saved; this.employees = saved.items || nextEmployees; this.employeePendingDeletion = null; this.employeeDeleteError = ''; if (this.editingId === employee.id) this.cancelEdit(); if (this.selectedEmployeeId === employee.id) this.closeDetails(); },
+			next: saved => { this.content = saved; this.employees = saved.items || nextEmployees; this.contentChanged.emit(this.content); this.employeePendingDeletion = null; this.employeeDeleteError = ''; if (this.editingId === employee.id) this.cancelEdit(); if (this.selectedEmployeeId === employee.id) this.closeDetails(); },
 			error: err => { this.content = previousContent; this.employees = previousContent.items || this.employees; this.employeeDeleteError = err?.error?.message || 'تعذر حذف الموظف، لم يتم تغيير البيانات.'; }
 		});
 	}
@@ -834,7 +842,7 @@ export class EmployeesFormComponent implements OnChanges {
 		this.monthlySaveError = '';
 		this.content.items = this.employees;
 		this.contentService.savePageState('employees', this.content).pipe(finalize(() => { this.isSavingMonthly = false; })).subscribe({
-			next: saved => { this.content = saved; this.employees = saved.items || this.employees; this.monthlyDirty = false; this.monthlySaveMessage = 'تم حفظ التعديلات الشهرية.'; },
+		next: saved => { this.content = saved; this.employees = saved.items || this.employees; this.contentChanged.emit(this.content); this.monthlyDirty = false; this.monthlySaveMessage = 'تم حفظ التعديلات الشهرية.'; },
 			error: err => { this.monthlySaveError = err?.error?.message || 'تعذر حفظ التعديلات الشهرية.'; }
 		});
 	}
