@@ -426,14 +426,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	openSiteAnalysis(): void { this.setView('analytics'); }
 	toggleEngagementMenu(): void { this.engagementMenuOpen = !this.engagementMenuOpen; }
 	toggleSubscriptionMenu(): void { this.subscriptionMenuOpen = !this.subscriptionMenuOpen; }
-	toggleFinanceMenu(): void {
-		if (this.activeView !== 'finance') {
-			this.financeMenuOpen = true;
-			this.setView('finance');
-			return;
-		}
-		this.financeMenuOpen = !this.financeMenuOpen;
-	}
+	toggleFinanceMenu(): void { this.financeMenuOpen = !this.financeMenuOpen; }
 	openEmployeesFromFinance(): void {
 		if (!this.canAccessPage('employees')) return;
 		this.financeMenuOpen = true;
