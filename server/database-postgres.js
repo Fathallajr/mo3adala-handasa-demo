@@ -502,8 +502,9 @@ async function getAnalyticsSummary({ from, to, device = '' }) {
 	const pageViews = viewsResult.rows.map(row => ({ ...row, activeSeconds:Number(row.activeSeconds||0) }));
 	const pageViewCountBySession = pageViews.reduce((map, row) => map.set(row.sessionId, (map.get(row.sessionId) || 0) + 1), new Map());
 	const count = key => Object.entries(sessions.reduce((acc,row) => { const value=row[key]||'غير محدد'; acc[value]=(acc[value]||0)+1; return acc; }, {})).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
+	const dateKey = value => value instanceof Date ? value.toISOString().slice(0, 10) : String(value).slice(0, 10);
 	const daily = {}; const topPages = {};
-	for (const row of sessions) { const day=String(row.lastSeen).slice(0,10); daily[day]=(daily[day]||0)+1; }
+	for (const row of sessions) { const day=dateKey(row.lastSeen); daily[day]=(daily[day]||0)+1; }
 	for (const row of pageViews) topPages[row.path]=(topPages[row.path]||0)+1;
 	const sessionById = new Map(sessions.map(row => [row.id, row])); const performance = {};
 	for (const row of pageViews) { const session = sessionById.get(row.sessionId); if (!performance[row.path]) performance[row.path] = { path:row.path, visitors:new Set(), sessions:new Set(), pageViews:0, duration:0 }; const item=performance[row.path]; item.pageViews += 1; item.duration += Number(row.activeSeconds || 0); item.sessions.add(row.sessionId); if (session?.visitorId || session?.ipHash) item.visitors.add(session.visitorId || session.ipHash); }

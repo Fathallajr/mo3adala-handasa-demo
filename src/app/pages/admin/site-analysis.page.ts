@@ -38,7 +38,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 		this.restoreFilters(); this.normalizeDateRange(); this.saveFilters();
 		this.performancePage = 1; this.recentSessionsPage = 1; this.adminSessionsPage = 1;
 		this.loading = true; this.error = '';
-		this.api.getAnalyticsSummary(this.from, this.to, this.device).subscribe({ next: result => { this.summary = result; this.loading = false; this.loadAdminSessions(); this.changeDetector.detectChanges(); }, error: error => { this.error = error?.error?.message || 'تعذر تحميل تحليل الموقع.'; this.loading = false; this.changeDetector.detectChanges(); } });
+		this.api.getAnalyticsSummary(this.from, this.to, this.device).subscribe({ next: result => { this.summary = { ...result, trafficOverTime: [...(result.trafficOverTime || [])].sort((a, b) => this.trafficDateValue(a.date) - this.trafficDateValue(b.date)) }; this.loading = false; this.loadAdminSessions(); this.changeDetector.detectChanges(); }, error: error => { this.error = error?.error?.message || 'تعذر تحميل تحليل الموقع.'; this.loading = false; this.changeDetector.detectChanges(); } });
 	}
 	demoSummary(): AnalyticsSummary {
 		const values = [2, 4, 7, 5, 9, 13, 18, 15, 11, 16, 21, 24, 20, 17, 23, 28, 25, 19, 15, 18, 22, 27, 31, 26, 21, 17, 20, 24, 29, 33, 30];
@@ -112,8 +112,10 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	trafficChartLabelIndex(index: number, count: number): boolean { return count <= 3 || index === 0 || index === Math.floor((count - 1) / 2) || index === count - 1; }
 	activeDays(items: Array<{ date: string; value: number }> = []): number { return items.filter(item => Number(item.value || 0) > 0).length; }
 	peakDay(items: Array<{ date: string; value: number }> = []): { date: string; value: number } { return items.reduce((peak, item) => Number(item.value || 0) > Number(peak.value || 0) ? item : peak, { date: '', value: 0 }); }
-	formatTrafficDate(date: string): string { if (!date) return '—'; const months: Record<string, string> = { '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل', '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس', '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر' }; return `${date.slice(8, 10)} ${months[date.slice(5, 7)] || date.slice(5, 7)}`; }
-	formatTrafficDay(date: string): string { return date ? date.slice(8, 10) : '—'; }
+	trafficDateKey(date: string): string { if (!date) return ''; if (/^\d{4}-\d{2}-\d{2}/.test(date)) return date.slice(0, 10); const parsed = new Date(date); return Number.isNaN(parsed.getTime()) ? date : `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`; }
+	trafficDateValue(date: string): number { const value = Date.parse(this.trafficDateKey(date)); return Number.isNaN(value) ? Number.MAX_SAFE_INTEGER : value; }
+	formatTrafficDate(date: string): string { const key = this.trafficDateKey(date); if (!key) return '—'; const months: Record<string, string> = { '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل', '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس', '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر' }; return `${key.slice(8, 10)} ${months[key.slice(5, 7)] || key.slice(5, 7)}`; }
+	formatTrafficDay(date: string): string { const key = this.trafficDateKey(date); return key ? key.slice(8, 10) : '—'; }
 	formatMonth(month: string): string { if (!month) return '—'; const months: Record<string, string> = { '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل', '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس', '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر' }; return `${months[month.slice(5, 7)] || month.slice(5, 7)} ${month.slice(0, 4)}`; }
 	pageLabel(path: string): string {
 		const labels: Record<string, string> = {
