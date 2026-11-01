@@ -20,6 +20,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	readonly localDemoMode = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
 	readonly pageSize = 5; performancePage = 1; recentSessionsPage = 1; adminSessionsPage = 1;
 	sidebarOpen = false; sidebarCollapsed = false; financeMenuOpen = false; adminUsername = this.auth.getUsername(); adminSessions: AdminActivitySession[] = []; private refreshTimer?: ReturnType<typeof setInterval>;
+	selectedTrafficIndex = -1;
 	readonly sitePages = [
 		{ label: 'دفعة 2027 والعجلة', route: '/admin/batch-2027' }, { label: 'بوب‑أب الخصم', route: '/admin/launch-offer' },
 		{ label: 'أخبار المعادلة', route: '/admin/news-equation' }, { label: 'المدارس والمعاهد', route: '/admin/schools' },
@@ -102,6 +103,8 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 		return raw;
 	}
 	maxValue(items: Array<{ value: number }> = []): number { return Math.max(...items.map(item => Number(item.value || 0)), 1); }
+	selectTrafficBar(index: number): void { this.selectedTrafficIndex = this.selectedTrafficIndex === index ? -1 : index; }
+	selectedTrafficItem(): { date: string; value: number } | null { const items = this.summary?.trafficOverTime || []; return this.selectedTrafficIndex >= 0 ? items[this.selectedTrafficIndex] || null : null; }
 	trafficChartX(index: number, count: number): number { const left = 18; const right = 742; return count <= 1 ? (left + right) / 2 : left + (index / (count - 1)) * (right - left); }
 	trafficChartY(value: number, items: Array<{ value: number }>): number { const top = 24; const bottom = 254; return bottom - (Number(value || 0) / this.maxValue(items)) * (bottom - top); }
 	trafficChartPoints(items: Array<{ value: number }> = []): string { return items.map((item, index) => `${this.trafficChartX(index, items.length)},${this.trafficChartY(item.value, items)}`).join(' '); }
@@ -109,7 +112,8 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	trafficChartLabelIndex(index: number, count: number): boolean { return count <= 3 || index === 0 || index === Math.floor((count - 1) / 2) || index === count - 1; }
 	activeDays(items: Array<{ date: string; value: number }> = []): number { return items.filter(item => Number(item.value || 0) > 0).length; }
 	peakDay(items: Array<{ date: string; value: number }> = []): { date: string; value: number } { return items.reduce((peak, item) => Number(item.value || 0) > Number(peak.value || 0) ? item : peak, { date: '', value: 0 }); }
-	formatTrafficDate(date: string): string { if (!date) return '—'; const months: Record<string, string> = { '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل', '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس', '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر' }; return `${Number(date.slice(8, 10))} ${months[date.slice(5, 7)] || date.slice(5, 7)}`; }
+	formatTrafficDate(date: string): string { if (!date) return '—'; const months: Record<string, string> = { '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل', '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس', '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر' }; return `${date.slice(8, 10)} ${months[date.slice(5, 7)] || date.slice(5, 7)}`; }
+	formatTrafficDay(date: string): string { return date ? date.slice(8, 10) : '—'; }
 	formatMonth(month: string): string { if (!month) return '—'; const months: Record<string, string> = { '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل', '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس', '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر' }; return `${months[month.slice(5, 7)] || month.slice(5, 7)} ${month.slice(0, 4)}`; }
 	pageLabel(path: string): string {
 		const labels: Record<string, string> = {
