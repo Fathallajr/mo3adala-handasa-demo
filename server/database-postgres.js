@@ -509,10 +509,19 @@ async function getAnalyticsSummary({ from, to, device = '' }) {
 	const sessionById = new Map(sessions.map(row => [row.id, row])); const performance = {};
 	for (const row of pageViews) { const session = sessionById.get(row.sessionId); if (!performance[row.path]) performance[row.path] = { path:row.path, visitors:new Set(), sessions:new Set(), pageViews:0, duration:0 }; const item=performance[row.path]; item.pageViews += 1; item.duration += Number(row.activeSeconds || 0); item.sessions.add(row.sessionId); if (session?.visitorId || session?.ipHash) item.visitors.add(session.visitorId || session.ipHash); }
 	for (const item of Object.values(performance)) item.duration = Number(item.duration || 0);
+	const groupedSessions = new Map();
+	for (const row of sessions) {
+		const key = [row.ipHash || '', row.device || '', row.browser || '', row.os || '', row.userAgent || ''].join('|');
+		let group = groupedSessions.get(key);
+		if (!group) { group = { ...row, pageViews: 0, durationSeconds: 0, sessionCount: 0, sessions: [] }; groupedSessions.set(key, group); }
+		const pageViewsForSession = pageViewCountBySession.get(row.id) || 0;
+		group.pageViews += pageViewsForSession; group.durationSeconds += Number(row.durationSeconds || 0); group.sessionCount += 1;
+		group.sessions.push({ id: row.id, startedAt: row.startedAt, lastSeen: row.lastSeen, landingPath: row.landingPath, pageViews: pageViewsForSession, durationSeconds: Number(row.durationSeconds || 0) });
+	}
 	return { sessions:sessions.length, visitors:new Set(sessions.map(row=>row.visitorId||row.ipHash).filter(Boolean)).size, pageViews:pageViews.length,
 		averageSessionDuration:sessions.length?Math.round(sessions.reduce((sum,row)=>sum+row.durationSeconds,0)/sessions.length):0, pagesPerSession:sessions.length?Number((pageViews.length/sessions.length).toFixed(2)):0,
 		trafficOverTime:Object.entries(daily).sort(([a],[b])=>a.localeCompare(b)).map(([date,value])=>({date,value})), devices:count('device'), countries:count('country'), regions:count('region'), referrers:count('referrer'),
-		topPages:Object.entries(topPages).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([path,value])=>({path,value})), performance:Object.values(performance).sort((a,b)=>b.pageViews-a.pageViews).slice(0,20).map(item=>({path:item.path,visitors:item.visitors.size,sessions:item.sessions.size,pageViews:item.pageViews,averageSessionDuration:item.sessions.size?Math.round(item.duration/item.sessions.size):0,pagesPerSession:item.sessions.size?Number((item.pageViews/item.sessions.size).toFixed(2)):0})), recentSessions:sessions.slice(0,25).map(row => ({ ...row, pageViews: pageViewCountBySession.get(row.id) || 0 })), from, to };
+		topPages:Object.entries(topPages).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([path,value])=>({path,value})), performance:Object.values(performance).sort((a,b)=>b.pageViews-a.pageViews).slice(0,20).map(item=>({path:item.path,visitors:item.visitors.size,sessions:item.sessions.size,pageViews:item.pageViews,averageSessionDuration:item.sessions.size?Math.round(item.duration/item.sessions.size):0,pagesPerSession:item.sessions.size?Number((item.pageViews/item.sessions.size).toFixed(2)):0})), recentSessions:[...groupedSessions.values()], from, to };
 }
 getAnalyticsSummary.touchAdminActivity = touchAdminActivity;
 getAnalyticsSummary.closeStaleAnalyticsSessions = closeStaleAnalyticsSessions;

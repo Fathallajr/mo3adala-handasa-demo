@@ -19,7 +19,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	from = this.daysAgo(29); to = this.today(); device = ''; loading = false; error = ''; summary: AnalyticsSummary | null = null;
 	readonly localDemoMode = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
 	readonly pageSize = 5; performancePage = 1; recentSessionsPage = 1; adminSessionsPage = 1;
-	sidebarOpen = false; sidebarCollapsed = false; financeMenuOpen = false; adminUsername = this.auth.getUsername(); adminSessions: AdminActivitySession[] = []; private refreshTimer?: ReturnType<typeof setInterval>;
+	sidebarOpen = false; sidebarCollapsed = false; financeMenuOpen = false; adminUsername = this.auth.getUsername(); adminSessions: AdminActivitySession[] = []; expandedSessionId = ''; private refreshTimer?: ReturnType<typeof setInterval>;
 	selectedTrafficIndex = -1;
 	readonly sitePages = [
 		{ label: 'دفعة 2027 والعجلة', route: '/admin/batch-2027' }, { label: 'بوب‑أب الخصم', route: '/admin/launch-offer' },
@@ -69,6 +69,7 @@ export class SiteAnalysisPageComponent implements OnInit, OnDestroy {
 	}
 	performanceRows(): AnalyticsSummary['performance'] { const rows = this.summary?.performance || []; return rows.slice((this.performancePage - 1) * this.pageSize, this.performancePage * this.pageSize); }
 	recentSessionRows(): AnalyticsSummary['recentSessions'] { const rows = this.summary?.recentSessions || []; return rows.slice((this.recentSessionsPage - 1) * this.pageSize, this.recentSessionsPage * this.pageSize); }
+	toggleSessionGroup(id: string): void { this.expandedSessionId = this.expandedSessionId === id ? '' : id; }
 	adminSessionRows(): AdminActivitySession[] { return this.adminSessions.slice((this.adminSessionsPage - 1) * this.pageSize, this.adminSessionsPage * this.pageSize); }
 	setPerformancePage(page: number | '…'): void { if (page === '…') return; this.performancePage = Math.min(Math.max(page, 1), this.pageCount(this.summary?.performance.length || 0)); }
 	setRecentSessionsPage(page: number | '…'): void { if (page === '…') return; this.recentSessionsPage = Math.min(Math.max(page, 1), this.pageCount(this.summary?.recentSessions.length || 0)); }
