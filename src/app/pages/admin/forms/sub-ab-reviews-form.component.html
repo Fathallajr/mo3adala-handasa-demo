@@ -59,6 +59,11 @@
 	<details class="cms-section cms-section--collapsible">
 	<summary class="cms-section-title">فورم الاشتراك الموحد</summary>
 		<div class="cms-subsection">
+			<div class="cms-field">
+				<label class="cms-label">عنوان الفورم الظاهر للطلاب</label>
+				<input class="cms-input" [(ngModel)]="data.subscriptionDetails.googleForm.label" placeholder="فورم اشتراك معادلة هندسة عربي — دفعة 2027" />
+				<div class="cms-help">هذا النص يظهر في عنوان كارت الفورم داخل صفحة الاشتراك.</div>
+			</div>
 			<div class="cms-row">
 				<div class="cms-field">
 					<label class="cms-label">رابط الفورم الموحد</label>

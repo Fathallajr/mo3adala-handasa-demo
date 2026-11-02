@@ -515,7 +515,12 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 
 	getForm(): ReviewFormConfig {
 		const form = this.subscriptionDetails.googleForm as ReviewFormConfig;
-		return { ...form, label: displayProgramLabel(form.label), description: displayProgramLabel(form.description), buttonText: displayProgramLabel(form.buttonText) };
+		return {
+			...form,
+			label: form.label || `فورم ${this.subscriptionProgramLabel}`,
+			description: form.description || `فورم ${this.subscriptionProgramLabel}`,
+			buttonText: form.buttonText || `سجل ${this.subscriptionProgramLabel}`
+		};
 	}
 
 	getPrice(): string {
