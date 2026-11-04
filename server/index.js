@@ -18,7 +18,7 @@ app.use(compression());
 const PORT = process.env.PORT || 3001;
 const ADMIN_USERNAME = String(process.env.ADMIN_USERNAME || '').trim();
 const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '');
-const ADMIN_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+const ADMIN_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 const analyticsGeoCache = new Map();
 const LEADS_ADMIN_USERNAME = process.env.LEADS_ADMIN_USERNAME || '';
 const LEADS_ADMIN_PASSWORD = process.env.LEADS_ADMIN_PASSWORD || '';
