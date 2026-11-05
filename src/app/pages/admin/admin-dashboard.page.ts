@@ -939,6 +939,12 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	}
 	clearFreeCodeFilters(): void { this.freeCodeSearch = ''; this.freeCodeProgramFilter = ''; this.freeCodeCampaignFilter = ''; this.clearFreeCodeDateRange(); this.searchFreeCodeRequests(); }
 	selectFreeCodeCampaign(campaignId: string): void { this.freeCodeCampaignFilter = this.freeCodeCampaignFilter === campaignId ? '' : campaignId; this.freeCodePage = 1; this.loadFreeCodeRequests(true, 1); }
+	toggleFreeCodeCampaign(campaign: FreeCodeCampaign, event: Event): void {
+		const enabled = Boolean((event.target as HTMLInputElement)?.checked);
+		if (!['active', 'closed'].includes(campaign.status)) return;
+		this.isSavingFreeCodeSettings = true;
+		this.adminApi.updateFreeCodeCampaign(campaign.id, { enabled, status: enabled ? 'active' : 'closed' }).pipe(finalize(() => { this.isSavingFreeCodeSettings = false; this.refreshView(); })).subscribe({ next: () => { this.statusMessage = enabled ? 'تم فتح الحملة والفورم.' : 'تم قفل الحملة والفورم.'; this.errorMessage = ''; this.loadFreeCodeRequests(true, 1); }, error: err => { this.handleApiError(err); this.loadFreeCodeRequests(true, 1); } });
+	}
 	toggleFreeCodeForm(): void {
 		const campaign = this.freeCodeStatus.campaign || this.freeCodeCampaigns.find(item => item.id === this.freeCodeCampaignFilter);
 		if (!campaign) { this.errorMessage = 'اختار حملة لفتح التسجيل.'; return; }
