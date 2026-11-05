@@ -938,6 +938,14 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.loadFreeCodeRequests(true, 1);
 	}
 	clearFreeCodeFilters(): void { this.freeCodeSearch = ''; this.freeCodeProgramFilter = ''; this.freeCodeCampaignFilter = ''; this.clearFreeCodeDateRange(); this.searchFreeCodeRequests(); }
+	selectFreeCodeCampaign(campaignId: string): void { this.freeCodeCampaignFilter = this.freeCodeCampaignFilter === campaignId ? '' : campaignId; this.freeCodePage = 1; this.loadFreeCodeRequests(true, 1); }
+	toggleFreeCodeForm(): void {
+		const campaign = this.freeCodeStatus.campaign || this.freeCodeCampaigns.find(item => item.id === this.freeCodeCampaignFilter);
+		if (!campaign) { this.errorMessage = 'اختار حملة لفتح التسجيل.'; return; }
+		this.isSavingFreeCodeSettings = true;
+		const opening = !this.freeCodeStatus.open;
+		this.adminApi.updateFreeCodeCampaign(campaign.id, { enabled: opening, status: opening ? 'active' : 'closed' }).pipe(finalize(() => { this.isSavingFreeCodeSettings = false; this.refreshView(); })).subscribe({ next: () => { this.statusMessage = opening ? 'تم فتح فورم الأكواد للحملة.' : 'تم قفل فورم الأكواد، والسجلات محفوظة.'; this.errorMessage = ''; this.loadFreeCodeRequests(true, 1); }, error: err => this.handleApiError(err) });
+	}
 	goToFreeCodePage(page: number | string): void { if (typeof page !== 'number') return; const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.freeCodePages); if (nextPage === this.freeCodePage && this.freeCodeRequests.length) return; this.loadFreeCodeRequests(true, nextPage); }
 	async exportFreeCodeRequests(): Promise<void> {
 		const pageSize = 100;
