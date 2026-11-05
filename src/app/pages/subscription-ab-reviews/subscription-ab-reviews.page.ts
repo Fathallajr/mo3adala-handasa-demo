@@ -52,6 +52,8 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, AfterViewInit
 	shuffledVodafoneNumbers: { number: string; owner: string }[] = [];
 	isVideoLoaded = false;
 	@ViewChild('computerHeroVideo') private computerHeroVideo?: ElementRef<HTMLVideoElement>;
+	private cachedVideoEmbedUrl: SafeResourceUrl | null = null;
+	private cachedVideoEmbedKey = '';
 	closingDays = 0;
 	closingHours = 0;
 	closingMinutes = 0;
@@ -497,14 +499,20 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, AfterViewInit
 	getVideoEmbedUrl(): SafeResourceUrl {
 		const videoId = this.getConfiguredVideoId();
 		const origin = typeof window !== 'undefined' ? window.location.origin : 'https://appmo3adla.com';
+		const cacheKey = `${videoId}|${origin}`;
+		if (this.cachedVideoEmbedUrl && this.cachedVideoEmbedKey === cacheKey) return this.cachedVideoEmbedUrl;
 		const params = new URLSearchParams({
 			autoplay: '1',
+			mute: '1',
+			playsinline: '1',
 			rel: '0',
 			origin,
 			widget_referrer: `${origin}/`,
 		});
 		const url = `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
-		return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+		this.cachedVideoEmbedKey = cacheKey;
+		this.cachedVideoEmbedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+		return this.cachedVideoEmbedUrl;
 	}
 
 	getVideoThumbnail(): string {
