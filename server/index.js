@@ -315,11 +315,15 @@ async function getFreeCodeSettings() {
 }
 
 async function getFreeCodeStatus() {
-	const settings = await getFreeCodeSettings();
-	const claimedCount = await database.countFreeCodeRequests();
-	const hasExpired = settings.endsAt && Date.parse(settings.endsAt) <= Date.now();
-	const reachedLimit = settings.limit > 0 && claimedCount >= settings.limit;
-	return { ...settings, claimedCount, remaining: settings.limit > 0 ? Math.max(settings.limit - claimedCount, 0) : null, open: settings.enabled && !hasExpired && !reachedLimit };
+	let campaigns = await database.listFreeCodeCampaigns();
+	for (const campaign of campaigns) {
+		if (campaign.status === 'active' && campaign.endsAt && Date.parse(campaign.endsAt) <= Date.now()) await database.updateFreeCodeCampaign(campaign.id, { status: 'expired', enabled: false });
+		else if (campaign.status === 'active' && campaign.limit > 0 && campaign.claimedCount >= campaign.limit) await database.updateFreeCodeCampaign(campaign.id, { status: 'completed', enabled: false });
+	}
+	if (campaigns.some(item => item.status === 'active' && item.endsAt && Date.parse(item.endsAt) <= Date.now()) || campaigns.some(item => item.status === 'active' && item.limit > 0 && item.claimedCount >= item.limit)) campaigns = await database.listFreeCodeCampaigns();
+	const active = campaigns.find(item => item.status === 'active' && item.enabled && (!item.endsAt || Date.parse(item.endsAt) > Date.now()) && (item.limit === 0 || item.claimedCount < item.limit)) || null;
+	if (!active) return { ...DEFAULT_FREE_CODE_SETTINGS, claimedCount: 0, remaining: null, open: false, campaign: null, campaigns };
+	return { enabled: active.enabled, open: true, endsAt: active.endsAt || '', limit: active.limit, claimedCount: active.claimedCount, remaining: active.remaining, campaign: active, campaigns };
 }
 
 async function readStore() {
@@ -906,8 +910,6 @@ app.post('/api/free-codes/register', rateLimit({ name: 'free-code-register', win
 	if (!/^01\d{9}$/.test(whatsapp)) return res.status(400).json({ message: 'رقم الواتساب يجب أن يبدأ بـ 01 ويتكون من 11 رقم.' });
 	if (!FREE_CODE_PROGRAMS.includes(program)) return res.status(400).json({ message: 'اختار نوع المعادلة.' });
 	try {
-		const status = await getFreeCodeStatus();
-		if (!status.open) return res.status(409).json({ message: 'طلبات الأكواد المجانية مغلقة حاليًا.' });
 		const existing = await database.findFreeCodeRequestByPhone(whatsapp);
 		if (existing) return res.status(409).json({ alreadyRegistered: true, message: 'الرقم ده طلب كود مجاني قبل كده.' });
 		const request = await database.createFreeCodeRequest({ id: crypto.randomUUID(), name, whatsapp, program, requestedAt: getNowIso() });
@@ -915,6 +917,8 @@ app.post('/api/free-codes/register', rateLimit({ name: 'free-code-register', win
 		res.status(201).json({ success: true, request, status: await getFreeCodeStatus() });
 	} catch (error) {
 		if (error?.code === 'DUPLICATE_FREE_CODE_REQUEST') return res.status(409).json({ alreadyRegistered: true, message: 'الرقم ده طلب كود مجاني قبل كده.' });
+		if (error?.code === 'FREE_CODE_CAMPAIGN_CLOSED') return res.status(409).json({ message: 'طلبات الأكواد المجانية مغلقة حاليًا.' });
+		if (error?.code === 'FREE_CODE_CAMPAIGN_FULL') return res.status(409).json({ message: 'اكتملت الحملة الحالية.' });
 		next(error);
 	}
 });
@@ -1675,13 +1679,49 @@ app.get('/api/admin/free-codes/settings', requireAdmin, requirePermission('free-
 	try { res.json(await getFreeCodeStatus()); } catch (error) { next(error); }
 });
 
+app.get('/api/admin/free-codes/campaigns', requireAdmin, requirePermission('free-codes'), async (_req, res, next) => {
+	try { res.json({ data: await database.listFreeCodeCampaigns() }); } catch (error) { next(error); }
+});
+
+app.post('/api/admin/free-codes/campaigns', requireAdmin, requirePermission('free-codes'), async (req, res, next) => {
+	try {
+		const name = String(req.body?.name || '').trim();
+		const endsAt = String(req.body?.endsAt || '').trim();
+		const limit = Number.parseInt(req.body?.limit, 10);
+		if (name.length < 2 || name.length > 160) return res.status(400).json({ message: 'اسم الحملة يجب أن يكون بين حرفين و160 حرفًا.' });
+		if (endsAt && !Number.isFinite(Date.parse(endsAt))) return res.status(400).json({ message: 'موعد انتهاء الحملة غير صحيح.' });
+		if (!Number.isInteger(limit) || limit < 1 || limit > 1000000) return res.status(400).json({ message: 'عدد الأكواد يجب أن يكون من 1 إلى مليون.' });
+		const now = getNowIso();
+		if (req.body?.enabled !== false) for (const campaign of await database.listFreeCodeCampaigns()) if (campaign.status === 'active' && campaign.enabled) await database.updateFreeCodeCampaign(campaign.id, { status: 'closed', enabled: false });
+		const campaign = await database.createFreeCodeCampaign({ id: crypto.randomUUID(), name, endsAt, limit, status: req.body?.enabled === false ? 'closed' : 'active', enabled: req.body?.enabled !== false, createdAt: now });
+		res.status(201).json(campaign);
+	} catch (error) { next(error); }
+});
+
+app.patch('/api/admin/free-codes/campaigns/:id', requireAdmin, requirePermission('free-codes'), async (req, res, next) => {
+	try {
+		const current = await database.getFreeCodeCampaign(req.params.id);
+		if (!current) return res.status(404).json({ message: 'الحملة غير موجودة.' });
+		const changes = {};
+		if (req.body?.name !== undefined) { const name = String(req.body.name).trim(); if (name.length < 2 || name.length > 160) return res.status(400).json({ message: 'اسم الحملة غير صحيح.' }); changes.name = name; }
+		if (req.body?.endsAt !== undefined) { const endsAt = String(req.body.endsAt || '').trim(); if (endsAt && !Number.isFinite(Date.parse(endsAt))) return res.status(400).json({ message: 'موعد انتهاء الحملة غير صحيح.' }); changes.endsAt = endsAt; }
+		if (req.body?.limit !== undefined) { const limit = Number.parseInt(req.body.limit, 10); if (!Number.isInteger(limit) || limit < current.claimedCount || limit > 1000000) return res.status(400).json({ message: 'الحد يجب ألا يقل عن عدد المسجلين.' }); changes.limit = limit; }
+		if (req.body?.status !== undefined && ['active', 'completed', 'expired', 'closed'].includes(req.body.status)) changes.status = req.body.status;
+		if (req.body?.enabled !== undefined) changes.enabled = Boolean(req.body.enabled);
+		if (changes.status === 'active' || changes.enabled === true) for (const campaign of await database.listFreeCodeCampaigns()) if (campaign.id !== current.id && campaign.status === 'active' && campaign.enabled) await database.updateFreeCodeCampaign(campaign.id, { status: 'closed', enabled: false });
+		res.json(await database.updateFreeCodeCampaign(current.id, changes));
+	} catch (error) { next(error); }
+});
+
 app.put('/api/admin/free-codes/settings', requireAdmin, requirePermission('free-codes'), async (req, res, next) => {
 	try {
 		const endsAt = String(req.body?.endsAt || '').trim();
 		if (endsAt && !Number.isFinite(Date.parse(endsAt))) return res.status(400).json({ message: 'موعد انتهاء الكاونتر غير صحيح.' });
 		const limit = Math.max(Number.parseInt(req.body?.limit, 10) || 0, 0);
 		if (limit > 1000000) return res.status(400).json({ message: 'عدد الأكواد كبير جدًا.' });
-		await database.setMetadata(FREE_CODE_SETTINGS_KEY, JSON.stringify({ enabled: req.body?.enabled !== false, endsAt, limit }));
+		const active = await database.getActiveFreeCodeCampaign();
+		if (active) await database.updateFreeCodeCampaign(active.id, { enabled: req.body?.enabled !== false, status: req.body?.enabled === false ? 'closed' : 'active', endsAt, limit });
+		else await database.setMetadata(FREE_CODE_SETTINGS_KEY, JSON.stringify({ enabled: req.body?.enabled !== false, endsAt, limit }));
 		res.json(await getFreeCodeStatus());
 	} catch (error) { next(error); }
 });
@@ -1691,6 +1731,7 @@ app.get('/api/admin/free-codes/requests', requireAdmin, requirePermission('free-
 	const program = String(req.query.program || '').trim();
 	const from = String(req.query.from || '').trim();
 	const to = String(req.query.to || '').trim();
+	const campaignId = String(req.query.campaignId || '').trim();
 	if (search.length > 120) return res.status(400).json({ message: 'عبارة البحث طويلة جدًا.' });
 	if (program && !FREE_CODE_PROGRAMS.includes(program)) return res.status(400).json({ message: 'نوع المعادلة غير صحيح.' });
 	if (from && validateFinanceDate(from, 'من تاريخ')) return res.status(400).json({ message: validateFinanceDate(from, 'من تاريخ') });
@@ -1699,7 +1740,7 @@ app.get('/api/admin/free-codes/requests', requireAdmin, requirePermission('free-
 	try {
 		const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
 		const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
-		const filters = { search, program, from, to };
+		const filters = { search, program, from, to, campaignId };
 		const [data, total] = await Promise.all([database.listFreeCodeRequestsPage(page, limit, filters), database.countFreeCodeRequests(filters)]);
 		res.json({ data, total, pagination: { page, limit, total, pages: Math.max(Math.ceil(total / limit), 1) }, status: await getFreeCodeStatus() });
 	} catch (error) { next(error); }

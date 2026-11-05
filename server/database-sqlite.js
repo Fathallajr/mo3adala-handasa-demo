@@ -64,7 +64,13 @@ db.exec(`
   );
   CREATE TABLE IF NOT EXISTS free_code_requests (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, whatsapp TEXT NOT NULL UNIQUE,
-    program TEXT NOT NULL, requested_at TEXT NOT NULL
+    program TEXT NOT NULL, requested_at TEXT NOT NULL, campaign_id TEXT
+  );
+  CREATE TABLE IF NOT EXISTS free_code_campaigns (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, ends_at TEXT DEFAULT '',
+    request_limit INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'active',
+    enabled INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT,
+    completed_at TEXT
   );
   CREATE TABLE IF NOT EXISTS assets (
     filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BLOB NOT NULL, created_at TEXT NOT NULL
@@ -128,6 +134,7 @@ try { db.prepare("ALTER TABLE analytics_sessions ADD COLUMN ip_address TEXT DEFA
 try { db.prepare("ALTER TABLE leads ADD COLUMN attribution TEXT DEFAULT '{}'").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE feedbacks ADD COLUMN batch TEXT DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE wheel_claims ADD COLUMN notes TEXT DEFAULT ''").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
+try { db.prepare("ALTER TABLE free_code_requests ADD COLUMN campaign_id TEXT").run(); } catch (error) { if (!String(error.message).includes('duplicate column name')) throw error; }
 try { db.prepare("ALTER TABLE finance_transactions DROP COLUMN counterparty").run(); } catch (error) { if (!String(error.message).includes('no such column')) throw error; }
 
 function migrateLegacyStore() {
@@ -151,6 +158,22 @@ function migrateLegacyStore() {
 }
 
 migrateLegacyStore();
+
+function ensureFreeCodeCampaignData() {
+	const existing = db.prepare('SELECT id FROM free_code_campaigns LIMIT 1').get();
+	if (!existing) {
+		let settings = {};
+		try { settings = JSON.parse(db.prepare('SELECT value FROM metadata WHERE key = ?').get('batch-2027-free-codes-v1')?.value || '{}'); } catch {}
+		const count = db.prepare('SELECT COUNT(*) AS count FROM free_code_requests').get().count;
+		const limit = Math.max(Number.parseInt(settings.limit, 10) || 0, 0);
+		const endsAt = typeof settings.endsAt === 'string' ? settings.endsAt : '';
+		const status = limit > 0 && count >= limit ? 'completed' : endsAt && Date.parse(endsAt) <= Date.now() ? 'expired' : settings.enabled === false ? 'closed' : 'active';
+		const now = new Date().toISOString();
+		db.prepare('INSERT INTO free_code_campaigns(id,name,ends_at,request_limit,status,enabled,created_at,updated_at,completed_at) VALUES (?,?,?,?,?,?,?,?,?)').run('legacy-free-codes-v1', 'الحملة الحالية', endsAt, limit, status, settings.enabled === false ? 0 : 1, now, now, status === 'completed' ? now : null);
+	}
+	db.prepare("UPDATE free_code_requests SET campaign_id = 'legacy-free-codes-v1' WHERE campaign_id IS NULL OR campaign_id = ''").run();
+}
+ensureFreeCodeCampaignData();
 
 function ensureFinanceAccounts() {
 	const insert = db.prepare('INSERT OR IGNORE INTO finance_accounts(id,name,opening_balance,is_active,created_at) VALUES (?,?,?,?,?)');
@@ -412,13 +435,32 @@ function buildFreeCodeRequestFilters(filters = {}) {
 	if (from) clauses.push(`date(requested_at) >= date(${add(from)})`);
 	const to = String(filters.to || '').trim();
 	if (to) clauses.push(`date(requested_at) <= date(${add(to)})`);
+	const campaignId = String(filters.campaignId || '').trim();
+	if (campaignId) clauses.push(`r.campaign_id = ${add(campaignId)}`);
 	return { where: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '', values };
 }
-function createFreeCodeRequest(request) { const result = db.prepare('INSERT INTO free_code_requests(id,name,whatsapp,program,requested_at) VALUES (?,?,?,?,?) ON CONFLICT(whatsapp) DO NOTHING').run(request.id, request.name, request.whatsapp, request.program, request.requestedAt); return result.changes ? request : null; }
-function findFreeCodeRequestByPhone(whatsapp) { return db.prepare('SELECT id,name,whatsapp,program,requested_at AS requestedAt FROM free_code_requests WHERE whatsapp = ?').get(whatsapp) || null; }
-function listFreeCodeRequests() { return db.prepare('SELECT id,name,whatsapp,program,requested_at AS requestedAt FROM free_code_requests ORDER BY requested_at DESC').all(); }
-function listFreeCodeRequestsPage(page = 1, limit = 20, filters = {}) { const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100); const safePage = Math.max(Number(page) || 1, 1); const query = buildFreeCodeRequestFilters(filters); query.values.push(safeLimit, (safePage - 1) * safeLimit); return db.prepare(`SELECT id,name,whatsapp,program,requested_at AS requestedAt FROM free_code_requests ${query.where} ORDER BY requested_at DESC LIMIT ? OFFSET ?`).all(...query.values); }
-function countFreeCodeRequests(filters = {}) { const query = buildFreeCodeRequestFilters(filters); return db.prepare(`SELECT COUNT(*) AS count FROM free_code_requests ${query.where}`).get(...query.values).count; }
+function freeCodeCampaignRow(row) { return row ? { ...row, enabled: Boolean(row.enabled), limit: Number(row.requestLimit || 0) } : null; }
+function getFreeCodeCampaign(id) { const row = db.prepare('SELECT id,name,ends_at AS endsAt,request_limit AS requestLimit,status,enabled,created_at AS createdAt,updated_at AS updatedAt,completed_at AS completedAt FROM free_code_campaigns WHERE id = ?').get(id); if (!row) return null; const count = db.prepare('SELECT COUNT(*) AS count FROM free_code_requests WHERE campaign_id = ?').get(id).count; return { ...freeCodeCampaignRow(row), claimedCount: count, remaining: row.requestLimit > 0 ? Math.max(row.requestLimit - count, 0) : null }; }
+function listFreeCodeCampaigns() { return db.prepare('SELECT id,name,ends_at AS endsAt,request_limit AS requestLimit,status,enabled,created_at AS createdAt,updated_at AS updatedAt,completed_at AS completedAt FROM free_code_campaigns ORDER BY created_at DESC').all().map(row => { const count = db.prepare('SELECT COUNT(*) AS count FROM free_code_requests WHERE campaign_id = ?').get(row.id).count; return { ...freeCodeCampaignRow(row), claimedCount: count, remaining: row.requestLimit > 0 ? Math.max(row.requestLimit - count, 0) : null }; }); }
+function getActiveFreeCodeCampaign() { const campaigns = listFreeCodeCampaigns(); return campaigns.find(item => item.enabled && item.status === 'active' && (!item.endsAt || Date.parse(item.endsAt) > Date.now()) && (item.limit === 0 || item.claimedCount < item.limit)) || null; }
+function createFreeCodeCampaign(campaign) { db.prepare('INSERT INTO free_code_campaigns(id,name,ends_at,request_limit,status,enabled,created_at,updated_at,completed_at) VALUES (?,?,?,?,?,?,?,?,?)').run(campaign.id, campaign.name, campaign.endsAt || '', campaign.limit || 0, campaign.status || 'active', campaign.enabled === false ? 0 : 1, campaign.createdAt, campaign.updatedAt || null, null); return getFreeCodeCampaign(campaign.id); }
+function updateFreeCodeCampaign(id, changes) { const fields = [], values = []; if (changes.name !== undefined) { fields.push('name = ?'); values.push(changes.name); } if (changes.endsAt !== undefined) { fields.push('ends_at = ?'); values.push(changes.endsAt || ''); } if (changes.limit !== undefined) { fields.push('request_limit = ?'); values.push(Number(changes.limit) || 0); } if (changes.status !== undefined) { fields.push('status = ?'); values.push(changes.status); } if (changes.enabled !== undefined) { fields.push('enabled = ?'); values.push(changes.enabled ? 1 : 0); } fields.push('updated_at = ?'); values.push(new Date().toISOString()); values.push(id); db.prepare(`UPDATE free_code_campaigns SET ${fields.join(', ')} WHERE id = ?`).run(...values); return getFreeCodeCampaign(id); }
+function createFreeCodeRequest(request) {
+	const insert = db.transaction(() => {
+		const campaign = getActiveFreeCodeCampaign();
+		if (!campaign) { const error = new Error('FREE_CODE_CAMPAIGN_CLOSED'); error.code = 'FREE_CODE_CAMPAIGN_CLOSED'; throw error; }
+		if (campaign.limit > 0 && campaign.claimedCount >= campaign.limit) { const error = new Error('FREE_CODE_CAMPAIGN_FULL'); error.code = 'FREE_CODE_CAMPAIGN_FULL'; throw error; }
+		const result = db.prepare('INSERT INTO free_code_requests(id,name,whatsapp,program,requested_at,campaign_id) VALUES (?,?,?,?,?,?) ON CONFLICT(whatsapp) DO NOTHING').run(request.id, request.name, request.whatsapp, request.program, request.requestedAt, campaign.id);
+		if (!result.changes) return null;
+		if (campaign.limit > 0 && campaign.claimedCount + 1 >= campaign.limit) db.prepare("UPDATE free_code_campaigns SET status = 'completed', completed_at = ?, updated_at = ? WHERE id = ?").run(request.requestedAt, request.requestedAt, campaign.id);
+		return { ...request, campaignId: campaign.id };
+	});
+	return insert();
+}
+function findFreeCodeRequestByPhone(whatsapp) { return db.prepare('SELECT r.id,r.name,r.whatsapp,r.program,r.requested_at AS requestedAt,r.campaign_id AS campaignId,c.name AS campaignName,c.ends_at AS campaignEndsAt,c.status AS campaignStatus FROM free_code_requests r LEFT JOIN free_code_campaigns c ON c.id = r.campaign_id WHERE r.whatsapp = ?').get(whatsapp) || null; }
+function listFreeCodeRequests() { return db.prepare('SELECT r.id,r.name,r.whatsapp,r.program,r.requested_at AS requestedAt,r.campaign_id AS campaignId,c.name AS campaignName,c.ends_at AS campaignEndsAt,c.status AS campaignStatus FROM free_code_requests r LEFT JOIN free_code_campaigns c ON c.id = r.campaign_id ORDER BY r.requested_at DESC').all(); }
+function listFreeCodeRequestsPage(page = 1, limit = 20, filters = {}) { const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100); const safePage = Math.max(Number(page) || 1, 1); const query = buildFreeCodeRequestFilters(filters); query.values.push(safeLimit, (safePage - 1) * safeLimit); return db.prepare(`SELECT r.id,r.name,r.whatsapp,r.program,r.requested_at AS requestedAt,r.campaign_id AS campaignId,c.name AS campaignName,c.ends_at AS campaignEndsAt,c.status AS campaignStatus FROM free_code_requests r LEFT JOIN free_code_campaigns c ON c.id = r.campaign_id ${query.where} ORDER BY r.requested_at DESC LIMIT ? OFFSET ?`).all(...query.values); }
+function countFreeCodeRequests(filters = {}) { const query = buildFreeCodeRequestFilters(filters); return db.prepare(`SELECT COUNT(*) AS count FROM free_code_requests r ${query.where}`).get(...query.values).count; }
 
 function listFinanceAccounts() {
 	return db.prepare('SELECT id,name,opening_balance AS openingBalance,is_active AS isActive,created_at AS createdAt,updated_at AS updatedAt FROM finance_accounts ORDER BY created_at ASC').all().map(item => ({ ...item, openingBalance: Number(item.openingBalance), isActive: Boolean(item.isActive) }));
@@ -679,4 +721,4 @@ getAnalyticsSummary.closeStaleAdminActivitySessions = closeStaleAdminActivitySes
 getAnalyticsSummary.listAdminActivitySessions = listAdminActivitySessions;
 getAnalyticsSummary.getAnalyticsSessionDetails = getAnalyticsSessionDetails;
 
-module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, listFreeCodeRequestsPage, countFreeCodeRequests, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, recordAnalyticsHit, getAnalyticsSummary, databaseFile };
+module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, findWheelClaimByPhone, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, listFreeCodeRequestsPage, countFreeCodeRequests, getFreeCodeCampaign, listFreeCodeCampaigns, getActiveFreeCodeCampaign, createFreeCodeCampaign, updateFreeCodeCampaign, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, resetFinancePayrollPayment, createFinancePayrollPayment, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, recordAnalyticsHit, getAnalyticsSummary, databaseFile };

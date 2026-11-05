@@ -17,8 +17,9 @@ export interface Program {
 	features: string[]; isActive: boolean; enrollmentStatus: 'open' | 'closed';
 }
 export interface WheelClaim { token: string; name: string; whatsapp: string; program: string; gift: string; notes?: string; claimedAt: string; }
-export interface FreeCodeRequest { id: string; name: string; whatsapp: string; program: string; requestedAt: string; }
-export interface FreeCodeStatus { enabled: boolean; open: boolean; endsAt: string; limit: number; claimedCount: number; remaining: number | null; }
+export interface FreeCodeCampaign { id: string; name: string; endsAt: string; limit: number; requestLimit?: number; status: 'active' | 'completed' | 'expired' | 'closed'; enabled: boolean; claimedCount: number; remaining: number | null; createdAt?: string; }
+export interface FreeCodeRequest { id: string; name: string; whatsapp: string; program: string; requestedAt: string; campaignId?: string; campaignName?: string; campaignEndsAt?: string; campaignStatus?: FreeCodeCampaign['status']; }
+export interface FreeCodeStatus { enabled: boolean; open: boolean; endsAt: string; limit: number; claimedCount: number; remaining: number | null; campaign?: FreeCodeCampaign | null; campaigns?: FreeCodeCampaign[]; }
 export interface Feedback { id: string; name: string; university?: string; batch?: string; rating: number; message: string; status: 'new' | 'reviewed' | 'published' | 'archived'; createdAt: string; updatedAt?: string | null; }
 export interface AdminUser { username: string; role: string; permissions: string[]; isActive: boolean; createdAt?: string; updatedAt?: string; }
 export interface SiteMode { maintenance: boolean; }
@@ -133,7 +134,10 @@ export class AdminApiService {
 	}
 	getFreeCodeSettings(): Observable<FreeCodeStatus> { return this.http.get<FreeCodeStatus>(`${this.base}/admin/free-codes/settings`); }
 	updateFreeCodeSettings(payload: { enabled: boolean; endsAt: string; limit: number }): Observable<FreeCodeStatus> { return this.http.put<FreeCodeStatus>(`${this.base}/admin/free-codes/settings`, payload); }
-	listFreeCodeRequests(page = 1, limit = 20, filters: { search?: string; program?: string; from?: string; to?: string } = {}): Observable<{ data: FreeCodeRequest[]; total: number; pagination: { page: number; limit: number; total: number; pages: number }; status: FreeCodeStatus }> {
+	listFreeCodeCampaigns(): Observable<{ data: FreeCodeCampaign[] }> { return this.http.get<{ data: FreeCodeCampaign[] }>(`${this.base}/admin/free-codes/campaigns`); }
+	createFreeCodeCampaign(payload: { name: string; endsAt: string; limit: number; enabled: boolean }): Observable<FreeCodeCampaign> { return this.http.post<FreeCodeCampaign>(`${this.base}/admin/free-codes/campaigns`, payload); }
+	updateFreeCodeCampaign(id: string, payload: Partial<Pick<FreeCodeCampaign, 'name' | 'endsAt' | 'limit' | 'status' | 'enabled'>>): Observable<FreeCodeCampaign> { return this.http.patch<FreeCodeCampaign>(`${this.base}/admin/free-codes/campaigns/${encodeURIComponent(id)}`, payload); }
+	listFreeCodeRequests(page = 1, limit = 20, filters: { search?: string; program?: string; from?: string; to?: string; campaignId?: string } = {}): Observable<{ data: FreeCodeRequest[]; total: number; pagination: { page: number; limit: number; total: number; pages: number }; status: FreeCodeStatus }> {
 		let params = new HttpParams().set('page', page).set('limit', limit);
 		for (const [key, value] of Object.entries(filters)) if (value) params = params.set(key, value);
 		return this.http.get<{ data: FreeCodeRequest[]; total: number; pagination: { page: number; limit: number; total: number; pages: number }; status: FreeCodeStatus }>(`${this.base}/admin/free-codes/requests`, { params });

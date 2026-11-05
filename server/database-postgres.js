@@ -62,7 +62,13 @@ function ensureSchema() {
 			);
 			CREATE TABLE IF NOT EXISTS free_code_requests (
 				id TEXT PRIMARY KEY, name TEXT NOT NULL, whatsapp TEXT NOT NULL UNIQUE,
-				program TEXT NOT NULL, requested_at TIMESTAMPTZ NOT NULL
+				program TEXT NOT NULL, requested_at TIMESTAMPTZ NOT NULL, campaign_id TEXT
+			);
+			CREATE TABLE IF NOT EXISTS free_code_campaigns (
+				id TEXT PRIMARY KEY, name TEXT NOT NULL, ends_at TEXT DEFAULT '',
+				request_limit INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'active',
+				enabled BOOLEAN NOT NULL DEFAULT TRUE, created_at TIMESTAMPTZ NOT NULL,
+				updated_at TIMESTAMPTZ, completed_at TIMESTAMPTZ
 			);
 			CREATE TABLE IF NOT EXISTS assets (
 				filename TEXT PRIMARY KEY, mime_type TEXT NOT NULL, data BYTEA NOT NULL, created_at TIMESTAMPTZ NOT NULL
@@ -114,9 +120,22 @@ function ensureSchema() {
 			ALTER TABLE leads ADD COLUMN IF NOT EXISTS attribution JSONB NOT NULL DEFAULT '{}'::jsonb;
 			ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS batch TEXT DEFAULT '';
 			ALTER TABLE wheel_claims ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+			ALTER TABLE free_code_requests ADD COLUMN IF NOT EXISTS campaign_id TEXT;
 			ALTER TABLE finance_transactions DROP COLUMN IF EXISTS counterparty;
 		`).then(async result => {
 			await pool.query("INSERT INTO finance_accounts(id,name,opening_balance,is_active,created_at) VALUES ('application','أبلكيشن',0,TRUE,NOW()),('studio','استوديو',0,TRUE,NOW()) ON CONFLICT (id) DO NOTHING");
+			const campaign = (await pool.query('SELECT id FROM free_code_campaigns LIMIT 1')).rows[0];
+			if (!campaign) {
+				let settings = {};
+				try { settings = JSON.parse((await pool.query('SELECT value FROM metadata WHERE key = $1', ['batch-2027-free-codes-v1'])).rows[0]?.value || '{}'); } catch {}
+				const count = Number((await pool.query('SELECT COUNT(*)::int AS count FROM free_code_requests')).rows[0].count || 0);
+				const limit = Math.max(Number.parseInt(settings.limit, 10) || 0, 0);
+				const endsAt = typeof settings.endsAt === 'string' ? settings.endsAt : '';
+				const status = limit > 0 && count >= limit ? 'completed' : endsAt && Date.parse(endsAt) <= Date.now() ? 'expired' : settings.enabled === false ? 'closed' : 'active';
+				const now = new Date().toISOString();
+				await pool.query('INSERT INTO free_code_campaigns(id,name,ends_at,request_limit,status,enabled,created_at,updated_at,completed_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$7,$8)', ['legacy-free-codes-v1', 'الحملة الحالية', endsAt, limit, status, settings.enabled !== false, now, status === 'completed' ? now : null]);
+			}
+			await pool.query("UPDATE free_code_requests SET campaign_id = 'legacy-free-codes-v1' WHERE campaign_id IS NULL OR campaign_id = ''");
 			return result;
 		});
 	}
@@ -394,20 +413,24 @@ function buildFreeCodeRequestFilters(filters = {}) {
 	if (from) clauses.push(`requested_at >= ${add(from)}::date`);
 	const to = String(filters.to || '').trim();
 	if (to) clauses.push(`requested_at < (${add(to)}::date + INTERVAL '1 day')`);
+	const campaignId = String(filters.campaignId || '').trim();
+	if (campaignId) clauses.push(`r.campaign_id = ${add(campaignId)}`);
 	return { where: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '', values };
 }
+function freeCodeCampaignRow(row) { return row ? { ...row, enabled: Boolean(row.enabled), limit: Number(row.requestLimit || 0), claimedCount: Number(row.claimedCount || 0), remaining: Number(row.requestLimit || 0) > 0 ? Math.max(Number(row.requestLimit) - Number(row.claimedCount || 0), 0) : null } : null; }
+async function getFreeCodeCampaign(id) { await ensureSchema(); const result = await pool.query('SELECT c.id,c.name,c.ends_at AS "endsAt",c.request_limit AS "requestLimit",c.status,c.enabled,c.created_at AS "createdAt",c.updated_at AS "updatedAt",c.completed_at AS "completedAt",COUNT(r.id)::int AS "claimedCount" FROM free_code_campaigns c LEFT JOIN free_code_requests r ON r.campaign_id = c.id WHERE c.id = $1 GROUP BY c.id', [id]); return freeCodeCampaignRow(result.rows[0] || null); }
+async function listFreeCodeCampaigns() { await ensureSchema(); const result = await pool.query('SELECT c.id,c.name,c.ends_at AS "endsAt",c.request_limit AS "requestLimit",c.status,c.enabled,c.created_at AS "createdAt",c.updated_at AS "updatedAt",c.completed_at AS "completedAt",COUNT(r.id)::int AS "claimedCount" FROM free_code_campaigns c LEFT JOIN free_code_requests r ON r.campaign_id = c.id GROUP BY c.id ORDER BY c.created_at DESC'); return result.rows.map(freeCodeCampaignRow); }
+async function getActiveFreeCodeCampaign() { const campaigns = await listFreeCodeCampaigns(); return campaigns.find(item => item.enabled && item.status === 'active' && (!item.endsAt || Date.parse(item.endsAt) > Date.now()) && (item.limit === 0 || item.claimedCount < item.limit)) || null; }
+async function createFreeCodeCampaign(campaign) { await ensureSchema(); await pool.query('INSERT INTO free_code_campaigns(id,name,ends_at,request_limit,status,enabled,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$7)', [campaign.id, campaign.name, campaign.endsAt || '', campaign.limit || 0, campaign.status || 'active', campaign.enabled !== false, campaign.createdAt]); return getFreeCodeCampaign(campaign.id); }
+async function updateFreeCodeCampaign(id, changes) { await ensureSchema(); const fields = [], values = []; const add = (field, value) => { values.push(value); fields.push(`${field} = $${values.length}`); }; if (changes.name !== undefined) add('name', changes.name); if (changes.endsAt !== undefined) add('ends_at', changes.endsAt || ''); if (changes.limit !== undefined) add('request_limit', Number(changes.limit) || 0); if (changes.status !== undefined) add('status', changes.status); if (changes.enabled !== undefined) add('enabled', Boolean(changes.enabled)); add('updated_at', new Date().toISOString()); values.push(id); await pool.query(`UPDATE free_code_campaigns SET ${fields.join(', ')} WHERE id = $${values.length}`, values); return getFreeCodeCampaign(id); }
 async function createFreeCodeRequest(request) {
-	await ensureSchema();
-	const result = await pool.query(
-		'INSERT INTO free_code_requests(id,name,whatsapp,program,requested_at) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (whatsapp) DO NOTHING RETURNING id,name,whatsapp,program,requested_at AS "requestedAt"',
-		[request.id, request.name, request.whatsapp, request.program, request.requestedAt]
-	);
-	return result.rows[0] || null;
+	await ensureSchema(); const client = await pool.connect();
+	try { await client.query('BEGIN'); const campaignResult = await client.query("SELECT c.id,c.request_limit AS limit,c.status,c.enabled,c.ends_at AS \"endsAt\",COUNT(r.id)::int AS claimed_count FROM free_code_campaigns c LEFT JOIN free_code_requests r ON r.campaign_id=c.id WHERE c.status='active' AND c.enabled=TRUE GROUP BY c.id ORDER BY c.created_at DESC LIMIT 1"); const campaign = campaignResult.rows[0]; if (!campaign || (campaign.endsAt && Date.parse(campaign.endsAt) <= Date.now())) { const error = Object.assign(new Error('FREE_CODE_CAMPAIGN_CLOSED'), { code: 'FREE_CODE_CAMPAIGN_CLOSED' }); throw error; } if (Number(campaign.limit) > 0 && Number(campaign.claimed_count) >= Number(campaign.limit)) { const error = Object.assign(new Error('FREE_CODE_CAMPAIGN_FULL'), { code: 'FREE_CODE_CAMPAIGN_FULL' }); throw error; } const result = await client.query('INSERT INTO free_code_requests(id,name,whatsapp,program,requested_at,campaign_id) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (whatsapp) DO NOTHING RETURNING id,name,whatsapp,program,requested_at AS "requestedAt",campaign_id AS "campaignId"', [request.id, request.name, request.whatsapp, request.program, request.requestedAt, campaign.id]); if (!result.rows[0]) { await client.query('COMMIT'); return null; } if (Number(campaign.limit) > 0 && Number(campaign.claimed_count) + 1 >= Number(campaign.limit)) await client.query("UPDATE free_code_campaigns SET status='completed',completed_at=$1,updated_at=$1 WHERE id=$2", [request.requestedAt, campaign.id]); await client.query('COMMIT'); return result.rows[0]; } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
 }
-async function findFreeCodeRequestByPhone(whatsapp) { await ensureSchema(); const result = await pool.query('SELECT id,name,whatsapp,program,requested_at AS "requestedAt" FROM free_code_requests WHERE whatsapp = $1', [whatsapp]); return result.rows[0] || null; }
-async function listFreeCodeRequests() { await ensureSchema(); const result = await pool.query('SELECT id,name,whatsapp,program,requested_at AS "requestedAt" FROM free_code_requests ORDER BY requested_at DESC'); return result.rows; }
-async function listFreeCodeRequestsPage(page = 1, limit = 20, filters = {}) { await ensureSchema(); const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100); const safePage = Math.max(Number(page) || 1, 1); const query = buildFreeCodeRequestFilters(filters); query.values.push(safeLimit, (safePage - 1) * safeLimit); const result = await pool.query(`SELECT id,name,whatsapp,program,requested_at AS "requestedAt" FROM free_code_requests ${query.where} ORDER BY requested_at DESC LIMIT $${query.values.length - 1} OFFSET $${query.values.length}`, query.values); return result.rows; }
-async function countFreeCodeRequests(filters = {}) { await ensureSchema(); const query = buildFreeCodeRequestFilters(filters); const result = await pool.query(`SELECT COUNT(*)::int AS count FROM free_code_requests ${query.where}`, query.values); return result.rows[0].count; }
+async function findFreeCodeRequestByPhone(whatsapp) { await ensureSchema(); const result = await pool.query('SELECT r.id,r.name,r.whatsapp,r.program,r.requested_at AS "requestedAt",r.campaign_id AS "campaignId",c.name AS "campaignName",c.ends_at AS "campaignEndsAt",c.status AS "campaignStatus" FROM free_code_requests r LEFT JOIN free_code_campaigns c ON c.id=r.campaign_id WHERE r.whatsapp=$1', [whatsapp]); return result.rows[0] || null; }
+async function listFreeCodeRequests() { await ensureSchema(); const result = await pool.query('SELECT r.id,r.name,r.whatsapp,r.program,r.requested_at AS "requestedAt",r.campaign_id AS "campaignId",c.name AS "campaignName",c.ends_at AS "campaignEndsAt",c.status AS "campaignStatus" FROM free_code_requests r LEFT JOIN free_code_campaigns c ON c.id=r.campaign_id ORDER BY r.requested_at DESC'); return result.rows; }
+async function listFreeCodeRequestsPage(page = 1, limit = 20, filters = {}) { await ensureSchema(); const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100); const safePage = Math.max(Number(page) || 1, 1); const query = buildFreeCodeRequestFilters(filters); query.values.push(safeLimit, (safePage - 1) * safeLimit); const result = await pool.query(`SELECT r.id,r.name,r.whatsapp,r.program,r.requested_at AS "requestedAt",r.campaign_id AS "campaignId",c.name AS "campaignName",c.ends_at AS "campaignEndsAt",c.status AS "campaignStatus" FROM free_code_requests r LEFT JOIN free_code_campaigns c ON c.id=r.campaign_id ${query.where} ORDER BY r.requested_at DESC LIMIT $${query.values.length - 1} OFFSET $${query.values.length}`, query.values); return result.rows; }
+async function countFreeCodeRequests(filters = {}) { await ensureSchema(); const query = buildFreeCodeRequestFilters(filters); const result = await pool.query(`SELECT COUNT(*)::int AS count FROM free_code_requests r ${query.where}`, query.values); return result.rows[0].count; }
 
 function financeAccountRow(row) { return row ? { ...row, openingBalance: Number(row.openingBalance), isActive: Boolean(row.isActive) } : null; }
 function financeTransactionRow(row) { return row ? { ...row, amount: Number(row.amount), accountId: row.accountId || null, fromAccountId: row.fromAccountId || null, toAccountId: row.toAccountId || null } : null; }
@@ -542,4 +565,4 @@ async function deleteAdminSession(token) {
 }
 async function deleteAdminSessionsForUsername(username) { await ensureSchema(); await pool.query('DELETE FROM admin_sessions WHERE username = $1', [username]); }
 
-module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, listFreeCodeRequestsPage, countFreeCodeRequests, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, recordAnalyticsHit, getAnalyticsSummary, databaseFile: null, pool, ensureSchema };
+module.exports = { readStore, writeStore, savePage, updateEmployeeProfile, createEmployeeWithAccount, createLead, getLead, updateLead, createAuditLog, deleteLead, listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, findCustomerByPhone, readWheelState, writeWheelState, createWheelClaim, listWheelClaims, updateWheelClaim, deleteWheelClaim, countWheelClaims, createFreeCodeRequest, findFreeCodeRequestByPhone, listFreeCodeRequests, listFreeCodeRequestsPage, countFreeCodeRequests, getFreeCodeCampaign, listFreeCodeCampaigns, getActiveFreeCodeCampaign, createFreeCodeCampaign, updateFreeCodeCampaign, writeAsset, readAsset, createAdminSession, getAdminSession, deleteAdminSession, deleteAdminSessionsForUsername, findAdminUser, listAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, getMetadata, setMetadata, createFeedback, listFeedback, getFeedback, updateFeedback, updateFeedbackBatch, setMissingFeedbackBatch, listPublishedFeedback, listFinanceAccounts, listFinanceTransactions, createFinanceTransaction, updateFinanceTransaction, voidFinanceTransaction, listFinanceLoans, createFinanceLoan, repayFinanceLoan, cancelFinanceLoan, listFinancePayrollPayments, listFinanceAuditLogs, getFinanceSummary, approveFinancePayroll, recordAnalyticsHit, getAnalyticsSummary, databaseFile: null, pool, ensureSchema };

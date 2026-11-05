@@ -9,7 +9,7 @@ import { CmsPageKey, cmsPageDefaults, cmsPageOptions } from '../../core/cms-page
 import { displayProgramLabel } from '../../core/program-labels';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
-import { AdminApiService, AdminUser, Customer, DashboardSummary, Feedback, FreeCodeRequest, FreeCodeStatus, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
+import { AdminApiService, AdminUser, Customer, DashboardSummary, Feedback, FreeCodeCampaign, FreeCodeRequest, FreeCodeStatus, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
 import { SeoService } from '../../core/seo.service';
 import { ContactFormComponent } from './forms/contact-form.component';
 import { FaqFormComponent } from './forms/faq-form.component';
@@ -105,6 +105,9 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	readonly freeCodePrograms = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
 	freeCodeStatus: FreeCodeStatus = { enabled: true, open: true, endsAt: '', limit: 0, claimedCount: 0, remaining: null };
 	freeCodeSettingsDraft = { enabled: true, endsAt: '', limit: 0 };
+	freeCodeCampaigns: FreeCodeCampaign[] = [];
+	freeCodeCampaignFilter = '';
+	freeCodeCampaignDraft = { name: '', endsAt: '', limit: 0, enabled: true };
 	isLoadingFreeCodeRequests = false;
 	isSavingFreeCodeSettings = false;
 	wheelPage = 1;
@@ -884,11 +887,11 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.isLoadingFreeCodeRequests = true;
 		this.freeCodePage = Math.max(page, 1);
 		this.adminApi.listFreeCodeRequests(this.freeCodePage, 20, this.getFreeCodeRequestFilters()).pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingFreeCodeRequests = false; this.refreshView(); })).subscribe({
-			next: result => { this.freeCodeRequests = result.data; this.freeCodeTotal = result.pagination?.total ?? result.total; this.freeCodePages = result.pagination?.pages || 1; this.freeCodePageNumbers = this.buildPaginationItems(this.freeCodePage, this.freeCodePages); this.freeCodeStatus = result.status; this.freeCodeSettingsDraft = { enabled: result.status.enabled, endsAt: result.status.endsAt ? result.status.endsAt.slice(0, 16) : '', limit: result.status.limit }; this.statusMessage = 'تم تحديث طلبات الأكواد المجانية.'; this.errorMessage = ''; this.refreshView(); },
+			next: result => { this.freeCodeRequests = result.data; this.freeCodeTotal = result.pagination?.total ?? result.total; this.freeCodePages = result.pagination?.pages || 1; this.freeCodePageNumbers = this.buildPaginationItems(this.freeCodePage, this.freeCodePages); this.freeCodeStatus = result.status; this.freeCodeCampaigns = result.status.campaigns || []; this.freeCodeSettingsDraft = { enabled: result.status.enabled, endsAt: result.status.endsAt ? result.status.endsAt.slice(0, 16) : '', limit: result.status.limit }; this.statusMessage = 'تم تحديث طلبات الأكواد المجانية.'; this.errorMessage = ''; this.refreshView(); },
 			error: err => { this.handleApiError(err); this.refreshView(); }
 		});
 	}
-	private getFreeCodeRequestFilters(): { search: string; program: string; from: string; to: string } { return { search: this.freeCodeSearch.trim(), program: this.freeCodeProgramFilter, from: this.freeCodeDateFrom, to: this.freeCodeDateTo }; }
+	private getFreeCodeRequestFilters(): { search: string; program: string; from: string; to: string; campaignId: string } { return { search: this.freeCodeSearch.trim(), program: this.freeCodeProgramFilter, from: this.freeCodeDateFrom, to: this.freeCodeDateTo, campaignId: this.freeCodeCampaignFilter }; }
 	get freeCodeDateRangeLabel(): string {
 		if (!this.freeCodeDateFrom && !this.freeCodeDateTo) return 'اختار فترة زمنية';
 		const format = (value: string) => new Date(`${value}T00:00:00`).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -934,7 +937,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.freeCodePage = 1;
 		this.loadFreeCodeRequests(true, 1);
 	}
-	clearFreeCodeFilters(): void { this.freeCodeSearch = ''; this.freeCodeProgramFilter = ''; this.clearFreeCodeDateRange(); this.searchFreeCodeRequests(); }
+	clearFreeCodeFilters(): void { this.freeCodeSearch = ''; this.freeCodeProgramFilter = ''; this.freeCodeCampaignFilter = ''; this.clearFreeCodeDateRange(); this.searchFreeCodeRequests(); }
 	goToFreeCodePage(page: number | string): void { if (typeof page !== 'number') return; const nextPage = Math.min(Math.max(Math.trunc(page) || 1, 1), this.freeCodePages); if (nextPage === this.freeCodePage && this.freeCodeRequests.length) return; this.loadFreeCodeRequests(true, nextPage); }
 	async exportFreeCodeRequests(): Promise<void> {
 		const pageSize = 100;
@@ -948,6 +951,9 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 			'الاسم': request.name,
 			'رقم الواتساب': request.whatsapp,
 			'نوع المعادلة': request.program,
+			'الحملة': request.campaignName || 'الحملة القديمة',
+			'انتهاء الحملة': request.campaignEndsAt || '',
+			'حالة الحملة': request.campaignStatus || '',
 		}));
 		const workbook = new ExcelJS.Workbook();
 		const sheet = workbook.addWorksheet('طلبات الأكواد');
@@ -956,6 +962,9 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 			{ header: 'الاسم', key: 'الاسم', width: 30 },
 			{ header: 'رقم الواتساب', key: 'رقم الواتساب', width: 20 },
 			{ header: 'نوع المعادلة', key: 'نوع المعادلة', width: 28 },
+			{ header: 'الحملة', key: 'الحملة', width: 28 },
+			{ header: 'انتهاء الحملة', key: 'انتهاء الحملة', width: 20 },
+			{ header: 'حالة الحملة', key: 'حالة الحملة', width: 18 },
 		];
 		sheet.addRows(rows);
 		sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -975,6 +984,13 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.isSavingFreeCodeSettings = true;
 		const endsAt = this.freeCodeSettingsDraft.endsAt ? new Date(this.freeCodeSettingsDraft.endsAt).toISOString() : '';
 		this.adminApi.updateFreeCodeSettings({ enabled: this.freeCodeSettingsDraft.enabled, endsAt, limit: Number(this.freeCodeSettingsDraft.limit) || 0 }).pipe(finalize(() => { this.isSavingFreeCodeSettings = false; this.refreshView(); })).subscribe({ next: status => { this.freeCodeStatus = status; this.freeCodeSettingsDraft = { enabled: status.enabled, endsAt: status.endsAt ? status.endsAt.slice(0, 16) : '', limit: status.limit }; this.statusMessage = 'تم حفظ إعدادات الأكواد المجانية.'; this.errorMessage = ''; }, error: err => this.handleApiError(err) });
+	}
+	createFreeCodeCampaign(): void {
+		const draft = this.freeCodeCampaignDraft;
+		if (!draft.name.trim() || !Number(draft.limit)) { this.errorMessage = 'اكتب اسم الحملة وعدد الأكواد.'; return; }
+		this.isSavingFreeCodeSettings = true;
+		const endsAt = draft.endsAt ? new Date(draft.endsAt).toISOString() : '';
+		this.adminApi.createFreeCodeCampaign({ name: draft.name.trim(), endsAt, limit: Number(draft.limit), enabled: draft.enabled }).pipe(finalize(() => { this.isSavingFreeCodeSettings = false; this.refreshView(); })).subscribe({ next: () => { this.freeCodeCampaignDraft = { name: '', endsAt: '', limit: 0, enabled: true }; this.statusMessage = 'تم إنشاء حملة جديدة مع الاحتفاظ بكل السجلات القديمة.'; this.errorMessage = ''; this.loadFreeCodeRequests(true, 1); }, error: err => this.handleApiError(err) });
 	}
 	toggleLeadsFilters(): void { this.leadsFiltersOpen = !this.leadsFiltersOpen; }
 	exportWheelClaims(): void {
