@@ -927,6 +927,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		if (value < this.freeCodeDateFrom) [this.freeCodeDateFrom, this.freeCodeDateTo] = [value, this.freeCodeDateFrom];
 		else this.freeCodeDateTo = value;
 		this.freeCodeDateRangeOpen = false;
+		this.searchFreeCodeRequests();
 	}
 	isFreeCodeDateSelected(value: string): boolean { return value === this.freeCodeDateFrom || value === this.freeCodeDateTo; }
 	isFreeCodeDateInRange(value: string): boolean { return Boolean(this.freeCodeDateFrom && this.freeCodeDateTo && value > this.freeCodeDateFrom && value < this.freeCodeDateTo); }
