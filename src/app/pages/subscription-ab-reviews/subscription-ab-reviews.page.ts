@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -32,8 +32,9 @@ interface ReviewFormConfig {
 	templateUrl: './subscription-ab-reviews.page.html',
 	styleUrls: ['./subscription-ab-reviews.page.css']
 })
-export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
+export class SubscriptionAbReviewsPageComponent implements OnInit, AfterViewInit, OnDestroy {
 	private readonly defaultEnrollmentExpiresAt = '2026-10-10T19:00:00.000Z';
+	private readonly engineeringArabicVideoUrl = 'https://youtu.be/MWnaGMPUvXQ';
 	private readonly arabicEnrollmentFormLink = 'https://forms.gle/mhopqPdxUPxQEN9K8';
 	private readonly englishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
 	private readonly computersEnglishEnrollmentFormLink = 'https://forms.gle/WFv9urJ1QDu3eE5y9';
@@ -50,6 +51,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 	enrollmentReopenMessage = 'سيتم فتح الاشتراك مع بداية الشهر القادم بإذن الله.';
 	shuffledVodafoneNumbers: { number: string; owner: string }[] = [];
 	isVideoLoaded = false;
+	@ViewChild('computerHeroVideo') private computerHeroVideo?: ElementRef<HTMLVideoElement>;
 	closingDays = 0;
 	closingHours = 0;
 	closingMinutes = 0;
@@ -171,6 +173,9 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			this.subscriptionDetails = {
 				...this.subscriptionDetails,
 				...loaded,
+				// Keep the configured engineering Arabic video visible during the
+				// first CMS refresh instead of waiting for a later interaction.
+				videoUrl: String(loaded.videoUrl || '').trim() || this.subscriptionDetails.videoUrl,
 				whatsappNumber: '201080681865',
 				review: {
 					...this.subscriptionDetails.review,
@@ -314,6 +319,33 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 			.subscribe(state => this.applyLoadedState(state));
 	}
 
+	ngAfterViewInit(): void {
+		this.startComputerHeroVideo();
+	}
+
+	private startComputerHeroVideo(): void {
+		if (typeof window === 'undefined') return;
+		const video = this.computerHeroVideo?.nativeElement;
+		if (!video) return;
+
+		// Some browsers keep a muted autoplay video paused until the first user
+		// interaction unless the muted property is set explicitly in JavaScript.
+		video.muted = true;
+		video.defaultMuted = true;
+		video.setAttribute('muted', '');
+		video.playsInline = true;
+
+		const play = (): void => {
+			void video.play().catch(() => {
+				// Retry once after the media has had a chance to attach its first frame.
+				window.setTimeout(() => void video.play().catch(() => undefined), 250);
+			});
+		};
+
+		if (video.readyState >= 2) play();
+		else video.addEventListener('canplay', play, { once: true });
+	}
+
 	private getSubscriptionContentKey(pathname: string): CmsPageKey {
 		if (pathname.includes('computers')) return pathname.endsWith('-en') ? 'subscription-computers-en' : 'subscription-computers-ar';
 		return pathname.endsWith('-en') ? 'subscription-engineering-en' : 'subscription-engineering-ar';
@@ -332,6 +364,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, OnDestroy {
 		}
 		this.subscriptionDetails = {
 			...this.subscriptionDetails,
+			videoUrl: !this.isComputersSubscription && !this.isEnglishSubscription ? this.engineeringArabicVideoUrl : '',
 			review: {
 				...this.subscriptionDetails.review,
 				name: this.subscriptionProgramLabel,
