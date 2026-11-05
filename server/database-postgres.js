@@ -524,7 +524,7 @@ async function getAnalyticsSummary({ from, to, device = '' }) {
 	const sessions = sessionsResult.rows.map(row => ({ ...row, pageViews:Number(row.pageViews||0), durationSeconds:Number(row.durationSeconds||0) }));
 	const pageViews = viewsResult.rows.map(row => ({ ...row, activeSeconds:Number(row.activeSeconds||0) }));
 	const pageViewCountBySession = pageViews.reduce((map, row) => map.set(row.sessionId, (map.get(row.sessionId) || 0) + 1), new Map());
-	const count = key => Object.entries(sessions.reduce((acc,row) => { const value=row[key]||'غير محدد'; acc[value]=(acc[value]||0)+1; return acc; }, {})).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
+	const count = (key, limit = 10) => Object.entries(sessions.reduce((acc,row) => { const value=row[key]||'غير محدد'; acc[value]=(acc[value]||0)+1; return acc; }, {})).sort((a,b)=>b[1]-a[1]).slice(0,limit).map(([label,value])=>({label,value}));
 	const dateKey = value => value instanceof Date ? value.toISOString().slice(0, 10) : String(value).slice(0, 10);
 	const daily = {}; const topPages = {};
 	for (const row of sessions) { const day=dateKey(row.lastSeen); daily[day]=(daily[day]||0)+1; }
@@ -543,7 +543,7 @@ async function getAnalyticsSummary({ from, to, device = '' }) {
 	}
 	return { sessions:sessions.length, visitors:new Set(sessions.map(row=>row.visitorId||row.ipHash).filter(Boolean)).size, pageViews:pageViews.length,
 		averageSessionDuration:sessions.length?Math.round(sessions.reduce((sum,row)=>sum+row.durationSeconds,0)/sessions.length):0, pagesPerSession:sessions.length?Number((pageViews.length/sessions.length).toFixed(2)):0,
-		trafficOverTime:Object.entries(daily).sort(([a],[b])=>a.localeCompare(b)).map(([date,value])=>({date,value})), devices:count('device'), countries:count('country'), regions:count('region'), referrers:count('referrer'),
+		trafficOverTime:Object.entries(daily).sort(([a],[b])=>a.localeCompare(b)).map(([date,value])=>({date,value})), devices:count('device'), countries:count('country'), regions:count('region',1000), referrers:count('referrer'),
 		topPages:Object.entries(topPages).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([path,value])=>({path,value})), performance:Object.values(performance).sort((a,b)=>b.pageViews-a.pageViews).slice(0,20).map(item=>({path:item.path,visitors:item.visitors.size,sessions:item.sessions.size,pageViews:item.pageViews,averageSessionDuration:item.sessions.size?Math.round(item.duration/item.sessions.size):0,pagesPerSession:item.sessions.size?Number((item.pageViews/item.sessions.size).toFixed(2)):0})), recentSessions:[...groupedSessions.values()], from, to };
 }
 getAnalyticsSummary.touchAdminActivity = touchAdminActivity;

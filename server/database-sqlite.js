@@ -682,7 +682,7 @@ function getAnalyticsSummary({ from, to, device = '' }) {
 	const sessions = db.prepare(`SELECT id,visitor_id AS visitorId,first_seen AS firstSeen,last_seen AS lastSeen,started_at AS startedAt,ended_at AS endedAt,ip_hash AS ipHash,country,region,city,device,browser,os,referrer,landing_path AS landingPath,acquisition_source AS acquisitionSource,acquisition_medium AS acquisitionMedium,acquisition_campaign AS acquisitionCampaign,user_agent AS userAgent,page_views AS pageViews,duration_seconds AS durationSeconds FROM analytics_sessions WHERE last_seen >= ? AND last_seen <= ?${sessionFilter} ORDER BY last_seen DESC`).all(...sessionParams);
 	const pageViews = db.prepare(`SELECT pv.id,pv.session_id AS sessionId,pv.path,pv.title,pv.component,pv.entered_at AS enteredAt,pv.exited_at AS exitedAt,pv.active_seconds AS activeSeconds,pv.created_at AS createdAt FROM analytics_page_views pv INNER JOIN analytics_sessions s ON s.id = pv.session_id WHERE pv.created_at >= ? AND pv.created_at <= ?${device ? ' AND s.device = ?' : ''} ORDER BY pv.created_at DESC`).all(...sessionParams);
 	const pageViewCountBySession = pageViews.reduce((map, row) => map.set(row.sessionId, (map.get(row.sessionId) || 0) + 1), new Map());
-	const count = (key) => Object.entries(sessions.reduce((acc, row) => { const value = row[key] || 'غير محدد'; acc[value] = (acc[value] || 0) + 1; return acc; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([label, value]) => ({ label, value }));
+	const count = (key, limit = 10) => Object.entries(sessions.reduce((acc, row) => { const value = row[key] || 'غير محدد'; acc[value] = (acc[value] || 0) + 1; return acc; }, {})).sort((a, b) => b[1] - a[1]).slice(0, limit).map(([label, value]) => ({ label, value }));
 	const daily = {};
 	for (const row of sessions) { const day = String(row.lastSeen).slice(0, 10); daily[day] = (daily[day] || 0) + 1; }
 	const topPages = {};
@@ -707,7 +707,7 @@ function getAnalyticsSummary({ from, to, device = '' }) {
 		averageSessionDuration: sessions.length ? Math.round(sessions.reduce((sum, row) => sum + Number(row.durationSeconds || 0), 0) / sessions.length) : 0,
 		pagesPerSession: sessions.length ? Number((pageViews.length / sessions.length).toFixed(2)) : 0,
 		trafficOverTime: Object.entries(daily).sort(([a], [b]) => a.localeCompare(b)).map(([date, value]) => ({ date, value })),
-		devices: count('device'), countries: count('country'), regions: count('region'), referrers: count('referrer'),
+		devices: count('device'), countries: count('country'), regions: count('region', 1000), referrers: count('referrer'),
 		topPages: Object.entries(topPages).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([path, value]) => ({ path, value })), performance: Object.values(performance).sort((a, b) => b.pageViews - a.pageViews).slice(0, 20).map(item => ({ path: item.path, visitors: item.visitors.size, sessions: item.sessions.size, pageViews: item.pageViews, averageSessionDuration: item.sessions.size ? Math.round(item.duration / item.sessions.size) : 0, pagesPerSession: item.sessions.size ? Number((item.pageViews / item.sessions.size).toFixed(2)) : 0 })),
 		recentSessions: [...groupedSessions.values()], from, to };
 }

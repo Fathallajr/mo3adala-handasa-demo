@@ -40,3 +40,4 @@ button { border:0; border-radius:12px; padding:12px 17px; font:inherit; font-wei
 .bar-item { direction:rtl; }
 .bar-tooltip { top:12px; bottom:auto; transform:translate(-50%, -5px); }
 .bar-item:hover .bar-tooltip,.bar-item:focus .bar-tooltip,.bar-item.is-active .bar-tooltip { transform:translate(-50%, 0); }
+.regions-list{max-height:330px;overflow-y:auto;overflow-x:hidden;padding-inline-end:5px;scrollbar-width:thin;scrollbar-color:#b7aaff #f4f5fb}.regions-list .rank-row{padding-inline:2px}@media(max-width:700px){.regions-list{max-height:300px}}
