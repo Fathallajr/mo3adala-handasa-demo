@@ -8,7 +8,8 @@
 .photo-gallery-shell::before { content: ''; position: absolute; top: -1px; right: 12%; width: 7rem; height: 3px; border-radius: 99px; background: #f97316; box-shadow: 0 0 0 5px rgba(249,115,22,.08); }
 .photo-gallery-shell::after { content: ''; position: absolute; inset: .55rem; z-index: 0; border: 1px dashed rgba(249,115,22,.22); border-radius: 1.35rem; pointer-events: none; }
 .photo-gallery-track { display: flex; gap: 1rem; overflow-x: auto; padding: 0.35rem 0.1rem 0.8rem; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-width: none; }
-.photo-gallery-track, .photo-gallery-shell > .fixed { position: relative; z-index: 1; }
+.photo-gallery-track { position: relative; z-index: 1; }
+.photo-lightbox { position: fixed !important; inset: 0 !important; z-index: 9999 !important; width: 100vw; height: 100dvh; }
 .photo-gallery-track::-webkit-scrollbar { display: none; }
 .photo-card { position: relative; aspect-ratio: 3 / 4; overflow: hidden; background: #e2e8f0; border: 1px solid #e2e8f0; border-radius: 1rem !important; box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08); }
 .photo-card-slider { flex: 0 0 calc((100% - 3rem) / 4); scroll-snap-align: start; }

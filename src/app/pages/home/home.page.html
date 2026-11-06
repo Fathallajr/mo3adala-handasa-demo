@@ -104,39 +104,38 @@
 
 <app-what-is-equation />
 
-<!-- Successful Students Photos 2025 -->
+<!-- Current year's successful students photos -->
 <section class="photo-gallery-section bg-gradient-to-br from-slate-50 to-blue-50 py-8 md:py-16">
 	<div class="mx-auto max-w-7xl px-4">
 		<!-- Section Header -->
 		<div class="photo-gallery-header text-center mb-6 md:mb-12" @fadeInUp>
 			<span class="photo-gallery-eyebrow">لحظات تستحق الاحتفال</span>
 			<h2 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 mb-2 md:mb-4">
-				معرض صور طلابنا الناجحين في الدفعات السابقة
+				صور طلاب دفعة 2026
 			</h2>
 			<p class="text-sm sm:text-base md:text-lg text-slate-600 max-w-2xl mx-auto">
-				شاهد صور طلابنا الناجحين في معادلة كلية الهندسة
+				شاهد صور طلاب السنة الحالية بعد نجاحهم في معادلة كلية الهندسة
 			</p>
 		</div>
 
 		<!-- Photos Grid -->
 		<div class="photo-gallery-shell" @staggerList>
 			<div #photosTrack class="photo-gallery-track" dir="rtl">
-				<div *ngFor="let photo of studentPhotos2025 | slice:0:8; let i = index" 
+				<div *ngFor="let photo of currentStudentPhotos | slice:0:8; let i = index" 
 					 class="photo-card photo-card-slider cursor-pointer"
 					 (click)="openPhoto(photo)">
 					<img [src]="'assets/' + photo" 
-						 alt="طالب ناجح 2025" 
+						 alt="طالب ناجح من دفعة 2026" 
 						 class="w-full object-cover" 
 						 loading="lazy"
 						 decoding="async"
 						 onerror="this.src='/assets/logo.webp'">
-					<div class="photo-card-caption">طالب ناجح <span>{{ i + 1 }}</span></div>
 				</div>
 			</div>
 			
 			<!-- Lightbox Modal -->
 			<div *ngIf="selectedPhoto" 
-				 class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+				 class="photo-lightbox fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
 				 (click)="closePhoto()">
 				<!-- Close Button -->
 				<button (click)="closePhoto()" 

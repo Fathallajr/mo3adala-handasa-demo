@@ -75,7 +75,71 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 	// Lightbox state
 	selectedPhoto: string | null = null;
 	
-	// Photos of successful students 2025
+	// Keep the current year's graduation photos separate from the older albums.
+	currentStudentPhotos = [
+		'طلاب 2025/YAS_1459.webp',
+		'طلاب 2025/YAS_1460.webp',
+		'طلاب 2025/YAS_1461.webp',
+		'طلاب 2025/YAS_1462.webp',
+		'طلاب 2025/YAS_1463.webp',
+		'طلاب 2025/YAS_1464.webp',
+		'طلاب 2025/YAS_1465.webp',
+		'طلاب 2025/YAS_1466.webp',
+		'طلاب 2025/YAS_1467.webp',
+		'طلاب 2025/YAS_1468.webp',
+		'طلاب 2025/YAS_1469.webp',
+		'طلاب 2025/YAS_1470.webp',
+		'طلاب 2025/YAS_1471.webp',
+		'طلاب 2025/YAS_1472.webp',
+		'طلاب 2025/YAS_1473.webp',
+		'طلاب 2025/YAS_1474.webp',
+		'طلاب 2025/YAS_1475.webp',
+		'طلاب 2025/YAS_1476.webp',
+		'طلاب 2025/YAS_1477.webp',
+		'طلاب 2025/YAS_1478.webp',
+		'طلاب 2025/YAS_1479.webp',
+		'طلاب 2025/YAS_1481.webp',
+		'طلاب 2025/YAS_1482.webp',
+		'طلاب 2025/YAS_1483.webp',
+		'طلاب 2025/YAS_1484.webp',
+		'طلاب 2025/YAS_1485.webp',
+		'طلاب 2025/YAS_1486.webp',
+		'طلاب 2025/YAS_1487.webp',
+		'طلاب 2025/YAS_1489.webp',
+		'طلاب 2025/YAS_1490.webp',
+		'طلاب 2025/YAS_1491.webp',
+		'طلاب 2025/YAS_1492.webp',
+		'طلاب 2025/YAS_1493.webp',
+		'طلاب 2025/YAS_1495.webp',
+		'طلاب 2025/YAS_1497.webp',
+		'طلاب 2025/YAS_1498.webp',
+		'طلاب 2025/YAS_1499.webp',
+		'طلاب 2025/YAS_1500.webp',
+		'طلاب 2025/YAS_1501.webp',
+		'طلاب 2025/YAS_1502.webp',
+		'طلاب 2025/YAS_1503.webp',
+		'طلاب 2025/YAS_1504.webp',
+		'طلاب 2025/YAS_1505.webp',
+		'طلاب 2025/YAS_1507.webp',
+		'طلاب 2025/YAS_1508.webp',
+		'طلاب 2025/YAS_1509.webp',
+		'طلاب 2025/YAS_1511.webp',
+		'طلاب 2025/YAS_1513.webp',
+		'طلاب 2025/YAS_1515.webp',
+		'طلاب 2025/YAS_1517.webp',
+		'طلاب 2025/YAS_1518.webp',
+		'طلاب 2025/YAS_1523.webp',
+		'طلاب 2025/YAS_1524.webp',
+		'طلاب 2025/YAS_1525.webp',
+		'طلاب 2025/YAS_1527.webp',
+		'طلاب 2025/YAS_1528.webp',
+		'طلاب 2025/YAS_1529.webp',
+		'طلاب 2025/YAS_1531.webp',
+		'طلاب 2025/YAS_1532.webp',
+		'طلاب 2025/YAS_1534.webp'
+	];
+
+	// Photos of successful students and the current 2026 batch
 	studentPhotos2025 = [
 		'طلاب 2025/WhatsApp Image 2025-10-28 at 16.40.57_bf8b0500.webp',
 		'طلاب 2025/WhatsApp Image 2025-10-28 at 18.22.25_1031edee.webp',
@@ -185,6 +249,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
 	ngOnInit() {
 		this.studentPhotos2025 = this.shufflePhotos(this.studentPhotos2025);
+		this.currentStudentPhotos = this.shufflePhotos(this.currentStudentPhotos);
 		// العودة إلى أعلى الصفحة عند تحميل الصفحة
 		if (typeof window !== 'undefined') {
 			window.scrollTo(0, 0);
