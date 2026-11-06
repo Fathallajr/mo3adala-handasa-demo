@@ -63,7 +63,17 @@ export class NavbarComponent implements OnInit {
 
 	checkScreenSize() {
 		if (typeof window !== 'undefined') {
+			const wasMobile = this.isMobile;
 			this.isMobile = window.innerWidth < 1280;
+
+			// The resize listener is registered directly on window, so Angular may
+			// not schedule a render for this state change. Explicitly refresh the
+			// component when the responsive breakpoint changes; otherwise the
+			// navbar waits for the next click/event before updating its layout.
+			if (wasMobile !== this.isMobile) {
+				if (!this.isMobile) this.isMobileMenuOpen = false;
+				this.cdr.detectChanges();
+			}
 		}
 	}
 
