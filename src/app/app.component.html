@@ -3,19 +3,19 @@
     <div class="loading-mark" aria-hidden="true"><span></span></div>
   </div>
 </div>
-<div *ngIf="siteMaintenance && !showLaunchOffer && !currentRoute.startsWith('/admin')" class="site-maintenance-overlay" role="dialog" aria-modal="true">
+<div *ngIf="siteMaintenance && !showLaunchOffer && !isAdminRoute" class="site-maintenance-overlay" role="dialog" aria-modal="true">
   <main class="site-maintenance-card"><div class="site-maintenance-icon">🛠️</div><h1>الموقع تحت التحديث</h1><p>بنجهز الموقع حاليًا، ولسه تفاصيل الاشتراك للسنة الجديدة هنعلن عنها قريبًا.<br>من فضلك متعملش Refresh؛ إحنا قافلين الموقع مؤقتًا وبنحدّثه.<br>شكرًا لانتظاركم.</p></main>
 </div>
 <div *ngIf="routeLoading" class="route-loading-bar" role="status" aria-label="جاري تحميل الصفحة"><span></span></div>
-<app-navbar *ngIf="!currentRoute.startsWith('/admin')"></app-navbar>
+<app-navbar *ngIf="!isAdminRoute"></app-navbar>
 <main class="app-page-shell min-h-dvh relative overflow-hidden" [class.route-home]="currentRoute === '/' || currentRoute === ''">
 	<div class="route-page-transition" [@pageTransition]="getRouteAnimationState()">
 		<router-outlet />
 	</div>
 </main>
-<app-footer *ngIf="!currentRoute.startsWith('/admin')"></app-footer>
+<app-footer *ngIf="!isAdminRoute"></app-footer>
 
-<div *ngIf="!currentRoute.startsWith('/admin') && showLaunchOffer && (siteMaintenance || isHomeRoute)" class="launch-offer-backdrop" role="dialog" aria-modal="true" aria-labelledby="launch-offer-title">
+<div *ngIf="!isAdminRoute && showLaunchOffer && (siteMaintenance || isHomeRoute)" class="launch-offer-backdrop" role="dialog" aria-modal="true" aria-labelledby="launch-offer-title">
   <section class="launch-offer-modal">
     <button type="button" class="launch-offer-close" aria-label="إغلاق" (click)="closeLaunchOffer()">×</button>
     <div class="launch-offer-visual"><span class="launch-offer-orbit"></span><span class="launch-offer-campus" aria-hidden="true"><i></i><b></b><em></em></span><span class="launch-offer-helmet" aria-hidden="true"></span><span class="launch-offer-laptop" aria-hidden="true"></span><img src="assets/launch-offer-mascots.webp" alt="شخصيتا أبلكيشن معادلة هندسة وحاسبات"></div>
@@ -42,7 +42,7 @@
 </div>
 
 <!-- Subscription choices (hidden on all subscription pages) -->
-<div *ngIf="!currentRoute.startsWith('/admin') && !currentRoute.startsWith('/subscription')" class="subscription-float-wrap">
+<div *ngIf="!isAdminRoute && !currentRoute.startsWith('/subscription')" class="subscription-float-wrap">
   <div *ngIf="showSubscriptionChoices" class="subscription-choice-menu" aria-label="اختار نوع الاشتراك">
 	<a routerLink="/subscription-engineering-ar" (click)="closeSubscriptionChoices()" class="subscription-choice-link subscription-choice-link--engineering">
 	  <i class="bi bi-building" aria-hidden="true"></i><span>هندسة عربي</span>
@@ -64,7 +64,7 @@
 </div>
 
 <!-- WhatsApp pill button (hidden on subscription details page) -->
-<a *ngIf="!currentRoute.startsWith('/admin') && currentRoute !== '/subscription-details'"
+<a *ngIf="!isAdminRoute && currentRoute !== '/subscription-details'"
    href="https://api.whatsapp.com/send?phone=201554843745"
    target="_blank"
    class="floating-action-button whatsapp-float-button"

@@ -85,6 +85,13 @@ export class AppComponent implements OnInit, OnDestroy {
 		return path === '/';
 	}
 
+	get isAdminRoute(): boolean {
+		const path = typeof window !== 'undefined'
+			? window.location.pathname
+			: (this.currentRoute.split(/[?#]/, 1)[0] || '/');
+		return path === '/admin' || path.startsWith('/admin/');
+	}
+
 	constructor(private router: Router, private viewportScroller: ViewportScroller, private seo: SeoService, private cdr: ChangeDetectorRef, private contentService: MonthlyContentService) {
 		if ('scrollRestoration' in history) {
 			history.scrollRestoration = 'manual';

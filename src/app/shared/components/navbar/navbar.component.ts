@@ -15,6 +15,7 @@ export class NavbarComponent implements OnInit {
 	navbarHidden = false;
 	private lastScrollY = 0;
 	private scrollFrame: number | null = null;
+	private viewInitialized = false;
 	showSocial = false;
 	currentRoute = '';
 	showFollowUpButton = false;
@@ -46,6 +47,7 @@ export class NavbarComponent implements OnInit {
 		if (this.scrollFrame !== null) return;
 		this.scrollFrame = window.requestAnimationFrame(() => {
 			this.scrollFrame = null;
+			const wasScrolled = this.scrolled;
 			const currentScrollY = window.scrollY;
 			this.scrolled = currentScrollY > 8;
 			const wasHidden = this.navbarHidden;
@@ -57,7 +59,7 @@ export class NavbarComponent implements OnInit {
 				this.navbarHidden = false;
 			}
 			this.lastScrollY = currentScrollY;
-			if (wasHidden !== this.navbarHidden) this.cdr.detectChanges();
+			if (wasHidden !== this.navbarHidden || wasScrolled !== this.scrolled) this.cdr.detectChanges();
 		});
 	}
 
@@ -70,7 +72,7 @@ export class NavbarComponent implements OnInit {
 			// not schedule a render for this state change. Explicitly refresh the
 			// component when the responsive breakpoint changes; otherwise the
 			// navbar waits for the next click/event before updating its layout.
-			if (wasMobile !== this.isMobile) {
+			if (wasMobile !== this.isMobile && this.viewInitialized) {
 				if (!this.isMobile) this.isMobileMenuOpen = false;
 				this.cdr.detectChanges();
 			}
@@ -78,10 +80,16 @@ export class NavbarComponent implements OnInit {
 	}
 
 	ngOnInit() {
+		this.viewInitialized = true;
 		this.router.events
 			.pipe(filter(event => event instanceof NavigationEnd))
 			.subscribe((event: NavigationEnd) => {
 				this.currentRoute = event.url;
+				// A new route is rendered from the top; never carry a hidden navbar
+				// state over from the page the user just left.
+				this.navbarHidden = false;
+				this.lastScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+				this.cdr.detectChanges();
 				// إغلاق جميع القوائم المنسدلة عند الانتقال لصفحة جديدة
 				this.closeAllDropdowns();
 			});
