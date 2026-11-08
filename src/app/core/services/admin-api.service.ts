@@ -140,7 +140,7 @@ export class AdminApiService {
 	uploadFreeCodeInventory(campaignId: string, file: File): Observable<{ campaign: FreeCodeCampaign; imported: number; duplicates: number; total: number; inventoryStats: FreeCodeInventoryStat[] }> { const form = new FormData(); form.append('file', file); return this.http.post<{ campaign: FreeCodeCampaign; imported: number; duplicates: number; total: number; inventoryStats: FreeCodeInventoryStat[] }>(`${this.base}/admin/free-codes/campaigns/${encodeURIComponent(campaignId)}/codes`, form); }
 	uploadFreeCodeInventories(campaignId: string, files: Record<string, File | null>, counts: Record<string, number>): Observable<{ campaign: FreeCodeCampaign; imported: number; duplicates: number; total: number; inventoryStats: FreeCodeInventoryStat[] }> {
 		const form = new FormData();
-		const programs = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
+		const programs = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة لغات', 'معادلة حاسبات لغات'];
 		programs.forEach((program, index) => { const file = files[program]; if (file) form.append(`file_${index}`, file); });
 		form.append('counts', JSON.stringify(counts));
 		return this.http.post<{ campaign: FreeCodeCampaign; imported: number; duplicates: number; total: number; inventoryStats: FreeCodeInventoryStat[] }>(`${this.base}/admin/free-codes/campaigns/${encodeURIComponent(campaignId)}/codes`, form);

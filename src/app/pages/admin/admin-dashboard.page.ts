@@ -102,7 +102,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	freeCodeSearch = ''; freeCodeProgramFilter = ''; freeCodeDateFrom = ''; freeCodeDateTo = '';
 	freeCodeDateRangeOpen = false;
 	freeCodeCalendarMonth = new Date();
-	readonly freeCodePrograms = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
+	readonly freeCodePrograms = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة لغات', 'معادلة حاسبات لغات'];
 	freeCodeStatus: FreeCodeStatus = { enabled: true, open: true, endsAt: '', limit: 0, claimedCount: 0, remaining: null };
 	freeCodeSettingsDraft = { enabled: true, endsAt: '', limit: 0 };
 	freeCodeCampaigns: FreeCodeCampaign[] = [];
@@ -181,7 +181,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	leadDateTo = '';
 	readonly leadSourceOptions = ['', 'فيسبوك', 'إنستجرام', 'تيك توك', 'يوتيوب', 'ترشيح من صديق', 'أخرى'];
 	displayProgramLabel(value: string): string { return displayProgramLabel(value); }
-	readonly defaultLeadProgramOptions = ['', 'معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
+	readonly defaultLeadProgramOptions = ['', 'معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة لغات', 'معادلة حاسبات لغات'];
 	leadProgramOptions = [...this.defaultLeadProgramOptions];
 	leadsPage = 1;
 	copiedLeadWhatsapp = '';
@@ -1028,12 +1028,24 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	openFreeCodeCampaignModal(): void { this.errorMessage = ''; this.freeCodeCampaignModalOpen = true; }
 	closeFreeCodeCampaignModal(): void { if (!this.isSavingFreeCodeSettings) this.freeCodeCampaignModalOpen = false; }
 	onFreeCodeBranchFileSelected(program: string, event: Event): void { const input = event.target as HTMLInputElement; this.freeCodeBranchFiles[program] = input.files?.[0] || null; }
-	createFreeCodeCampaign(): void {
+	async createFreeCodeCampaign(): Promise<void> {
 		const draft = this.freeCodeCampaignDraft;
 		if (!draft.endsAt) { this.errorMessage = 'اختار تاريخ انتهاء الحملة أولًا.'; return; }
 		if (!draft.name.trim()) { this.errorMessage = draft.deliveryMethod === 'automatic' ? 'اكتب اسم الحملة أولًا، ثم أدخل عدد الأكواد وارفع ملف Excel لكل نوع معادلة.' : 'اكتب اسم الحملة.'; return; }
 		if (draft.deliveryMethod === 'whatsapp' && !Number(draft.limit)) { this.errorMessage = 'اكتب عدد الطلبات.'; return; }
 		if (draft.deliveryMethod === 'automatic') {
+			for (const program of this.freeCodePrograms) {
+				const file = this.freeCodeBranchFiles[program];
+				if (!file) continue;
+				try {
+					const workbook = new ExcelJS.Workbook();
+					await workbook.xlsx.load(await file.arrayBuffer());
+					const sheet = workbook.worksheets[0];
+					const actualCount = sheet ? sheet.rowCount - 2 : 0;
+					const expectedCount = Number(this.freeCodeBranchCounts[program]) || 0;
+					if (actualCount !== expectedCount) { this.errorMessage = `عدد الأكواد في ملف ${program} (${actualCount}) لا يساوي العدد المدخل (${expectedCount}). عدّل العدد أو الملف قبل إنشاء الحملة.`; return; }
+				} catch { this.errorMessage = `تعذر قراءة ملف أكواد ${program}.`; return; }
+			}
 			const missing = this.freeCodePrograms.find(program => !this.freeCodeBranchFiles[program] || Number(this.freeCodeBranchCounts[program]) < 1);
 			if (missing) { this.errorMessage = `أضف عدد الأكواد وارفع ملف فرع: ${missing}`; return; }
 		}

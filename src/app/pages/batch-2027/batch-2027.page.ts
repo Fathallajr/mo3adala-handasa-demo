@@ -63,8 +63,8 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	programOptions: string[] = [
 		'معادلة هندسة عربي',
 		'معادلة حاسبات عربي',
-		'معادلة هندسة إنجليزي',
-		'معادلة حاسبات إنجليزي'
+		'معادلة هندسة لغات',
+		'معادلة حاسبات لغات'
 	];
 	wheelClaimError = '';
 	wheelClaimSubmitting = false;

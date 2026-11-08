@@ -149,6 +149,8 @@ function ensureSchema() {
 				await pool.query('INSERT INTO free_code_campaigns(id,name,ends_at,request_limit,status,enabled,created_at,updated_at,completed_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$7,$8)', ['legacy-free-codes-v1', 'الحملة الحالية', endsAt, limit, status, settings.enabled !== false, now, status === 'completed' ? now : null]);
 			}
 			await pool.query("UPDATE free_code_requests SET campaign_id = 'legacy-free-codes-v1' WHERE campaign_id IS NULL OR campaign_id = ''");
+			await pool.query("UPDATE free_code_inventory SET program = REPLACE(REPLACE(program, 'معادلة هندسة إنجليزي', 'معادلة هندسة لغات'), 'معادلة حاسبات إنجليزي', 'معادلة حاسبات لغات')");
+			await pool.query("UPDATE free_code_requests SET program = REPLACE(REPLACE(program, 'معادلة هندسة إنجليزي', 'معادلة هندسة لغات'), 'معادلة حاسبات إنجليزي', 'معادلة حاسبات لغات')");
 			return result;
 		});
 	}

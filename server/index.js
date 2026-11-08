@@ -72,7 +72,7 @@ const WHEEL_STATE_FILE = path.join(DATA_DIR, 'wheel-state.json');
 const WHEEL_TTL_MS = 30 * 60 * 1000;
 const MAX_WHEEL_ATTEMPTS = 3;
 const FREE_CODE_SETTINGS_KEY = 'batch-2027-free-codes-v1';
-const FREE_CODE_PROGRAMS = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
+const FREE_CODE_PROGRAMS = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة لغات', 'معادلة حاسبات لغات'];
 const WHEEL_OPTIONS = [
 	{ id: 'cash-50', label: '50 جنيه', weight: 30, available: true },
 	{ id: 'lucky-chance', label: 'حظ سعيد', weight: 67, available: false },
@@ -331,6 +331,7 @@ async function getFreeCodeStatus() {
 }
 
 function normalizeFreeCode(value) { return String(value || '').trim().replace(/\s+/g, '').toUpperCase(); }
+function normalizeFreeCodeProgram(value) { const program = String(value || '').trim(); return program.replace(/معادلة هندسة إنجليزي/g, 'معادلة هندسة لغات').replace(/معادلة حاسبات إنجليزي/g, 'معادلة حاسبات لغات'); }
 function normalizeFreeCodeExpiry(value) { if (!value) return ''; const date = value instanceof Date ? value : new Date(String(value)); return Number.isNaN(date.getTime()) ? '' : date.toISOString(); }
 function freeCodeProgramFromSheet(name) {
 	const normalized = String(name || '').trim().replace(/[أإآ]/g, 'ا').replace(/ي/g, 'ى');
@@ -916,7 +917,7 @@ app.get('/api/free-codes/status', async (_req, res, next) => {
 app.post('/api/free-codes/register', rateLimit({ name: 'free-code-register', windowMs: 15 * 60 * 1000, max: 10 }), async (req, res, next) => {
 	const name = typeof req.body?.name === 'string' ? req.body.name.trim() : '';
 	const whatsapp = normalizePhone(req.body?.whatsapp);
-	const program = typeof req.body?.program === 'string' ? req.body.program.trim() : '';
+	const program = normalizeFreeCodeProgram(req.body?.program);
 	if (name.length < 2 || name.length > 120) return res.status(400).json({ message: 'اكتب اسم صحيح.' });
 	if (!/^01\d{9}$/.test(whatsapp)) return res.status(400).json({ message: 'رقم الواتساب يجب أن يبدأ بـ 01 ويتكون من 11 رقم.' });
 	if (!FREE_CODE_PROGRAMS.includes(program)) return res.status(400).json({ message: 'اختار نوع المعادلة.' });
@@ -942,8 +943,8 @@ const LAUNCH_OFFER_PROGRAMS = [
 	'معادلة حاسبات',
 	'معادلة هندسة عربي',
 	'معادلة حاسبات عربي',
-	'معادلة هندسة إنجليزي',
-	'معادلة حاسبات إنجليزي'
+	'معادلة هندسة لغات',
+	'معادلة حاسبات لغات'
 ];
 
 app.post('/api/launch-offer', rateLimit({ name: 'launch-offer', windowMs: 15 * 60 * 1000, max: 10 }), async (req, res) => {
@@ -1719,7 +1720,7 @@ app.post('/api/admin/free-codes/campaigns/:id/codes', requireAdmin, requirePermi
 		if (!campaign) return res.status(404).json({ message: 'الحملة غير موجودة.' });
 		if (campaign.deliveryMethod !== 'automatic') return res.status(400).json({ message: 'رفع الأكواد متاح لحملات التسليم التلقائي فقط.' });
 		const files = req.files || {};
-		const programs = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
+		const programs = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة لغات', 'معادلة حاسبات لغات'];
 		const rows = [], seen = new Set(), counts = JSON.parse(String(req.body?.counts || '{}'));
 		for (let index = 0; index < programs.length; index += 1) {
 			const uploaded = files[`file_${index}`]?.[0] || (index === 0 ? files.file?.[0] : null);
@@ -1873,8 +1874,8 @@ app.post('/api/wheel/claim', rateLimit({ name: 'wheel-claim', windowMs: 15 * 60 
 		'معادلة حاسبات',
 		'معادلة هندسة عربي',
 		'معادلة حاسبات عربي',
-		'معادلة هندسة إنجليزي',
-		'معادلة حاسبات إنجليزي'
+		'معادلة هندسة لغات',
+		'معادلة حاسبات لغات'
 	].includes(program)) {
 		return res.status(400).json({ success: false, message: 'اختار نوع المعادلة.' });
 	}

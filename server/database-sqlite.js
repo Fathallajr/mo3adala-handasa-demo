@@ -187,6 +187,8 @@ function ensureFreeCodeCampaignData() {
 	db.prepare("UPDATE free_code_requests SET campaign_id = 'legacy-free-codes-v1' WHERE campaign_id IS NULL OR campaign_id = ''").run();
 }
 ensureFreeCodeCampaignData();
+db.prepare("UPDATE free_code_inventory SET program=REPLACE(REPLACE(program,'معادلة هندسة إنجليزي','معادلة هندسة لغات'),'معادلة حاسبات إنجليزي','معادلة حاسبات لغات')").run();
+db.prepare("UPDATE free_code_requests SET program=REPLACE(REPLACE(program,'معادلة هندسة إنجليزي','معادلة هندسة لغات'),'معادلة حاسبات إنجليزي','معادلة حاسبات لغات')").run();
 
 function ensureFinanceAccounts() {
 	const insert = db.prepare('INSERT OR IGNORE INTO finance_accounts(id,name,opening_balance,is_active,created_at) VALUES (?,?,?,?,?)');
