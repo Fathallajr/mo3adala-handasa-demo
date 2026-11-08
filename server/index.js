@@ -48,7 +48,7 @@ const PAGE_KEYS = [
 	,'subscription-computers-en'
 	,'employees'
 ];
-const LEAD_STATUSES = ['new', 'batch_28', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
+const LEAD_STATUSES = ['new', 'batch_28', 'contacted', 'no_response', 'interested', 'registered', 'free_code', 'not_interested', 'follow_up', 'closed'];
 const LEAD_STATUS_LABELS = {
 	new: 'جديد',
 	batch_28: 'دفعة 28',
@@ -56,6 +56,7 @@ const LEAD_STATUS_LABELS = {
 	no_response: 'لم يرد',
 	interested: 'مهتم',
 	registered: 'مسجل',
+	free_code: 'كود مجاني',
 	not_interested: 'غير مهتم',
 	follow_up: 'متابعة',
 	closed: 'مغلق',

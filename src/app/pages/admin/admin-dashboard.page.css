@@ -77,6 +77,7 @@ tbody tr:hover { background:#faf9ff; }
 .status-badge--no_response { color:#475569; background:#eef2f7; }
 .status-badge--interested { color:#5540c9; background:#f0edff; }
 .status-badge--registered,.status-badge--converted { color:#147653; background:#effbf6; }
+.status-badge--free_code { color:#0f766e; background:#ccfbf1; }
 .status-badge--not_interested,.status-badge--closed { color:#a43a50; background:#fff1f3; }
 .cms-loading { justify-content:center; min-height:180px; background:#fbfcff; border:1px dashed var(--line); border-radius:16px; }
 @media (max-width:700px) { .admin-dashboard-shell { background:#f6f7fb; } .data-panel { padding:13px; } .filters input { min-width:100%; } .filters select,.filters .primary-btn { flex:1; } }
@@ -111,6 +112,8 @@ tbody tr:hover { background:#faf9ff; }
 .lead-status-select--not_interested:focus { color:#a32e4a; background:#fff0f3; }
 .lead-status-select--follow_up:focus { color:#8b4f0b; background:#fff0df; }
 .lead-status-select--closed:focus { color:#6d2e3f; background:#f8e8ed; }
+.lead-status-select--free_code { color:#0f766e; background:#ccfbf1; border-color:#5eead4; }
+.lead-status-select--free_code:focus { color:#0f766e; background:#ccfbf1; }
 .lead-status-select--batch_28 { color:#7c3aed; background:#f3e8ff; border-color:#c084fc; }
 .lead-status-select--batch_28:focus { color:#7c3aed; background:#f3e8ff; }
 .feedback-status-select--new { color:#1555a8; background:#eaf3ff; border-color:#9bc5ff; }

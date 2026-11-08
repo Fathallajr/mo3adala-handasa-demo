@@ -89,7 +89,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	leads: Lead[] = [];
 	customers: Customer[] = [];
 	customersPage = 1; customersPages = 1; customerPageNumbers: PaginationItem[] = [1]; customersTotal = 0; customerSearch = ''; customerStatus = ''; isLoadingCustomers = false; private customersLoaded = false;
-	readonly customerStatuses = ['new', 'batch_28', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
+	readonly customerStatuses = ['new', 'batch_28', 'contacted', 'no_response', 'interested', 'registered', 'free_code', 'not_interested', 'follow_up', 'closed'];
 	customerPendingDeletion: Customer | null = null; customerPendingView: Customer | null = null; customerPendingNote: Customer | null = null; customerPendingReadNote: Customer | null = null; customerPendingEdit: Customer | null = null; customerEditName = ''; customerEditPhone = ''; customerNoteDraft = ''; isSavingCustomerNote = false; isSavingCustomerEdit = false;
 	openCustomerActionMenuId: string | null = null;
 	get openCustomerAction(): Customer | null { return this.customers.find(customer => customer.id === this.openCustomerActionMenuId) || null; }
@@ -176,8 +176,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	leadsPages = 1;
 	leadPageNumbers: PaginationItem[] = [1];
 	leadsTotal = 0;
-	leadStatuses = ['new', 'batch_28', 'contacted', 'no_response', 'interested', 'registered', 'not_interested', 'follow_up', 'closed'];
-	readonly leadStatusLabels: Record<string, string> = { new: 'جديد', batch_28: 'دفعة 28', contacted: 'تم التواصل', no_response: 'لم يرد', interested: 'مهتم', registered: 'مسجل', not_interested: 'غير مهتم', follow_up: 'متابعة', closed: 'مغلق', converted: 'تم التحويل' };
+	leadStatuses = ['new', 'batch_28', 'contacted', 'no_response', 'interested', 'registered', 'free_code', 'not_interested', 'follow_up', 'closed'];
+	readonly leadStatusLabels: Record<string, string> = { new: 'جديد', batch_28: 'دفعة 28', contacted: 'تم التواصل', no_response: 'لم يرد', interested: 'مهتم', registered: 'مسجل', free_code: 'كود مجاني', not_interested: 'غير مهتم', follow_up: 'متابعة', closed: 'مغلق', converted: 'تم التحويل' };
 	programDraft: Partial<Program> = { name: '', slug: '', category: '', language: 'ar', price: 0, enrollmentStatus: 'open', isActive: true };
 	editingProgramId: string | null = null;
 	private readonly hiddenAdminPageKeys = new Set<CmsPageKey>([
