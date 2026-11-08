@@ -59,7 +59,6 @@
     "@types/jasmine": "~5.1.0",
     "@types/node": "^18.18.0",
     "autoprefixer": "^10.4.21",
-    "better-sqlite3": "^11.10.0",
     "bootstrap-icons": "^1.13.1",
     "compression": "^1.8.2",
     "exceljs": "^4.4.0",
