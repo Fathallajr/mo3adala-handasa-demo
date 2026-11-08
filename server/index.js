@@ -322,9 +322,19 @@ async function getFreeCodeStatus() {
 		else if (campaign.status === 'active' && campaign.limit > 0 && campaign.claimedCount >= campaign.limit) await database.updateFreeCodeCampaign(campaign.id, { status: 'completed', enabled: false });
 	}
 	if (campaigns.some(item => item.status === 'active' && item.endsAt && Date.parse(item.endsAt) <= Date.now()) || campaigns.some(item => item.status === 'active' && item.limit > 0 && item.claimedCount >= item.limit)) campaigns = await database.listFreeCodeCampaigns();
+	campaigns = await Promise.all(campaigns.map(async campaign => ({ ...campaign, inventoryStats: campaign.deliveryMethod === 'automatic' ? await database.getFreeCodeInventoryStats(campaign.id) : [] })));
 	const active = campaigns.find(item => item.status === 'active' && item.enabled && (!item.endsAt || Date.parse(item.endsAt) > Date.now()) && (item.limit === 0 || item.claimedCount < item.limit)) || null;
-	if (!active) return { ...DEFAULT_FREE_CODE_SETTINGS, claimedCount: 0, remaining: null, open: false, campaign: null, campaigns };
-	return { enabled: active.enabled, open: true, endsAt: active.endsAt || '', limit: active.limit, claimedCount: active.claimedCount, remaining: active.remaining, campaign: active, campaigns };
+	const inventoryStats = active && active.deliveryMethod === 'automatic' ? await database.getFreeCodeInventoryStats(active.id) : [];
+	if (!active) return { ...DEFAULT_FREE_CODE_SETTINGS, deliveryMethod: 'whatsapp', claimedCount: 0, remaining: null, open: false, campaign: null, campaigns, inventoryStats: [] };
+	const hasAvailableCode = active.deliveryMethod !== 'automatic' || inventoryStats.some(item => Number(item.available) > 0);
+	return { enabled: active.enabled, open: true, endsAt: active.endsAt || '', limit: active.limit, claimedCount: active.claimedCount, remaining: active.remaining, deliveryMethod: active.deliveryMethod || 'whatsapp', campaign: active, campaigns, inventoryStats, hasAvailableCode };
+}
+
+function normalizeFreeCode(value) { return String(value || '').trim().replace(/\s+/g, '').toUpperCase(); }
+function normalizeFreeCodeExpiry(value) { if (!value) return ''; const date = value instanceof Date ? value : new Date(String(value)); return Number.isNaN(date.getTime()) ? '' : date.toISOString(); }
+function freeCodeProgramFromSheet(name) {
+	const normalized = String(name || '').trim().replace(/[أإآ]/g, 'ا').replace(/ي/g, 'ى');
+	return FREE_CODE_PROGRAMS.find(program => program.replace(/[أإآ]/g, 'ا').replace(/ي/g, 'ى') === normalized) || null;
 }
 
 async function readStore() {
@@ -912,14 +922,15 @@ app.post('/api/free-codes/register', rateLimit({ name: 'free-code-register', win
 	if (!FREE_CODE_PROGRAMS.includes(program)) return res.status(400).json({ message: 'اختار نوع المعادلة.' });
 	try {
 		const existing = await database.findFreeCodeRequestByPhone(whatsapp);
-		if (existing) return res.status(409).json({ alreadyRegistered: true, message: 'الرقم ده طلب كود مجاني قبل كده.' });
+		if (existing) return res.status(409).json({ alreadyRegistered: true, code: existing.code || '', codeExpiresAt: existing.codeExpiresAt || '', deliveryMethod: existing.deliveryMethod || 'whatsapp', message: existing.code ? 'الرقم ده استلم الكود قبل كده.' : 'الرقم ده طلب كود مجاني قبل كده.' });
 		const request = await database.createFreeCodeRequest({ id: crypto.randomUUID(), name, whatsapp, program, requestedAt: getNowIso() });
-		if (!request) return res.status(409).json({ alreadyRegistered: true, message: 'الرقم ده طلب كود مجاني قبل كده.' });
+		if (!request) { const existingRequest = await database.findFreeCodeRequestByPhone(whatsapp); return res.status(409).json({ alreadyRegistered: true, code: existingRequest?.code || '', codeExpiresAt: existingRequest?.codeExpiresAt || '', deliveryMethod: existingRequest?.deliveryMethod || 'whatsapp', message: existingRequest?.code ? 'الرقم ده استلم الكود قبل كده.' : 'الرقم ده طلب كود مجاني قبل كده.' }); }
 		res.status(201).json({ success: true, request, status: await getFreeCodeStatus() });
 	} catch (error) {
 		if (error?.code === 'DUPLICATE_FREE_CODE_REQUEST') return res.status(409).json({ alreadyRegistered: true, message: 'الرقم ده طلب كود مجاني قبل كده.' });
 		if (error?.code === 'FREE_CODE_CAMPAIGN_CLOSED') return res.status(409).json({ message: 'طلبات الأكواد المجانية مغلقة حاليًا.' });
 		if (error?.code === 'FREE_CODE_CAMPAIGN_FULL') return res.status(409).json({ message: 'اكتملت الحملة الحالية.' });
+		if (error?.code === 'FREE_CODE_BRANCH_EMPTY') return res.status(409).json({ code: 'FREE_CODE_BRANCH_EMPTY', message: 'الأكواد الخاصة بالفرع ده نفدت. تواصل معنا على واتساب.' });
 		next(error);
 	}
 });
@@ -1688,15 +1699,48 @@ app.post('/api/admin/free-codes/campaigns', requireAdmin, requirePermission('fre
 	try {
 		const name = String(req.body?.name || '').trim();
 		const endsAt = String(req.body?.endsAt || '').trim();
-		const limit = Number.parseInt(req.body?.limit, 10);
+		const deliveryMethod = req.body?.deliveryMethod === 'automatic' ? 'automatic' : 'whatsapp';
+		const limit = Number.parseInt(req.body?.limit, 10) || 0;
 		if (name.length < 2 || name.length > 160) return res.status(400).json({ message: 'اسم الحملة يجب أن يكون بين حرفين و160 حرفًا.' });
-		if (endsAt && !Number.isFinite(Date.parse(endsAt))) return res.status(400).json({ message: 'موعد انتهاء الحملة غير صحيح.' });
-		if (!Number.isInteger(limit) || limit < 1 || limit > 1000000) return res.status(400).json({ message: 'عدد الأكواد يجب أن يكون من 1 إلى مليون.' });
+		if (!endsAt || !Number.isFinite(Date.parse(endsAt))) return res.status(400).json({ message: 'موعد انتهاء الحملة إجباري.' });
+		if (deliveryMethod === 'whatsapp' && (!Number.isInteger(limit) || limit < 1 || limit > 1000000)) return res.status(400).json({ message: 'عدد الطلبات يجب أن يكون من 1 إلى مليون.' });
 		const now = getNowIso();
-		if (req.body?.enabled !== false) for (const campaign of await database.listFreeCodeCampaigns()) if (campaign.status === 'active' && campaign.enabled) await database.updateFreeCodeCampaign(campaign.id, { status: 'closed', enabled: false });
-		const campaign = await database.createFreeCodeCampaign({ id: crypto.randomUUID(), name, endsAt, limit, status: req.body?.enabled === false ? 'closed' : 'active', enabled: req.body?.enabled !== false, createdAt: now });
+		const shouldOpen = req.body?.enabled !== false && (deliveryMethod === 'whatsapp' || req.body?.hasCodes === true);
+		if (shouldOpen) for (const campaign of await database.listFreeCodeCampaigns()) if (campaign.status === 'active' && campaign.enabled) await database.updateFreeCodeCampaign(campaign.id, { status: 'closed', enabled: false });
+		const campaign = await database.createFreeCodeCampaign({ id: crypto.randomUUID(), name, endsAt, limit, deliveryMethod, status: shouldOpen ? 'active' : 'closed', enabled: shouldOpen, createdAt: now });
 		res.status(201).json(campaign);
 	} catch (error) { next(error); }
+});
+
+const freeCodeExcelUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
+app.post('/api/admin/free-codes/campaigns/:id/codes', requireAdmin, requirePermission('free-codes'), freeCodeExcelUpload.fields([{ name: 'file_0', maxCount: 1 }, { name: 'file_1', maxCount: 1 }, { name: 'file_2', maxCount: 1 }, { name: 'file_3', maxCount: 1 }, { name: 'file', maxCount: 1 }]), async (req, res, next) => {
+	try {
+		const campaign = await database.getFreeCodeCampaign(req.params.id);
+		if (!campaign) return res.status(404).json({ message: 'الحملة غير موجودة.' });
+		if (campaign.deliveryMethod !== 'automatic') return res.status(400).json({ message: 'رفع الأكواد متاح لحملات التسليم التلقائي فقط.' });
+		const files = req.files || {};
+		const programs = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
+		const rows = [], seen = new Set(), counts = JSON.parse(String(req.body?.counts || '{}'));
+		for (let index = 0; index < programs.length; index += 1) {
+			const uploaded = files[`file_${index}`]?.[0] || (index === 0 ? files.file?.[0] : null);
+			if (!uploaded) return res.status(400).json({ message: `ارفع ملف الأكواد الخاص بـ ${programs[index]}.` });
+			const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(uploaded.buffer);
+			const sheet = workbook.worksheets[0];
+			if (!sheet) return res.status(400).json({ message: `ملف ${programs[index]} لا يحتوي على شيت.` });
+			let branchCount = 0;
+			sheet.eachRow((row, rowNumber) => { if (rowNumber < 3) return; const value = row.getCell(1).value; const code = String(value?.text || value || '').trim(); const normalizedCode = normalizeFreeCode(code); if (!normalizedCode || normalizedCode === 'الكود' || seen.has(`${programs[index]}:${normalizedCode}`)) return; seen.add(`${programs[index]}:${normalizedCode}`); rows.push({ program: programs[index], code, normalizedCode, expiresAt: normalizeFreeCodeExpiry(row.getCell(5).value) }); branchCount += 1; });
+			const expected = Number.parseInt(counts[programs[index]], 10) || 0;
+			if (expected !== branchCount) return res.status(400).json({ message: `عدد الأكواد في ملف ${programs[index]} (${branchCount}) لا يساوي العدد المدخل (${expected}).` });
+		}
+		if (!rows.length) return res.status(400).json({ message: 'لم يتم العثور على أكواد في العمود A.' });
+		const imported = await database.importFreeCodeInventory(campaign.id, rows);
+		const updated = await database.updateFreeCodeCampaign(campaign.id, { status: 'active', enabled: true, limit: imported.total });
+		res.json({ campaign: updated, imported: imported.inserted.length, duplicates: imported.duplicates.length, total: imported.total, inventoryStats: await database.getFreeCodeInventoryStats(campaign.id) });
+	} catch (error) { next(error); }
+});
+
+app.get('/api/admin/free-codes/campaigns/:id/inventory', requireAdmin, requirePermission('free-codes'), async (req, res, next) => {
+	try { const campaign = await database.getFreeCodeCampaign(req.params.id); if (!campaign) return res.status(404).json({ message: 'الحملة غير موجودة.' }); res.json({ campaign, data: await database.getFreeCodeInventory(req.params.id), stats: await database.getFreeCodeInventoryStats(req.params.id) }); } catch (error) { next(error); }
 });
 
 app.patch('/api/admin/free-codes/campaigns/:id', requireAdmin, requirePermission('free-codes'), async (req, res, next) => {

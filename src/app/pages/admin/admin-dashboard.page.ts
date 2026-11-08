@@ -9,7 +9,7 @@ import { CmsPageKey, cmsPageDefaults, cmsPageOptions } from '../../core/cms-page
 import { displayProgramLabel } from '../../core/program-labels';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
 import { MonthlyContentService } from '../../core/services/monthly-content.service';
-import { AdminApiService, AdminUser, Customer, DashboardSummary, Feedback, FreeCodeCampaign, FreeCodeRequest, FreeCodeStatus, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
+import { AdminApiService, AdminUser, Customer, DashboardSummary, Feedback, FreeCodeCampaign, FreeCodeInventoryStat, FreeCodeRequest, FreeCodeStatus, Lead, Program, WheelClaim } from '../../core/services/admin-api.service';
 import { SeoService } from '../../core/seo.service';
 import { ContactFormComponent } from './forms/contact-form.component';
 import { FaqFormComponent } from './forms/faq-form.component';
@@ -107,7 +107,19 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	freeCodeSettingsDraft = { enabled: true, endsAt: '', limit: 0 };
 	freeCodeCampaigns: FreeCodeCampaign[] = [];
 	freeCodeCampaignFilter = '';
-	freeCodeCampaignDraft = { name: '', endsAt: '', limit: 0, enabled: true };
+	freeCodeCampaignDraft: { name: string; endsAt: string; limit: number; enabled: boolean; deliveryMethod: 'automatic' | 'whatsapp'; file: File | null } = { name: '', endsAt: '', limit: 0, enabled: true, deliveryMethod: 'whatsapp', file: null };
+	freeCodeUploadFile: File | null = null;
+	freeCodeUploadCampaignId = '';
+	freeCodeCampaignModalOpen = false;
+	freeCodeBranchFiles: Record<string, File | null> = {};
+	freeCodeBranchCounts: Record<string, number> = {};
+	freeCodeInventory: Array<{ id: string; program: string; code: string; expiresAt?: string; status: string; studentName?: string; whatsapp?: string; usedAt?: string; requestedAt?: string }> = [];
+	freeCodeInventoryStats: FreeCodeInventoryStat[] = [];
+	freeCodeInventoryCampaignId = '';
+	freeCodeDetailCampaign: FreeCodeCampaign | null = null;
+	freeCodeDetailInventory: Array<{ id: string; program: string; code: string; expiresAt?: string; status: string; studentName?: string; whatsapp?: string; usedAt?: string; requestedAt?: string }> = [];
+	freeCodeDetailStats: FreeCodeInventoryStat[] = [];
+	isLoadingFreeCodeDetail = false;
 	isLoadingFreeCodeRequests = false;
 	isSavingFreeCodeSettings = false;
 	wheelPage = 1;
@@ -946,6 +958,9 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	}
 	clearFreeCodeFilters(): void { this.freeCodeSearch = ''; this.freeCodeProgramFilter = ''; this.freeCodeCampaignFilter = ''; this.clearFreeCodeDateRange(); this.searchFreeCodeRequests(); }
 	selectFreeCodeCampaign(campaignId: string): void { this.freeCodeCampaignFilter = this.freeCodeCampaignFilter === campaignId ? '' : campaignId; this.freeCodePage = 1; this.loadFreeCodeRequests(true, 1); }
+	toggleFreeCodeInventory(campaignId: string): void { if (this.freeCodeInventoryCampaignId === campaignId) { this.freeCodeInventoryCampaignId = ''; this.freeCodeInventory = []; this.freeCodeInventoryStats = []; return; } this.freeCodeInventoryCampaignId = campaignId; this.adminApi.getFreeCodeInventory(campaignId).subscribe({ next: result => { this.freeCodeInventory = result.data; this.freeCodeInventoryStats = result.stats; }, error: err => this.handleApiError(err) }); }
+	openFreeCodeCampaignDetails(campaign: FreeCodeCampaign): void { this.freeCodeDetailCampaign = campaign; this.freeCodeDetailInventory = []; this.freeCodeDetailStats = []; this.isLoadingFreeCodeDetail = true; this.adminApi.getFreeCodeInventory(campaign.id).pipe(finalize(() => { this.isLoadingFreeCodeDetail = false; this.refreshView(); })).subscribe({ next: result => { this.freeCodeDetailCampaign = result.campaign; this.freeCodeDetailInventory = result.data; this.freeCodeDetailStats = result.stats; this.errorMessage = ''; }, error: err => this.handleApiError(err) }); }
+	closeFreeCodeCampaignDetails(): void { this.freeCodeDetailCampaign = null; this.freeCodeDetailInventory = []; this.freeCodeDetailStats = []; }
 	toggleFreeCodeCampaign(campaign: FreeCodeCampaign, event: Event): void {
 		const enabled = Boolean((event.target as HTMLInputElement)?.checked);
 		if (!['active', 'closed'].includes(campaign.status)) return;
@@ -971,6 +986,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		const rows = requests.map(request => ({
 			'الاسم': request.name,
 			'رقم الواتساب': request.whatsapp,
+			'الكود / التسليم': request.code || 'واتساب',
+			'طريقة التسليم': request.deliveryMethod === 'automatic' ? 'تلقائي' : 'واتساب',
 			'نوع المعادلة': request.program,
 			'الحملة': request.campaignName || 'الحملة القديمة',
 			'انتهاء الحملة': request.campaignEndsAt || '',
@@ -982,6 +999,8 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		sheet.columns = [
 			{ header: 'الاسم', key: 'الاسم', width: 30 },
 			{ header: 'رقم الواتساب', key: 'رقم الواتساب', width: 20 },
+			{ header: 'الكود / التسليم', key: 'الكود / التسليم', width: 24 },
+			{ header: 'طريقة التسليم', key: 'طريقة التسليم', width: 18 },
 			{ header: 'نوع المعادلة', key: 'نوع المعادلة', width: 28 },
 			{ header: 'الحملة', key: 'الحملة', width: 28 },
 			{ header: 'انتهاء الحملة', key: 'انتهاء الحملة', width: 20 },
@@ -1006,12 +1025,21 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		const endsAt = this.freeCodeSettingsDraft.endsAt ? new Date(this.freeCodeSettingsDraft.endsAt).toISOString() : '';
 		this.adminApi.updateFreeCodeSettings({ enabled: this.freeCodeSettingsDraft.enabled, endsAt, limit: Number(this.freeCodeSettingsDraft.limit) || 0 }).pipe(finalize(() => { this.isSavingFreeCodeSettings = false; this.refreshView(); })).subscribe({ next: status => { this.freeCodeStatus = status; this.freeCodeSettingsDraft = { enabled: status.enabled, endsAt: status.endsAt ? status.endsAt.slice(0, 16) : '', limit: status.limit }; this.statusMessage = 'تم حفظ إعدادات الأكواد المجانية.'; this.errorMessage = ''; }, error: err => this.handleApiError(err) });
 	}
+	openFreeCodeCampaignModal(): void { this.errorMessage = ''; this.freeCodeCampaignModalOpen = true; }
+	closeFreeCodeCampaignModal(): void { if (!this.isSavingFreeCodeSettings) this.freeCodeCampaignModalOpen = false; }
+	onFreeCodeBranchFileSelected(program: string, event: Event): void { const input = event.target as HTMLInputElement; this.freeCodeBranchFiles[program] = input.files?.[0] || null; }
 	createFreeCodeCampaign(): void {
 		const draft = this.freeCodeCampaignDraft;
-		if (!draft.name.trim() || !Number(draft.limit)) { this.errorMessage = 'اكتب اسم الحملة وعدد الأكواد.'; return; }
+		if (!draft.endsAt) { this.errorMessage = 'اختار تاريخ انتهاء الحملة أولًا.'; return; }
+		if (!draft.name.trim()) { this.errorMessage = draft.deliveryMethod === 'automatic' ? 'اكتب اسم الحملة أولًا، ثم أدخل عدد الأكواد وارفع ملف Excel لكل نوع معادلة.' : 'اكتب اسم الحملة.'; return; }
+		if (draft.deliveryMethod === 'whatsapp' && !Number(draft.limit)) { this.errorMessage = 'اكتب عدد الطلبات.'; return; }
+		if (draft.deliveryMethod === 'automatic') {
+			const missing = this.freeCodePrograms.find(program => !this.freeCodeBranchFiles[program] || Number(this.freeCodeBranchCounts[program]) < 1);
+			if (missing) { this.errorMessage = `أضف عدد الأكواد وارفع ملف فرع: ${missing}`; return; }
+		}
 		this.isSavingFreeCodeSettings = true;
 		const endsAt = draft.endsAt ? new Date(draft.endsAt).toISOString() : '';
-		this.adminApi.createFreeCodeCampaign({ name: draft.name.trim(), endsAt, limit: Number(draft.limit), enabled: draft.enabled }).pipe(finalize(() => { this.isSavingFreeCodeSettings = false; this.refreshView(); })).subscribe({ next: () => { this.freeCodeCampaignDraft = { name: '', endsAt: '', limit: 0, enabled: true }; this.statusMessage = 'تم إنشاء حملة جديدة مع الاحتفاظ بكل السجلات القديمة.'; this.errorMessage = ''; this.loadFreeCodeRequests(true, 1); }, error: err => this.handleApiError(err) });
+		this.adminApi.createFreeCodeCampaign({ name: draft.name.trim(), endsAt, limit: Number(draft.limit) || 0, enabled: draft.deliveryMethod === 'whatsapp', deliveryMethod: draft.deliveryMethod }).pipe(finalize(() => { this.isSavingFreeCodeSettings = false; this.refreshView(); })).subscribe({ next: campaign => { const files = { ...this.freeCodeBranchFiles }; const counts = { ...this.freeCodeBranchCounts }; this.freeCodeCampaignDraft = { name: '', endsAt: '', limit: 0, enabled: true, deliveryMethod: 'whatsapp', file: null }; this.freeCodeBranchFiles = {}; this.freeCodeBranchCounts = {}; this.freeCodeCampaignModalOpen = false; this.statusMessage = 'تم إنشاء الحملة.'; this.errorMessage = ''; if (draft.deliveryMethod === 'automatic') { this.isSavingFreeCodeSettings = true; this.adminApi.uploadFreeCodeInventories(campaign.id, files, counts).pipe(finalize(() => { this.isSavingFreeCodeSettings = false; this.refreshView(); })).subscribe({ next: result => { this.statusMessage = `تم رفع ${result.imported} كود للحملة. المكرر: ${result.duplicates}.`; this.loadFreeCodeRequests(true, 1); }, error: err => this.handleApiError(err) }); } else this.loadFreeCodeRequests(true, 1); }, error: err => this.handleApiError(err) });
 	}
 	toggleLeadsFilters(): void { this.leadsFiltersOpen = !this.leadsFiltersOpen; }
 	exportWheelClaims(): void {

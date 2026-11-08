@@ -17,9 +17,10 @@ export interface Program {
 	features: string[]; isActive: boolean; enrollmentStatus: 'open' | 'closed';
 }
 export interface WheelClaim { token: string; name: string; whatsapp: string; program: string; gift: string; notes?: string; claimedAt: string; }
-export interface FreeCodeCampaign { id: string; name: string; endsAt: string; limit: number; requestLimit?: number; status: 'active' | 'completed' | 'expired' | 'closed'; enabled: boolean; claimedCount: number; remaining: number | null; createdAt?: string; }
-export interface FreeCodeRequest { id: string; name: string; whatsapp: string; program: string; requestedAt: string; campaignId?: string; campaignName?: string; campaignEndsAt?: string; campaignStatus?: FreeCodeCampaign['status']; }
-export interface FreeCodeStatus { enabled: boolean; open: boolean; endsAt: string; limit: number; claimedCount: number; remaining: number | null; campaign?: FreeCodeCampaign | null; campaigns?: FreeCodeCampaign[]; }
+export interface FreeCodeInventoryStat { program: string; total: number; available: number; used: number; expired?: number; }
+export interface FreeCodeCampaign { id: string; name: string; endsAt: string; limit: number; requestLimit?: number; deliveryMethod: 'automatic' | 'whatsapp'; inventoryStats?: FreeCodeInventoryStat[]; status: 'active' | 'completed' | 'expired' | 'closed'; enabled: boolean; claimedCount: number; remaining: number | null; createdAt?: string; }
+export interface FreeCodeRequest { id: string; name: string; whatsapp: string; program: string; requestedAt: string; deliveryMethod?: 'automatic' | 'whatsapp'; code?: string; codeExpiresAt?: string; campaignId?: string; campaignName?: string; campaignEndsAt?: string; campaignStatus?: FreeCodeCampaign['status']; }
+export interface FreeCodeStatus { enabled: boolean; open: boolean; endsAt: string; limit: number; claimedCount: number; remaining: number | null; deliveryMethod?: 'automatic' | 'whatsapp'; hasAvailableCode?: boolean; inventoryStats?: FreeCodeInventoryStat[]; campaign?: FreeCodeCampaign | null; campaigns?: FreeCodeCampaign[]; }
 export interface Feedback { id: string; name: string; university?: string; batch?: string; rating: number; message: string; status: 'new' | 'reviewed' | 'published' | 'archived'; createdAt: string; updatedAt?: string | null; }
 export interface AdminUser { username: string; role: string; permissions: string[]; isActive: boolean; createdAt?: string; updatedAt?: string; }
 export interface SiteMode { maintenance: boolean; }
@@ -135,7 +136,16 @@ export class AdminApiService {
 	getFreeCodeSettings(): Observable<FreeCodeStatus> { return this.http.get<FreeCodeStatus>(`${this.base}/admin/free-codes/settings`); }
 	updateFreeCodeSettings(payload: { enabled: boolean; endsAt: string; limit: number }): Observable<FreeCodeStatus> { return this.http.put<FreeCodeStatus>(`${this.base}/admin/free-codes/settings`, payload); }
 	listFreeCodeCampaigns(): Observable<{ data: FreeCodeCampaign[] }> { return this.http.get<{ data: FreeCodeCampaign[] }>(`${this.base}/admin/free-codes/campaigns`); }
-	createFreeCodeCampaign(payload: { name: string; endsAt: string; limit: number; enabled: boolean }): Observable<FreeCodeCampaign> { return this.http.post<FreeCodeCampaign>(`${this.base}/admin/free-codes/campaigns`, payload); }
+	createFreeCodeCampaign(payload: { name: string; endsAt: string; limit: number; enabled: boolean; deliveryMethod: 'automatic' | 'whatsapp' }): Observable<FreeCodeCampaign> { return this.http.post<FreeCodeCampaign>(`${this.base}/admin/free-codes/campaigns`, payload); }
+	uploadFreeCodeInventory(campaignId: string, file: File): Observable<{ campaign: FreeCodeCampaign; imported: number; duplicates: number; total: number; inventoryStats: FreeCodeInventoryStat[] }> { const form = new FormData(); form.append('file', file); return this.http.post<{ campaign: FreeCodeCampaign; imported: number; duplicates: number; total: number; inventoryStats: FreeCodeInventoryStat[] }>(`${this.base}/admin/free-codes/campaigns/${encodeURIComponent(campaignId)}/codes`, form); }
+	uploadFreeCodeInventories(campaignId: string, files: Record<string, File | null>, counts: Record<string, number>): Observable<{ campaign: FreeCodeCampaign; imported: number; duplicates: number; total: number; inventoryStats: FreeCodeInventoryStat[] }> {
+		const form = new FormData();
+		const programs = ['معادلة هندسة عربي', 'معادلة حاسبات عربي', 'معادلة هندسة إنجليزي', 'معادلة حاسبات إنجليزي'];
+		programs.forEach((program, index) => { const file = files[program]; if (file) form.append(`file_${index}`, file); });
+		form.append('counts', JSON.stringify(counts));
+		return this.http.post<{ campaign: FreeCodeCampaign; imported: number; duplicates: number; total: number; inventoryStats: FreeCodeInventoryStat[] }>(`${this.base}/admin/free-codes/campaigns/${encodeURIComponent(campaignId)}/codes`, form);
+	}
+	getFreeCodeInventory(campaignId: string): Observable<{ campaign: FreeCodeCampaign; data: Array<{ id: string; program: string; code: string; expiresAt?: string; status: string; studentName?: string; whatsapp?: string; usedAt?: string; requestedAt?: string }>; stats: FreeCodeInventoryStat[] }> { return this.http.get<{ campaign: FreeCodeCampaign; data: Array<{ id: string; program: string; code: string; expiresAt?: string; status: string; studentName?: string; whatsapp?: string; usedAt?: string; requestedAt?: string }>; stats: FreeCodeInventoryStat[] }>(`${this.base}/admin/free-codes/campaigns/${encodeURIComponent(campaignId)}/inventory`); }
 	updateFreeCodeCampaign(id: string, payload: Partial<Pick<FreeCodeCampaign, 'name' | 'endsAt' | 'limit' | 'status' | 'enabled'>>): Observable<FreeCodeCampaign> { return this.http.patch<FreeCodeCampaign>(`${this.base}/admin/free-codes/campaigns/${encodeURIComponent(id)}`, payload); }
 	listFreeCodeRequests(page = 1, limit = 20, filters: { search?: string; program?: string; from?: string; to?: string; campaignId?: string } = {}): Observable<{ data: FreeCodeRequest[]; total: number; pagination: { page: number; limit: number; total: number; pages: number }; status: FreeCodeStatus }> {
 		let params = new HttpParams().set('page', page).set('limit', limit);

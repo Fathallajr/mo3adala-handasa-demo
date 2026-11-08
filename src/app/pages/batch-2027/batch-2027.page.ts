@@ -85,6 +85,11 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	freeCodeRemainingMs = 0;
 	freeCodeSubmitting = false;
 	freeCodeSubmitted = false;
+	freeCodeAssignedCode = '';
+	freeCodeCodeExpiresAt = '';
+	freeCodeCopied = false;
+	freeCodeDeliveryMethod: 'automatic' | 'whatsapp' = 'whatsapp';
+	freeCodeBranchEmpty = false;
 	freeCodeError = '';
 	freeCodeRequest = { name: '', whatsapp: '', program: '' };
 	private freeCodeTimer?: ReturnType<typeof setInterval>;
@@ -400,6 +405,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 			const status = await response.json();
 			this.freeCodeStatusLoaded = true;
 			this.freeCodeOpen = Boolean(status.open);
+			this.freeCodeDeliveryMethod = status.deliveryMethod === 'automatic' ? 'automatic' : 'whatsapp';
 			this.freeCodeEndsAt = String(status.endsAt || '');
 			this.freeCodeLimit = Number(status.limit || 0);
 			this.freeCodeClaimedCount = Number(status.claimedCount || 0);
@@ -439,7 +445,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 
 	async submitFreeCodeRequest(): Promise<void> {
 		if (this.freeCodeSubmitting || !this.freeCodeOpen) return;
-		this.freeCodeError = '';
+		this.freeCodeError = ''; this.freeCodeBranchEmpty = false;
 		const name = this.freeCodeRequest.name.trim();
 		const whatsapp = normalizePhone(this.freeCodeRequest.whatsapp);
 		const program = this.freeCodeRequest.program.trim();
@@ -454,19 +460,38 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 				body: new URLSearchParams({ name, whatsapp, program }).toString(), cache: 'no-store'
 			});
 			const payload = await response.json();
-			if (!response.ok) throw new Error(payload.message || 'تعذر تسجيل طلب الكود.');
+			if (!response.ok) {
+				if (payload.alreadyRegistered && payload.code) { this.freeCodeSubmitted = true; this.freeCodeAssignedCode = String(payload.code); this.freeCodeCodeExpiresAt = String(payload.codeExpiresAt || ''); this.freeCodeDeliveryMethod = 'automatic'; return; }
+				throw new Error(payload.message || 'تعذر تسجيل طلب الكود.');
+			}
 			this.freeCodeSubmitted = true;
+			this.freeCodeAssignedCode = String(payload.request?.code || '');
+			this.freeCodeCodeExpiresAt = String(payload.request?.codeExpiresAt || '');
+			this.freeCodeDeliveryMethod = payload.request?.deliveryMethod === 'automatic' ? 'automatic' : 'whatsapp';
 			if (payload.status) {
 				this.freeCodeOpen = Boolean(payload.status.open) && (payload.status.remaining === null || Number(payload.status.remaining) > 0);
 				this.freeCodeClaimedCount = Number(payload.status.claimedCount || this.freeCodeClaimedCount + 1);
 				this.freeCodeRemaining = payload.status.remaining === null ? null : Number(payload.status.remaining || 0);
 			}
-			this.openFreeCodeWhatsApp();
+			if (this.freeCodeDeliveryMethod === 'whatsapp') this.openFreeCodeWhatsApp();
 		} catch (error) {
+			this.freeCodeBranchEmpty = error instanceof Error && error.message.includes('الأكواد الخاصة بهذا الفرع نفدت');
 			this.freeCodeError = error instanceof Error ? error.message : 'تعذر تسجيل طلب الكود. حاول تاني.';
 		} finally {
 			this.freeCodeSubmitting = false;
 			this.changeDetector.detectChanges();
+		}
+	}
+
+	async copyFreeCode(): Promise<void> {
+		if (!this.freeCodeAssignedCode) return;
+		try {
+			await navigator.clipboard.writeText(this.freeCodeAssignedCode);
+			this.freeCodeCopied = true;
+			this.changeDetector.detectChanges();
+			window.setTimeout(() => { this.freeCodeCopied = false; this.changeDetector.detectChanges(); }, 1800);
+		} catch {
+			this.freeCodeCopied = false;
 		}
 	}
 
