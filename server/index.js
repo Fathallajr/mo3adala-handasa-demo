@@ -52,7 +52,7 @@ const LEAD_STATUSES = ['new', 'batch_28', 'contacted', 'no_response', 'intereste
 const LEAD_STATUS_LABELS = {
 	new: 'جديد',
 	batch_28: 'دفعة 28',
-	contacted: 'تم التواصل',
+	contacted: 'مكثف',
 	no_response: 'لم يرد',
 	interested: 'مهتم',
 	registered: 'مسجل',
