@@ -120,7 +120,7 @@
 	<div class="batch-curriculum-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="batch-curriculum-modal-title" (click)="$event.stopPropagation()">
 		<div class="batch-curriculum-modal__head"><h2 id="batch-curriculum-modal-title">تقسيمة مواد دفعة 2027</h2><button type="button" class="batch-curriculum-modal__close" (click)="closeCurriculumImage()" aria-label="إغلاق الصورة">×</button></div>
 		<div class="batch-curriculum-modal__body"><img src="/assets/batch-2027-curriculum.png" alt="تقسيمة مواد معادلة كلية الهندسة لدفعة 2027 بحجم كبير" /></div>
-		<button type="button" class="batch-button batch-button--primary batch-curriculum-modal__close-action" (click)="closeCurriculumImage()">إغلاق</button>
+		<a class="batch-button batch-button--primary batch-curriculum-modal__close-action" href="/assets/batch-2027-curriculum.png" download="تقسيمة-مواد-دفعة-2027.png">تحميل الصورة <span>↓</span></a>
 	</div>
 </div>
 <main *ngIf="!isPageVisible" class="batch-page batch-page--hidden" dir="rtl"><div class="batch-container"><h1>الصفحة غير متاحة حاليًا</h1><p>تابعنا لمعرفة موعد فتحها من جديد.</p></div></main>
