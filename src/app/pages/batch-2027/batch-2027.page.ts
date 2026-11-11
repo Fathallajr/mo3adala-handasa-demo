@@ -66,6 +66,14 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		'معادلة هندسة لغات',
 		'معادلة حاسبات لغات'
 	];
+	curriculumColumns = [
+		{ title: 'الرياضة العامة', tone: 'teal', items: ['أساسيات الرياضة العامة 1', 'أساسيات الرياضة العامة 2', 'ثلاثي الأبعاد', 'المتجهات 1', 'المتجهات 2', 'الضرب القياسي', 'الضرب الاتجاهي والثنائي القياسي', 'معادلة الخط المستقيم في الفراغ 1', 'معادلة الخط المستقيم في الفراغ 2', 'معادلة الخط في المستوى 1', 'معادلة الخط في المستوى 2', 'معادلات التبادل والتوافق', 'نظرية ذات الحدين 1', 'ذات الحدين 2', 'نظرية ذات الحدين 3', 'مقدمة الأعداد المركبة', 'الصورة المثلثية للعدد المركب', 'الصورة الأسية للعدد المركب', 'نظرية ديموافر', 'الجذور التكعيبية للعدد الصحيح'] },
+		{ title: 'الرياضة الخاصة', tone: 'purple', items: ['أساسيات الرياضة الخاصة 1', 'أساسيات الرياضة الخاصة 2', 'الاشتقاق 1', 'الاشتقاق 2', 'اشتقاق الدوال المتقدمة', 'الاشتقاق الضمني والبارامتري', 'المشتقات العليا', 'اشتقاق الأسس واللوغاريتمات', 'المعدلات الزمنية', 'المعدلات الزمنية المرتبطة', 'التزايد والتناقص ونقاط الدرجة', 'القيم العظمى والصغرى المحلية', 'القيم العظمى والصغرى المطلقة', 'التحدب ونقاط الانقلاب', 'تطبيقات القيم العظمى والصغرى 1', 'تطبيقات القيم العظمى والصغرى 2', 'تكامل ثنائي القوى', 'تكامل الأسس واللوغاريتمات', 'التكامل بالتجزئ والتعويض', 'التكامل المحدد', 'المساحات', 'الحجوم'] },
+		{ title: 'كيمياء', tone: 'green', items: ['أساسيات كيمياء 1', 'أساسيات كيمياء 2', 'العناصر الانتقالية', 'باقي العناصر الانتقالية', 'الخواص الكيميائية الانتقالية', 'فلز الحديد', 'تفاعلات الحديد', 'الكشف عن الأيونات', 'باقي الكشف عن الأيونات', 'الكشف عن الكاتيونات', 'بداية التحليل الكمي', 'باقي التحليل الكمي', 'الاتزان الكيميائي', 'قاعدة لوشاتلييه ودليل الكتلة', 'المحاليل الالكتروليتية', 'التأين ووصل الدائرة', 'الكيمياء الكهربية', 'أنواع الخلايا الجلفانية', 'صدأ الحديد', 'الخلايا التحليلية', 'تطبيقات على الخلايا التحليلية', 'مقدمة الكيمياء العضوية', 'الألكانات', 'الميثان', 'الألكينات', 'الألكاين', 'البنزين العطري', 'مشتقات الهيدروكربونات', 'الكحولات', 'الفينولات', 'الأحماض الكربوكسيلية', 'الإسترات'] },
+		{ title: 'فيزياء', tone: 'blue', items: ['أساسيات الفيزياء 1', 'أساسيات الفيزياء 2', 'التيار الكهربي وقانون أوم', 'المقاومة الكهربية والعوامل المؤثرة', 'توصيل المقاومات 1', 'توصيل المقاومات 2', 'قانون أوم للدائرة المغلقة', 'قانون كيرشوف للتيار والجهد', 'التأثير المغناطيسي للتيار الكهربي', 'المجال الدائري والحلزوني', 'القوة المغناطيسية', 'عزم الازدواج المغناطيسي', 'الأميتر والفولتميتر', 'الأوميتر', 'الحث في ملف وقانون فاراداي', 'الحث في سلك', 'الحث المتبادل والحث الذاتي', 'الدينامو', 'التيارات الدوامية والمحرك الكهربي', 'المحول الكهربي', 'دوائر التيار المتردد 1', 'دوائر التيار المتردد 2', 'ظاهرة إشعاع الجسم الأسود', 'ظاهرة التأثير الكهروضوئي', 'ظاهرة الازدواجية الموجية والجسيمية', 'الأطياف الذرية 1', 'الأطياف الذرية 2', 'الليزر', 'الإلكترونيات الحديثة 1', 'الإلكترونيات الحديثة 2'] },
+		{ title: 'ميكانيكا', tone: 'orange', items: ['أساسيات 1', 'أساسيات 2', 'الاتكاك', 'العزوم في النظام الديكارتي', 'العزوم في النظام القياسي', 'القوى المتوازية 1', 'القوى المتوازية 2', 'القوى المتوازية 3', 'الاتزان العام', 'الازدواج 1', 'الازدواج 2', 'تفاضل الدوال المتجهة', 'تكامل الدوال المتجهة', 'قوانين نيوتن', 'حركة الأجسام مقذوفة أفقيًا أو بزاوية', 'حركة المصاعد', 'البكرات البسيطة', 'الدفع', 'الشغل', 'طاقة الحركة', 'مبدأ الشغل والطاقة', 'طاقة الوضع', 'القدرة'] },
+		{ title: 'الإنجليزي', tone: 'red', items: ['Verbs + Tenses', 'Adjectives & Adverbs', 'Pronouns & Nouns', 'Linkers', 'Unit 1 - Present Perfect & Cont', 'Unit 1 (Vocabulary)', 'Reported speech', 'Unit 2 (Vocabulary)', 'Unit 3 - Deduction', 'Unit 3 - Vocabulary', 'Unit 4 - Compound adjective', 'Unit 4 - Vocabulary', 'Unit 5 - Causative', 'Unit 5 - Vocabulary', 'Unit 6 - Reported Questions', 'Unit 6 - Vocabulary', 'Unit 7 - Past Perfect', 'Unit 7 - Vocabulary', 'Unit 8 - Passive', 'Unit 8 - Vocabulary', 'Unit 9 - Verb to Be +Inf + ing', 'Unit 9 - Vocabulary', 'Unit 10 - Relative Pronouns', 'Unit 10 - Vocabulary', 'Unit 11 - Comparative & Superlatives', 'Unit 11 - Vocabulary', 'Unit 12 - Question tag', 'Unit 12 - Vocabulary'] }
+	];
 	wheelClaimError = '';
 	wheelClaimSubmitting = false;
 	wheelClaimComplete = false;
@@ -92,7 +100,20 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 	freeCodeBranchEmpty = false;
 	freeCodeError = '';
 	freeCodeRequest = { name: '', whatsapp: '', program: '' };
+	curriculumImageOpen = false;
+	private previousBodyOverflow = '';
 	private freeCodeTimer?: ReturnType<typeof setInterval>;
+
+	openCurriculumImage(): void {
+		if (this.curriculumImageOpen) return;
+		this.previousBodyOverflow = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		this.curriculumImageOpen = true;
+	}
+	closeCurriculumImage(): void {
+		this.curriculumImageOpen = false;
+		document.body.style.overflow = this.previousBodyOverflow;
+	}
 
 	toggleHeroSubscriptionChoices(event: Event): void {
 		event.preventDefault();
@@ -505,6 +526,7 @@ export class Batch2027PageComponent implements OnInit, OnDestroy {
 		if (this.giftRevealTimer) clearTimeout(this.giftRevealTimer);
 		if (this.wheelTimer) clearTimeout(this.wheelTimer);
 		if (this.freeCodeTimer) clearInterval(this.freeCodeTimer);
+		document.body.style.overflow = this.previousBodyOverflow;
 	}
 
 	ngOnInit(): void {

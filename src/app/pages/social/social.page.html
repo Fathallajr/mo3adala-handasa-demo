@@ -38,4 +38,21 @@
     </div>
     <app-subscription-choice-trigger label="ابدأ رحلتك التعليمية" buttonClass="subscription-visible-cta"></app-subscription-choice-trigger>
   </section>
+
+  <div class="social-contact-heading"><span>خطوتك الجاية تبدأ هنا</span><h2>سجل الآن يا بشمهندس</h2></div>
+  <section class="social-contact-join" id="contact-join">
+    <div class="social-contact-join__intro" *ngIf="!offerSubmitted"><span>خليك أول واحد يعرف</span><h2>سجل دلوقتي<br><b>ونشرحلك كل حاجة تخص المعادلة</b></h2><p>سيب بياناتك وفريقنا هيتواصل معاك</p><div>🔒 بياناتك للتواصل معاك بخصوص العرض والدفعة الجديدة فقط.</div></div>
+    <div class="social-contact-join__success" *ngIf="offerSubmitted"><strong>✓</strong><h2>تم تسجيل بياناتك بنجاح</h2><p>هنكلمك قريب بكل تفاصيل دفعة 2027 والعرض الخاص بيك.</p></div>
+    <form *ngIf="!offerSubmitted" class="social-contact-form" (ngSubmit)="submitLaunchOffer()">
+      <label><span>اسمك الثلاثي <b>*</b></span><input name="socialOfferName" [(ngModel)]="lead.name" required placeholder="اكتب اسمك الثلاثي" /></label>
+      <label><span>رقم الواتساب <b>*</b></span><input name="socialOfferWhatsapp" [(ngModel)]="lead.whatsapp" required inputmode="numeric" type="tel" maxlength="11" placeholder="01xxxxxxxxx" /></label>
+      <label><span>المدرسة أو المعهد <b>*</b></span><input name="socialOfferSchool" [(ngModel)]="lead.school" required placeholder="اكتب اسم المدرسة أو المعهد" /></label>
+      <label><span>نوع التعليم <b>*</b></span><app-styled-select name="socialOfferStudentType" [(ngModel)]="lead.studentType" [options]="offerStudentTypeOptions" placeholder="اختار نوع التعليم"></app-styled-select></label>
+      <label><span>نوع المعادلة <b>*</b></span><app-styled-select name="socialOfferProgram" [(ngModel)]="lead.program" [options]="programOptions" placeholder="اختار نوع المعادلة"></app-styled-select></label>
+      <label><span>عرفتنا منين؟ <b>*</b></span><app-styled-select name="socialOfferSource" [(ngModel)]="lead.source" [options]="offerSourceOptions" placeholder="اختار مصدر معرفتك بنا"></app-styled-select></label>
+      <label class="social-contact-consent"><input type="checkbox" name="socialOfferConsent" [(ngModel)]="offerContactConsent" required (change)="offerError = ''" /><span>أوافق على التواصل معي بخصوص العرض والدفعة الجديدة <b>*</b></span></label>
+      <button type="submit" [disabled]="offerSubmitting">{{ offerSubmitting ? 'جاري التسجيل...' : 'احصل على الخصم الآن' }} <span>←</span></button>
+      <p *ngIf="offerError" class="social-contact-error" role="alert">⚠ {{ offerError }}</p>
+    </form>
+  </section>
 </main>

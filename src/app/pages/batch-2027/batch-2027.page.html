@@ -93,6 +93,10 @@
 		</div>
 	</section>
 
+	<section class="batch-curriculum-image batch-container" aria-labelledby="batch-curriculum-image-title">
+		<div class="batch-curriculum-image__intro"><span class="batch-kicker"><span></span> خطتك في مادة</span><h2 id="batch-curriculum-image-title">تقسيمة المواد لدفعة 2027</h2><p>احفظ الصورة عندك وراجعها كل يوم وانت بتتابع تقدمك على المنصة.</p></div>
+		<button type="button" class="batch-curriculum-image__link" (click)="openCurriculumImage()" aria-label="فتح تقسيمة مواد دفعة 2027 بحجم كبير"><img src="/assets/batch-2027-curriculum.png" alt="تقسيمة مواد معادلة كلية الهندسة لدفعة 2027" loading="lazy" decoding="async" /></button>
+	</section>
 	<div class="batch-form-heading"><span>خطوتك الجاية تبدأ هنا</span><h2>سجل الآن يا بشمهندس</h2></div>
 	<section id="join" class="batch-join batch-container">
 		<div class="batch-join__intro" *ngIf="!offerSubmitted"><span class="batch-kicker"><span></span> {{ joinEyebrow }}</span><h2>{{ joinTitle }}<br><b>{{ joinHighlight }}</b></h2><p>{{ joinDescription }}</p><div class="batch-join__note">🔒 بياناتك للتواصل معاك بخصوص العرض والدفعة الجديدة فقط.</div></div>
@@ -112,4 +116,11 @@
 
 	<section class="batch-final"><div class="batch-container"><span>دفعة 2027</span><h2>كل يوم بدري فيه خطوة أقرب لحلمك</h2><a href="https://app-mo3adlet-handsa.com/register.php" target="_blank" rel="noopener" class="batch-button batch-button--primary">أنشئ حسابك الآن <span>←</span></a></div></section>
 </main>
+<div *ngIf="curriculumImageOpen" class="batch-curriculum-modal" role="presentation" (click)="closeCurriculumImage()">
+	<div class="batch-curriculum-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="batch-curriculum-modal-title" (click)="$event.stopPropagation()">
+		<div class="batch-curriculum-modal__head"><h2 id="batch-curriculum-modal-title">تقسيمة مواد دفعة 2027</h2><button type="button" class="batch-curriculum-modal__close" (click)="closeCurriculumImage()" aria-label="إغلاق الصورة">×</button></div>
+		<div class="batch-curriculum-modal__body"><img src="/assets/batch-2027-curriculum.png" alt="تقسيمة مواد معادلة كلية الهندسة لدفعة 2027 بحجم كبير" /></div>
+		<button type="button" class="batch-button batch-button--primary batch-curriculum-modal__close-action" (click)="closeCurriculumImage()">إغلاق</button>
+	</div>
+</div>
 <main *ngIf="!isPageVisible" class="batch-page batch-page--hidden" dir="rtl"><div class="batch-container"><h1>الصفحة غير متاحة حاليًا</h1><p>تابعنا لمعرفة موعد فتحها من جديد.</p></div></main>
