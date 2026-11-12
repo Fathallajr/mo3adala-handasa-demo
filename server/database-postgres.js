@@ -539,24 +539,30 @@ async function closeStaleAnalyticsSessions() {
 async function getAnalyticsSummary({ from, to, device = '' }) {
 	await ensureSchema();
 	await closeStaleAnalyticsSessions();
-	const sessionParams = device ? [from, to, device] : [from, to];
+	const params = device ? [from, to, device] : [from, to];
 	const deviceFilter = device ? ' AND device = $3' : '';
 	const viewDeviceFilter = device ? ' AND s.device = $3' : '';
-	const [sessionsResult, viewsResult] = await Promise.all([
-		pool.query(`SELECT id,visitor_id AS "visitorId",first_seen AS "firstSeen",last_seen AS "lastSeen",started_at AS "startedAt",ended_at AS "endedAt",ip_hash AS "ipHash",country,region,city,device,browser,os,referrer,landing_path AS "landingPath",acquisition_source AS "acquisitionSource",acquisition_medium AS "acquisitionMedium",acquisition_campaign AS "acquisitionCampaign",user_agent AS "userAgent",page_views AS "pageViews",duration_seconds AS "durationSeconds" FROM analytics_sessions WHERE last_seen >= $1::date AND last_seen < ($2::date + INTERVAL '1 day')${deviceFilter} ORDER BY last_seen DESC`, sessionParams),
-		pool.query(`SELECT pv.id,pv.session_id AS "sessionId",pv.path,pv.title,pv.component,pv.entered_at AS "enteredAt",pv.exited_at AS "exitedAt",pv.active_seconds AS "activeSeconds",pv.created_at AS "createdAt" FROM analytics_page_views pv INNER JOIN analytics_sessions s ON s.id = pv.session_id WHERE pv.created_at >= $1::date AND pv.created_at < ($2::date + INTERVAL '1 day')${viewDeviceFilter} ORDER BY pv.created_at DESC`, sessionParams)
+	const sessionWhere = `last_seen >= $1::date AND last_seen < ($2::date + INTERVAL '1 day')${deviceFilter}`;
+	const viewWhere = `pv.created_at >= $1::date AND pv.created_at < ($2::date + INTERVAL '1 day')${viewDeviceFilter}`;
+	const [statsResult, trafficResult, devicesResult, countriesResult, regionsResult, referrersResult, pagesResult, performanceResult, sessionsResult] = await Promise.all([
+		pool.query(`SELECT COUNT(*)::int AS sessions, COUNT(DISTINCT COALESCE(NULLIF(visitor_id, ''), NULLIF(ip_hash, '')))::int AS visitors, COALESCE(SUM(page_views), 0)::int AS "pageViews", COALESCE(ROUND(AVG(duration_seconds)), 0)::int AS "averageSessionDuration" FROM analytics_sessions WHERE ${sessionWhere}`, params),
+		pool.query(`SELECT last_seen::date::text AS date, COUNT(*)::int AS value FROM analytics_sessions WHERE ${sessionWhere} GROUP BY last_seen::date ORDER BY last_seen::date`, params),
+		pool.query(`SELECT COALESCE(NULLIF(device, ''), 'غير محدد') AS label, COUNT(*)::int AS value FROM analytics_sessions WHERE ${sessionWhere} GROUP BY 1 ORDER BY value DESC LIMIT 10`, params),
+		pool.query(`SELECT COALESCE(NULLIF(country, ''), 'غير محدد') AS label, COUNT(*)::int AS value FROM analytics_sessions WHERE ${sessionWhere} GROUP BY 1 ORDER BY value DESC LIMIT 10`, params),
+		pool.query(`SELECT COALESCE(NULLIF(region, ''), 'غير محدد') AS label, COUNT(*)::int AS value FROM analytics_sessions WHERE ${sessionWhere} GROUP BY 1 ORDER BY value DESC LIMIT 1000`, params),
+		pool.query(`SELECT COALESCE(NULLIF(referrer, ''), 'غير محدد') AS label, COUNT(*)::int AS value FROM analytics_sessions WHERE ${sessionWhere} GROUP BY 1 ORDER BY value DESC LIMIT 10`, params),
+		pool.query(`SELECT COALESCE(NULLIF(path, ''), '/') AS path, COUNT(*)::int AS value FROM analytics_page_views pv INNER JOIN analytics_sessions s ON s.id = pv.session_id WHERE ${viewWhere} GROUP BY 1 ORDER BY value DESC LIMIT 10`, params),
+		pool.query(`SELECT COALESCE(NULLIF(pv.path, ''), '/') AS path, COUNT(DISTINCT COALESCE(NULLIF(s.visitor_id, ''), NULLIF(s.ip_hash, '')))::int AS visitors, COUNT(DISTINCT pv.session_id)::int AS sessions, COUNT(*)::int AS "pageViews", COALESCE(ROUND(SUM(pv.active_seconds)::numeric / NULLIF(COUNT(DISTINCT pv.session_id), 0)), 0)::int AS "averageSessionDuration" FROM analytics_page_views pv INNER JOIN analytics_sessions s ON s.id = pv.session_id WHERE ${viewWhere} GROUP BY 1 ORDER BY "pageViews" DESC LIMIT 20`, params),
+		pool.query(`SELECT id,visitor_id AS "visitorId",first_seen AS "firstSeen",last_seen AS "lastSeen",started_at AS "startedAt",ended_at AS "endedAt",ip_hash AS "ipHash",country,region,city,device,browser,os,referrer,landing_path AS "landingPath",acquisition_source AS "acquisitionSource",acquisition_medium AS "acquisitionMedium",acquisition_campaign AS "acquisitionCampaign",user_agent AS "userAgent",page_views AS "pageViews",duration_seconds AS "durationSeconds" FROM analytics_sessions WHERE ${sessionWhere} ORDER BY last_seen DESC LIMIT 500`, params)
 	]);
+	const stats = statsResult.rows[0] || { sessions: 0, visitors: 0, pageViews: 0, averageSessionDuration: 0 };
 	const sessions = sessionsResult.rows.map(row => ({ ...row, pageViews:Number(row.pageViews||0), durationSeconds:Number(row.durationSeconds||0) }));
-	const pageViews = viewsResult.rows.map(row => ({ ...row, activeSeconds:Number(row.activeSeconds||0) }));
-	const pageViewCountBySession = pageViews.reduce((map, row) => map.set(row.sessionId, (map.get(row.sessionId) || 0) + 1), new Map());
-	const count = (key, limit = 10) => Object.entries(sessions.reduce((acc,row) => { const value=row[key]||'غير محدد'; acc[value]=(acc[value]||0)+1; return acc; }, {})).sort((a,b)=>b[1]-a[1]).slice(0,limit).map(([label,value])=>({label,value}));
-	const dateKey = value => value instanceof Date ? value.toISOString().slice(0, 10) : String(value).slice(0, 10);
-	const daily = {}; const topPages = {};
-	for (const row of sessions) { const day=dateKey(row.lastSeen); daily[day]=(daily[day]||0)+1; }
-	for (const row of pageViews) topPages[row.path]=(topPages[row.path]||0)+1;
-	const sessionById = new Map(sessions.map(row => [row.id, row])); const performance = {};
-	for (const row of pageViews) { const session = sessionById.get(row.sessionId); if (!performance[row.path]) performance[row.path] = { path:row.path, visitors:new Set(), sessions:new Set(), pageViews:0, duration:0 }; const item=performance[row.path]; item.pageViews += 1; item.duration += Number(row.activeSeconds || 0); item.sessions.add(row.sessionId); if (session?.visitorId || session?.ipHash) item.visitors.add(session.visitorId || session.ipHash); }
-	for (const item of Object.values(performance)) item.duration = Number(item.duration || 0);
+	const pageViewCountBySession = new Map();
+	if (sessions.length) {
+		const ids = sessions.map(row => row.id);
+		const recentViews = await pool.query(`SELECT session_id AS "sessionId", COUNT(*)::int AS value FROM analytics_page_views WHERE session_id = ANY($1::text[]) GROUP BY session_id`, [ids]);
+		for (const row of recentViews.rows) pageViewCountBySession.set(row.sessionId, Number(row.value || 0));
+	}
 	const groupedSessions = new Map();
 	for (const row of sessions) {
 		const key = [row.ipHash || '', row.device || '', row.browser || '', row.os || '', row.userAgent || ''].join('|');
@@ -566,10 +572,12 @@ async function getAnalyticsSummary({ from, to, device = '' }) {
 		group.pageViews += pageViewsForSession; group.durationSeconds += Number(row.durationSeconds || 0); group.sessionCount += 1;
 		group.sessions.push({ id: row.id, startedAt: row.startedAt, lastSeen: row.lastSeen, landingPath: row.landingPath, pageViews: pageViewsForSession, durationSeconds: Number(row.durationSeconds || 0) });
 	}
-	return { sessions:sessions.length, visitors:new Set(sessions.map(row=>row.visitorId||row.ipHash).filter(Boolean)).size, pageViews:pageViews.length,
-		averageSessionDuration:sessions.length?Math.round(sessions.reduce((sum,row)=>sum+row.durationSeconds,0)/sessions.length):0, pagesPerSession:sessions.length?Number((pageViews.length/sessions.length).toFixed(2)):0,
-		trafficOverTime:Object.entries(daily).sort(([a],[b])=>a.localeCompare(b)).map(([date,value])=>({date,value})), devices:count('device'), countries:count('country'), regions:count('region',1000), referrers:count('referrer'),
-		topPages:Object.entries(topPages).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([path,value])=>({path,value})), performance:Object.values(performance).sort((a,b)=>b.pageViews-a.pageViews).slice(0,20).map(item=>({path:item.path,visitors:item.visitors.size,sessions:item.sessions.size,pageViews:item.pageViews,averageSessionDuration:item.sessions.size?Math.round(item.duration/item.sessions.size):0,pagesPerSession:item.sessions.size?Number((item.pageViews/item.sessions.size).toFixed(2)):0})), recentSessions:[...groupedSessions.values()], from, to };
+	const pageViews = Number(stats.pageViews || 0);
+	const sessionsCount = Number(stats.sessions || 0);
+	return { sessions:sessionsCount, visitors:Number(stats.visitors || 0), pageViews,
+		averageSessionDuration:Number(stats.averageSessionDuration || 0), pagesPerSession:sessionsCount?Number((pageViews/sessionsCount).toFixed(2)):0,
+		trafficOverTime:trafficResult.rows.map(row => ({ date:row.date, value:Number(row.value || 0) })), devices:devicesResult.rows.map(row => ({ label:row.label, value:Number(row.value || 0) })), countries:countriesResult.rows.map(row => ({ label:row.label, value:Number(row.value || 0) })), regions:regionsResult.rows.map(row => ({ label:row.label, value:Number(row.value || 0) })), referrers:referrersResult.rows.map(row => ({ label:row.label, value:Number(row.value || 0) })),
+		topPages:pagesResult.rows.map(row => ({ path:row.path, value:Number(row.value || 0) })), performance:performanceResult.rows.map(row => ({ path:row.path, visitors:Number(row.visitors || 0), sessions:Number(row.sessions || 0), pageViews:Number(row.pageViews || 0), averageSessionDuration:Number(row.averageSessionDuration || 0), pagesPerSession:Number(row.sessions || 0) ? Number((Number(row.pageViews || 0) / Number(row.sessions || 0)).toFixed(2)) : 0 })), recentSessions:[...groupedSessions.values()], from, to };
 }
 getAnalyticsSummary.touchAdminActivity = touchAdminActivity;
 getAnalyticsSummary.closeStaleAnalyticsSessions = closeStaleAnalyticsSessions;
