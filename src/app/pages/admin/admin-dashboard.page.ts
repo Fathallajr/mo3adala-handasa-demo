@@ -881,6 +881,12 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		const international = digits.startsWith('20') ? digits : digits.startsWith('0') ? `20${digits.slice(1)}` : `20${digits}`;
 		window.open(`https://wa.me/${international}`, '_blank', 'noopener,noreferrer');
 	}
+	openLeadCall(phone: string): void {
+		const digits = String(phone || '').replace(/\D/g, '');
+		if (!digits) return;
+		const international = digits.startsWith('20') ? digits : digits.startsWith('0') ? `20${digits.slice(1)}` : `20${digits}`;
+		window.location.href = `tel:+${international}`;
+	}
 	loadPrograms(force = false): void { if (this.isLoadingPrograms || (this.programsLoaded && !force)) return; this.isLoadingPrograms = true; this.adminApi.listPrograms().pipe(timeout({ each: 15000 }), finalize(() => { this.isLoadingPrograms = false; this.refreshView(); })).subscribe({ next: result => { this.programs = result.data; this.programsLoaded = true; this.refreshView(); }, error: err => { this.handleApiError(err); this.refreshView(); } }); }
 	editProgram(program: Program): void { this.editingProgramId = program.id; this.programDraft = { ...program, features: [...(program.features || [])] }; }
 	newProgram(): void { this.editingProgramId = null; this.programDraft = { name: '', slug: '', category: '', language: 'ar', price: 0, enrollmentStatus: 'open', isActive: true }; }
