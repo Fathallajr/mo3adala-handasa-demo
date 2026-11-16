@@ -4633,6 +4633,7 @@
 .subscription-form-success__lead {
 	max-width: 720px;
 	margin-inline: auto;
+	text-align: center;
 }
 
 .subscription-success-actions {
