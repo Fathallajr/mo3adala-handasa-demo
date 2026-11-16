@@ -142,7 +142,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	readonly subscriptionSupervisors = ['مهندسة حبيبة', 'مهندسة هدير', 'مهندسة ندى', 'مهندسة مي', 'مهندسة إيمان', 'مهندسة أشروقت', 'طالب جديد'];
 	subscriptionPage = 1; subscriptionPages = 1; subscriptionTotal = 0; isLoadingSubscriptionRequests = false; isSavingSubscription = false;
 	private subscriptionSearchTimer?: ReturnType<typeof setTimeout>;
-	subscriptionPendingIssue: SubscriptionRequest | null = null; subscriptionIssueDraft = ''; subscriptionPendingView: SubscriptionRequest | null = null; subscriptionPendingNote: SubscriptionRequest | null = null; subscriptionNoteDraft = ''; isSavingSubscriptionNote = false; subscriptionIssueMessageSelections: string[] = [];
+	subscriptionPendingIssue: SubscriptionRequest | null = null; subscriptionIssueDraft = ''; subscriptionPendingView: SubscriptionRequest | null = null; subscriptionPendingNote: SubscriptionRequest | null = null; subscriptionNoteDraft = ''; isSavingSubscriptionNote = false; private subscriptionNotePreviousOverflow = ''; subscriptionIssueMessageSelections: string[] = [];
 	readonly subscriptionIssueMessageOptions = [
 		{ key: 'transfer', label: 'مشكلة رقم التحويل (اللي حول منه)', message: 'الرقم اللي حول منه مش ظاهر عندي في التحويلات\nاستأذنك ترجع للراجل اللي حولت منه عشان بيكون عنده كذا رقم للتحويل' },
 		{ key: 'identity', label: 'مشكلة صورة البطاقة غير واضحة أو خاطئة', message: 'هندسة استأذنك تبعت بطاقتك كاملة والصورة تكون واضحة\nأو لو رافع شهادة الميلاد\nفين بطاقتك؟' },
@@ -1400,9 +1400,9 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.refreshView();
 	}
 	closeSubscriptionActionMenu(): void { this.openSubscriptionActionMenuId = null; this.refreshView(); }
-	openSubscriptionNote(item: SubscriptionRequest): void { this.closeSubscriptionActionMenu(); this.subscriptionPendingNote = item; this.subscriptionNoteDraft = item.adminNote || ''; this.errorMessage = ''; }
-	closeSubscriptionNote(): void { if (this.isSavingSubscriptionNote) return; this.subscriptionPendingNote = null; this.subscriptionNoteDraft = ''; this.refreshView(); }
-	saveSubscriptionNote(): void { const item = this.subscriptionPendingNote; if (!item || this.isSavingSubscriptionNote) return; this.isSavingSubscriptionNote = true; this.adminApi.updateSubscriptionRequest(item.id, { adminNote: this.subscriptionNoteDraft.trim() }).pipe(finalize(() => { this.isSavingSubscriptionNote = false; this.refreshView(); })).subscribe({ next: updated => { Object.assign(item, updated); this.subscriptionPendingNote = null; this.subscriptionNoteDraft = ''; this.statusMessage = 'تم حفظ الملاحظة الإدارية.'; this.errorMessage = ''; }, error: err => this.handleApiError(err) }); }
+	openSubscriptionNote(item: SubscriptionRequest): void { this.closeSubscriptionActionMenu(); this.subscriptionNotePreviousOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden'; this.subscriptionPendingNote = item; this.subscriptionNoteDraft = item.adminNote || ''; this.errorMessage = ''; }
+	closeSubscriptionNote(): void { if (this.isSavingSubscriptionNote) return; document.body.style.overflow = this.subscriptionNotePreviousOverflow; this.subscriptionNotePreviousOverflow = ''; this.subscriptionPendingNote = null; this.subscriptionNoteDraft = ''; this.refreshView(); }
+	saveSubscriptionNote(): void { const item = this.subscriptionPendingNote; if (!item || this.isSavingSubscriptionNote) return; this.isSavingSubscriptionNote = true; this.adminApi.updateSubscriptionRequest(item.id, { adminNote: this.subscriptionNoteDraft.trim() }).pipe(finalize(() => { this.isSavingSubscriptionNote = false; this.refreshView(); })).subscribe({ next: updated => { Object.assign(item, updated); document.body.style.overflow = this.subscriptionNotePreviousOverflow; this.subscriptionNotePreviousOverflow = ''; this.subscriptionPendingNote = null; this.subscriptionNoteDraft = ''; this.statusMessage = 'تم حفظ الملاحظة الإدارية.'; this.errorMessage = ''; }, error: err => this.handleApiError(err) }); }
 	async copySubscriptionCode(code: string): Promise<void> {
 		if (!code) return;
 		this.copiedSubscriptionCode = code;
