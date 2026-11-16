@@ -142,7 +142,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	readonly subscriptionSupervisors = ['مهندسة حبيبة', 'مهندسة هدير', 'مهندسة ندى', 'مهندسة مي', 'مهندسة إيمان', 'مهندسة أشروقت', 'طالب جديد'];
 	subscriptionPage = 1; subscriptionPages = 1; subscriptionTotal = 0; isLoadingSubscriptionRequests = false; isSavingSubscription = false;
 	private subscriptionSearchTimer?: ReturnType<typeof setTimeout>;
-	subscriptionPendingIssue: SubscriptionRequest | null = null; subscriptionIssueDraft = ''; subscriptionPendingView: SubscriptionRequest | null = null; subscriptionIssueMessageSelections: string[] = [];
+	subscriptionPendingIssue: SubscriptionRequest | null = null; subscriptionIssueDraft = ''; subscriptionPendingView: SubscriptionRequest | null = null; subscriptionPendingNote: SubscriptionRequest | null = null; subscriptionNoteDraft = ''; isSavingSubscriptionNote = false; subscriptionIssueMessageSelections: string[] = [];
 	readonly subscriptionIssueMessageOptions = [
 		{ key: 'transfer', label: 'مشكلة رقم التحويل (اللي حول منه)', message: 'الرقم اللي حول منه مش ظاهر عندي في التحويلات\nاستأذنك ترجع للراجل اللي حولت منه عشان بيكون عنده كذا رقم للتحويل' },
 		{ key: 'identity', label: 'مشكلة صورة البطاقة غير واضحة أو خاطئة', message: 'هندسة استأذنك تبعت بطاقتك كاملة والصورة تكون واضحة\nأو لو رافع شهادة الميلاد\nفين بطاقتك؟' },
@@ -218,6 +218,7 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 	leadProgramOptions = [...this.defaultLeadProgramOptions];
 	leadsPage = 1;
 	copiedLeadWhatsapp = '';
+	copiedSubscriptionCode = '';
 	leadsPages = 1;
 	leadPageNumbers: PaginationItem[] = [1];
 	leadsTotal = 0;
@@ -1399,11 +1400,28 @@ export class AdminDashboardPageComponent implements OnInit, OnDestroy {
 		this.refreshView();
 	}
 	closeSubscriptionActionMenu(): void { this.openSubscriptionActionMenuId = null; this.refreshView(); }
+	openSubscriptionNote(item: SubscriptionRequest): void { this.closeSubscriptionActionMenu(); this.subscriptionPendingNote = item; this.subscriptionNoteDraft = item.adminNote || ''; this.errorMessage = ''; }
+	closeSubscriptionNote(): void { if (this.isSavingSubscriptionNote) return; this.subscriptionPendingNote = null; this.subscriptionNoteDraft = ''; this.refreshView(); }
+	saveSubscriptionNote(): void { const item = this.subscriptionPendingNote; if (!item || this.isSavingSubscriptionNote) return; this.isSavingSubscriptionNote = true; this.adminApi.updateSubscriptionRequest(item.id, { adminNote: this.subscriptionNoteDraft.trim() }).pipe(finalize(() => { this.isSavingSubscriptionNote = false; this.refreshView(); })).subscribe({ next: updated => { Object.assign(item, updated); this.subscriptionPendingNote = null; this.subscriptionNoteDraft = ''; this.statusMessage = 'تم حفظ الملاحظة الإدارية.'; this.errorMessage = ''; }, error: err => this.handleApiError(err) }); }
+	async copySubscriptionCode(code: string): Promise<void> {
+		if (!code) return;
+		this.copiedSubscriptionCode = code;
+		this.errorMessage = '';
+		this.changeDetector.detectChanges();
+		try {
+			if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(code);
+			else {
+				const input = document.createElement('textarea'); input.value = code; input.style.position = 'fixed'; input.style.opacity = '0'; document.body.appendChild(input); input.focus(); input.select(); document.execCommand('copy'); input.remove();
+			}
+			window.setTimeout(() => { if (this.copiedSubscriptionCode === code) this.copiedSubscriptionCode = ''; }, 1600);
+		} catch { this.copiedSubscriptionCode = ''; this.errorMessage = 'تعذر نسخ الكود، حاول مرة أخرى.'; }
+	}
 	approveSubscriptionRequest(item: SubscriptionRequest): void { this.adminApi.updateSubscriptionRequest(item.id, { status: 'approved' }).subscribe({ next: updated => { Object.assign(item, updated); this.statusMessage = 'تم اعتماد الطلب للمراجعة النهائية.'; }, error: err => this.handleApiError(err) }); }
 	openSubscriptionIssue(item: SubscriptionRequest): void { this.subscriptionPendingIssue = item; this.subscriptionIssueDraft = ''; this.subscriptionIssueMessageSelections = []; this.errorMessage = ''; }
 	toggleSubscriptionIssueMessage(key: string, event: Event): void { const checked = (event.target as HTMLInputElement).checked; this.subscriptionIssueMessageSelections = checked ? [...new Set([...this.subscriptionIssueMessageSelections, key])] : this.subscriptionIssueMessageSelections.filter(item => item !== key); }
 	saveSubscriptionIssue(): void { if (!this.subscriptionPendingIssue) return; if (!this.subscriptionIssueMessageSelections.length && !this.subscriptionIssueDraft.trim()) { this.errorMessage = 'اختار رسالة أو اكتب تفاصيل إضافية لإرسالها للطالب.'; return; } const item = this.subscriptionPendingIssue; const selectedMessages = this.subscriptionIssueMessageOptions.filter(option => this.subscriptionIssueMessageSelections.includes(option.key)).map(option => option.message); const customMessage = this.subscriptionIssueDraft.trim(); const messageParts = [...selectedMessages, customMessage].filter(Boolean); const savedReason = messageParts.join('\n\n'); const whatsappMessage = messageParts.join('\n\n'); this.adminApi.issueSubscriptionProblem(item.id, savedReason).subscribe({ next: updated => { Object.assign(item, updated); this.openSubscriptionWhatsapp(updated, whatsappMessage, true); this.subscriptionPendingIssue = null; this.statusMessage = 'تم حفظ المشكلة وتجهيز رسالة واتساب بالرسائل المحددة.'; this.errorMessage = ''; }, error: err => this.handleApiError(err) }); }
 	sendSubscriptionCode(item: SubscriptionRequest): void { const whatsappWindow = window.open('about:blank', '_blank'); this.adminApi.sendSubscriptionCode(item.id).subscribe({ next: updated => { Object.assign(item, updated); const whatsappUrl = this.getSubscriptionWhatsappUrl(updated, 'يارب يكون شهر مميز !', true); if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.location.href = whatsappUrl; else { const opened = window.open(whatsappUrl, '_blank', 'noopener,noreferrer'); if (!opened) window.location.assign(whatsappUrl); } this.statusMessage = 'تم تخصيص الكود وفتح واتساب برسالة الطالب.'; this.errorMessage = ''; this.loadSubscriptionRequests(true); }, error: err => { if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.close(); this.handleApiError(err); } }); }
+	withdrawSubscriptionRequest(item: SubscriptionRequest): void { if (item.status === 'withdrawn' || !window.confirm(`تأكيد تسجيل انسحاب ${item.name}؟ سيتم حفظ أن المبلغ تم استرداده.`)) return; this.adminApi.withdrawSubscriptionRequest(item.id).subscribe({ next: updated => { Object.assign(item, updated); this.statusMessage = 'تم تسجيل الانسحاب بنجاح وتم استرداد المبلغ.'; this.errorMessage = ''; this.closeSubscriptionActionMenu(); this.loadSubscriptionRequests(true); }, error: err => this.handleApiError(err) }); }
 	getSubscriptionWhatsappUrl(item: SubscriptionRequest, heading: string, compact = false, rawMessage = false): string { const message = rawMessage ? heading : compact ? [heading, `كود التفعيل لشهر ${item.monthLabel || 'الحملة الحالية'}`, `الكود: ${item.assignedCode || '—'}`, `الاسم: ${item.name}`, `نوع المعادلة: ${item.program}`].join('\n') : [heading, `الرقم المرجعي: ${item.referenceCode || item.id}`, `الاسم: ${item.name}`, `واتساب: ${item.whatsapp}`, `تليجرام: ${item.telegram}`, `المشرف: ${item.supervisor}`, `نوع المعادلة: ${item.program}`, `حولت على رقم: ${item.paymentRecipient}`, `حولت من رقم: ${item.transferFrom}`, `وقت التحويل: ${item.transferAt}`, `المدرسة: ${item.school}`, item.assignedCode ? `الكود: ${item.assignedCode}` : '', item.issueReason ? `سبب المشكلة: ${item.issueReason}` : ''].filter(Boolean).join('\n'); const digits = item.whatsapp.replace(/\D/g, ''); const international = digits.startsWith('20') ? digits : digits.startsWith('0') ? `20${digits.slice(1)}` : `20${digits}`; return `https://wa.me/${international}?text=${encodeURIComponent(message)}`; }
 	openSubscriptionWhatsapp(item: SubscriptionRequest, heading: string, rawMessage = false): void { window.open(this.getSubscriptionWhatsappUrl(item, heading, false, rawMessage), '_blank', 'noopener,noreferrer'); }
 	openSubscriptionView(item: SubscriptionRequest): void { this.subscriptionPendingView = item; for (const kind of ['payment_receipt', 'identity_card']) { const key = `${item.id}:${kind}`; this.adminApi.getSubscriptionDocument(item.id, kind).subscribe({ next: blob => { const old = this.subscriptionDocumentPreviewUrls[key]; if (old) URL.revokeObjectURL(old); this.subscriptionDocumentPreviewUrls[key] = URL.createObjectURL(blob); this.refreshView(); }, error: err => this.handleApiError(err) }); } }
