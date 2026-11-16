@@ -199,7 +199,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, AfterViewInit
 		this.studentFormSubmitted = true;
 		this.studentFormError = '';
 		if (this.studentFormSubmitting || this.isEnrollmentClosed) return;
-		if (this.studentNameValidation || this.studentWhatsappValidation || this.studentTelegramValidation || this.studentSupervisorValidation || this.studentPaymentRecipientValidation || this.studentTransferFromValidation || this.studentTransferAtValidation || this.studentSchoolValidation || this.studentPaymentReceiptError || this.studentIdentityCardError) {
+		if (this.studentNameValidation || this.studentWhatsappValidation || this.studentTelegramValidation || this.studentSupervisorValidation || this.studentPaymentRecipientValidation || this.studentTransferFromValidation || this.studentTransferAtValidation || this.studentSchoolValidation || this.studentPaymentReceiptValidation || this.studentIdentityCardValidation) {
 			this.studentFormError = 'من فضلك أكمل كل البيانات المطلوبة.';
 			return;
 		}

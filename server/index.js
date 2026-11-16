@@ -1050,6 +1050,7 @@ app.post('/api/subscription-requests', rateLimit({ name: 'subscription-requests'
 	if (values.school.length < 2 || values.school.length > 160) return res.status(400).json({ message: 'اكتب اسم المدرسة بشكل صحيح.' });
 	const files = req.files || {};
 	const receipt = files.paymentReceipt?.[0]; const identity = files.identityCard?.[0];
+	if (!receipt || !identity) return res.status(400).json({ message: 'صورة إيصال الدفع وصورة البطاقة مطلوبان.' });
 	try {
 		await syncSubscriptionCampaignWithPages();
 		const subscriptionPageKeys = ['subscription-engineering-ar', 'subscription-computers-ar', 'subscription-engineering-en', 'subscription-computers-en'];
