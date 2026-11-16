@@ -4676,12 +4676,14 @@
 	min-width: 0;
 	flex-direction: column;
 	gap: .15rem;
+	text-align: right;
 }
 
 .subscription-action-copy strong,
 .subscription-action-copy small {
 	display: block;
 	color: inherit;
+	text-align: right;
 }
 
 .subscription-action-copy strong {
