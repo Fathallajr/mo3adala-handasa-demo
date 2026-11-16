@@ -4634,8 +4634,9 @@
 /* Make WhatsApp and Telegram explicit sequential actions. */
 .subscription-form-success__lead {
 	display: block;
-	max-width: 720px;
-	margin-inline: auto;
+	width: 100%;
+	max-width: 100%;
+	margin: .6rem auto 0;
 	direction: rtl;
 	text-align: center;
 }
