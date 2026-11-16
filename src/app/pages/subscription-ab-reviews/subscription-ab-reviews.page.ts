@@ -117,7 +117,7 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, AfterViewInit
 			`حولت من رقم: ${this.studentTransferFrom.trim()}`,
 			`وقت التحويل: ${this.formatTransferAtForWhatsApp(this.studentTransferAt)}`,
 			`المدرسة: ${this.studentSchool.trim()}`,
-			'تم رفع صورة إيصال الدفع وصورة البطاقة داخل طلب التسجيل.'
+			'سيتم مراجعة بيانات التحويل والتواصل معك بعد تسجيل الطلب.'
 		].join('\n');
 	}
 
@@ -199,15 +199,16 @@ export class SubscriptionAbReviewsPageComponent implements OnInit, AfterViewInit
 		this.studentFormSubmitted = true;
 		this.studentFormError = '';
 		if (this.studentFormSubmitting || this.isEnrollmentClosed) return;
-		if (this.studentNameValidation || this.studentWhatsappValidation || this.studentTelegramValidation || this.studentSupervisorValidation || this.studentPaymentRecipientValidation || this.studentTransferFromValidation || this.studentTransferAtValidation || this.studentSchoolValidation || this.studentPaymentReceiptValidation || this.studentIdentityCardValidation) {
-			this.studentFormError = 'من فضلك أكمل كل البيانات وارفع صورة الإيصال والبطاقة.';
+		if (this.studentNameValidation || this.studentWhatsappValidation || this.studentTelegramValidation || this.studentSupervisorValidation || this.studentPaymentRecipientValidation || this.studentTransferFromValidation || this.studentTransferAtValidation || this.studentSchoolValidation || this.studentPaymentReceiptError || this.studentIdentityCardError) {
+			this.studentFormError = 'من فضلك أكمل كل البيانات المطلوبة.';
 			return;
 		}
 		const body = new FormData();
 		body.append('name', this.studentName.trim()); body.append('whatsapp', this.studentWhatsapp.trim()); body.append('telegram', this.studentTelegram.trim());
 		body.append('supervisor', this.studentSupervisor); body.append('paymentRecipient', this.studentPaymentRecipient); body.append('transferFrom', this.studentTransferFrom.trim());
 		body.append('transferAt', this.studentTransferAt); body.append('school', this.studentSchool.trim()); body.append('program', this.subscriptionProgramLabel);
-		body.append('paymentReceipt', this.studentPaymentReceipt!); body.append('identityCard', this.studentIdentityCard!);
+		if (this.studentPaymentReceipt) body.append('paymentReceipt', this.studentPaymentReceipt);
+		if (this.studentIdentityCard) body.append('identityCard', this.studentIdentityCard);
 		this.studentFormSubmitting = true;
 		this.http.post<{ success: boolean; requestId: string; request?: { referenceCode?: string }; message: string }>('/api/subscription-requests', body).pipe(
 			finalize(() => {

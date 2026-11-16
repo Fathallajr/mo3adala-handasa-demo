@@ -1047,7 +1047,6 @@ app.post('/api/subscription-requests', rateLimit({ name: 'subscription-requests'
 	if (values.school.length < 2 || values.school.length > 160) return res.status(400).json({ message: 'اكتب اسم المدرسة بشكل صحيح.' });
 	const files = req.files || {};
 	const receipt = files.paymentReceipt?.[0]; const identity = files.identityCard?.[0];
-	if (!receipt || !identity) return res.status(400).json({ message: 'صورة إيصال الدفع وصورة البطاقة مطلوبتان.' });
 	try {
 		await syncSubscriptionCampaignWithPages();
 		const subscriptionPageKeys = ['subscription-engineering-ar', 'subscription-computers-ar', 'subscription-engineering-en', 'subscription-computers-en'];
@@ -1058,10 +1057,10 @@ app.post('/api/subscription-requests', rateLimit({ name: 'subscription-requests'
 		}));
 		if (recipientNumbers.has(values.transferFrom)) return res.status(400).json({ message: 'مينفعش تكتب رقمًا من أرقام فودافون كاش التي حوّلت إليها. اكتب رقم الشخص الذي حوّلت منه.' });
 		const now = getNowIso(); const id = crypto.randomUUID();
-		const request = await database.createSubscriptionRequest({ id, ...values, createdAt: now }, [
-			{ id: crypto.randomUUID(), kind: 'payment_receipt', originalName: receipt.originalname, mimeType: receipt.mimetype, data: receipt.buffer },
-			{ id: crypto.randomUUID(), kind: 'identity_card', originalName: identity.originalname, mimeType: identity.mimetype, data: identity.buffer }
-		]);
+		const documents = [];
+		if (receipt) documents.push({ id: crypto.randomUUID(), kind: 'payment_receipt', originalName: receipt.originalname, mimeType: receipt.mimetype, data: receipt.buffer });
+		if (identity) documents.push({ id: crypto.randomUUID(), kind: 'identity_card', originalName: identity.originalname, mimeType: identity.mimetype, data: identity.buffer });
+		const request = await database.createSubscriptionRequest({ id, ...values, createdAt: now }, documents);
 		res.status(201).json({ success: true, requestId: id, request, message: 'تم تسجيل طلبك بنجاح. استخدم واتساب أو تيليجرام من هنا لإكمال التواصل واستلام الكود.' });
 	} catch (error) {
 		if (error.code === 'DUPLICATE_SUBSCRIPTION') return res.status(409).json({ message: 'الرقم ده مسجل بالفعل في حملة الشهر الحالية.', alreadyRegistered: true });
