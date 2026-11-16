@@ -142,7 +142,10 @@ function saveTokens(map) {
 }
 
 const TOKENS = loadTokens();
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const persistentStagingDir = process.env.NODE_ENV === 'staging' && process.env.HOME
+	? path.join(process.env.HOME, 'mo3adala-staging-data')
+	: '';
+const UPLOADS_DIR = process.env.UPLOADS_DIR || (persistentStagingDir ? path.join(persistentStagingDir, 'uploads') : path.join(__dirname, 'uploads'));
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 const INDEX_FILE = path.join(DIST_DIR, 'index.html');
 

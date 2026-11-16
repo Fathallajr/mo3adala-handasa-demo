@@ -3,11 +3,21 @@ const path = require('path');
 const crypto = require('crypto');
 const Database = require('better-sqlite3');
 
-const dataDir = path.join(__dirname, 'data');
+const persistentStagingDir = process.env.NODE_ENV === 'staging' && process.env.HOME
+	? path.join(process.env.HOME, 'mo3adala-staging-data')
+	: '';
+const dataDir = process.env.SQLITE_DATA_DIR || persistentStagingDir || path.join(__dirname, 'data');
+const defaultDatabaseFile = path.join(__dirname, 'data', 'app.db');
 const databaseFile = process.env.SQLITE_FILE || path.join(dataDir, 'app.db');
-const legacyStoreFile = path.join(dataDir, 'content-store.json');
+const legacyStoreFile = path.join(__dirname, 'data', 'content-store.json');
 
 fs.mkdirSync(path.dirname(databaseFile), { recursive: true });
+if (databaseFile !== defaultDatabaseFile && !fs.existsSync(databaseFile) && fs.existsSync(defaultDatabaseFile)) {
+	fs.copyFileSync(defaultDatabaseFile, databaseFile);
+	for (const suffix of ['-wal', '-shm']) {
+		if (fs.existsSync(`${defaultDatabaseFile}${suffix}`)) fs.copyFileSync(`${defaultDatabaseFile}${suffix}`, `${databaseFile}${suffix}`);
+	}
+}
 const db = new Database(databaseFile);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
