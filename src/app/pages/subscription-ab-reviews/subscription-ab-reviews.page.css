@@ -4555,8 +4555,10 @@
 
 .subscription-form-success strong {
 	display: block;
+	width: 100%;
 	color: #15364c;
 	font-size: 1rem;
+	text-align: center;
 }
 
 .subscription-form-success p {
@@ -4631,8 +4633,10 @@
 
 /* Make WhatsApp and Telegram explicit sequential actions. */
 .subscription-form-success__lead {
+	display: block;
 	max-width: 720px;
 	margin-inline: auto;
+	direction: rtl;
 	text-align: center;
 }
 

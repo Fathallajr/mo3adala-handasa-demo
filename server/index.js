@@ -1065,7 +1065,7 @@ app.post('/api/subscription-requests', rateLimit({ name: 'subscription-requests'
 		if (receipt) documents.push({ id: crypto.randomUUID(), kind: 'payment_receipt', originalName: receipt.originalname, mimeType: receipt.mimetype, data: receipt.buffer });
 		if (identity) documents.push({ id: crypto.randomUUID(), kind: 'identity_card', originalName: identity.originalname, mimeType: identity.mimetype, data: identity.buffer });
 		const request = await database.createSubscriptionRequest({ id, ...values, createdAt: now }, documents);
-		res.status(201).json({ success: true, requestId: id, request, message: 'تم التسجيل بنجاح، سيصلك كود الإشتراك خلال 24 ساعة.' });
+		res.status(201).json({ success: true, requestId: id, request, message: 'تم التسجيل بنجاح، سيصلك كود الإشتراك خلال 24 ساعة' });
 	} catch (error) {
 		if (error.code === 'DUPLICATE_SUBSCRIPTION') return res.status(409).json({ message: 'الرقم ده مسجل بالفعل في حملة الشهر الحالية.', alreadyRegistered: true });
 		if (error.code === 'SUBSCRIPTION_CAMPAIGN_CLOSED') return res.status(409).json({ message: 'التسجيل مغلق حاليًا.' });
